@@ -100,6 +100,23 @@ class ObjetoServiceTest {
     }
 
     @Test
+    @DisplayName("Guarda la ubicación y las coordenadas del objeto")
+    void crearPublicacionConUbicacion() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario()));
+        when(categoriaRepository.findById(3L)).thenReturn(Optional.of(categoria()));
+
+        objetoService.crear(request(), 1L);
+
+        ArgumentCaptor<Objeto> captor = ArgumentCaptor.forClass(Objeto.class);
+        verify(objetoRepository).save(captor.capture());
+        Objeto guardado = captor.getValue();
+
+        assertThat(guardado.getUbicacion()).isEqualTo("Comedor principal");
+        assertThat(guardado.getLatitud()).isEqualByComparingTo(new BigDecimal("19.4326100"));
+        assertThat(guardado.getLongitud()).isEqualByComparingTo(new BigDecimal("-99.1332000"));
+    }
+
+    @Test
     @DisplayName("No crea la publicación si la categoría no existe")
     void categoriaInexistente() {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario()));

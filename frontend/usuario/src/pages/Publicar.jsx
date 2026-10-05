@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
 import { crearObjeto, listarCategorias, mensajeError, statusDe } from '../services/api';
+import { obtenerUbicacionActual } from '../services/geolocalizacion';
 
 const VACIO = {
   nombre: '',
@@ -20,6 +21,9 @@ export default function Publicar() {
   const [errores, setErrores] = useState({});
   const [errorGeneral, setErrorGeneral] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
+  const [ubicando, setUbicando] = useState(false);
+  const [avisoUbicacion, setAvisoUbicacion] = useState('');
 
   useEffect(() => {
     let vivo = true;
@@ -40,6 +44,24 @@ export default function Publicar() {
     const valor = e.target.value;
     setForm((f) => ({ ...f, [campo]: valor }));
     setErrores((er) => ({ ...er, [campo]: undefined }));
+  };
+
+  const usarMiUbicacion = async () => {
+    setAvisoUbicacion('');
+    setUbicando(true);
+    try {
+      const { latitud, longitud, direccion } = await obtenerUbicacionActual();
+      setCoordenadas({ latitud, longitud });
+      setForm((f) => ({
+        ...f,
+        ubicacion: direccion || f.ubicacion || `${latitud}, ${longitud}`,
+      }));
+      setErrores((er) => ({ ...er, ubicacion: undefined }));
+    } catch (e) {
+      setAvisoUbicacion(e.message);
+    } finally {
+      setUbicando(false);
+    }
   };
 
   const validar = () => {
@@ -87,6 +109,8 @@ export default function Publicar() {
         ubicacion: form.ubicacion.trim(),
         fechaObjeto: form.fechaObjeto,
         tipo,
+        latitud: coordenadas.latitud,
+        longitud: coordenadas.longitud,
       };
       const creado = await crearObjeto(payload);
       navigate(`/objeto/${creado.id}`, { replace: true });
@@ -198,11 +222,25 @@ export default function Publicar() {
           {errores.fechaObjeto && <span className="campo-error">{errores.fechaObjeto}</span>}
         </label>
 
+        <div className="campo">
+          <button
+            type="button"
+            className="btn btn-secundario"
+            onClick={usarMiUbicacion}
+            disabled={ubicando}
+          >
+            {ubicando ? '📍 Ubicando...' : '📍 Usar mi ubicación'}
+          </button>
+          {coordenadas.latitud != null && (
+            <span className="nota-suave">
+              Ubicación obtenida: {coordenadas.latitud}, {coordenadas.longitud}
+            </span>
+          )}
+          {avisoUbicacion && <span className="campo-error">{avisoUbicacion}</span>}
+        </div>
+
         <div className="proximamente">
           <span>📷 Foto — próximamente</span>
-        </div>
-        <div className="proximamente">
-          <span>📍 Ubicación en el mapa — próximamente</span>
         </div>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
