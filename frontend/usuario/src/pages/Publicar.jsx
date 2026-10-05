@@ -45,6 +45,7 @@ export default function Publicar() {
   const validar = () => {
     const er = {};
     if (!form.nombre.trim()) er.nombre = 'El nombre es obligatorio';
+    if (!form.descripcion.trim()) er.descripcion = 'La descripción es obligatoria';
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
     if (!form.fechaObjeto) er.fechaObjeto = 'La fecha es obligatoria';
@@ -146,7 +147,7 @@ export default function Publicar() {
         </label>
 
         <label className="campo">
-          <span className="campo-label">Descripción</span>
+          <span className="campo-label">Descripción *</span>
           <textarea
             className="input textarea"
             rows={4}

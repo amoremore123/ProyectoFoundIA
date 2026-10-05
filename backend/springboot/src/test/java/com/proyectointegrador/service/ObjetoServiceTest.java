@@ -1,0 +1,124 @@
+package com.proyectointegrador.service;
+
+import com.proyectointegrador.dto.ObjetoRequest;
+import com.proyectointegrador.dto.ObjetoResponse;
+import com.proyectointegrador.entity.Categoria;
+import com.proyectointegrador.entity.Objeto;
+import com.proyectointegrador.entity.TipoObjeto;
+import com.proyectointegrador.entity.Usuario;
+import com.proyectointegrador.exception.ResourceNotFoundException;
+import com.proyectointegrador.repository.CategoriaRepository;
+import com.proyectointegrador.repository.ObjetoRepository;
+import com.proyectointegrador.repository.UsuarioRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("H1 - Creación de publicaciones")
+class ObjetoServiceTest {
+
+    @Mock
+    private ObjetoRepository objetoRepository;
+
+    @Mock
+    private CategoriaRepository categoriaRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @InjectMocks
+    private ObjetoService objetoService;
+
+    private Usuario usuario() {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNombre("Ana");
+        usuario.setApellido("Pérez");
+        usuario.setCorreo("ana@foundia.dev");
+        return usuario;
+    }
+
+    private Categoria categoria() {
+        Categoria categoria = new Categoria();
+        categoria.setId(3L);
+        categoria.setNombre("Mochila");
+        return categoria;
+    }
+
+    private ObjetoRequest request() {
+        return new ObjetoRequest(
+                3L,
+                "Mochila negra",
+                "Mochila con libros de cálculo",
+                LocalDate.of(2026, 10, 2),
+                TipoObjeto.ENCONTRADO,
+                "Comedor principal",
+                new BigDecimal("19.4326100"),
+                new BigDecimal("-99.1332000"));
+    }
+
+    @Test
+    @DisplayName("Crea la publicación con los datos del formulario")
+    void crearPublicacion() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario()));
+        when(categoriaRepository.findById(3L)).thenReturn(Optional.of(categoria()));
+
+        ObjetoResponse respuesta = objetoService.crear(request(), 1L);
+
+        ArgumentCaptor<Objeto> captor = ArgumentCaptor.forClass(Objeto.class);
+        verify(objetoRepository).save(captor.capture());
+        Objeto guardado = captor.getValue();
+
+        assertThat(guardado.getNombre()).isEqualTo("Mochila negra");
+        assertThat(guardado.getDescripcion()).isEqualTo("Mochila con libros de cálculo");
+        assertThat(guardado.getFechaObjeto()).isEqualTo(LocalDate.of(2026, 10, 2));
+        assertThat(guardado.getTipo()).isEqualTo(TipoObjeto.ENCONTRADO);
+        assertThat(guardado.getEstado().name()).isEqualTo("ACTIVO");
+        assertThat(guardado.getUsuario().getId()).isEqualTo(1L);
+        assertThat(guardado.getCategoria().getId()).isEqualTo(3L);
+
+        assertThat(respuesta.nombre()).isEqualTo("Mochila negra");
+        assertThat(respuesta.estado()).isEqualTo("ACTIVO");
+        assertThat(respuesta.categoria().nombre()).isEqualTo("Mochila");
+        assertThat(respuesta.publicadoPor().nombre()).isEqualTo("Ana");
+    }
+
+    @Test
+    @DisplayName("No crea la publicación si la categoría no existe")
+    void categoriaInexistente() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario()));
+        when(categoriaRepository.findById(3L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> objetoService.crear(request(), 1L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(objetoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("No crea la publicación si el usuario no existe")
+    void usuarioInexistente() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> objetoService.crear(request(), 1L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(objetoRepository, never()).save(any());
+    }
+}
