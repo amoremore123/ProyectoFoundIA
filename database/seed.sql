@@ -44,11 +44,11 @@ INSERT INTO categorias (nombre, descripcion, estado) VALUES
 -- =====================================================================
 -- USUARIOS (hash BCrypt de "Admin123!")
 -- =====================================================================
-INSERT INTO usuarios (nombre, apellido, correo, password, rol, estado) VALUES
-    ('Admin',    'Sistema', 'admin@foundia.dev',  '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'ADMIN',  'ACTIVO'),
-    ('Ana',      'Pérez',   'ana@foundia.dev',    '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO'),
-    ('Luis',     'García',  'luis@foundia.dev',   '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO'),
-    ('Carla',    'López',   'carla@foundia.dev',  '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO');
+INSERT INTO usuarios (nombre, apellido, correo, password, rol, estado, verificado) VALUES
+    ('Admin',    'Sistema', 'admin@foundia.dev',  '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'ADMIN',  'ACTIVO', TRUE),
+    ('Ana',      'Pérez',   'ana@foundia.dev',    '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO', TRUE),
+    ('Luis',     'García',  'luis@foundia.dev',   '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO', TRUE),
+    ('Carla',    'López',   'carla@foundia.dev',  '$2a$10$os2A3cVrJ17vne137tk8neTtNo3FVsye4LGvyXZunlYSjrcyVce8G', 'USUARIO','ACTIVO', TRUE);
 
 -- =====================================================================
 -- OBJETOS DE PRUEBA

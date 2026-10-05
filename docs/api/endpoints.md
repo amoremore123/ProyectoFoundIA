@@ -12,9 +12,17 @@ API administrativa (React Admin).
 
 ## 1. Auth — Spring Boot
 
-### POST `/api/auth/register`
+Flujo (H11 + H12): **registro → código al correo → verificar → login**.
+En desarrollo los correos llegan a Mailpit: http://localhost:8025
 
-Registra un usuario nuevo. Rol por defecto: `USUARIO`.
+### POST `/api/auth/register`  _(H11)_
+
+Crea la cuenta **sin verificar** (rol `USUARIO`), guarda la contraseña con
+BCrypt y envía un código de 6 dígitos al correo (vence en 15 minutos).
+El correo se guarda en minúsculas.
+
+Reglas de contraseña: mínimo 8 caracteres, una mayúscula, una minúscula,
+un número y un símbolo (máx. 72). Nombre y apellido: solo letras.
 
 **Request**
 
@@ -23,7 +31,7 @@ Registra un usuario nuevo. Rol por defecto: `USUARIO`.
   "nombre": "Ana",
   "apellido": "Pérez",
   "correo": "ana@correo.com",
-  "password": "Secreta123"
+  "password": "Secreta123!"
 }
 ```
 
@@ -31,32 +39,66 @@ Registra un usuario nuevo. Rol por defecto: `USUARIO`.
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "usuario": {
-    "id": 5,
-    "nombre": "Ana",
-    "apellido": "Pérez",
-    "correo": "ana@correo.com",
-    "rol": "USUARIO",
-    "estado": "ACTIVO",
-    "fechaRegistro": "2026-10-04T12:00:00"
-  }
+  "mensaje": "Te enviamos un código de verificación a ana@correo.com. Ingrésalo para activar tu cuenta.",
+  "correo": "ana@correo.com"
 }
 ```
 
-**Errores**: `400` validación · `409` correo ya registrado
+**Errores**: `400` validación · `409` correo ya registrado · `503` no se pudo enviar el correo (no se crea la cuenta)
 
-### POST `/api/auth/login`
+### POST `/api/auth/verificar`  _(H11)_
 
 **Request**
 
 ```json
-{ "correo": "ana@correo.com", "password": "Secreta123" }
+{ "correo": "ana@correo.com", "codigo": "482913" }
 ```
 
-**Response** `200 OK` — mismo formato que register.
+**Response** `200 OK` — inicia sesión directamente:
 
-**Errores**: `401` credenciales inválidas o cuenta suspendida
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "usuario": {
+    "id": 5, "nombre": "Ana", "apellido": "Pérez", "correo": "ana@correo.com",
+    "rol": "USUARIO", "estado": "ACTIVO", "fechaRegistro": "2026-10-04T12:00:00"
+  }
+}
+```
+
+**Errores**: `400` código incorrecto, expirado o cuenta ya verificada
+
+### POST `/api/auth/reenviar-codigo`  _(H11)_
+
+**Request** `{ "correo": "ana@correo.com" }`
+
+**Response** `200 OK` `{ "mensaje": "Si el correo está registrado, te enviamos un nuevo código." }`
+
+**Errores**: `400` cuenta ya verificada · `503` fallo de correo
+
+### POST `/api/auth/login`  _(H12)_
+
+**Request**
+
+```json
+{ "correo": "ana@correo.com", "password": "Secreta123!" }
+```
+
+**Response** `200 OK` — mismo formato que `/verificar` (token JWT HS256, 24 h).
+
+**Errores**
+
+| Código | Cuándo | `mensaje` de ejemplo |
+| ------ | ------ | -------------------- |
+| `400` | Falta correo/contraseña | `El campo correo es obligatorio` |
+| `401` | Credenciales incorrectas | `Correo o contraseña incorrectos. Te quedan 3 intentos.` |
+| `401` | Cuenta suspendida | `Tu cuenta está suspendida. Contacta al administrador.` |
+| `403` | Correo sin verificar | `Debes verificar tu correo antes de iniciar sesión.` |
+| `423` | 5.º intento fallido o cuenta aún bloqueada | `Tu cuenta está bloqueada por demasiados intentos fallidos. Intenta de nuevo en 12 minutos.` |
+
+Bloqueo: al **5.º intento fallido consecutivo** la cuenta se bloquea **15 minutos**
+(columna `bloqueado_hasta`). Mientras dure, se rechaza incluso la contraseña
+correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
 ---
 

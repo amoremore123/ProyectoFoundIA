@@ -54,6 +54,17 @@ export const register = async (datos) => {
   return data;
 };
 
+// H11: verificación de correo
+export const verificarCuenta = async (correo, codigo) => {
+  const { data } = await api.post('/api/auth/verificar', { correo, codigo });
+  return data;
+};
+
+export const reenviarCodigo = async (correo) => {
+  const { data } = await api.post('/api/auth/reenviar-codigo', { correo });
+  return data;
+};
+
 // Categorías
 export const listarCategorias = async () => {
   const { data } = await api.get('/api/categorias');

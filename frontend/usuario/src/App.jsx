@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
+import Verificar from './pages/Verificar';
 import Buscar from './pages/Buscar';
 import Publicar from './pages/Publicar';
 import Detalle from './pages/Detalle';
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/verificar" element={<Verificar />} />
           <Route element={<MainLayout />}>
             <Route path="/" element={<Inicio />} />
             <Route path="/buscar" element={<Buscar />} />

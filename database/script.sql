@@ -32,6 +32,13 @@ CREATE TABLE usuarios (
     password          VARCHAR(255) NOT NULL,
     rol               VARCHAR(20)  NOT NULL DEFAULT 'USUARIO',
     estado            VARCHAR(20)  NOT NULL DEFAULT 'ACTIVO',
+    -- H11: verificación de correo con código de 6 dígitos
+    verificado          BOOLEAN    NOT NULL DEFAULT FALSE,
+    codigo_verificacion VARCHAR(6) NULL,
+    codigo_expira       DATETIME   NULL,
+    -- H12: bloqueo tras 5 intentos fallidos de inicio de sesión
+    intentos_fallidos   INT        NOT NULL DEFAULT 0,
+    bloqueado_hasta     DATETIME   NULL,
     fecha_registro    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP
                                  ON UPDATE CURRENT_TIMESTAMP,

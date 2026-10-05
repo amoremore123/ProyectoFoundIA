@@ -94,8 +94,19 @@ Boot, la API de Django y el frontend usuario.
 | API Spring Boot | http://localhost:8081 |
 | API Django | http://localhost:8000 |
 | MySQL | localhost:3306 (`root` / `root`) |
+| Mailpit (correos de prueba) | http://localhost:8025 |
 
 Para detener: `docker compose down` (con `-v` borra también los datos).
+
+> **Registro (H11):** al registrarte se envía un código de 6 dígitos. En
+> desarrollo los correos no salen a internet: ábrelos en **Mailpit**
+> (http://localhost:8025). Para enviar correos reales con Gmail, define en el
+> servicio `api`: `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`,
+> `MAIL_SMTP_AUTH=true`, `MAIL_STARTTLS=true`, `MAIL_USERNAME`, `MAIL_PASSWORD`
+> (contraseña de aplicación) y `MAIL_FROM`.
+>
+> Si tu base se creó antes de este cambio, ejecuta `docker compose down -v`
+> (o `database/migracion_h11_h12.sql` en MySQL local).
 
 > El frontend admin no está en compose: ejecútalo localmente (sección 8).
 
@@ -134,6 +145,15 @@ mvn spring-boot:run
 
 Queda en `http://localhost:8081`. Requiere MySQL corriendo (sección 6).
 Compilación sin ejecutar: `mvn -DskipTests compile`.
+
+**Pruebas (H11/H12):** `mvn test`. Sin Maven instalado, con Docker:
+
+```powershell
+cd backend/springboot
+docker run --rm -v "${PWD}:/app" -w /app maven:3.9-eclipse-temurin-17 mvn test
+```
+
+Casos de prueba documentados en [`docs/pruebas/casos-prueba-h11-h12.md`](docs/pruebas/casos-prueba-h11-h12.md).
 
 ## 8. Ejecución de React
 

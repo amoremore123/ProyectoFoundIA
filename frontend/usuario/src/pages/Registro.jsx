@@ -2,34 +2,57 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { mensajeError, statusDe } from '../services/api';
+import { REGLAS_PASSWORD, validarRegistro } from '../utils/validaciones';
 
+// H11 - Registro de usuario con validaciones y envío de código al correo
 export default function Registro() {
   const { registrar } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ nombre: '', apellido: '', correo: '', password: '' });
+  const [form, setForm] = useState({ nombre: '', apellido: '', correo: '', password: '', confirmar: '' });
+  const [errores, setErrores] = useState({});
+  const [tocados, setTocados] = useState({});
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 
-  const cambiar = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
+  const cambiar = (campo) => (e) => {
+    const siguiente = { ...form, [campo]: e.target.value };
+    setForm(siguiente);
+    if (tocados[campo]) setErrores(validarRegistro(siguiente));
+  };
+
+  const salir = (campo) => () => {
+    setTocados((t) => ({ ...t, [campo]: true }));
+    setErrores(validarRegistro(form));
+  };
 
   const enviar = async (e) => {
     e.preventDefault();
     setError('');
+    const encontrados = validarRegistro(form);
+    setErrores(encontrados);
+    setTocados({ nombre: true, apellido: true, correo: true, password: true, confirmar: true });
+    if (Object.keys(encontrados).length > 0) return;
+
     setEnviando(true);
     try {
+      const correo = form.correo.trim().toLowerCase();
       await registrar({
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim(),
-        correo: form.correo.trim(),
+        correo,
         password: form.password,
       });
-      navigate('/login', { replace: true });
+      navigate(`/verificar?correo=${encodeURIComponent(correo)}`, { replace: true });
     } catch (err) {
-      if (statusDe(err) === 409) {
-        setError('Ese correo ya está registrado. Intenta con otro.');
-      } else if (statusDe(err) === 400) {
+      const status = statusDe(err);
+      if (status === 409) {
+        setErrores((x) => ({ ...x, correo: 'Ese correo ya está registrado.' }));
+        setError('Ese correo ya está registrado. Intenta con otro o inicia sesión.');
+      } else if (status === 400) {
         setError(mensajeError(err, 'Revisa los datos del formulario'));
+      } else if (status === 503) {
+        setError(mensajeError(err, 'No pudimos enviar el correo de verificación. Intenta más tarde.'));
       } else {
         setError(mensajeError(err, 'No se pudo completar el registro'));
       }
@@ -38,9 +61,26 @@ export default function Registro() {
     }
   };
 
+  const mostrar = (campo) => tocados[campo] && errores[campo];
+
+  const campoTexto = (campo, etiqueta, props = {}) => (
+    <label className="campo">
+      <span className="campo-label">{etiqueta} *</span>
+      <input
+        className={`input ${mostrar(campo) ? 'input-error' : ''}`}
+        value={form[campo]}
+        onChange={cambiar(campo)}
+        onBlur={salir(campo)}
+        aria-invalid={Boolean(mostrar(campo))}
+        {...props}
+      />
+      {mostrar(campo) && <span className="campo-error">{errores[campo]}</span>}
+    </label>
+  );
+
   return (
     <div className="auth-pantalla">
-      <form className="auth-tarjeta" onSubmit={enviar}>
+      <form className="auth-tarjeta" onSubmit={enviar} noValidate>
         <div className="auth-logo">ENCUENTRA+</div>
         <h1>Crear cuenta</h1>
 
@@ -50,42 +90,33 @@ export default function Registro() {
           </div>
         )}
 
-        <label className="campo">
-          <span className="campo-label">Nombre *</span>
-          <input type="text" className="input" value={form.nombre} onChange={cambiar('nombre')} required />
-        </label>
+        {campoTexto('nombre', 'Nombre', { type: 'text', autoComplete: 'given-name', maxLength: 100 })}
+        {campoTexto('apellido', 'Apellido', { type: 'text', autoComplete: 'family-name', maxLength: 100 })}
+        {campoTexto('correo', 'Correo electrónico', {
+          type: 'email',
+          placeholder: 'tu@correo.com',
+          autoComplete: 'email',
+          maxLength: 150,
+        })}
+        {campoTexto('password', 'Contraseña', {
+          type: 'password',
+          autoComplete: 'new-password',
+          maxLength: 72,
+        })}
 
-        <label className="campo">
-          <span className="campo-label">Apellido *</span>
-          <input type="text" className="input" value={form.apellido} onChange={cambiar('apellido')} required />
-        </label>
+        <ul className="reglas-password" aria-label="Requisitos de la contraseña">
+          {REGLAS_PASSWORD.map((r) => (
+            <li key={r.id} className={r.cumple(form.password) ? 'ok' : ''}>
+              {r.texto}
+            </li>
+          ))}
+        </ul>
 
-        <label className="campo">
-          <span className="campo-label">Correo electrónico *</span>
-          <input
-            type="email"
-            className="input"
-            value={form.correo}
-            onChange={cambiar('correo')}
-            placeholder="tu@correo.com"
-            required
-            autoComplete="email"
-          />
-        </label>
-
-        <label className="campo">
-          <span className="campo-label">Contraseña *</span>
-          <input
-            type="password"
-            className="input"
-            value={form.password}
-            onChange={cambiar('password')}
-            placeholder="Mínimo 6 caracteres"
-            required
-            minLength={6}
-            autoComplete="new-password"
-          />
-        </label>
+        {campoTexto('confirmar', 'Confirmar contraseña', {
+          type: 'password',
+          autoComplete: 'new-password',
+          maxLength: 72,
+        })}
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
           {enviando ? 'Creando cuenta...' : 'Registrarme'}

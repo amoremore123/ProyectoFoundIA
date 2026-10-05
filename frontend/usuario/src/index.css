@@ -1108,3 +1108,57 @@ ul {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ---------- H11: reglas de contraseña y código de verificación ---------- */
+
+.reglas-password {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.reglas-password li::before {
+  content: '○ ';
+}
+
+.reglas-password li.ok {
+  color: var(--success);
+}
+
+.reglas-password li.ok::before {
+  content: '✓ ';
+}
+
+.input-codigo {
+  text-align: center;
+  font-size: 28px;
+  letter-spacing: 12px;
+  font-weight: 700;
+  padding: 14px;
+}
+
+.auth-texto {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.btn-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-enlace:disabled {
+  color: var(--text-soft);
+  cursor: default;
+}
