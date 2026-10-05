@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotificaciones } from '../hooks/useNotificaciones';
+import Logo from './Logo';
 
 export default function Navbar() {
   const { token } = useAuth();
@@ -9,8 +10,8 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="logo">
-          ENCUENTRA+
+        <Link to="/" className="logo" aria-label="Encuentra+ inicio">
+          <Logo tamano={32} />
         </Link>
 
         <nav className="navbar-links">

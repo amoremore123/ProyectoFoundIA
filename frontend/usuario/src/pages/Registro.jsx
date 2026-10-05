@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../layouts/AuthLayout';
+import Logo from '../components/Logo';
 import { mensajeError, statusDe } from '../services/api';
 import { REGLAS_PASSWORD, validarRegistro } from '../utils/validaciones';
 
@@ -79,10 +81,13 @@ export default function Registro() {
   );
 
   return (
-    <div className="auth-pantalla">
+    <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
-        <div className="auth-logo">ENCUENTRA+</div>
+        <div className="auth-logo">
+          <Logo />
+        </div>
         <h1>Crear cuenta</h1>
+        <p className="auth-subtitulo">Únete para publicar y recuperar objetos.</p>
 
         {error && (
           <div className="banner-error" role="alert">
@@ -126,6 +131,6 @@ export default function Registro() {
           ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

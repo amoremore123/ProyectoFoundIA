@@ -119,3 +119,29 @@ al otro formulario.
 Misma paleta, pero layout de **sidebar** oscuro (`#0f172a`) con logo blanco y
 menú: Dashboard · Usuarios · Publicaciones · Reportes · Categorías. Área de
 contenido con fondo `--bg` y tarjetas blancas.
+
+---
+
+## 10. Tema visual v2 (moderno con degradado)
+
+Capa de estilos que se carga **después** de `index.css` en ambas apps:
+`frontend/usuario/src/styles/tema.css` y `frontend/admin/src/styles/tema.css`.
+No cambia nombres de clases: si agregas una pantalla nueva con las clases de
+esta guía, tomará el estilo nuevo automáticamente.
+
+| Token | Valor | Uso |
+| ----- | ----- | --- |
+| `--grad` | `linear-gradient(135deg, #1e3a8a, #2563eb, #0ea5e9)` | Botón primario, hero, panel de acceso, link activo del sidebar |
+| `--accent` | `#0ea5e9` | Acento celeste (el "+" del logo) |
+| `--sombra-sm / --sombra-md` | sombras suaves en capas | Tarjetas / elementos flotantes |
+| `--sombra-azul` | `0 10px 24px -10px rgba(37,99,235,.55)` | Botones primarios |
+| Fuente | **Plus Jakarta Sans** (Google Fonts) | Toda la interfaz |
+
+- Radios: 12px inputs y botones · 20px tarjetas · 24px hero y tarjeta de acceso.
+- **Logo**: componente `<Logo />` (`components/Logo.jsx`), con `claro` para fondos oscuros.
+- **Pantallas de acceso** (Login, Registro, Verificar): usar `<AuthLayout>` —
+  en desktop muestra panel de marca con degradado a la izquierda y el formulario a la derecha.
+- **Inicio**: hero con degradado y buscador flotante encima.
+- **Bottom nav (móvil)**: barra flotante redondeada; "Publicar" es botón destacado.
+- **Admin**: sidebar oscuro con degradado, métricas con icono de color por tipo,
+  login en pantalla dividida.

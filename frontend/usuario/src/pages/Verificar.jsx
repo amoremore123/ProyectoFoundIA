@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../layouts/AuthLayout';
+import Logo from '../components/Logo';
 import { mensajeError, reenviarCodigo } from '../services/api';
 
 const ESPERA_REENVIO = 60; // segundos
@@ -61,9 +63,11 @@ export default function Verificar() {
   };
 
   return (
-    <div className="auth-pantalla">
+    <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
-        <div className="auth-logo">ENCUENTRA+</div>
+        <div className="auth-logo">
+          <Logo />
+        </div>
         <h1>Verifica tu correo</h1>
 
         {aviso && <div className="banner-exito">✉️ {aviso}</div>}
@@ -115,6 +119,6 @@ export default function Verificar() {
           <Link to="/login">Volver a iniciar sesión</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

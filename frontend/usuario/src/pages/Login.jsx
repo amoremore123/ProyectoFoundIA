@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../layouts/AuthLayout';
+import Logo from '../components/Logo';
 import { mensajeError, reenviarCodigo } from '../services/api';
 
 // H12 - Inicio de sesión con JWT, mensajes de error y bloqueo tras 5 intentos
@@ -62,10 +64,13 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-pantalla">
+    <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
-        <div className="auth-logo">ENCUENTRA+</div>
+        <div className="auth-logo">
+          <Logo />
+        </div>
         <h1>Iniciar sesión</h1>
+        <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa para continuar.</p>
 
         {error && (
           <div className="banner-error" role="alert">
@@ -115,6 +120,6 @@ export default function Login() {
           ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

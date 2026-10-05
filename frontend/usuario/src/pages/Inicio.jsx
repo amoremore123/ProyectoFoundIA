@@ -62,6 +62,7 @@ export default function Inicio() {
   return (
     <div className="pagina">
       <section className="hero">
+        <span className="hero-etiqueta">✨ Objetos perdidos y encontrados</span>
         <h1>Perdiste algo. Encuéntralo.</h1>
         <p>Publica lo que perdiste o lo que encontraste y ayúdale a otros de la comunidad.</p>
       </section>
