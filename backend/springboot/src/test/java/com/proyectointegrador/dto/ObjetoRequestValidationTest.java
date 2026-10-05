@@ -88,6 +88,24 @@ class ObjetoRequestValidationTest {
     }
 
     @Test
+    @DisplayName("H4 - La fecha no puede ser futura")
+    void fechaFutura() {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now().plusDays(1),
+                TipoObjeto.ENCONTRADO, "Comedor", null, null);
+        assertThat(validar(r)).anyMatch(v ->
+                v.getPropertyPath().toString().equals("fechaObjeto")
+                        && v.getMessage().contains("futura"));
+    }
+
+    @Test
+    @DisplayName("H4 - La fecha de hoy sí se acepta")
+    void fechaDeHoy() {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.ENCONTRADO, "Comedor", null, null);
+        assertThat(validar(r)).isEmpty();
+    }
+
+    @Test
     @DisplayName("Tipo obligatorio")
     void tipoObligatorio() {
         ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.of(2026, 10, 2),

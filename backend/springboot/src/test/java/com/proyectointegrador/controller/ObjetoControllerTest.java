@@ -120,4 +120,18 @@ class ObjetoControllerTest {
                 .andExpect(jsonPath("$.mensaje", containsString("categoriaId")));
         verify(objetoService, never()).crear(any(), any());
     }
+
+    @Test
+    @DisplayName("H4 - POST /api/objetos con fecha futura -> 400")
+    void crearConFechaFutura() throws Exception {
+        String fechaFutura = java.time.LocalDate.now().plusDays(3).toString();
+        String body = """
+                {"categoriaId":3,"nombre":"Mochila","descripcion":"Algo","fechaObjeto":"%s","tipo":"ENCONTRADO"}"""
+                .formatted(fechaFutura);
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("fecha")));
+        verify(objetoService, never()).crear(any(), any());
+    }
 }

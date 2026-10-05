@@ -12,6 +12,11 @@ const VACIO = {
   fechaObjeto: '',
 };
 
+const hoyISO = () => {
+  const f = new Date();
+  return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+};
+
 export default function Publicar() {
   const navigate = useNavigate();
 
@@ -71,6 +76,7 @@ export default function Publicar() {
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
     if (!form.fechaObjeto) er.fechaObjeto = 'La fecha es obligatoria';
+    else if (form.fechaObjeto > hoyISO()) er.fechaObjeto = 'La fecha no puede ser futura';
     setErrores(er);
     return Object.keys(er).length === 0;
   };
@@ -217,6 +223,7 @@ export default function Publicar() {
             type="date"
             className={`input${errores.fechaObjeto ? ' input-error' : ''}`}
             value={form.fechaObjeto}
+            max={hoyISO()}
             onChange={cambiar('fechaObjeto')}
           />
           {errores.fechaObjeto && <span className="campo-error">{errores.fechaObjeto}</span>}
