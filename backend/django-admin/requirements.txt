@@ -3,3 +3,5 @@ djangorestframework
 PyMySQL
 bcrypt
 PyJWT
+cryptography
+django-cors-headers

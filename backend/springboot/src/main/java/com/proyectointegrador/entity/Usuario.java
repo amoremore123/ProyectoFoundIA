@@ -48,6 +48,23 @@ public class Usuario {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoUsuario estado = EstadoUsuario.ACTIVO;
 
+    /** H11: la cuenta solo puede iniciar sesión cuando el correo está verificado. */
+    @Column(name = "verificado", nullable = false)
+    private boolean verificado = false;
+
+    @Column(name = "codigo_verificacion", length = 6)
+    private String codigoVerificacion;
+
+    @Column(name = "codigo_expira")
+    private LocalDateTime codigoExpira;
+
+    /** H12: intentos fallidos consecutivos; al llegar a 5 se bloquea la cuenta. */
+    @Column(name = "intentos_fallidos", nullable = false)
+    private int intentosFallidos = 0;
+
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 

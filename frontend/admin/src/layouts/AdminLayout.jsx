@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
 
 const menu = [
   { to: '/', icono: '📊', label: 'Dashboard', exact: true },
@@ -21,7 +22,10 @@ export default function AdminLayout() {
   return (
     <div className="admin-shell">
       <aside className="sidebar">
-        <div className="sidebar-logo">ENCUENTRA+ ADMIN</div>
+        <div className="sidebar-logo">
+          <Logo claro tamano={34} />
+          <span className="sidebar-badge">Admin</span>
+        </div>
 
         <nav className="sidebar-menu">
           {menu.map((item) => (
@@ -39,10 +43,15 @@ export default function AdminLayout() {
 
         <div className="sidebar-pie">
           {user && (
-            <p className="sidebar-usuario">
-              {user.nombre} {user.apellido}
-              <span>{user.correo}</span>
-            </p>
+            <div className="sidebar-perfil">
+              <span className="sidebar-avatar" aria-hidden="true">
+                {(user.nombre || '?').charAt(0).toUpperCase()}
+              </span>
+              <p className="sidebar-usuario">
+                {user.nombre} {user.apellido}
+                <span>{user.correo}</span>
+              </p>
+            </div>
           )}
           <button type="button" className="sidebar-salir" onClick={cerrarSesion}>
             Cerrar sesión

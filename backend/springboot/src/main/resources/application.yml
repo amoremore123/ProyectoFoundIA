@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: 'jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:objetos_perdidos_db}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8'
+    url: 'jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:objetos_perdidos_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8'
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
   jpa:
@@ -13,10 +13,29 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+  mail:
+    # Por defecto usa Mailpit (docker compose) -> bandeja en http://localhost:8025
+    # Para Gmail: MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_SMTP_AUTH=true,
+    # MAIL_STARTTLS=true, MAIL_USERNAME=<correo>, MAIL_PASSWORD=<contraseña de aplicación>
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   jackson:
     time-zone: UTC
 
 app:
+  mail:
+    from: ${MAIL_FROM:no-reply@foundia.dev}
   jwt:
     secret: ${JWT_SECRET:foundia-dev-jwt-secret-cambiar-en-produccion-123456}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

@@ -33,6 +33,26 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(CuentaBloqueadaException.class)
+    public ResponseEntity<ApiError> handleCuentaBloqueada(CuentaBloqueadaException ex, HttpServletRequest request) {
+        return build(HttpStatus.LOCKED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CuentaNoVerificadaException.class)
+    public ResponseEntity<ApiError> handleCuentaNoVerificada(CuentaNoVerificadaException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CodigoVerificacionException.class)
+    public ResponseEntity<ApiError> handleCodigoVerificacion(CodigoVerificacionException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(EnvioCorreoException.class)
+    public ResponseEntity<ApiError> handleEnvioCorreo(EnvioCorreoException ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         String mensaje = ex.getMessage() == null || ex.getMessage().isBlank()

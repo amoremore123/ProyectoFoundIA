@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { mensajeError } from '../services/api';
+import AuthLayout from '../layouts/AuthLayout';
+import Logo from '../components/Logo';
+import { mensajeError, reenviarCodigo } from '../services/api';
 
+// H12 - Inicio de sesión con JWT, mensajes de error y bloqueo tras 5 intentos
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -10,19 +13,38 @@ export default function Login() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [bloqueado, setBloqueado] = useState(false);
+  const [sinVerificar, setSinVerificar] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   const enviar = async (e) => {
     e.preventDefault();
     setError('');
+    setSinVerificar(false);
+    setBloqueado(false);
+
+    if (!correo.trim() || !password) {
+      setError('Ingresa tu correo y tu contraseña.');
+      return;
+    }
+
     setEnviando(true);
     try {
-      await login(correo.trim(), password);
+      await login(correo.trim().toLowerCase(), password);
       navigate('/', { replace: true });
     } catch (err) {
       const status = err?.response?.status;
       if (status === 401) {
-        setError('Correo o contraseña incorrectos, o tu cuenta está suspendida.');
+        // Credenciales incorrectas (incluye intentos restantes) o cuenta suspendida
+        setError(mensajeError(err, 'Correo o contraseña incorrectos.'));
+      } else if (status === 423) {
+        setBloqueado(true);
+        setError(mensajeError(err, 'Tu cuenta está bloqueada temporalmente. Intenta más tarde.'));
+      } else if (status === 403) {
+        setSinVerificar(true);
+        setError(mensajeError(err, 'Debes verificar tu correo antes de iniciar sesión.'));
+      } else if (!err?.response) {
+        setError('No hay conexión con el servidor. Revisa que la API esté encendida.');
       } else {
         setError(mensajeError(err, 'No se pudo iniciar sesión'));
       }
@@ -31,15 +53,33 @@ export default function Login() {
     }
   };
 
+  const irAVerificar = async () => {
+    const limpio = correo.trim().toLowerCase();
+    try {
+      await reenviarCodigo(limpio);
+    } catch {
+      // Si falla el reenvío, igual se puede ingresar un código anterior vigente
+    }
+    navigate(`/verificar?correo=${encodeURIComponent(limpio)}`);
+  };
+
   return (
-    <div className="auth-pantalla">
-      <form className="auth-tarjeta" onSubmit={enviar}>
-        <div className="auth-logo">ENCUENTRA+</div>
+    <AuthLayout>
+      <form className="auth-tarjeta" onSubmit={enviar} noValidate>
+        <div className="auth-logo">
+          <Logo />
+        </div>
         <h1>Iniciar sesión</h1>
+        <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa para continuar.</p>
 
         {error && (
           <div className="banner-error" role="alert">
-            ⚠️ {error}
+            {bloqueado ? '🔒' : '⚠️'} {error}
+            {sinVerificar && (
+              <button type="button" className="btn-enlace" onClick={irAVerificar}>
+                Enviar código y verificar
+              </button>
+            )}
           </div>
         )}
 
@@ -49,7 +89,10 @@ export default function Login() {
             type="email"
             className="input"
             value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
+            onChange={(e) => {
+              setCorreo(e.target.value);
+              setBloqueado(false);
+            }}
             placeholder="tu@correo.com"
             required
             autoComplete="email"
@@ -69,7 +112,7 @@ export default function Login() {
           />
         </label>
 
-        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
+        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || bloqueado}>
           {enviando ? 'Entrando...' : 'Entrar'}
         </button>
 
@@ -77,6 +120,6 @@ export default function Login() {
           ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

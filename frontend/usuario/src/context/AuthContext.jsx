@@ -16,17 +16,29 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [user, setUser] = useState(leerUsuario);
 
-  const login = async (correo, password) => {
-    const data = await api.login(correo, password);
+  const guardarSesion = (data) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(data.usuario));
     setToken(data.token);
     setUser(data.usuario);
+  };
+
+  const login = async (correo, password) => {
+    const data = await api.login(correo, password);
+    guardarSesion(data);
     return data;
   };
 
+  // H11: el registro ya no inicia sesión; primero hay que verificar el correo
   const registrar = async (datos) => {
     const data = await api.register(datos);
+    return data;
+  };
+
+  // H11: al verificar el código, el backend devuelve el JWT
+  const verificar = async (correo, codigo) => {
+    const data = await api.verificarCuenta(correo, codigo);
+    guardarSesion(data);
     return data;
   };
 
@@ -43,7 +55,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, registrar, logout, actualizarUsuario }}>
+    <AuthContext.Provider value={{ user, token, login, registrar, verificar, logout, actualizarUsuario }}>
       {children}
     </AuthContext.Provider>
   );

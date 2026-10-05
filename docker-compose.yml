@@ -1,7 +1,7 @@
 # =====================================================================
 # Plataforma de Objetos Perdidos y Encontrados — infraestructura
 # Uso: docker compose up
-#   MySQL + API Spring Boot + API Django + Frontend usuario
+#   MySQL + API Spring Boot + API Django + Frontend usuario + Mailpit (correo de pruebas)
 # =====================================================================
 
 services:
@@ -20,7 +20,7 @@ services:
       - ./database/script.sql:/docker-entrypoint-initdb.d/01-script.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -37,11 +37,27 @@ services:
       DB_PASSWORD: root
       JWT_SECRET: foundia-dev-jwt-secret-cambiar-en-produccion-123456
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174
+      # H11: correo de verificación -> Mailpit (ver bandeja en http://localhost:8025)
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_FROM: no-reply@foundia.dev
     ports:
       - "8081:8081"
     depends_on:
       mysql:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  # Servidor SMTP de pruebas: atrapa todos los correos que envía la API
+  # Bandeja web: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: foundia-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
   admin-api:
     build: ./backend/django-admin
