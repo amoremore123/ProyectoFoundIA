@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { buscarObjetos, listarCategorias, mensajeError } from '../services/api';
+import useCategorias from '../hooks/useCategorias';
+import { buscarObjetos, mensajeError } from '../services/api';
 
 const OPCIONES_TIPO = [
   { valor: '', texto: 'Todos' },
@@ -19,70 +20,64 @@ export default function Buscar() {
   const tipoInicial = searchParams.get('tipo') || '';
 
   const [q, setQ] = useState(qInicial);
-  const [categoriaId, setCategoriaId] = useState(categoriaInicial);
-  const [categorias, setCategorias] = useState([]);
+  const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
   const [resultados, setResultados] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
+  const [errorBusqueda, setErrorBusqueda] = useState('');
+  const [reintentosBusqueda, setReintentosBusqueda] = useState(0);
 
   useEffect(() => {
     setQ(qInicial);
-    setCategoriaId(categoriaInicial);
-  }, [qInicial, categoriaInicial]);
+  }, [qInicial]);
 
   useEffect(() => {
-    let vivo = true;
-    (async () => {
+    const controlador = new AbortController();
+    const cargar = async () => {
+      setCargando(true);
+      setErrorBusqueda('');
       try {
-        const cats = await listarCategorias();
-        if (vivo) setCategorias(Array.isArray(cats) ? cats : cats?.results || []);
+        const params = { q: qInicial.trim() };
+        if (tipoInicial) params.tipo = tipoInicial;
+        if (categoriaInicial) params.categoriaId = categoriaInicial;
+        const data = await buscarObjetos(params, { signal: controlador.signal });
+        if (controlador.signal.aborted) return;
+        let lista = Array.isArray(data) ? data : data?.results || [];
+        const ubicacion = ubicacionInicial.trim().toLowerCase();
+        if (ubicacion) {
+          lista = lista.filter((objeto) => (objeto.ubicacion || '').toLowerCase().includes(ubicacion));
+        }
+        setResultados(lista);
       } catch (e) {
-        if (vivo) setError(mensajeError(e, 'No se pudieron cargar las categorías'));
+        if (!controlador.signal.aborted) {
+          setErrorBusqueda(mensajeError(e, 'No se pudo realizar la búsqueda'));
+          setResultados([]);
+        }
+      } finally {
+        if (!controlador.signal.aborted) setCargando(false);
       }
-    })();
-    return () => {
-      vivo = false;
     };
-  }, []);
-
-  const cargar = useCallback(async () => {
-    setCargando(true);
-    setError('');
-    try {
-      const params = { q: searchParams.get('q') || '' };
-      if (searchParams.get('tipo')) params.tipo = searchParams.get('tipo');
-      if (searchParams.get('categoriaId')) params.categoriaId = searchParams.get('categoriaId');
-      const data = await buscarObjetos(params);
-      let lista = Array.isArray(data) ? data : data?.results || [];
-      const ubi = (searchParams.get('ubicacion') || '').trim().toLowerCase();
-      if (ubi) {
-        lista = lista.filter((o) => (o.ubicacion || '').toLowerCase().includes(ubi));
-      }
-      setResultados(lista);
-    } catch (e) {
-      setError(mensajeError(e, 'No se pudo realizar la búsqueda'));
-      setResultados([]);
-    } finally {
-      setCargando(false);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
     cargar();
-  }, [cargar]);
+    // Una respuesta lenta anterior no debe reemplazar el filtro actual.
+    return () => controlador.abort();
+  }, [qInicial, tipoInicial, categoriaInicial, ubicacionInicial, reintentosBusqueda]);
+
+  const reintentarBusqueda = () => setReintentosBusqueda((valor) => valor + 1);
 
   const aplicar = (cambios) => {
-    const params = new URLSearchParams(searchParams);
-    Object.entries(cambios).forEach(([k, v]) => {
-      if (v) params.set(k, v);
-      else params.delete(k);
+    setSearchParams((anteriores) => {
+      const params = new URLSearchParams(anteriores);
+      Object.entries(cambios).forEach(([campo, valor]) => {
+        if (valor) params.set(campo, valor);
+        else params.delete(campo);
+      });
+      return params;
     });
-    setSearchParams(params);
   };
 
   const enviarBusqueda = (e) => {
     e.preventDefault();
-    aplicar({ q: q.trim() });
+    if (q.trim() === qInicial) reintentarBusqueda();
+    else aplicar({ q: q.trim() });
   };
 
   const hayFiltros = qInicial || tipoInicial || categoriaInicial || ubicacionInicial;
@@ -91,7 +86,7 @@ export default function Buscar() {
     <div className="pagina">
       <h1 className="pagina-titulo">Buscar objetos</h1>
 
-      <form className="buscador-card" onSubmit={enviarBusqueda}>
+      <form className="buscador-card" onSubmit={enviarBusqueda} aria-label="Búsqueda de objetos">
         <div className="buscador-fila">
           <input
             type="search"
@@ -112,6 +107,7 @@ export default function Buscar() {
               key={op.valor}
               type="button"
               className={`chip-filtro${tipoInicial === op.valor ? ' activo' : ''}`}
+              aria-pressed={tipoInicial === op.valor}
               onClick={() => aplicar({ tipo: op.valor })}
             >
               {op.texto}
@@ -123,13 +119,11 @@ export default function Buscar() {
           <span className="campo-label">Categoría</span>
           <select
             className="input"
-            value={categoriaId}
-            onChange={(e) => {
-              setCategoriaId(e.target.value);
-              aplicar({ categoriaId: e.target.value });
-            }}
+            value={categoriaInicial}
+            onChange={(e) => aplicar({ categoriaId: e.target.value })}
+            disabled={cargandoCategorias || !!errorCategorias}
           >
-            <option value="">Todas</option>
+            <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Todas'}</option>
             {categorias.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
@@ -137,31 +131,33 @@ export default function Buscar() {
             ))}
           </select>
         </label>
+        <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
       </form>
 
-      <MensajeError mensaje={error} onReintentar={cargar} />
-
-      {cargando ? (
-        <Cargando />
-      ) : resultados.length === 0 && !error ? (
-        <div className="estado-vacio">
-          <span className="estado-vacio-icono" aria-hidden="true">
-            🔎
-          </span>
-          <p>{hayFiltros ? 'Sin resultados para esa búsqueda.' : 'Escribe algo para buscar objetos.'}</p>
-        </div>
-      ) : (
-        <>
-          <p className="resultados-contador">
-            {resultados.length} {resultados.length === 1 ? 'resultado' : 'resultados'}
-          </p>
-          <div className="grid-objetos">
-            {resultados.map((obj) => (
-              <ObjetoCard key={obj.id} objeto={obj} />
-            ))}
+      <section aria-label="Resultados de búsqueda" aria-busy={cargando}>
+        <MensajeError mensaje={errorBusqueda} onReintentar={reintentarBusqueda} />
+        {cargando ? (
+          <Cargando />
+        ) : errorBusqueda ? null : resultados.length === 0 ? (
+          <div className="estado-vacio" role="status">
+            <span className="estado-vacio-icono" aria-hidden="true">
+              🔎
+            </span>
+            <p>{hayFiltros ? 'Sin resultados para esa búsqueda.' : 'Todavía no hay publicaciones.'}</p>
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            <p className="resultados-contador" role="status" aria-live="polite">
+              {resultados.length} {resultados.length === 1 ? 'resultado' : 'resultados'}
+            </p>
+            <div className="grid-objetos">
+              {resultados.map((obj) => (
+                <ObjetoCard key={obj.id} objeto={obj} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }

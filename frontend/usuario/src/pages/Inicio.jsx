@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { listarCategorias, listarObjetos, mensajeError } from '../services/api';
+import useCategorias from '../hooks/useCategorias';
+import { listarObjetos, mensajeError } from '../services/api';
 
 export default function Inicio() {
   const navigate = useNavigate();
@@ -11,25 +12,10 @@ export default function Inicio() {
   const [q, setQ] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [ubicacion, setUbicacion] = useState('');
-  const [categorias, setCategorias] = useState([]);
+  const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
   const [recientes, setRecientes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    let vivo = true;
-    (async () => {
-      try {
-        const cats = await listarCategorias();
-        if (vivo) setCategorias(Array.isArray(cats) ? cats : cats?.results || []);
-      } catch (e) {
-        if (vivo) setError(mensajeError(e, 'No se pudieron cargar las categorías'));
-      }
-    })();
-    return () => {
-      vivo = false;
-    };
-  }, []);
 
   const cargarRecientes = async () => {
     setCargando(true);
@@ -83,8 +69,9 @@ export default function Inicio() {
               className="input"
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
+              disabled={cargandoCategorias || !!errorCategorias}
             >
-              <option value="">Todas</option>
+              <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Todas'}</option>
               {categorias.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nombre}
@@ -106,6 +93,7 @@ export default function Inicio() {
             Buscar
           </button>
         </div>
+        <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
       </form>
 
       <section className="seccion">

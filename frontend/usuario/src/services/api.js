@@ -66,8 +66,8 @@ export const reenviarCodigo = async (correo) => {
 };
 
 // Categorías
-export const listarCategorias = async () => {
-  const { data } = await api.get('/api/categorias');
+export const listarCategorias = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/categorias', { signal });
   return data;
 };
 
@@ -77,8 +77,8 @@ export const listarObjetos = async (params = {}) => {
   return data;
 };
 
-export const buscarObjetos = async (params = {}) => {
-  const { data } = await api.get('/api/objetos/buscar', { params });
+export const buscarObjetos = async (params = {}, { signal } = {}) => {
+  const { data } = await api.get('/api/objetos/buscar', { params, signal });
   return data;
 };
 
