@@ -9,6 +9,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -73,6 +76,36 @@ class ObjetoRequestValidationTest {
         assertThat(validar(permitido)).isEmpty();
         assertThat(validar(demasiadoLargo)).anyMatch(v -> v.getPropertyPath().toString().equals("nombre")
                 && v.getMessage().contains("150"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    @DisplayName("H3 - La ubicación no puede faltar ni estar en blanco")
+    void ubicacionObligatoria(String ubicacion) {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, ubicacion, null, null);
+        assertThat(validar(r)).anyMatch(v -> v.getPropertyPath().toString().equals("ubicacion"));
+    }
+
+    @Test
+    @DisplayName("H3 - La ubicación admite 255 caracteres y rechaza 256")
+    void limiteUbicacion() {
+        ObjetoRequest permitido = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "U".repeat(255), null, null);
+        ObjetoRequest demasiadoLargo = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "U".repeat(256), null, null);
+        assertThat(validar(permitido)).isEmpty();
+        assertThat(validar(demasiadoLargo)).anyMatch(v -> v.getPropertyPath().toString().equals("ubicacion")
+                && v.getMessage().contains("255"));
+    }
+
+    @Test
+    @DisplayName("H3 - La dirección manual es válida sin coordenadas")
+    void ubicacionManualSinCoordenadas() {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca central", null, null);
+        assertThat(validar(r)).isEmpty();
     }
 
     @Test

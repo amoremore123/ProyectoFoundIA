@@ -8,9 +8,9 @@ Ubicación: `backend/springboot/src/test/java/com/proyectointegrador/`
 
 | Clase | Tipo | Qué cubre |
 | ----- | ---- | --------- |
-| `dto/ObjetoRequestValidationTest` | Unitaria (Bean Validation) | Campos obligatorios del formulario y fecha no futura (H1, H4) |
+| `dto/ObjetoRequestValidationTest` | Unitaria (Bean Validation) | Campos obligatorios, límites de nombre y ubicación y fecha no futura (H1, H3, H4) |
 | `service/ObjetoServiceTest` | Unitaria (JUnit 5 + Mockito) | Creación de la publicación, ubicación y coordenadas (H1, H3) |
-| `controller/ObjetoControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `POST /api/objetos` (H1, H4) |
+| `controller/ObjetoControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `POST /api/objetos` (H1, H3, H4) |
 
 ### Cómo ejecutarlas
 
@@ -48,6 +48,9 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H3-02 | Permiso de ubicación denegado | bloquear el permiso del navegador | Aviso "No se pudo acceder a tu ubicación (permiso denegado)" y se puede escribir a mano | Manual |
 | CP-H3-03 | Ubicación escrita a mano | "Biblioteca central" sin botón | Se publica con la dirección y sin coordenadas (null) | Manual |
 | CP-H3-04 | Coordenadas guardadas en la BD | publicar con el botón | `SELECT ubicacion, latitud, longitud FROM objetos;` muestra los valores | Manual |
+| CP-H3-05 | Dirección obligatoria | ubicación ausente, null, vacía o con espacios | 400 antes de guardar; no basta con omitir la dirección | `ubicacionObligatoria`, `crearSinUbicacion`, `Publicar.test.jsx` |
+| CP-H3-06 | Límite de la dirección | 255 y 256 caracteres | 255 se acepta; 256 da 400; React aplica el mismo límite | `limiteUbicacion`, `crearConUbicacionLarga`, `Publicar.test.jsx` |
+| CP-H3-07 | Coordenadas opcionales | dirección manual y coordenadas null | Validación correcta y publicación permitida | `ubicacionManualSinCoordenadas`, `Publicar.test.jsx` |
 
 ## 4. Casos de prueba — H4 Fecha
 

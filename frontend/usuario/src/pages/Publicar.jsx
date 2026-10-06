@@ -76,6 +76,7 @@ export default function Publicar() {
     if (!form.descripcion.trim()) er.descripcion = 'La descripción es obligatoria';
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
+    else if (form.ubicacion.trim().length > 255) er.ubicacion = 'La ubicación no debe superar los 255 caracteres';
     if (!form.fechaObjeto) er.fechaObjeto = 'La fecha es obligatoria';
     else if (form.fechaObjeto > hoyISO()) er.fechaObjeto = 'La fecha no puede ser futura';
     setErrores(er);
@@ -215,6 +216,7 @@ export default function Publicar() {
             value={form.ubicacion}
             onChange={cambiar('ubicacion')}
             placeholder="Ej. Biblioteca central"
+            maxLength={255}
           />
           {errores.ubicacion && <span className="campo-error">{errores.ubicacion}</span>}
         </label>

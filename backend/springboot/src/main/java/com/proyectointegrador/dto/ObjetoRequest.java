@@ -16,7 +16,8 @@ public record ObjetoRequest(
         @NotBlank(message = "es obligatorio") String descripcion,
         @NotNull(message = "es obligatorio") @PastOrPresent(message = "no puede ser futura") LocalDate fechaObjeto,
         @NotNull(message = "es obligatorio") TipoObjeto tipo,
-        String ubicacion,
+        @NotBlank(message = "es obligatorio")
+        @Size(max = 255, message = "no debe superar los 255 caracteres") String ubicacion,
         BigDecimal latitud,
         BigDecimal longitud
 ) {

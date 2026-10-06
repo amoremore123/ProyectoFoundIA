@@ -12,6 +12,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,7 +92,7 @@ class ObjetoControllerTest {
     @DisplayName("POST /api/objetos sin nombre -> 400 y no llama al servicio")
     void crearSinNombre() throws Exception {
         String body = """
-                {"categoriaId":3,"nombre":"   ","descripcion":"Algo","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO"}""";
+                {"categoriaId":3,"nombre":"   ","descripcion":"Algo","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO","ubicacion":"Comedor"}""";
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
@@ -108,11 +110,32 @@ class ObjetoControllerTest {
         verify(objetoService, never()).crear(any(), any());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "\"\"", "\"   \""})
+    @DisplayName("H3 - POST /api/objetos sin ubicación -> 400")
+    void crearSinUbicacion(String ubicacionJson) throws Exception {
+        String body = PUBLICACION_VALIDA.replace("\"Comedor principal\"", ubicacionJson);
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("ubicacion")));
+        verify(objetoService, never()).crear(any(), any());
+    }
+
+    @Test
+    @DisplayName("H3 - POST /api/objetos con ubicación de 256 caracteres -> 400")
+    void crearConUbicacionLarga() throws Exception {
+        String body = PUBLICACION_VALIDA.replace("Comedor principal", "U".repeat(256));
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("255")));
+        verify(objetoService, never()).crear(any(), any());
+    }
+
     @Test
     @DisplayName("POST /api/objetos sin descripción -> 400")
     void crearSinDescripcion() throws Exception {
         String body = """
-                {"categoriaId":3,"nombre":"Mochila","descripcion":"","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO"}""";
+                {"categoriaId":3,"nombre":"Mochila","descripcion":"","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO","ubicacion":"Comedor"}""";
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
@@ -124,7 +147,7 @@ class ObjetoControllerTest {
     @DisplayName("POST /api/objetos sin categoría -> 400")
     void crearSinCategoria() throws Exception {
         String body = """
-                {"nombre":"Mochila","descripcion":"Algo","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO"}""";
+                {"nombre":"Mochila","descripcion":"Algo","fechaObjeto":"2026-10-02","tipo":"ENCONTRADO","ubicacion":"Comedor"}""";
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
@@ -171,7 +194,7 @@ class ObjetoControllerTest {
     void crearConFechaFutura() throws Exception {
         String fechaFutura = java.time.LocalDate.now().plusDays(3).toString();
         String body = """
-                {"categoriaId":3,"nombre":"Mochila","descripcion":"Algo","fechaObjeto":"%s","tipo":"ENCONTRADO"}"""
+                {"categoriaId":3,"nombre":"Mochila","descripcion":"Algo","fechaObjeto":"%s","tipo":"ENCONTRADO","ubicacion":"Comedor"}"""
                 .formatted(fechaFutura);
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))

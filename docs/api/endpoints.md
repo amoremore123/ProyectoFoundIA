@@ -193,6 +193,8 @@ encontró el objeto. El autor se toma del token.
 
 El nombre es obligatorio y admite hasta 150 caracteres. Superar ese límite
 devuelve `400` antes de guardar, no un error de base de datos.
+La ubicación es obligatoria, no puede quedar en blanco y admite hasta 255
+caracteres. Es válida una dirección escrita a mano sin coordenadas.
 
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token

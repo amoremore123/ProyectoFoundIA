@@ -92,4 +92,29 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     expect(screen.getByText('El nombre no debe superar los 150 caracteres')).not.toBeNull();
     expect(crearObjeto).not.toHaveBeenCalled();
   });
+
+  it('limita el input de ubicación a 255 caracteres', () => {
+    renderizar();
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).maxLength).toBe(255);
+  });
+
+  it('admite una dirección manual de 255 caracteres sin coordenadas', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByRole('textbox', { name: /^Ubicación/ }), { target: { value: 'U'.repeat(255) } });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({ ubicacion: 'U'.repeat(255), latitud: null, longitud: null });
+  });
+
+  it('rechaza una ubicación larga aunque se inyecte saltando el maxLength del input', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByRole('textbox', { name: /^Ubicación/ }), { target: { value: 'U'.repeat(256) } });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(screen.getByText('La ubicación no debe superar los 255 caracteres')).not.toBeNull();
+    expect(crearObjeto).not.toHaveBeenCalled();
+  });
 });
