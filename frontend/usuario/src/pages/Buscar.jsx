@@ -80,7 +80,14 @@ export default function Buscar() {
     else aplicar({ q: q.trim() });
   };
 
+  const limpiarFiltros = () => {
+    setQ('');
+    aplicar({ q: '', categoriaId: '', tipo: '', ubicacion: '' });
+  };
+
   const hayFiltros = qInicial || tipoInicial || categoriaInicial || ubicacionInicial;
+  const categoriaNoDisponible = categoriaInicial && !cargandoCategorias && !errorCategorias
+    && !categorias.some((categoria) => String(categoria.id) === categoriaInicial);
 
   return (
     <div className="pagina">
@@ -124,14 +131,23 @@ export default function Buscar() {
             disabled={cargandoCategorias || !!errorCategorias}
           >
             <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Todas'}</option>
+            {categoriaNoDisponible && (
+              <option value={categoriaInicial} disabled>Categoría no disponible</option>
+            )}
             {categorias.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.nombre}
+                {c.nombre}{c.estado === false ? ' (desactivada)' : ''}
               </option>
             ))}
           </select>
         </label>
         <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
+        {ubicacionInicial && <p>Ubicación: {ubicacionInicial}</p>}
+        {hayFiltros && (
+          <button type="button" className="btn btn-secundario" onClick={limpiarFiltros}>
+            Limpiar filtros
+          </button>
+        )}
       </form>
 
       <section aria-label="Resultados de búsqueda" aria-busy={cargando}>

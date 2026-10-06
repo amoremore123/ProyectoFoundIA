@@ -130,6 +130,47 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
     expect(parametrosActuales().has('categoriaId')).toBe(false);
   });
 
+  it('identifica las categorías desactivadas y permite consultar su historial', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    const option = await screen.findByRole('option', { name: 'Documentos (desactivada)' });
+    expect(option.disabled).toBe(false);
+    await user.selectOptions(screen.getByRole('combobox'), '3');
+    await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith(
+      { q: '', categoriaId: '3' }, { signal: expect.any(AbortSignal) },
+    ));
+  });
+
+  it('Limpiar filtros elimina texto, categoría, tipo y ubicación, también del formulario', async () => {
+    const user = userEvent.setup();
+    renderizar('/buscar?q=mochila&categoriaId=2&tipo=PERDIDO&ubicacion=Biblioteca&extra=1');
+    await categoriasListas();
+    await user.type(screen.getByRole('searchbox'), ' borrador');
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(screen.getByRole('searchbox').value).toBe('');
+    expect(screen.getByRole('combobox').value).toBe('');
+    expect(screen.getByRole('button', { name: 'Todos', exact: true }).getAttribute('aria-pressed')).toBe('true');
+    expect([...parametrosActuales()]).toEqual([['extra', '1']]);
+    expect(screen.queryByText('Ubicación: Biblioteca')).toBeNull();
+    await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith(
+      { q: '' }, { signal: expect.any(AbortSignal) },
+    ));
+  });
+
+  it('un enlace con categoría inexistente muestra el error y se puede limpiar', async () => {
+    const user = userEvent.setup();
+    buscarObjetos.mockRejectedValueOnce({ response: { data: { mensaje: 'Categoría no encontrada' } } });
+    renderizar('/buscar?categoriaId=999');
+    await categoriasListas();
+    expect((await screen.findByRole('alert')).textContent).toContain('Categoría no encontrada');
+    expect(screen.getByRole('combobox').value).toBe('999');
+    expect(screen.getByRole('option', { name: 'Categoría no disponible' }).disabled).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    await screen.findByRole('heading', { name: 'Mochila negra' });
+    expect(screen.getByRole('combobox').value).toBe('');
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('muestra un estado vacío cuando la búsqueda no coincide', async () => {
     buscarObjetos.mockResolvedValue([]);
     renderizar('/buscar?q=no-existe');
@@ -251,6 +292,7 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
     renderizar('/buscar?ubicacion=BIBLIOTECA');
     await screen.findByRole('heading', { name: 'Mochila negra' });
     expect(screen.queryByRole('heading', { name: 'Celular azul' })).toBeNull();
+    expect(screen.getByText('Ubicación: BIBLIOTECA')).toBeTruthy();
     expect(buscarObjetos).toHaveBeenCalledWith({ q: '' }, { signal: expect.any(AbortSignal) });
   });
 

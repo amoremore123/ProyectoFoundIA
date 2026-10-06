@@ -74,7 +74,7 @@ export default function Inicio() {
               <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Todas'}</option>
               {categorias.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.nombre}
+                  {c.nombre}{c.estado === false ? ' (desactivada)' : ''}
                 </option>
               ))}
             </select>

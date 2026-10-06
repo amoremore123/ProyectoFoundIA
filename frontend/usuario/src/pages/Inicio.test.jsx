@@ -53,6 +53,12 @@ describe('H6/H7 - Entrada de búsqueda desde Inicio', () => {
       .toEqual({ q: 'moch', categoriaId: '2', ubicacion: 'Biblioteca' });
   });
 
+  it('marca las categorías desactivadas sin impedir buscar publicaciones antiguas', async () => {
+    renderizar();
+    const option = await screen.findByRole('option', { name: 'Documentos (desactivada)' });
+    expect(option.disabled).toBe(false);
+  });
+
   it('reintenta las categorías sin confundir su error con el listado reciente', async () => {
     const user = userEvent.setup();
     listarCategorias.mockRejectedValueOnce(new Error('Catálogo no disponible'));
