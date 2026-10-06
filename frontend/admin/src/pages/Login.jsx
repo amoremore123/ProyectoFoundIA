@@ -37,10 +37,10 @@ export default function Login() {
   return (
     <div className="login-pantalla">
       <aside className="login-panel" aria-hidden="true">
-        <Logo claro tamano={40} />
+        <Logo claro tamano={52} />
         <div className="login-panel-texto">
           <span className="login-panel-etiqueta">Panel administrativo</span>
-          <h2>Gestiona la comunidad de Encuentra+</h2>
+          <h2>Gestiona la comunidad de FoundIA</h2>
           <p>Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.</p>
         </div>
         <div className="login-panel-stats">
@@ -53,7 +53,7 @@ export default function Login() {
       <div className="login-contenido">
         <form className="login-tarjeta" onSubmit={enviar}>
           <div className="login-logo">
-            <Logo />
+            <Logo tamano={56} />
           </div>
           <h1>Iniciar sesión</h1>
           <p className="login-subtitulo">Acceso exclusivo para administradores.</p>

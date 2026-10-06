@@ -23,7 +23,7 @@ export default function AdminLayout() {
     <div className="admin-shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <Logo claro tamano={34} />
+          <Logo claro tamano={36} />
           <span className="sidebar-badge">Admin</span>
         </div>
 

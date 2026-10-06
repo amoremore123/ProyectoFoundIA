@@ -66,7 +66,7 @@ export default function Verificar() {
     <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
         <div className="auth-logo">
-          <Logo />
+          <Logo tamano={56} />
         </div>
         <h1>Verifica tu correo</h1>
 
