@@ -1,7 +1,8 @@
 -- =====================================================================
 -- Migración H11 (verificación de correo) y H12 (bloqueo por intentos)
 -- Ejecutar SOLO si tu base ya existía antes de este cambio
--- (por ejemplo, MySQL local). Con Docker basta: docker compose down -v
+-- (MySQL local o un volumen Docker existente). Hacer respaldo antes de importar.
+-- No repetir si las columnas ya existen. No borrar el volumen para actualizar.
 -- =====================================================================
 USE objetos_perdidos_db;
 

@@ -36,7 +36,7 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H1-05 | Sin fecha | fecha vacía | 400, el formulario marca la fecha | `fechaObligatoria` |
 | CP-H1-06 | Sin tipo | no se elige "Perdí" ni "Encontré" | 400, el tipo es obligatorio | `tipoObligatorio` |
 | CP-H1-07 | Categoría inexistente | categoriaId = 99999 | 404 "Categoría no encontrada", no se guarda nada | `categoriaInexistente` |
-| CP-H1-08 | Usuario inexistente | token de un usuario borrado | 404, no se guarda nada | `usuarioInexistente` |
+| CP-H1-08 | Usuario inexistente (servicio) | usuarioId inexistente al crear la publicación | El servicio devuelve 404 y no guarda nada; esta prueba no simula el filtro JWT | `usuarioInexistente` |
 | CP-H1-09 | Datos correctos en el formulario | llenar todos los campos | El frontend muestra errores solo de los campos vacíos y envía al backend | Manual |
 | CP-H1-10 | Límite del nombre | 150 y 151 caracteres | 150 se acepta; 151 da 400 antes de guardar; React limita y valida el nombre | `limiteNombre`, `crearConNombreLargo`, `Publicar.test.jsx` |
 
@@ -45,8 +45,8 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | ID | Escenario | Datos de entrada | Resultado esperado | Prueba automática |
 | -- | --------- | ---------------- | ------------------ | ----------------- |
 | CP-H3-01 | Botón "Usar mi ubicación" (permiso concedido) | navegador con GPS | Se llena la dirección y se muestran latitud/longitud; el payload incluye `latitud` y `longitud` | `crearPublicacionConUbicacion` |
-| CP-H3-02 | Permiso de ubicación denegado | bloquear el permiso del navegador | Aviso "No se pudo acceder a tu ubicación (permiso denegado)" y se puede escribir a mano | Manual |
-| CP-H3-03 | Ubicación escrita a mano | "Biblioteca central" sin botón | Se publica con la dirección y sin coordenadas (null) | Manual |
+| CP-H3-02 | Permiso de ubicación denegado | bloquear el permiso del navegador | Aviso "No se pudo acceder a tu ubicación (permiso denegado)" y se puede escribir a mano | `Publicar.test.jsx` y manual |
+| CP-H3-03 | Ubicación escrita a mano | "Biblioteca central" sin botón | Se publica con la dirección y sin coordenadas (null) | `ubicacionManualSinCoordenadas`, `Publicar.test.jsx` |
 | CP-H3-04 | Coordenadas guardadas en la BD | publicar con el botón | `SELECT ubicacion, latitud, longitud FROM objetos;` muestra los valores | Manual |
 | CP-H3-05 | Dirección obligatoria | ubicación ausente, null, vacía o con espacios | 400 antes de guardar; no basta con omitir la dirección | `ubicacionObligatoria`, `crearSinUbicacion`, `Publicar.test.jsx` |
 | CP-H3-06 | Límite de la dirección | 255 y 256 caracteres | 255 se acepta; 256 da 400; React aplica el mismo límite | `limiteUbicacion`, `crearConUbicacionLarga`, `Publicar.test.jsx` |
@@ -62,7 +62,7 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | -- | --------- | ---------------- | ------------------ | ----------------- |
 | CP-H4-01 | Fecha de hoy | día actual | Se acepta (tanto en el formulario como en la API) | `fechaDeHoy` |
 | CP-H4-02 | Fecha pasada | 2026-10-02 | Se acepta, la publicación se crea | `datosValidos`, `crearValido` |
-| CP-H4-03 | Fecha futura | mañana | El input no permite elegirla (`max` = hoy) y el formulario marca "La fecha no puede ser futura" | `fechaFutura` |
+| CP-H4-03 | Fecha futura | mañana | El input no permite elegirla (`max` = hoy) y el formulario marca "La fecha no puede ser futura" | `fechaFutura`, `Publicar.test.jsx` |
 | CP-H4-04 | Fecha futura enviada a la API | `fechaObjeto` = 3 días adelante | 400 "El campo fechaObjeto no puede ser futura", no se guarda nada | `crearConFechaFutura` |
 
 ## 5. Prueba manual de punta a punta
@@ -77,3 +77,18 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 8. Repetir el GPS, editar la dirección a mano y publicar: el texto nuevo se conserva y `latitud`/`longitud` quedan null.
 9. Repetir con permiso de ubicación denegado: aparece el aviso y se puede publicar con una dirección manual.
 10. Iniciar el GPS y escribir una dirección mientras llega la respuesta: el resultado tardío no debe reemplazarla. Sin geocodificación, el formulario debe mostrar el texto de las coordenadas en vez de asociarlas a una dirección anterior.
+
+## 6. Verificación de regresión — 6 de octubre de 2026
+
+Código comprobado: `6a3c8dd` (incluye las ocho correcciones coordinadas del sprint).
+Resultado general y comandos: [verificación H11/H12](casos-prueba-h11-h12.md#5-verificación-de-regresión--6-de-octubre-de-2026).
+
+| Comprobación adicional | Resultado |
+| --- | --- |
+| API real + MySQL 8.0.46 | Nombre de 151 caracteres, ubicación vacía/larga y coordenadas fuera de rango devuelven 400; los límites permitidos y la publicación manual sin coordenadas devuelven 201 |
+| Navegador + API real + consulta SQL | Cinco publicaciones: GPS editado, GPS sin editar, respuesta tardía, permiso denegado y GPS sin geocodificación; payload y valores guardados coinciden |
+| H4 sin cambios funcionales | Fechas de hoy/pasadas aceptadas; futura rechazada por API y formulario |
+
+El GPS y la geocodificación se simularon para repetir los escenarios; no es una
+prueba de sensores físicos ni del servicio externo. Todas las escrituras se
+hicieron en bases descartables, sin modificar datos del equipo.

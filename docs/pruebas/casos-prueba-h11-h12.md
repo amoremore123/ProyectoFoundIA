@@ -31,7 +31,7 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H11-01 | Registro válido | Ana / Pérez / ana@correo.com / `Segura123!` | 201, cuenta creada sin verificar, código enviado, contraseña guardada con BCrypt | `registroValido`, `AuthControllerTest.registroValido` |
 | CP-H11-02 | Correo ya registrado | correo de un usuario existente | 409 "El correo ya está registrado", no se guarda nada | `correoDuplicado`, `registroDuplicado` |
 | CP-H11-03 | Contraseña débil | `123456`, `Corta1!`, `sinmayuscula1!`, `SinNumero!!`, `SinSimbolo123` | 400, el formulario marca los requisitos faltantes | `passwordDebil`, `registroPasswordDebil` |
-| CP-H11-04 | Contraseñas no coinciden | confirmar ≠ contraseña | El frontend muestra "Las contraseñas no coinciden" y no envía | Manual |
+| CP-H11-04 | Contraseñas no coinciden | confirmar ≠ contraseña | El frontend muestra "Las contraseñas no coinciden" y no envía | `validaciones.test.js` y manual |
 | CP-H11-05 | Correo inválido | `ana-sin-arroba` | 400 / mensaje "Ingresa un correo válido" | `correoInvalido` |
 | CP-H11-06 | Nombre con números o vacío | `An4`, `""` | 400 "solo puede contener letras" / "es obligatorio" | `nombreYApellido` |
 | CP-H11-07 | Correo con mayúsculas | `Ana@FoundIA.dev` | Se guarda como `ana@foundia.dev` | `registroValido` |
@@ -69,9 +69,41 @@ Las pruebas de React del registro se ejecutan desde `frontend/usuario` con
 `npm ci`, `npm test` y `npm run build`. `src/utils/validaciones.test.js` cubre
 los límites UTF-8, la complejidad y la confirmación de contraseña.
 
-1. `docker compose down -v` y luego `docker compose up --build` (recrea la BD con las columnas nuevas).
+1. Si la base es anterior a H11/H12, encender MySQL (en Docker: `docker compose up -d mysql`), hacer un respaldo y ejecutar **una sola vez** `database/migracion_h11_h12.sql` antes de iniciar la API. Si las columnas ya existen, no repetir la migración. Luego levantar con `docker compose up --build` desde la raíz.
 2. Abrir http://localhost:5173/registro y registrarse con un correo cualquiera.
 3. Abrir **Mailpit** en http://localhost:8025, copiar el código de 6 dígitos.
 4. Ingresarlo en la pantalla "Verifica tu correo" → entra al inicio.
 5. Cerrar sesión e intentar 5 veces con una contraseña errada → mensaje de bloqueo 🔒.
 6. Ver en MySQL: `SELECT correo, verificado, intentos_fallidos, bloqueado_hasta FROM usuarios;`
+
+**Conservación de datos:** no usar `docker compose down -v` para actualizar una
+base con datos que se quieran conservar: elimina el volumen MySQL. Tampoco
+ejecutar `database/script.sql` sobre una base existente, porque contiene
+`DROP TABLE`. Para pruebas destructivas, crear una base o un entorno separado.
+
+## 5. Verificación de regresión — 6 de octubre de 2026
+
+Código comprobado: `6a3c8dd`. Los conteos siguientes abarcan las siete historias
+del sprint; no representan pruebas exclusivas de H11/H12.
+
+| Nivel | Resultado | Referencia / ejecución |
+| --- | --- | --- |
+| Backend completo | 131/131, sin fallos ni omitidos; jar construido | Desde `backend/springboot`: `mvn clean package` |
+| Frontend completo | 47/47, sin fallos; build construido | Desde `frontend/usuario`: `npm ci`, `npm test`, `npm run build` |
+| Integración repetida con MySQL 8.0.46 | 5 casos de seguridad y 25 de búsqueda/categorías, sin fallos ni omitidos | `AuthSecurityIntegrationTest` y `BusquedaObjetosIntegrationTest`, repetidos con adaptadores temporales sobre bases aisladas creadas con `database/script.sql` |
+| API HTTP real | 121/121 comprobaciones correctas | Registro/SMTP, verificación, JWT, bloqueo secuencial/concurrente, publicaciones y consultas públicas de las siete historias |
+| Navegador con API real | Flujos comprobados sin fallos funcionales | Registro → correo → verificación → sesión; validaciones; bloqueo; suspensión con JWT anterior; publicación; búsqueda, filtros, historial y categorías desactivadas |
+
+Los 30 casos MySQL son repeticiones de métodos ya incluidos en la suite backend,
+no 30 pruebas distintas adicionales. Los runners MySQL/API y sus datos fueron
+temporales; los tests de regresión H2/MockMvc/React sí quedan versionados.
+SMTP se comprobó con Mailpit, no con proveedores de correo externos.
+
+Los ocho intentos HTTP simultáneos se repitieron en tres cuentas: cuatro 401 y
+cuatro 423 por cuenta, con el bloqueo guardado en MySQL. Una cuenta suspendida
+rechazó tanto su JWT anterior como la verificación por código (401, sin token).
+
+Referencias complementarias: [H1/H3/H4](casos-prueba-h1-h3-h4.md),
+[H6](casos-prueba-h6.md), [H7](casos-prueba-h7.md) y
+[contrato API](../api/endpoints.md). Esta verificación no fusiona ramas ni
+sustituye la revisión formal del equipo.
