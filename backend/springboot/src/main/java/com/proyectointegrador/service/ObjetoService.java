@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class ObjetoService {
@@ -35,6 +36,7 @@ public class ObjetoService {
     private static final BigDecimal PORCENTAJE_ALTA = new BigDecimal("90.00");
     private static final BigDecimal PORCENTAJE_MEDIA = new BigDecimal("65.00");
     private static final List<EstadoObjeto> ESTADOS_PUBLICOS = List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO);
+    private static final Sort ORDEN_PUBLICACION = Sort.by(Sort.Direction.DESC, "fechaPublicacion", "id");
 
     private final ObjetoRepository objetoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -66,9 +68,7 @@ public class ObjetoService {
                     return cb.and(predicates.toArray(new Predicate[0]));
                 };
 
-        return objetoRepository.findAll(specification,
-                        Sort.by(
-                                Sort.Direction.DESC, "fechaPublicacion"))
+        return objetoRepository.findAll(specification, ORDEN_PUBLICACION)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -138,11 +138,11 @@ public class ObjetoService {
                     List<Predicate> predicates = new ArrayList<>();
                     predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
                     if (texto != null && !texto.isBlank()) {
-                        String like = "%" + texto.trim().toLowerCase() + "%";
+                        String like = "%" + escaparTextoLike(texto.trim().toLowerCase(Locale.ROOT)) + "%";
                         predicates.add(cb.or(
-                                cb.like(cb.lower(root.get("nombre")), like),
-                                cb.like(cb.lower(root.get("descripcion")), like),
-                                cb.like(cb.lower(root.get("ubicacion")), like)));
+                                cb.like(cb.lower(root.get("nombre")), like, '!'),
+                                cb.like(cb.lower(root.get("descripcion")), like, '!'),
+                                cb.like(cb.lower(root.get("ubicacion")), like, '!')));
                     }
                     if (tipo != null) {
                         predicates.add(cb.equal(root.get("tipo"), tipo));
@@ -153,9 +153,7 @@ public class ObjetoService {
                     return cb.and(predicates.toArray(new Predicate[0]));
                 };
 
-        return objetoRepository.findAll(specification,
-                        Sort.by(
-                                Sort.Direction.DESC, "fechaPublicacion"))
+        return objetoRepository.findAll(specification, ORDEN_PUBLICACION)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -166,7 +164,7 @@ public class ObjetoService {
         if (!categoriaRepository.existsById(categoriaId)) {
             throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
         }
-        return objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(
+        return objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
                         categoriaId, ESTADOS_PUBLICOS)
                 .stream()
                 .map(this::toResponse)
@@ -176,7 +174,7 @@ public class ObjetoService {
     @Transactional(readOnly = true)
     public List<ObjetoResponse> porUbicacion(String ubicacion) {
         String texto = ubicacion == null ? "" : ubicacion.trim();
-        return objetoRepository.findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDesc(
+        return objetoRepository.findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDescIdDesc(
                         texto, ESTADOS_PUBLICOS)
                 .stream()
                 .map(this::toResponse)
@@ -198,9 +196,7 @@ public class ObjetoService {
                     return cb.and(predicates.toArray(new Predicate[0]));
                 };
 
-        return objetoRepository.findAll(specification,
-                        Sort.by(
-                                Sort.Direction.DESC, "fechaPublicacion"))
+        return objetoRepository.findAll(specification, ORDEN_PUBLICACION)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -266,6 +262,11 @@ public class ObjetoService {
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
                         .toList());
+    }
+
+    private String escaparTextoLike(String texto) {
+        // El texto del usuario es literal: % y _ no deben convertirse en comodines SQL.
+        return texto.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 
     private Objeto buscarPublico(Long id) {

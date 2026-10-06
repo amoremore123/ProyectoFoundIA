@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface ObjetoRepository extends JpaRepository<Objeto, Long>, JpaSpecificationExecutor<Objeto> {
 
-    List<Objeto> findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(Long categoriaId, List<EstadoObjeto> estados);
+    List<Objeto> findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(Long categoriaId, List<EstadoObjeto> estados);
 
-    List<Objeto> findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDesc(String ubicacion, List<EstadoObjeto> estados);
+    List<Objeto> findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDescIdDesc(String ubicacion, List<EstadoObjeto> estados);
 
     List<Objeto> findByUsuarioIdOrderByFechaPublicacionDesc(Long usuarioId);
 

@@ -11,6 +11,9 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -106,6 +109,7 @@ class BusquedaObjetosIntegrationTest {
         objeto.setTipo(tipo);
         objeto.setEstado(estado);
         objeto.setFechaObjeto(LocalDate.now().minusDays(1));
+        // Misma fecha: el id debe desempatar el orden de forma estable.
         objeto.setFechaPublicacion(LocalDateTime.of(2026, 10, 5, 12, 0));
         entityManager.persist(objeto);
         return objeto;
@@ -114,6 +118,55 @@ class BusquedaObjetosIntegrationTest {
     private void sincronizar() {
         entityManager.flush();
         entityManager.clear();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"negra", "cuaderno", "biblioteca", "  NEGRA  "})
+    @DisplayName("H6 - Busca por nombre, descripción o ubicación sin distinguir mayúsculas")
+    void busquedaTextual(String texto) {
+        assertThat(objetoService.buscar(texto, null, null))
+                .extracting(ObjetoResponse::id).containsExactly(mochila.getId());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", "   ", "\t"})
+    @DisplayName("H6 - Sin texto devuelve solo objetos públicos, con orden estable")
+    void sinTexto(String texto) {
+        assertThat(objetoService.buscar(texto, null, null))
+                .extracting(ObjetoResponse::id)
+                .containsExactly(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"100%", "A_B", "Aviso!"})
+    @DisplayName("H6 - Los caracteres de LIKE se buscan literalmente")
+    void comodinesLiterales(String texto) {
+        // Los fixtures están detached tras clear(); usamos referencias administradas.
+        usuario = entityManager.getReference(Usuario.class, usuario.getId());
+        Categoria categoria = entityManager.getReference(Categoria.class, celulares.getId());
+        Objeto literal = objeto("Etiqueta " + texto, "Detalle", "Laboratorio",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        objeto("Etiqueta 1000 A1B Avisoo", "Detalle", "Laboratorio",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        sincronizar();
+
+        assertThat(objetoService.buscar(texto, null, null))
+                .extracting(ObjetoResponse::id).containsExactly(literal.getId());
+    }
+
+    @Test
+    @DisplayName("H6 - Un texto sin coincidencias devuelve una lista vacía")
+    void sinResultados() {
+        assertThat(objetoService.buscar("no-existe-987", null, null)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("H6/H7 - Texto, tipo y categoría se combinan, no se suman")
+    void filtrosCombinados() {
+        assertThat(objetoService.buscar("mochila", TipoObjeto.ENCONTRADO, mochilas.getId()))
+                .extracting(ObjetoResponse::id).containsExactly(recuperado.getId());
+        assertThat(objetoService.buscar("mochila", TipoObjeto.PERDIDO, celulares.getId())).isEmpty();
     }
 
     @Test
@@ -130,7 +183,7 @@ class BusquedaObjetosIntegrationTest {
     @DisplayName("H7 - El endpoint dedicado excluye ocultos y eliminados")
     void porCategoria() {
         assertThat(objetoService.porCategoria(mochilas.getId()))
-                .extracting(ObjetoResponse::id).containsExactlyInAnyOrder(recuperado.getId(), mochila.getId());
+                .extracting(ObjetoResponse::id).containsExactly(recuperado.getId(), mochila.getId());
     }
 
     @Test
@@ -149,7 +202,7 @@ class BusquedaObjetosIntegrationTest {
                 .extracting(ObjetoResponse::id).containsExactly(mochila.getId());
         assertThat(objetoService.porFecha(LocalDate.now().minusDays(2), LocalDate.now()))
                 .extracting(ObjetoResponse::id)
-                .containsExactlyInAnyOrder(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
+                .containsExactly(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
     }
 
     @Test
@@ -172,10 +225,14 @@ class BusquedaObjetosIntegrationTest {
     }
 
     @Test
-    @DisplayName("La búsqueda HTTP anónima solo devuelve publicaciones públicas")
+    @DisplayName("H6/H7 - Búsqueda anónima con consulta SQL real")
     void endpointPublico() throws Exception {
-        mockMvc.perform(get("/api/objetos/buscar"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(4));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", " MOCHILA ")
+                        .param("categoriaId", mochilas.getId().toString()).param("tipo", "PERDIDO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(mochila.getId()))
+                .andExpect(jsonPath("$[0].categoria.id").value(mochilas.getId()));
     }
 
     @Test

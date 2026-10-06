@@ -143,7 +143,7 @@ class ObjetoServiceTest {
     @DisplayName("H7 - Filtra los objetos por categoría")
     void listarPorCategoria() {
         when(categoriaRepository.existsById(3L)).thenReturn(true);
-        when(objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(
+        when(objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
                 3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO)))
                 .thenReturn(List.of(objetoDeCategoria(3L, "Mochila negra")));
 
@@ -152,7 +152,7 @@ class ObjetoServiceTest {
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).categoria().id()).isEqualTo(3L);
         assertThat(resultado.get(0).categoria().nombre()).isEqualTo("Mochila");
-        verify(objetoRepository).findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(
+        verify(objetoRepository).findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
                 3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO));
     }
 
@@ -177,7 +177,7 @@ class ObjetoServiceTest {
         assertThatThrownBy(() -> objetoService.porCategoria(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(objetoRepository, never()).findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(any(), any());
+        verify(objetoRepository, never()).findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(any(), any());
     }
 
     @Test
