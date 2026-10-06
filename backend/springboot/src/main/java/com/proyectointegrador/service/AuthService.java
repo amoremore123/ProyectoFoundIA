@@ -146,7 +146,8 @@ public class AuthService {
      */
     @Transactional(noRollbackFor = {InvalidCredentialsException.class, CuentaBloqueadaException.class})
     public AuthResponse login(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreo(normalizarCorreo(request.correo()))
+        // Serializa los intentos de esta cuenta para no perder incrementos concurrentes.
+        Usuario usuario = usuarioRepository.findByCorreoForUpdate(normalizarCorreo(request.correo()))
                 .orElseThrow(() -> new InvalidCredentialsException(MENSAJE_CREDENCIALES));
 
         LocalDateTime ahora = ahora();

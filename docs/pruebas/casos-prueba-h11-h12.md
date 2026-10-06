@@ -12,6 +12,7 @@ Ubicación: `backend/springboot/src/test/java/com/proyectointegrador/`
 | `dto/RegisterRequestValidationTest` | Unitaria (Bean Validation) | Reglas del formulario y de la contraseña |
 | `controller/AuthControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `/api/auth/*` |
 | `security/JwtServiceTest` | Unitaria | Generación y validación del token JWT |
+| `service/AuthSecurityIntegrationTest` | Integración (Spring Boot + H2 + MockMvc) | Persistencia de intentos fallidos y bloqueo con solicitudes concurrentes |
 
 ### Cómo ejecutarlas (con Docker, sin instalar Maven)
 
@@ -55,6 +56,7 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H12-10 | Campos vacíos | sin correo | 400 / mensaje en el formulario | `loginSinCorreo` |
 | CP-H12-11 | Token válido | JWT generado | Contiene el correo y solo es válido para su dueño | `JwtServiceTest.tokenValido` |
 | CP-H12-12 | Token alterado o vencido | otro secreto / expirado | Rechazado | `otroSecreto`, `tokenExpirado` |
+| CP-H12-13 | Intentos simultáneos | 8 logins incorrectos lanzados a la vez | 4 respuestas 401 y 4 respuestas 423; bloqueo persistido; la contraseña correcta tampoco permite ingresar durante el bloqueo | `intentosConcurrentesBloquean`, `intentoFallidoPersistido` |
 
 ## 4. Prueba manual de punta a punta
 

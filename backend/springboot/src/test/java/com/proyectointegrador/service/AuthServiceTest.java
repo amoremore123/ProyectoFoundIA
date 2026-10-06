@@ -207,7 +207,7 @@ class AuthServiceTest {
         void loginCorrecto() {
             Usuario u = usuario(true);
             u.setIntentosFallidos(3);
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             AuthResponse respuesta = authService.login(new LoginRequest("Ana@foundia.dev", PASSWORD));
 
@@ -219,7 +219,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Correo inexistente: 401 con mensaje genérico")
         void correoInexistente() {
-            when(usuarioRepository.findByCorreo(anyString())).thenReturn(Optional.empty());
+            when(usuarioRepository.findByCorreoForUpdate(anyString())).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("nadie@foundia.dev", PASSWORD)))
                     .isInstanceOf(InvalidCredentialsException.class)
@@ -230,7 +230,7 @@ class AuthServiceTest {
         @DisplayName("Contraseña incorrecta: 401, suma un intento e informa los restantes")
         void passwordIncorrecto() {
             Usuario u = usuario(true);
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("ana@foundia.dev", "Mala123!")))
                     .isInstanceOf(InvalidCredentialsException.class)
@@ -244,7 +244,7 @@ class AuthServiceTest {
         void quintoIntentoBloquea() {
             Usuario u = usuario(true);
             u.setIntentosFallidos(4);
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("ana@foundia.dev", "Mala123!")))
                     .isInstanceOf(CuentaBloqueadaException.class);
@@ -255,7 +255,7 @@ class AuthServiceTest {
         @DisplayName("Cinco intentos seguidos desde cero terminan en bloqueo")
         void cincoIntentosSeguidos() {
             Usuario u = usuario(true);
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
             LoginRequest malo = new LoginRequest("ana@foundia.dev", "Mala123!");
 
             for (int i = 1; i < AuthService.MAX_INTENTOS; i++) {
@@ -269,7 +269,7 @@ class AuthServiceTest {
         void bloqueadaRechazaPasswordCorrecto() {
             Usuario u = usuario(true);
             u.setBloqueadoHasta(AHORA.plusMinutes(10));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("ana@foundia.dev", PASSWORD)))
                     .isInstanceOf(CuentaBloqueadaException.class)
@@ -281,7 +281,7 @@ class AuthServiceTest {
         void bloqueoVencido() {
             Usuario u = usuario(true);
             u.setBloqueadoHasta(AHORA.minusSeconds(1));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             AuthResponse respuesta = authService.login(new LoginRequest("ana@foundia.dev", PASSWORD));
 
@@ -292,7 +292,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Cuenta sin verificar: 403")
         void cuentaNoVerificada() {
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(usuario(false)));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(usuario(false)));
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("ana@foundia.dev", PASSWORD)))
                     .isInstanceOf(CuentaNoVerificadaException.class);
@@ -303,7 +303,7 @@ class AuthServiceTest {
         void cuentaSuspendida() {
             Usuario u = usuario(true);
             u.setEstado(EstadoUsuario.SUSPENDIDO);
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.login(new LoginRequest("ana@foundia.dev", PASSWORD)))
                     .isInstanceOf(InvalidCredentialsException.class)
