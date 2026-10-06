@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,6 +14,14 @@ vi.mock('../services/geolocalizacion', () => ({ obtenerUbicacionActual: vi.fn() 
 function hoyISO() {
   const fecha = new Date();
   return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+}
+
+const gps = { latitud: 19.43261, longitud: -99.1332, direccion: 'Dirección obtenida por GPS' };
+
+function consultaPendiente() {
+  let resolver;
+  const promise = new Promise((resolve) => { resolver = resolve; });
+  return { promise, resolver };
 }
 
 function renderizar() {
@@ -40,6 +48,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   listarCategorias.mockResolvedValue([{ id: 3, nombre: 'Mochila', estado: true }]);
   crearObjeto.mockResolvedValue({ id: 55 });
+  obtenerUbicacionActual.mockResolvedValue(gps);
 });
 afterEach(cleanup);
 
@@ -115,6 +124,142 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     fireEvent.change(screen.getByRole('textbox', { name: /^Ubicación/ }), { target: { value: 'U'.repeat(256) } });
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     expect(screen.getByText('La ubicación no debe superar los 255 caracteres')).not.toBeNull();
+    expect(crearObjeto).not.toHaveBeenCalled();
+  });
+
+  it('publica la dirección y las coordenadas del GPS cuando no se editan', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    await screen.findByText(/Ubicación obtenida:/);
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).value).toBe(gps.direccion);
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({
+      ubicacion: gps.direccion, latitud: gps.latitud, longitud: gps.longitud,
+    });
+  });
+
+  it('borra las coordenadas del GPS al editar manualmente la dirección', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    await screen.findByText(/Ubicación obtenida:/);
+    const ubicacion = screen.getByRole('textbox', { name: /^Ubicación/ });
+    await user.clear(ubicacion);
+    await user.type(ubicacion, 'Otra dirección manual');
+    expect(screen.queryByText(/Ubicación obtenida:/)).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({
+      ubicacion: 'Otra dirección manual', latitud: null, longitud: null,
+    });
+  });
+
+  it('conserva las coordenadas cuando se edita un campo distinto de la dirección', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    await screen.findByText(/Ubicación obtenida:/);
+    await user.type(screen.getByRole('textbox', { name: /^Nombre/ }), ' nueva');
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({
+      ubicacion: gps.direccion, latitud: gps.latitud, longitud: gps.longitud,
+    });
+  });
+
+  it('ignora un resultado GPS tardío si ya se escribió otra dirección', async () => {
+    const consulta = consultaPendiente();
+    obtenerUbicacionActual.mockReturnValueOnce(consulta.promise);
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    fireEvent.change(screen.getByRole('textbox', { name: /^Ubicación/ }), { target: { value: 'Dirección manual nueva' } });
+    await act(async () => consulta.resolver(gps));
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).value).toBe('Dirección manual nueva');
+    expect(screen.queryByText(/Ubicación obtenida:/)).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({ latitud: null, longitud: null });
+  });
+
+  it('una nueva consulta GPS no se sobrescribe con una respuesta antigua invalidada', async () => {
+    const primera = consultaPendiente();
+    const segunda = consultaPendiente();
+    obtenerUbicacionActual.mockReturnValueOnce(primera.promise).mockReturnValueOnce(segunda.promise);
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    fireEvent.change(screen.getByRole('textbox', { name: /^Ubicación/ }), { target: { value: 'Dirección manual' } });
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    const nuevoGps = { latitud: 20, longitud: -100, direccion: 'Nuevo GPS' };
+    await act(async () => segunda.resolver(nuevoGps));
+    await act(async () => primera.resolver(gps));
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).value).toBe(nuevoGps.direccion);
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({
+      ubicacion: nuevoGps.direccion, latitud: nuevoGps.latitud, longitud: nuevoGps.longitud,
+    });
+  });
+
+  it('sin geocodificación usa el texto de las coordenadas, no una dirección manual anterior', async () => {
+    obtenerUbicacionActual.mockResolvedValueOnce({ ...gps, direccion: '' });
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    await screen.findByText(/Ubicación obtenida:/);
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).value).toBe(`${gps.latitud}, ${gps.longitud}`);
+  });
+
+  it('permite publicar a mano cuando se deniega el permiso GPS', async () => {
+    obtenerUbicacionActual.mockRejectedValueOnce(new Error('No se pudo acceder a tu ubicación (permiso denegado)'));
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    await screen.findByText(/permiso denegado/);
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0]).toMatchObject({
+      ubicacion: 'Biblioteca central', latitud: null, longitud: null,
+    });
+  });
+
+  it('espera a que termine la consulta GPS antes de publicar', async () => {
+    const consulta = consultaPendiente();
+    obtenerUbicacionActual.mockReturnValueOnce(consulta.promise);
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    await user.click(screen.getByRole('button', { name: /Usar mi ubicación/ }));
+    const publicar = screen.getByRole('button', { name: 'PUBLICAR OBJETO' });
+    expect(publicar.disabled).toBe(true);
+    await user.click(publicar);
+    expect(crearObjeto).not.toHaveBeenCalled();
+    await act(async () => consulta.resolver(gps));
+    expect(publicar.disabled).toBe(false);
+    await user.click(publicar);
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+  });
+
+  it('rechaza una fecha futura aunque se salte el límite del calendario', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    const fecha = `${manana.getFullYear()}-${String(manana.getMonth() + 1).padStart(2, '0')}-${String(manana.getDate()).padStart(2, '0')}`;
+    fireEvent.change(screen.getByLabelText(/^Fecha/), { target: { value: fecha } });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(screen.getByText('La fecha no puede ser futura')).not.toBeNull();
     expect(crearObjeto).not.toHaveBeenCalled();
   });
 });

@@ -198,6 +198,10 @@ caracteres. Es válida una dirección escrita a mano sin coordenadas.
 Si se envían coordenadas, la latitud debe estar entre -90 y 90 y la longitud
 entre -180 y 180 (límites incluidos). Fuera de esos rangos devuelve `400`.
 
+En el formulario web, editar la dirección después de usar GPS descarta las
+coordenadas anteriores. Una respuesta GPS pendiente tampoco sobrescribe una
+edición manual; si no hay geocodificación, se muestra el texto de las coordenadas.
+
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token
 

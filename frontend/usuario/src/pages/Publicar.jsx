@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
 import { crearObjeto, listarCategorias, mensajeError, statusDe } from '../services/api';
@@ -29,6 +29,7 @@ export default function Publicar() {
   const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
   const [ubicando, setUbicando] = useState(false);
   const [avisoUbicacion, setAvisoUbicacion] = useState('');
+  const solicitudUbicacion = useRef(0);
 
   useEffect(() => {
     let vivo = true;
@@ -42,6 +43,7 @@ export default function Publicar() {
     })();
     return () => {
       vivo = false;
+      solicitudUbicacion.current += 1;
     };
   }, []);
 
@@ -49,23 +51,32 @@ export default function Publicar() {
     const valor = e.target.value;
     setForm((f) => ({ ...f, [campo]: valor }));
     setErrores((er) => ({ ...er, [campo]: undefined }));
+    if (campo === 'ubicacion') {
+      // Una dirección manual ya no representa las coordenadas obtenidas por GPS.
+      solicitudUbicacion.current += 1;
+      setCoordenadas({ latitud: null, longitud: null });
+      setAvisoUbicacion('');
+      setUbicando(false);
+    }
   };
 
   const usarMiUbicacion = async () => {
+    const solicitud = ++solicitudUbicacion.current;
     setAvisoUbicacion('');
     setUbicando(true);
     try {
       const { latitud, longitud, direccion } = await obtenerUbicacionActual();
+      if (solicitud !== solicitudUbicacion.current) return;
       setCoordenadas({ latitud, longitud });
       setForm((f) => ({
         ...f,
-        ubicacion: direccion || f.ubicacion || `${latitud}, ${longitud}`,
+        ubicacion: direccion || `${latitud}, ${longitud}`,
       }));
       setErrores((er) => ({ ...er, ubicacion: undefined }));
     } catch (e) {
-      setAvisoUbicacion(e.message);
+      if (solicitud === solicitudUbicacion.current) setAvisoUbicacion(e.message);
     } finally {
-      setUbicando(false);
+      if (solicitud === solicitudUbicacion.current) setUbicando(false);
     }
   };
 
@@ -104,6 +115,7 @@ export default function Publicar() {
 
   const enviar = async (e) => {
     e.preventDefault();
+    if (enviando || ubicando) return;
     setErrorGeneral('');
     setErrores({});
     if (!validar()) return;
@@ -238,7 +250,7 @@ export default function Publicar() {
             type="button"
             className="btn btn-secundario"
             onClick={usarMiUbicacion}
-            disabled={ubicando}
+            disabled={ubicando || enviando}
           >
             {ubicando ? '📍 Ubicando...' : '📍 Usar mi ubicación'}
           </button>
@@ -254,7 +266,7 @@ export default function Publicar() {
           <span>📷 Foto — próximamente</span>
         </div>
 
-        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
+        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
           {enviando ? 'Publicando...' : 'PUBLICAR OBJETO'}
         </button>
       </form>

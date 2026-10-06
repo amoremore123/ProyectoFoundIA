@@ -52,6 +52,9 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H3-06 | Límite de la dirección | 255 y 256 caracteres | 255 se acepta; 256 da 400; React aplica el mismo límite | `limiteUbicacion`, `crearConUbicacionLarga`, `Publicar.test.jsx` |
 | CP-H3-07 | Coordenadas opcionales | dirección manual y coordenadas null | Validación correcta y publicación permitida | `ubicacionManualSinCoordenadas`, `Publicar.test.jsx` |
 | CP-H3-08 | Rangos geográficos | latitud entre -90 y 90, longitud entre -180 y 180; probar límites y valores fuera de rango | Los límites se aceptan; fuera del rango devuelve 400, no 500; los valores null siguen permitidos | `coordenadasPermitidas`, `coordenadasFueraDeRango`, `crearConCoordenadasFueraDeRango` |
+| CP-H3-09 | Dirección editada después del GPS | obtener GPS y cambiar el texto de ubicación | Desaparece el indicador GPS y se publica la dirección manual con coordenadas null | `Publicar.test.jsx`: borra coordenadas al editar la dirección |
+| CP-H3-10 | GPS pendiente y edición manual | iniciar GPS, escribir otra dirección y recibir una respuesta tardía | La respuesta anterior no cambia la dirección ni restaura coordenadas; otra consulta GPS puede iniciarse sin sobrescrituras | `Publicar.test.jsx`: resultado tardío y nueva consulta |
+| CP-H3-11 | Geocodificación no disponible | GPS correcto pero sin dirección devuelta | Se usa el texto de las coordenadas, nunca una dirección manual anterior; se espera al GPS antes de publicar | `Publicar.test.jsx`: sin geocodificación y espera antes de publicar |
 
 ## 4. Casos de prueba — H4 Fecha
 
@@ -71,3 +74,6 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 5. Elegir una fecha de mañana → el calendario no la deja o aparece "La fecha no puede ser futura".
 6. Publicar con datos válidos → entra al detalle del objeto recién creado.
 7. Ver en la base: `SELECT id, nombre, ubicacion, latitud, longitud, fecha_objeto FROM objetos ORDER BY id DESC LIMIT 1;`
+8. Repetir el GPS, editar la dirección a mano y publicar: el texto nuevo se conserva y `latitud`/`longitud` quedan null.
+9. Repetir con permiso de ubicación denegado: aparece el aviso y se puede publicar con una dirección manual.
+10. Iniciar el GPS y escribir una dirección mientras llega la respuesta: el resultado tardío no debe reemplazarla. Sin geocodificación, el formulario debe mostrar el texto de las coordenadas en vez de asociarlas a una dirección anterior.
