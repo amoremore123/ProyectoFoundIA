@@ -12,7 +12,7 @@ Ubicación: `backend/springboot/src/test/java/com/proyectointegrador/`
 | `dto/RegisterRequestValidationTest` | Unitaria (Bean Validation) | Reglas del formulario y de la contraseña |
 | `controller/AuthControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `/api/auth/*` |
 | `security/JwtServiceTest` | Unitaria | Generación y validación del token JWT |
-| `service/AuthSecurityIntegrationTest` | Integración (Spring Boot + H2 + MockMvc) | Persistencia de intentos, bloqueo concurrente y estado actual de la cuenta al usar JWT |
+| `service/AuthSecurityIntegrationTest` | Integración (Spring Boot + H2 + MockMvc) | Persistencia de intentos, bloqueo concurrente, JWT y verificación de cuentas suspendidas |
 | `security/UserPrincipalTest` | Unitaria | Solo las cuentas activas y verificadas se consideran habilitadas |
 
 ### Cómo ejecutarlas (con Docker, sin instalar Maven)
@@ -40,6 +40,7 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H11-10 | Código vencido (> 15 min) | código antiguo | 400 "El código expiró. Solicita uno nuevo." | `verificarCodigoExpirado` |
 | CP-H11-11 | Reenviar código | botón "Reenviar código" | Llega un código nuevo; el anterior deja de servir | `reenviarCodigo` |
 | CP-H11-12 | Servidor de correo caído | Mailpit apagado | 503, la cuenta NO se crea | `falloEnvioCorreo` |
+| CP-H11-13 | Cuenta suspendida con código correcto | código vigente de una cuenta SUSPENDIDO | 401, no emite JWT ni marca la cuenta como verificada; el código no se consume | `verificarCuentaSuspendida`, `verificarSuspendidaNoEmiteToken` |
 
 ## 3. Casos de prueba — H12 Iniciar sesión
 

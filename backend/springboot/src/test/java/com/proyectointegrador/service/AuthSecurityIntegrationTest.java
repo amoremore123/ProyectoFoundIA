@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @DisplayName("H11/H12 - Seguridad con API, transacciones y base temporal")
 @SpringBootTest(properties = {
@@ -143,5 +144,24 @@ class AuthSecurityIntegrationTest {
 
         mockMvc.perform(get("/api/perfil").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("H11/H12 - Verificar una cuenta suspendida devuelve 401 y no consume el código")
+    void verificarSuspendidaNoEmiteToken() throws Exception {
+        usuario.setVerificado(false);
+        usuario.setEstado(EstadoUsuario.SUSPENDIDO);
+        usuario.setCodigoVerificacion("123456");
+        usuario.setCodigoExpira(LocalDateTime.now().plusMinutes(10));
+        usuarioRepository.saveAndFlush(usuario);
+
+        mockMvc.perform(post("/api/auth/verificar").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\":\"seguridad@prueba.invalid\",\"codigo\":\"123456\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.token").doesNotExist());
+        Usuario guardado = usuarioRepository.findByCorreo(CORREO).orElseThrow();
+        assertThat(guardado.isVerificado()).isFalse();
+        assertThat(guardado.getCodigoVerificacion()).isEqualTo("123456");
+        assertThat(guardado.getEstado()).isEqualTo(EstadoUsuario.SUSPENDIDO);
     }
 }

@@ -68,7 +68,10 @@ un número y un símbolo (máx. 72). Nombre y apellido: solo letras.
 }
 ```
 
-**Errores**: `400` código incorrecto, expirado o cuenta ya verificada
+**Errores**: `400` código incorrecto, expirado o cuenta ya verificada · `401` cuenta suspendida
+
+La verificación no permite iniciar sesión con una cuenta suspendida, aunque el
+código sea correcto y siga vigente; no se consume el código ni se emite JWT.
 
 ### POST `/api/auth/reenviar-codigo`  _(H11)_
 

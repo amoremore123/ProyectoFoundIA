@@ -43,6 +43,7 @@ public class AuthService {
     public static final long MINUTOS_VIGENCIA_CODIGO = 15;
 
     private static final String MENSAJE_CREDENCIALES = "Correo o contraseña incorrectos.";
+    private static final String MENSAJE_CUENTA_SUSPENDIDA = "Tu cuenta está suspendida. Contacta al administrador.";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UsuarioRepository usuarioRepository;
@@ -98,9 +99,12 @@ public class AuthService {
 
     @Transactional
     public AuthResponse verificar(VerificarRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreo(normalizarCorreo(request.correo()))
+        Usuario usuario = usuarioRepository.findByCorreoForUpdate(normalizarCorreo(request.correo()))
                 .orElseThrow(() -> new CodigoVerificacionException("Código incorrecto."));
 
+        if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+            throw new InvalidCredentialsException(MENSAJE_CUENTA_SUSPENDIDA);
+        }
         if (usuario.isVerificado()) {
             throw new CodigoVerificacionException("Tu cuenta ya está verificada. Inicia sesión.");
         }
@@ -123,7 +127,7 @@ public class AuthService {
     @Transactional
     public MensajeResponse reenviarCodigo(ReenviarCodigoRequest request) {
         String correo = normalizarCorreo(request.correo());
-        Usuario usuario = usuarioRepository.findByCorreo(correo).orElse(null);
+        Usuario usuario = usuarioRepository.findByCorreoForUpdate(correo).orElse(null);
 
         if (usuario != null && usuario.isVerificado()) {
             throw new CodigoVerificacionException("Tu cuenta ya está verificada. Inicia sesión.");
@@ -161,7 +165,7 @@ public class AuthService {
         }
 
         if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
-            throw new InvalidCredentialsException("Tu cuenta está suspendida. Contacta al administrador.");
+            throw new InvalidCredentialsException(MENSAJE_CUENTA_SUSPENDIDA);
         }
         if (!usuario.isVerificado()) {
             throw new CuentaNoVerificadaException("Debes verificar tu correo antes de iniciar sesión.");

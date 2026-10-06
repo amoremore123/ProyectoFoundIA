@@ -144,7 +144,7 @@ class AuthServiceTest {
             Usuario u = usuario(false);
             u.setCodigoVerificacion("123456");
             u.setCodigoExpira(AHORA.plusMinutes(10));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             AuthResponse respuesta = authService.verificar(new VerificarRequest("ANA@foundia.dev", "123456"));
 
@@ -159,7 +159,7 @@ class AuthServiceTest {
             Usuario u = usuario(false);
             u.setCodigoVerificacion("123456");
             u.setCodigoExpira(AHORA.plusMinutes(10));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "000000")))
                     .isInstanceOf(CodigoVerificacionException.class)
@@ -173,7 +173,7 @@ class AuthServiceTest {
             Usuario u = usuario(false);
             u.setCodigoVerificacion("123456");
             u.setCodigoExpira(AHORA.minusMinutes(1));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "123456")))
                     .isInstanceOf(CodigoVerificacionException.class)
@@ -186,7 +186,7 @@ class AuthServiceTest {
             Usuario u = usuario(false);
             u.setCodigoVerificacion("111111");
             u.setCodigoExpira(AHORA.minusMinutes(5));
-            when(usuarioRepository.findByCorreo("ana@foundia.dev")).thenReturn(Optional.of(u));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
 
             MensajeResponse respuesta = authService.reenviarCodigo(new ReenviarCodigoRequest("ana@foundia.dev"));
 
@@ -194,6 +194,24 @@ class AuthServiceTest {
             verify(emailService).enviarCodigoVerificacion(
                     eq("ana@foundia.dev"), eq("Ana"), eq(u.getCodigoVerificacion()), anyLong());
             assertThat(respuesta.mensaje()).isNotBlank();
+        }
+
+        @Test
+        @DisplayName("Una cuenta suspendida no verifica el correo ni recibe JWT")
+        void verificarCuentaSuspendida() {
+            Usuario u = usuario(false);
+            u.setEstado(EstadoUsuario.SUSPENDIDO);
+            u.setCodigoVerificacion("123456");
+            u.setCodigoExpira(AHORA.plusMinutes(10));
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
+
+            assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "123456")))
+                    .isInstanceOf(InvalidCredentialsException.class)
+                    .hasMessageContaining("suspendida");
+            assertThat(u.isVerificado()).isFalse();
+            assertThat(u.getCodigoVerificacion()).isEqualTo("123456");
+            verify(usuarioRepository, never()).save(any());
+            verify(jwtService, never()).generateToken(any());
         }
     }
 
