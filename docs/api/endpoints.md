@@ -106,6 +106,10 @@ correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
 ### GET `/api/categorias`  _(público)_
 
+Devuelve el catálogo ordenado por id, incluidas las categorías desactivadas
+(`estado = false`), para consultar publicaciones anteriores. En Inicio y
+búsqueda se identifican como "(desactivada)"; esta regla no cambia la publicación.
+
 **Response** `200 OK`
 
 ```json
@@ -117,6 +121,15 @@ correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 ---
 
 ## 3. Objetos — Spring Boot
+
+Las consultas públicas de listado, búsqueda, categoría, ubicación y fecha
+solo devuelven objetos `ACTIVO` o `RECUPERADO`; excluyen `OCULTO` y `ELIMINADO`.
+Se ordenan por `fechaPublicacion` descendente y, en empates, por `id` descendente.
+El detalle y las coincidencias de un objeto no público devuelven `404`.
+La consulta privada de publicaciones propias mantiene su comportamiento.
+
+Casos de prueba: [H6 — Buscar objetos](../pruebas/casos-prueba-h6.md) y
+[H7 — Filtrar objetos por categoría](../pruebas/casos-prueba-h7.md).
 
 ### ObjetoResponse (formato estándar de respuesta)
 
@@ -142,11 +155,14 @@ correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
 Query params opcionales: `?tipo=PERDIDO|ENCONTRADO&estado=ACTIVO&categoriaId=3`
 
-**Response** `200 OK` — arreglo de `ObjetoResponse` (excluye `ELIMINADO`).
+**Response** `200 OK` — arreglo de `ObjetoResponse`. Pedir explícitamente
+`estado=OCULTO` o `estado=ELIMINADO` devuelve `[]`, sin exponer esos objetos.
+
+**Errores**: `400` parámetro con formato incorrecto · `404` categoría inexistente
 
 ### GET `/api/objetos/{id}`  _(público)_
 
-**Response** `200 OK` · **Errores**: `404` (también si el objeto está `ELIMINADO`)
+**Response** `200 OK` · **Errores**: `404` si no existe o está `OCULTO`/`ELIMINADO`
 
 ### POST `/api/objetos`  _(JWT)_
 
@@ -182,12 +198,28 @@ Borrado lógico: pasa a `estado = ELIMINADO`.
 
 ### GET `/api/objetos/buscar`  _(público)_
 
-Query params: `?q=texto&tipo=&categoriaId=` — busca en nombre, descripción y
-ubicación (LIKE). **Response** `200 OK` — arreglo de `ObjetoResponse`.
+Query params opcionales: `q`, `tipo` (`PERDIDO` o `ENCONTRADO`) y `categoriaId`.
+Ejemplo: `?q=mochila&tipo=ENCONTRADO&categoriaId=3`.
+
+- Busca coincidencias parciales en nombre, descripción o ubicación, sin
+  distinguir mayúsculas y recortando los espacios externos de `q`.
+- `%`, `_` y `!` se interpretan como texto literal, no como comodines.
+- Sin `q`, o con texto vacío/solo espacios, devuelve los objetos públicos que
+  cumplen los demás filtros. Texto, tipo y categoría se combinan con AND.
+- Una categoría desactivada sigue siendo consultable; una inexistente devuelve `404`.
+
+**Response** `200 OK` — arreglo de `ObjetoResponse`; `[]` si no hay coincidencias.
+**Errores**: `400` tipo o categoría con formato incorrecto · `404` categoría inexistente
+
+El parámetro `ubicacion` de la URL de React (`/buscar`) es un filtro adicional
+del frontend sobre esta respuesta; no es un parámetro independiente de este
+endpoint. `q` sí incluye el campo ubicación en la búsqueda.
 
 ### GET `/api/objetos/categoria/{id}`  _(público)_
 
-**Response** `200 OK` — objetos de esa categoría.
+**Response** `200 OK` — objetos públicos de esa categoría; `[]` si no hay
+publicaciones públicas. También admite categorías desactivadas.
+**Errores**: `400` id con formato incorrecto · `404` categoría inexistente
 
 ### GET `/api/objetos/ubicacion?ubicacion=texto`  _(público)_
 
@@ -203,6 +235,8 @@ Filtra por `fecha_objeto` (rango inclusivo; ambos opcionales).
 Coincidencias **sugeridas** (cálculo simple, sin IA todavía): busca objetos del
 tipo opuesto (`PERDIDO` ↔ `ENCONTRADO`) de la misma categoría; nivel `ALTA` si
 coincide también la ubicación, `MEDIA` si no. No se persisten.
+
+**Errores**: `404` si el objeto de origen no existe o está `OCULTO`/`ELIMINADO`
 
 **Response** `200 OK`
 
