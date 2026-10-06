@@ -51,6 +51,7 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H3-05 | Dirección obligatoria | ubicación ausente, null, vacía o con espacios | 400 antes de guardar; no basta con omitir la dirección | `ubicacionObligatoria`, `crearSinUbicacion`, `Publicar.test.jsx` |
 | CP-H3-06 | Límite de la dirección | 255 y 256 caracteres | 255 se acepta; 256 da 400; React aplica el mismo límite | `limiteUbicacion`, `crearConUbicacionLarga`, `Publicar.test.jsx` |
 | CP-H3-07 | Coordenadas opcionales | dirección manual y coordenadas null | Validación correcta y publicación permitida | `ubicacionManualSinCoordenadas`, `Publicar.test.jsx` |
+| CP-H3-08 | Rangos geográficos | latitud entre -90 y 90, longitud entre -180 y 180; probar límites y valores fuera de rango | Los límites se aceptan; fuera del rango devuelve 400, no 500; los valores null siguen permitidos | `coordenadasPermitidas`, `coordenadasFueraDeRango`, `crearConCoordenadasFueraDeRango` |
 
 ## 4. Casos de prueba — H4 Fecha
 

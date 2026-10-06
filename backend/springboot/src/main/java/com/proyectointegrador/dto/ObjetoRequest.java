@@ -1,6 +1,8 @@
 package com.proyectointegrador.dto;
 
 import com.proyectointegrador.entity.TipoObjeto;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -18,7 +20,9 @@ public record ObjetoRequest(
         @NotNull(message = "es obligatorio") TipoObjeto tipo,
         @NotBlank(message = "es obligatorio")
         @Size(max = 255, message = "no debe superar los 255 caracteres") String ubicacion,
-        BigDecimal latitud,
-        BigDecimal longitud
+        @DecimalMin(value = "-90", message = "debe estar entre -90 y 90")
+        @DecimalMax(value = "90", message = "debe estar entre -90 y 90") BigDecimal latitud,
+        @DecimalMin(value = "-180", message = "debe estar entre -180 y 180")
+        @DecimalMax(value = "180", message = "debe estar entre -180 y 180") BigDecimal longitud
 ) {
 }

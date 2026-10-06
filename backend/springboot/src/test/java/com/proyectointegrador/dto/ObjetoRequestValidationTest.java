@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -105,6 +106,28 @@ class ObjetoRequestValidationTest {
     void ubicacionManualSinCoordenadas() {
         ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
                 TipoObjeto.PERDIDO, "Biblioteca central", null, null);
+        assertThat(validar(r)).isEmpty();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "91, 0, latitud", "-91, 0, latitud", "0, 181, longitud", "0, -181, longitud",
+            "90.0000001, 0, latitud", "-90.0000001, 0, latitud",
+            "0, 180.0000001, longitud", "0, -180.0000001, longitud"
+    })
+    @DisplayName("H3 - Las coordenadas fuera de rango se rechazan antes de llegar a MySQL")
+    void coordenadasFueraDeRango(BigDecimal latitud, BigDecimal longitud, String campo) {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", latitud, longitud);
+        assertThat(validar(r)).anyMatch(v -> v.getPropertyPath().toString().equals(campo));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"90, 180", "-90, -180", "0, 0", "19.43261, -99.1332"})
+    @DisplayName("H3 - Los límites geográficos y las coordenadas interiores son válidos")
+    void coordenadasPermitidas(BigDecimal latitud, BigDecimal longitud) {
+        ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", latitud, longitud);
         assertThat(validar(r)).isEmpty();
     }
 

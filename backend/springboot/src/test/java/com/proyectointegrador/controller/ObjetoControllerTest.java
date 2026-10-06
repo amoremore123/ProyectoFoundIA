@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -128,6 +129,18 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("255")));
+        verify(objetoService, never()).crear(any(), any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"91, -99.1332, latitud", "-91, -99.1332, latitud",
+            "19.43261, 181, longitud", "19.43261, -181, longitud"})
+    @DisplayName("H3 - POST /api/objetos con coordenadas fuera de rango -> 400, no 500")
+    void crearConCoordenadasFueraDeRango(String latitud, String longitud, String campo) throws Exception {
+        String body = PUBLICACION_VALIDA.replace("19.43261", latitud).replace("-99.1332", longitud);
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString(campo)));
         verify(objetoService, never()).crear(any(), any());
     }
 

@@ -195,6 +195,8 @@ El nombre es obligatorio y admite hasta 150 caracteres. Superar ese límite
 devuelve `400` antes de guardar, no un error de base de datos.
 La ubicación es obligatoria, no puede quedar en blanco y admite hasta 255
 caracteres. Es válida una dirección escrita a mano sin coordenadas.
+Si se envían coordenadas, la latitud debe estar entre -90 y 90 y la longitud
+entre -180 y 180 (límites incluidos). Fuera de esos rangos devuelve `400`.
 
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token
