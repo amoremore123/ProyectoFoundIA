@@ -6,6 +6,8 @@ API administrativa (React Admin).
 
 - Formato de datos: JSON (`Content-Type: application/json`)
 - Autenticación: `Authorization: Bearer <token>` (JWT)
+- En Spring Boot, las rutas privadas exigen que la cuenta siga activa y verificada,
+  incluso si el JWT se emitió antes de una suspensión.
 - El password **nunca** se devuelve en ninguna respuesta.
 
 ---

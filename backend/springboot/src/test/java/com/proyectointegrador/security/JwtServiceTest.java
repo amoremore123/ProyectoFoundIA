@@ -1,6 +1,8 @@
 package com.proyectointegrador.security;
 
+import com.proyectointegrador.entity.EstadoUsuario;
 import com.proyectointegrador.entity.Rol;
+import com.proyectointegrador.entity.Usuario;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,5 +43,21 @@ class JwtServiceTest {
         String token = jwt.generateToken(ana);
 
         assertThat(jwt.isTokenValid(token, ana)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Un token anterior no habilita una cuenta que ahora está suspendida")
+    void tokenDeCuentaSuspendida() {
+        JwtService jwt = new JwtService(SECRETO, 60_000);
+        String token = jwt.generateToken(ana);
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNombre("Ana");
+        usuario.setCorreo("ana@foundia.dev");
+        usuario.setRol(Rol.USUARIO);
+        usuario.setVerificado(true);
+        usuario.setEstado(EstadoUsuario.SUSPENDIDO);
+
+        assertThat(jwt.isTokenValid(token, UserPrincipal.from(usuario))).isFalse();
     }
 }

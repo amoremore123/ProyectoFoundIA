@@ -1,5 +1,6 @@
 package com.proyectointegrador.security;
 
+import com.proyectointegrador.entity.EstadoUsuario;
 import com.proyectointegrador.entity.Rol;
 import com.proyectointegrador.entity.Usuario;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,13 +17,19 @@ public class UserPrincipal implements UserDetails {
     private final String correo;
     private final String password;
     private final Rol rol;
+    private final boolean habilitado;
 
     public UserPrincipal(Long id, String nombre, String correo, String password, Rol rol) {
+        this(id, nombre, correo, password, rol, true);
+    }
+
+    private UserPrincipal(Long id, String nombre, String correo, String password, Rol rol, boolean habilitado) {
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
         this.password = password;
         this.rol = rol;
+        this.habilitado = habilitado;
     }
 
     public static UserPrincipal from(Usuario usuario) {
@@ -31,7 +38,8 @@ public class UserPrincipal implements UserDetails {
                 usuario.getNombre(),
                 usuario.getCorreo(),
                 usuario.getPassword(),
-                usuario.getRol()
+                usuario.getRol(),
+                usuario.getEstado() == EstadoUsuario.ACTIVO && usuario.isVerificado()
         );
     }
 
@@ -84,6 +92,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return habilitado;
     }
 }

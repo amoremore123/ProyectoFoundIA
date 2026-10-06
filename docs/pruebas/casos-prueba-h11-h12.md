@@ -12,7 +12,8 @@ Ubicación: `backend/springboot/src/test/java/com/proyectointegrador/`
 | `dto/RegisterRequestValidationTest` | Unitaria (Bean Validation) | Reglas del formulario y de la contraseña |
 | `controller/AuthControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `/api/auth/*` |
 | `security/JwtServiceTest` | Unitaria | Generación y validación del token JWT |
-| `service/AuthSecurityIntegrationTest` | Integración (Spring Boot + H2 + MockMvc) | Persistencia de intentos fallidos y bloqueo con solicitudes concurrentes |
+| `service/AuthSecurityIntegrationTest` | Integración (Spring Boot + H2 + MockMvc) | Persistencia de intentos, bloqueo concurrente y estado actual de la cuenta al usar JWT |
+| `security/UserPrincipalTest` | Unitaria | Solo las cuentas activas y verificadas se consideran habilitadas |
 
 ### Cómo ejecutarlas (con Docker, sin instalar Maven)
 
@@ -57,6 +58,8 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H12-11 | Token válido | JWT generado | Contiene el correo y solo es válido para su dueño | `JwtServiceTest.tokenValido` |
 | CP-H12-12 | Token alterado o vencido | otro secreto / expirado | Rechazado | `otroSecreto`, `tokenExpirado` |
 | CP-H12-13 | Intentos simultáneos | 8 logins incorrectos lanzados a la vez | 4 respuestas 401 y 4 respuestas 423; bloqueo persistido; la contraseña correcta tampoco permite ingresar durante el bloqueo | `intentosConcurrentesBloquean`, `intentoFallidoPersistido` |
+| CP-H12-14 | JWT emitido antes de suspender una cuenta | iniciar sesión, suspender la cuenta y pedir `/api/perfil` con el token anterior | 401; la firma y el vencimiento del JWT no permiten saltarse el estado actual | `tokenDeCuentaSuspendida`, `cuentaSuspendidaNoUsaTokenAnterior`, `cuentaSuspendidaDeshabilitada` |
+| CP-H12-15 | Cuenta sin verificar con un token anterior | cuenta actualmente no verificada | 401 en rutas privadas | `cuentaNoVerificadaNoUsaToken`, `cuentaNoVerificadaDeshabilitada` |
 
 ## 4. Prueba manual de punta a punta
 

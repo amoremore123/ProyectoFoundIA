@@ -1,7 +1,10 @@
 package com.proyectointegrador.service;
 
+import com.proyectointegrador.entity.EstadoUsuario;
 import com.proyectointegrador.entity.Usuario;
 import com.proyectointegrador.repository.UsuarioRepository;
+import com.proyectointegrador.security.JwtService;
+import com.proyectointegrador.security.UserPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("H11/H12 - Seguridad con API, transacciones y base temporal")
@@ -51,6 +55,8 @@ class AuthSecurityIntegrationTest {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private JwtService jwtService;
     @MockitoBean
     private EmailService emailService;
 
@@ -111,5 +117,31 @@ class AuthSecurityIntegrationTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    @DisplayName("H12 - El filtro JWT consulta el estado actual y rechaza una cuenta suspendida")
+    void cuentaSuspendidaNoUsaTokenAnterior() throws Exception {
+        String token = jwtService.generateToken(UserPrincipal.from(usuario));
+        mockMvc.perform(get("/api/perfil").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        usuario.setEstado(EstadoUsuario.SUSPENDIDO);
+        usuarioRepository.saveAndFlush(usuario);
+
+        mockMvc.perform(get("/api/perfil").header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/categorias").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("H12 - Un token anterior tampoco habilita una cuenta que no está verificada")
+    void cuentaNoVerificadaNoUsaToken() throws Exception {
+        String token = jwtService.generateToken(UserPrincipal.from(usuario));
+        usuario.setVerificado(false);
+        usuarioRepository.saveAndFlush(usuario);
+
+        mockMvc.perform(get("/api/perfil").header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
     }
 }

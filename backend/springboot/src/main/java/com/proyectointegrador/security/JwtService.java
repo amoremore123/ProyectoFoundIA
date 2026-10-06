@@ -43,7 +43,8 @@ public class JwtService {
         try {
             Claims claims = parseClaims(token);
             return claims.getSubject().equals(userDetails.getUsername())
-                    && claims.getExpiration().after(new Date());
+                    && claims.getExpiration().after(new Date())
+                    && userDetails.isEnabled();
         } catch (Exception ex) {
             return false;
         }
