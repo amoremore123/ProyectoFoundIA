@@ -81,6 +81,16 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("POST /register con más de 72 bytes UTF-8 -> 400 antes de BCrypt")
+    void registroPasswordMultibyteLarga() throws Exception {
+        String body = REGISTRO_VALIDO.replace("Segura123!", "Aa1!" + "ñ".repeat(40));
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("72 bytes")));
+        verify(authService, never()).register(any());
+    }
+
+    @Test
     @DisplayName("POST /register correo duplicado -> 409")
     void registroDuplicado() throws Exception {
         when(authService.register(any())).thenThrow(new DuplicateResourceException("El correo ya está registrado"));

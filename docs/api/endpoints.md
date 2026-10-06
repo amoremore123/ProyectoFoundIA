@@ -24,7 +24,9 @@ BCrypt y envía un código de 6 dígitos al correo (vence en 15 minutos).
 El correo se guarda en minúsculas.
 
 Reglas de contraseña: mínimo 8 caracteres, una mayúscula, una minúscula,
-un número y un símbolo (máx. 72). Nombre y apellido: solo letras.
+un número y un símbolo (máx. 72 bytes en UTF-8, no 72 caracteres).
+El límite se valida antes de BCrypt; una contraseña que lo supera devuelve `400`.
+Nombre y apellido: solo letras.
 
 **Request**
 

@@ -41,6 +41,7 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H11-11 | Reenviar código | botón "Reenviar código" | Llega un código nuevo; el anterior deja de servir | `reenviarCodigo` |
 | CP-H11-12 | Servidor de correo caído | Mailpit apagado | 503, la cuenta NO se crea | `falloEnvioCorreo` |
 | CP-H11-13 | Cuenta suspendida con código correcto | código vigente de una cuenta SUSPENDIDO | 401, no emite JWT ni marca la cuenta como verificada; el código no se consume | `verificarCuentaSuspendida`, `verificarSuspendidaNoEmiteToken` |
+| CP-H11-14 | Límite UTF-8 de BCrypt | contraseñas ASCII, con acentos y con emoji, de 72 bytes o más | Hasta 72 bytes se aceptan si cumplen complejidad; más de 72 bytes da 400, no 500; React informa el mismo límite | `limiteBcryptUtf8`, `passwordAusente`, `registroPasswordMultibyteLarga`, `validaciones.test.js` |
 
 ## 3. Casos de prueba — H12 Iniciar sesión
 
@@ -63,6 +64,10 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H12-15 | Cuenta sin verificar con un token anterior | cuenta actualmente no verificada | 401 en rutas privadas | `cuentaNoVerificadaNoUsaToken`, `cuentaNoVerificadaDeshabilitada` |
 
 ## 4. Prueba manual de punta a punta
+
+Las pruebas de React del registro se ejecutan desde `frontend/usuario` con
+`npm ci`, `npm test` y `npm run build`. `src/utils/validaciones.test.js` cubre
+los límites UTF-8, la complejidad y la confirmación de contraseña.
 
 1. `docker compose down -v` y luego `docker compose up --build` (recrea la BD con las columnas nuevas).
 2. Abrir http://localhost:5173/registro y registrarse con un correo cualquiera.
