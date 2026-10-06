@@ -64,6 +64,18 @@ class ObjetoRequestValidationTest {
     }
 
     @Test
+    @DisplayName("H1 - El nombre admite 150 caracteres y rechaza 151 antes de guardar")
+    void limiteNombre() {
+        ObjetoRequest permitido = new ObjetoRequest(3L, "N".repeat(150), "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", null, null);
+        ObjetoRequest demasiadoLargo = new ObjetoRequest(3L, "N".repeat(151), "Descripción", LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", null, null);
+        assertThat(validar(permitido)).isEmpty();
+        assertThat(validar(demasiadoLargo)).anyMatch(v -> v.getPropertyPath().toString().equals("nombre")
+                && v.getMessage().contains("150"));
+    }
+
+    @Test
     @DisplayName("Descripción obligatoria")
     void descripcionObligatoria() {
         ObjetoRequest r = new ObjetoRequest(3L, "Mochila", "", LocalDate.of(2026, 10, 2),

@@ -21,6 +21,10 @@ mvn test
 
 Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 
+Las pruebas React están en `frontend/usuario/src/pages/Publicar.test.jsx`.
+Desde `frontend/usuario`, ejecutar `npm ci`, `npm test` y `npm run build`.
+Simulan la API para comprobar validaciones, payload y navegación al detalle.
+
 ## 2. Casos de prueba — H1 Registrar objeto
 
 | ID | Escenario | Datos de entrada | Resultado esperado | Prueba automática |
@@ -34,6 +38,7 @@ Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H1-07 | Categoría inexistente | categoriaId = 99999 | 404 "Categoría no encontrada", no se guarda nada | `categoriaInexistente` |
 | CP-H1-08 | Usuario inexistente | token de un usuario borrado | 404, no se guarda nada | `usuarioInexistente` |
 | CP-H1-09 | Datos correctos en el formulario | llenar todos los campos | El frontend muestra errores solo de los campos vacíos y envía al backend | Manual |
+| CP-H1-10 | Límite del nombre | 150 y 151 caracteres | 150 se acepta; 151 da 400 antes de guardar; React limita y valida el nombre | `limiteNombre`, `crearConNombreLargo`, `Publicar.test.jsx` |
 
 ## 3. Casos de prueba — H3 Ubicación
 

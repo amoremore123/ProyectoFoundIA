@@ -99,6 +99,16 @@ class ObjetoControllerTest {
     }
 
     @Test
+    @DisplayName("H1 - POST /api/objetos con nombre de 151 caracteres -> 400, no 500")
+    void crearConNombreLargo() throws Exception {
+        String body = PUBLICACION_VALIDA.replace("Mochila negra", "N".repeat(151));
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("150")));
+        verify(objetoService, never()).crear(any(), any());
+    }
+
+    @Test
     @DisplayName("POST /api/objetos sin descripción -> 400")
     void crearSinDescripcion() throws Exception {
         String body = """

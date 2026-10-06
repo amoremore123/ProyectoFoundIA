@@ -72,6 +72,7 @@ export default function Publicar() {
   const validar = () => {
     const er = {};
     if (!form.nombre.trim()) er.nombre = 'El nombre es obligatorio';
+    else if (form.nombre.trim().length > 150) er.nombre = 'El nombre no debe superar los 150 caracteres';
     if (!form.descripcion.trim()) er.descripcion = 'La descripción es obligatoria';
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
@@ -172,6 +173,7 @@ export default function Publicar() {
             value={form.nombre}
             onChange={cambiar('nombre')}
             placeholder="Ej. Celular Samsung Galaxy"
+            maxLength={150}
           />
           {errores.nombre && <span className="campo-error">{errores.nombre}</span>}
         </label>

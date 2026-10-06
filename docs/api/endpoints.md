@@ -191,6 +191,9 @@ Query params opcionales: `?tipo=PERDIDO|ENCONTRADO&estado=ACTIVO&categoriaId=3`
 `latitud`/`longitud` son opcionales. `fechaObjeto` = fecha en que se perdió o
 encontró el objeto. El autor se toma del token.
 
+El nombre es obligatorio y admite hasta 150 caracteres. Superar ese límite
+devuelve `400` antes de guardar, no un error de base de datos.
+
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token
 
