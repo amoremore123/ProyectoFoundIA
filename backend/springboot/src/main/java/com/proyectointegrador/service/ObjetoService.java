@@ -34,6 +34,7 @@ public class ObjetoService {
 
     private static final BigDecimal PORCENTAJE_ALTA = new BigDecimal("90.00");
     private static final BigDecimal PORCENTAJE_MEDIA = new BigDecimal("65.00");
+    private static final List<EstadoObjeto> ESTADOS_PUBLICOS = List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO);
 
     private final ObjetoRepository objetoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -52,7 +53,7 @@ public class ObjetoService {
         Specification<Objeto> specification =
                 (root, query, cb) -> {
                     List<Predicate> predicates = new ArrayList<>();
-                    predicates.add(cb.notEqual(root.get("estado"), EstadoObjeto.ELIMINADO));
+                    predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
                     if (tipo != null) {
                         predicates.add(cb.equal(root.get("tipo"), tipo));
                     }
@@ -75,11 +76,7 @@ public class ObjetoService {
 
     @Transactional(readOnly = true)
     public ObjetoResponse obtener(Long id) {
-        Objeto objeto = buscarEntidad(id);
-        if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
-            throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
-        }
-        return toResponse(objeto);
+        return toResponse(buscarPublico(id));
     }
 
     @Transactional
@@ -139,7 +136,7 @@ public class ObjetoService {
         Specification<Objeto> specification =
                 (root, query, cb) -> {
                     List<Predicate> predicates = new ArrayList<>();
-                    predicates.add(cb.notEqual(root.get("estado"), EstadoObjeto.ELIMINADO));
+                    predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
                     if (texto != null && !texto.isBlank()) {
                         String like = "%" + texto.trim().toLowerCase() + "%";
                         predicates.add(cb.or(
@@ -169,8 +166,8 @@ public class ObjetoService {
         if (!categoriaRepository.existsById(categoriaId)) {
             throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
         }
-        return objetoRepository.findByCategoriaIdAndEstadoNotOrderByFechaPublicacionDesc(
-                        categoriaId, EstadoObjeto.ELIMINADO)
+        return objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDesc(
+                        categoriaId, ESTADOS_PUBLICOS)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -179,8 +176,8 @@ public class ObjetoService {
     @Transactional(readOnly = true)
     public List<ObjetoResponse> porUbicacion(String ubicacion) {
         String texto = ubicacion == null ? "" : ubicacion.trim();
-        return objetoRepository.findByUbicacionContainingIgnoreCaseAndEstadoNotOrderByFechaPublicacionDesc(
-                        texto, EstadoObjeto.ELIMINADO)
+        return objetoRepository.findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDesc(
+                        texto, ESTADOS_PUBLICOS)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -191,7 +188,7 @@ public class ObjetoService {
         Specification<Objeto> specification =
                 (root, query, cb) -> {
                     List<Predicate> predicates = new ArrayList<>();
-                    predicates.add(cb.notEqual(root.get("estado"), EstadoObjeto.ELIMINADO));
+                    predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
                     if (desde != null) {
                         predicates.add(cb.greaterThanOrEqualTo(root.get("fechaObjeto"), desde));
                     }
@@ -219,7 +216,7 @@ public class ObjetoService {
 
     @Transactional(readOnly = true)
     public List<CoincidenciaSugeridaResponse> coincidencias(Long id) {
-        Objeto base = buscarEntidad(id);
+        Objeto base = buscarPublico(id);
         TipoObjeto tipoOpuesto = base.getTipo() == TipoObjeto.PERDIDO
                 ? TipoObjeto.ENCONTRADO
                 : TipoObjeto.PERDIDO;
@@ -269,6 +266,14 @@ public class ObjetoService {
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
                         .toList());
+    }
+
+    private Objeto buscarPublico(Long id) {
+        Objeto objeto = buscarEntidad(id);
+        if (!ESTADOS_PUBLICOS.contains(objeto.getEstado())) {
+            throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
+        }
+        return objeto;
     }
 
     private Objeto buscarEntidad(Long id) {
