@@ -67,7 +67,7 @@ export default function Login() {
     <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
         <div className="auth-logo">
-          <Logo />
+          <Logo tamano={56} />
         </div>
         <h1>Iniciar sesión</h1>
         <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa para continuar.</p>

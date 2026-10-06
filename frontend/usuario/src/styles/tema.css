@@ -49,7 +49,11 @@ h1, h2, h3 { letter-spacing: -0.02em; }
 
 .app-shell { background: transparent; }
 
-/* ---------- Logo ---------- */
+/* ---------- Logo FoundIA (imagen) ---------- */
+.logo-img { display: block; width: auto; max-width: 100%; align-self: flex-start; object-fit: contain; flex-shrink: 0; }
+.logo { display: inline-flex; align-items: center; }
+
+/* ---------- Logo (texto, versión anterior) ---------- */
 
 .logo-completo {
   display: inline-flex;
