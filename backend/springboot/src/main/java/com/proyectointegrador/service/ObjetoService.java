@@ -52,6 +52,7 @@ public class ObjetoService {
 
     @Transactional(readOnly = true)
     public List<ObjetoResponse> listar(TipoObjeto tipo, EstadoObjeto estado, Long categoriaId) {
+        validarCategoria(categoriaId);
         Specification<Objeto> specification =
                 (root, query, cb) -> {
                     List<Predicate> predicates = new ArrayList<>();
@@ -133,6 +134,7 @@ public class ObjetoService {
 
     @Transactional(readOnly = true)
     public List<ObjetoResponse> buscar(String texto, TipoObjeto tipo, Long categoriaId) {
+        validarCategoria(categoriaId);
         Specification<Objeto> specification =
                 (root, query, cb) -> {
                     List<Predicate> predicates = new ArrayList<>();
@@ -161,9 +163,7 @@ public class ObjetoService {
 
     @Transactional(readOnly = true)
     public List<ObjetoResponse> porCategoria(Long categoriaId) {
-        if (!categoriaRepository.existsById(categoriaId)) {
-            throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
-        }
+        validarCategoria(categoriaId);
         return objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
                         categoriaId, ESTADOS_PUBLICOS)
                 .stream()
@@ -262,6 +262,13 @@ public class ObjetoService {
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
                         .toList());
+    }
+
+    private void validarCategoria(Long categoriaId) {
+        // Una categoría desactivada sigue sirviendo para consultar publicaciones anteriores.
+        if (categoriaId != null && !categoriaRepository.existsById(categoriaId)) {
+            throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
+        }
     }
 
     private String escaparTextoLike(String texto) {

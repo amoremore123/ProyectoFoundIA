@@ -159,6 +159,7 @@ class ObjetoServiceTest {
     @Test
     @DisplayName("H7 - El listado con filtro de categoría usa la búsqueda del repositorio")
     void listarFiltrandoPorCategoria() {
+        when(categoriaRepository.existsById(3L)).thenReturn(true);
         when(objetoRepository.findAll(any(Specification.class), any(Sort.class)))
                 .thenReturn(List.of(objetoDeCategoria(3L, "Mochila negra")));
 

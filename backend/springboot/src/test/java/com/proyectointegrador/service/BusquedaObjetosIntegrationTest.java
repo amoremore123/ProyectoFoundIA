@@ -26,6 +26,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -167,6 +169,50 @@ class BusquedaObjetosIntegrationTest {
         assertThat(objetoService.buscar("mochila", TipoObjeto.ENCONTRADO, mochilas.getId()))
                 .extracting(ObjetoResponse::id).containsExactly(recuperado.getId());
         assertThat(objetoService.buscar("mochila", TipoObjeto.PERDIDO, celulares.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("H7 - Desactivar una categoría conserva el catálogo y sus publicaciones anteriores")
+    void categoriaDesactivada() throws Exception {
+        assertThat(objetoService.buscar(null, null, antigua.getId()))
+                .extracting(ObjetoResponse::id).containsExactly(historico.getId());
+        assertThat(objetoService.porCategoria(antigua.getId()))
+                .extracting(ObjetoResponse::id).containsExactly(historico.getId());
+        mockMvc.perform(get("/api/categorias"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + antigua.getId() + ")].estado").value(hasItem(false)));
+    }
+
+    @Test
+    @DisplayName("H7 - Una categoría inexistente tiene la misma regla en los tres filtros")
+    void categoriaInexistente() {
+        assertThatThrownBy(() -> objetoService.buscar(null, null, Long.MAX_VALUE))
+                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> objetoService.listar(null, null, Long.MAX_VALUE))
+                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> objetoService.porCategoria(Long.MAX_VALUE))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("H7 - Los tres endpoints informan 404 si la categoría no existe")
+    void endpointsCategoriaInexistente() throws Exception {
+        for (String ruta : List.of("/api/objetos", "/api/objetos/buscar")) {
+            mockMvc.perform(get(ruta).param("categoriaId", Long.toString(Long.MAX_VALUE)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.mensaje", containsString("Categoría no encontrada")));
+        }
+        mockMvc.perform(get("/api/objetos/categoria/" + Long.MAX_VALUE))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("H6/H7 - Los parámetros con formato incorrecto devuelven 400, no 500")
+    void parametrosInvalidos() throws Exception {
+        mockMvc.perform(get("/api/objetos/buscar").param("categoriaId", "texto"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/objetos/buscar").param("tipo", "OTRO"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
