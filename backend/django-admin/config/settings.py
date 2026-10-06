@@ -74,7 +74,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.environ.get("DB_NAME", "objetos_perdidos_db"),
         "USER": os.environ.get("DB_USERNAME", "root"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "root"),
+        # XAMPP usa root sin contraseña; en Docker/.env se define DB_PASSWORD.
+        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "3306"),
         "OPTIONS": {
@@ -83,6 +84,14 @@ DATABASES = {
         },
     }
 }
+
+# Compatibilidad con XAMPP local: MariaDB 10.4 no llega al 10.5 que exige
+# Django 5.1+, pero en Docker usamos MySQL 8.0 (siempre se omite el requisito
+# SOLO cuando se define DB_SKIP_MARIADB_VERSION_CHECK=1 en el entorno).
+if os.environ.get("DB_SKIP_MARIADB_VERSION_CHECK") == "1":
+    from django.db.backends.mysql.base import DatabaseWrapper
+
+    DatabaseWrapper.check_database_version_supported = lambda self: None
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
