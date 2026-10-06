@@ -31,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -119,6 +120,40 @@ class ObjetoControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("categoriaId")));
         verify(objetoService, never()).crear(any(), any());
+    }
+
+    @Test
+    @DisplayName("H7 - GET /api/objetos/categoria/{id} -> 200 con la lista filtrada")
+    void porCategoria() throws Exception {
+        when(objetoService.porCategoria(3L)).thenReturn(List.of(respuesta()));
+
+        mockMvc.perform(get("/api/objetos/categoria/3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].categoria.id").value(3))
+                .andExpect(jsonPath("$[0].categoria.nombre").value("Mochila"));
+        verify(objetoService).porCategoria(3L);
+    }
+
+    @Test
+    @DisplayName("H7 - GET /api/objetos/buscar?categoriaId=3 -> 200 pasando el filtro")
+    void buscarPorCategoria() throws Exception {
+        when(objetoService.buscar(null, null, 3L)).thenReturn(List.of(respuesta()));
+
+        mockMvc.perform(get("/api/objetos/buscar").param("categoriaId", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Mochila negra"));
+        verify(objetoService).buscar(null, null, 3L);
+    }
+
+    @Test
+    @DisplayName("H7 - GET /api/objetos?categoriaId=3 -> 200 pasando el filtro al listado")
+    void listarPorCategoria() throws Exception {
+        when(objetoService.listar(null, null, 3L)).thenReturn(List.of(respuesta()));
+
+        mockMvc.perform(get("/api/objetos").param("categoriaId", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].categoria.id").value(3));
+        verify(objetoService).listar(null, null, 3L);
     }
 
     @Test

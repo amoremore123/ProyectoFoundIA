@@ -3,6 +3,7 @@ package com.proyectointegrador.service;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.entity.Categoria;
+import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.entity.Usuario;
@@ -17,9 +18,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,6 +78,24 @@ class ObjetoServiceTest {
                 new BigDecimal("-99.1332000"));
     }
 
+    private Objeto objetoDeCategoria(Long categoriaId, String nombre) {
+        Categoria cat = new Categoria();
+        cat.setId(categoriaId);
+        cat.setNombre("Mochila");
+        Objeto objeto = new Objeto();
+        objeto.setId(10L);
+        objeto.setNombre(nombre);
+        objeto.setDescripcion("Descripción de prueba");
+        objeto.setUbicacion("Comedor principal");
+        objeto.setFechaObjeto(LocalDate.of(2026, 10, 2));
+        objeto.setTipo(TipoObjeto.ENCONTRADO);
+        objeto.setEstado(EstadoObjeto.ACTIVO);
+        objeto.setFechaPublicacion(LocalDateTime.of(2026, 10, 2, 12, 0));
+        objeto.setCategoria(cat);
+        objeto.setUsuario(usuario());
+        return objeto;
+    }
+
     @Test
     @DisplayName("Crea la publicación con los datos del formulario")
     void crearPublicacion() {
@@ -114,6 +137,45 @@ class ObjetoServiceTest {
         assertThat(guardado.getUbicacion()).isEqualTo("Comedor principal");
         assertThat(guardado.getLatitud()).isEqualByComparingTo(new BigDecimal("19.4326100"));
         assertThat(guardado.getLongitud()).isEqualByComparingTo(new BigDecimal("-99.1332000"));
+    }
+
+    @Test
+    @DisplayName("H7 - Filtra los objetos por categoría")
+    void listarPorCategoria() {
+        when(categoriaRepository.existsById(3L)).thenReturn(true);
+        when(objetoRepository.findByCategoriaIdAndEstadoNotOrderByFechaPublicacionDesc(3L, EstadoObjeto.ELIMINADO))
+                .thenReturn(List.of(objetoDeCategoria(3L, "Mochila negra")));
+
+        List<ObjetoResponse> resultado = objetoService.porCategoria(3L);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).categoria().id()).isEqualTo(3L);
+        assertThat(resultado.get(0).categoria().nombre()).isEqualTo("Mochila");
+        verify(objetoRepository).findByCategoriaIdAndEstadoNotOrderByFechaPublicacionDesc(3L, EstadoObjeto.ELIMINADO);
+    }
+
+    @Test
+    @DisplayName("H7 - El listado con filtro de categoría usa la búsqueda del repositorio")
+    void listarFiltrandoPorCategoria() {
+        when(objetoRepository.findAll(any(Specification.class), any(Sort.class)))
+                .thenReturn(List.of(objetoDeCategoria(3L, "Mochila negra")));
+
+        List<ObjetoResponse> resultado = objetoService.listar(null, null, 3L);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).categoria().id()).isEqualTo(3L);
+        verify(objetoRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    @Test
+    @DisplayName("H7 - Categoría inexistente en el filtro -> no consulta los objetos")
+    void porCategoriaInexistente() {
+        when(categoriaRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> objetoService.porCategoria(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(objetoRepository, never()).findByCategoriaIdAndEstadoNotOrderByFechaPublicacionDesc(any(), any());
     }
 
     @Test
