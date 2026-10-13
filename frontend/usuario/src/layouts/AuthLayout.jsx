@@ -5,7 +5,7 @@ export default function AuthLayout({ children }) {
   return (
     <div className="auth-pantalla">
       <aside className="auth-panel" aria-hidden="true">
-        <Logo claro tamano={40} />
+        <Logo claro tamano={52} />
 
         <div className="auth-panel-texto">
           <h2>
@@ -31,7 +31,7 @@ export default function AuthLayout({ children }) {
           </li>
         </ul>
 
-        <p className="auth-panel-pie">© 2026 Encuentra+ · Proyecto integrador Tecsup</p>
+        <p className="auth-panel-pie">© 2026 FoundIA · Proyecto integrador Tecsup</p>
         <div className="auth-burbuja auth-burbuja-1" />
         <div className="auth-burbuja auth-burbuja-2" />
       </aside>

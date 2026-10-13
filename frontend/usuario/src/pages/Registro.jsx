@@ -84,7 +84,7 @@ export default function Registro() {
     <AuthLayout>
       <form className="auth-tarjeta" onSubmit={enviar} noValidate>
         <div className="auth-logo">
-          <Logo />
+          <Logo tamano={56} />
         </div>
         <h1>Crear cuenta</h1>
         <p className="auth-subtitulo">Únete para publicar y recuperar objetos.</p>

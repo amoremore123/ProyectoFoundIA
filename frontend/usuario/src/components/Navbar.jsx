@@ -10,8 +10,8 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="logo" aria-label="Encuentra+ inicio">
-          <Logo tamano={32} />
+        <Link to="/" className="logo" aria-label="FoundIA inicio">
+          <Logo tamano={38} />
         </Link>
 
         <nav className="navbar-links">

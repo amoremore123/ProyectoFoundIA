@@ -30,7 +30,11 @@ body { font-family: var(--fuente); background: var(--bg); }
 h1, h2, h3 { letter-spacing: -0.02em; }
 :focus-visible { outline: 3px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
 
-/* ---------- Logo ---------- */
+/* ---------- Logo FoundIA (imagen) ---------- */
+.logo-img { display: block; width: auto; max-width: 100%; align-self: flex-start; object-fit: contain; flex-shrink: 0; }
+.logo { display: inline-flex; align-items: center; }
+
+/* ---------- Logo (texto, versión anterior) ---------- */
 
 .logo-completo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; color: var(--text); }
 .logo-marca { flex-shrink: 0; }
