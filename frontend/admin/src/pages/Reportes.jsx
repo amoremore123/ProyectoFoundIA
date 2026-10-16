@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getReportes, mensajeError, patchReporte, statusDe } from '../services/api';
+import Icono from '../components/Icono';
+import { useToast } from '../context/ToastContext';
 
 function fechaCorta(valor) {
   if (!valor) return '—';
@@ -10,6 +12,7 @@ function fechaCorta(valor) {
 }
 
 export default function Reportes() {
+  const { mostrarToast } = useToast();
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -42,6 +45,7 @@ export default function Reportes() {
       setReportes((prev) =>
         prev.map((r) => (r.id === reporte.id ? { ...r, estado: 'RESUELTO' } : r))
       );
+      mostrarToast('Reporte marcado como resuelto.', 'exito');
     } catch (e) {
       const status = statusDe(e);
       if (status === 401) setError('Sesión expirada. Vuelve a iniciar sesión.');
@@ -62,7 +66,7 @@ export default function Reportes() {
 
       {error && (
         <div className="banner-error" role="alert">
-          ⚠️ {error}
+          <Icono nombre="alerta" tamano={18} /> {error}
         </div>
       )}
 
@@ -74,7 +78,7 @@ export default function Reportes() {
       ) : reportes.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            🚩
+            <Icono nombre="bandera" tamano={28} />
           </span>
           <p>No hay reportes.</p>
         </div>
@@ -102,7 +106,9 @@ export default function Reportes() {
                       {r.estado}
                     </span>
                   </td>
-                  <td data-label="Fecha">{fechaCorta(r.fecha || r.fechaCreacion)}</td>
+                  <td data-label="Fecha">
+                    {fechaCorta(r.fecha_reporte || r.fecha || r.fechaCreacion)}
+                  </td>
                   <td data-label="Acción">
                     <button
                       type="button"

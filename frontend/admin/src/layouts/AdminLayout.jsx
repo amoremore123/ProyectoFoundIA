@@ -1,30 +1,37 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTema } from '../context/TemaContext';
 import Logo from '../components/Logo';
+import Icono from '../components/Icono';
+import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
 
 const menu = [
-  { to: '/', icono: '📊', label: 'Dashboard', exact: true },
-  { to: '/usuarios', icono: '👥', label: 'Usuarios' },
-  { to: '/publicaciones', icono: '📦', label: 'Publicaciones' },
-  { to: '/reportes', icono: '🚩', label: 'Reportes' },
-  { to: '/categorias', icono: '🗂️', label: 'Categorías' },
+  { to: '/', icono: 'panel', label: 'Dashboard', exact: true },
+  { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
+  { to: '/publicaciones', icono: 'caja', label: 'Publicaciones' },
+  { to: '/reportes', icono: 'bandera', label: 'Reportes' },
+  { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
 ];
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
+  const { tema, alternarTema } = useTema();
   const navigate = useNavigate();
+  useRevelarEnScroll();
 
   const cerrarSesion = () => {
     logout();
     navigate('/login', { replace: true });
   };
 
+  const oscuro = tema === 'oscuro';
+
   return (
     <div className="admin-shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <Logo claro tamano={36} />
-          <span className="sidebar-badge">Admin</span>
+          <Logo tamano={32} />
+          <span className="sidebar-badge">Admin · Tecsup</span>
         </div>
 
         <nav className="sidebar-menu">
@@ -35,7 +42,7 @@ export default function AdminLayout() {
               end={item.exact}
               className={({ isActive }) => `sidebar-link${isActive ? ' activo' : ''}`}
             >
-              <span aria-hidden="true">{item.icono}</span>
+              <Icono nombre={item.icono} tamano={18} />
               <span>{item.label}</span>
             </NavLink>
           ))}
@@ -53,8 +60,17 @@ export default function AdminLayout() {
               </p>
             </div>
           )}
+          <button
+            type="button"
+            className="boton-tema"
+            onClick={alternarTema}
+            aria-label={oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            <Icono nombre={oscuro ? 'sol' : 'luna'} tamano={18} />
+            {oscuro ? 'Modo claro' : 'Modo oscuro'}
+          </button>
           <button type="button" className="sidebar-salir" onClick={cerrarSesion}>
-            Cerrar sesión
+            <Icono nombre="salir" tamano={16} /> Cerrar sesión
           </button>
         </div>
       </aside>

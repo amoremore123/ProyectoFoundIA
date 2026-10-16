@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
+import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
 
 export default function Login() {
@@ -39,14 +40,14 @@ export default function Login() {
       <aside className="login-panel" aria-hidden="true">
         <Logo claro tamano={52} />
         <div className="login-panel-texto">
-          <span className="login-panel-etiqueta">Panel administrativo</span>
-          <h2>Gestiona la comunidad de FoundIA</h2>
+          <span className="login-panel-etiqueta">Panel administrativo · Tecsup</span>
+          <h2>Gestiona los objetos perdidos del campus</h2>
           <p>Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.</p>
         </div>
         <div className="login-panel-stats">
-          <div><strong>👥</strong>Usuarios</div>
-          <div><strong>📦</strong>Publicaciones</div>
-          <div><strong>🚩</strong>Reportes</div>
+          <div><strong><Icono nombre="usuarios" tamano={18} /></strong>Usuarios</div>
+          <div><strong><Icono nombre="caja" tamano={18} /></strong>Publicaciones</div>
+          <div><strong><Icono nombre="bandera" tamano={18} /></strong>Reportes</div>
         </div>
       </aside>
 
@@ -60,7 +61,7 @@ export default function Login() {
 
           {error && (
             <div className="banner-error" role="alert">
-              ⚠️ {error}
+              <Icono nombre="alerta" tamano={18} /> {error}
             </div>
           )}
 

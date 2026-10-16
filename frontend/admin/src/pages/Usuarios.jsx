@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getUsuarios, mensajeError, patchUsuario, statusDe } from '../services/api';
+import Icono from '../components/Icono';
+import { useToast } from '../context/ToastContext';
 
 function fechaCorta(valor) {
   if (!valor) return '—';
@@ -10,6 +12,7 @@ function fechaCorta(valor) {
 }
 
 export default function Usuarios() {
+  const { mostrarToast } = useToast();
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -48,6 +51,12 @@ export default function Usuarios() {
       setUsuarios((prev) =>
         prev.map((u) => (u.id === usuario.id ? { ...u, estado: nuevoEstado } : u))
       );
+      mostrarToast(
+        nuevoEstado === 'SUSPENDIDO'
+          ? `${usuario.nombre} quedó suspendido.`
+          : `${usuario.nombre} fue reactivado.`,
+        'exito'
+      );
     } catch (e) {
       const status = statusDe(e);
       if (status === 401) setError('Sesión expirada. Vuelve a iniciar sesión.');
@@ -68,7 +77,7 @@ export default function Usuarios() {
 
       {error && (
         <div className="banner-error" role="alert">
-          ⚠️ {error}
+          <Icono nombre="alerta" tamano={18} /> {error}
         </div>
       )}
 
@@ -80,7 +89,7 @@ export default function Usuarios() {
       ) : usuarios.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            👥
+            <Icono nombre="usuarios" tamano={28} />
           </span>
           <p>No hay usuarios registrados.</p>
         </div>
@@ -114,7 +123,9 @@ export default function Usuarios() {
                       {u.estado}
                     </span>
                   </td>
-                  <td data-label="Registro">{fechaCorta(u.fechaRegistro)}</td>
+                  <td data-label="Registro">
+                    {fechaCorta(u.fecha_registro || u.fechaRegistro)}
+                  </td>
                   <td data-label="Acción">
                     <button
                       type="button"
