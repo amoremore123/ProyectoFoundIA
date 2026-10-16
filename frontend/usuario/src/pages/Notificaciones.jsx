@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
+import Icono from '../components/Icono';
 import { getNotificaciones, marcarNotificacionLeida, mensajeError } from '../services/api';
 
 function fechaHora(valor) {
@@ -59,7 +60,7 @@ export default function Notificaciones() {
       ) : notificaciones.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            🔕
+            <Icono nombre="campanaOff" tamano={28} />
           </span>
           <p>No tienes notificaciones todavía.</p>
         </div>
@@ -74,7 +75,7 @@ export default function Notificaciones() {
                 disabled={marcando === noti.id}
               >
                 <span className="notificacion-icono" aria-hidden="true">
-                  🔔
+                  <Icono nombre="campana" tamano={18} />
                 </span>
                 <span className="notificacion-cuerpo">
                   <span className="notificacion-titulo">{noti.titulo}</span>
