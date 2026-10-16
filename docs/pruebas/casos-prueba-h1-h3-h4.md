@@ -164,3 +164,13 @@ y detalle GET.
 | --- | --- |
 | `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest,ObjetoServiceTest,ObjetoPublicacionIntegrationTest test` | 62 pruebas: 0 fallos, 0 errores |
 | `npm test -- --run src/pages/Publicar.test.jsx` | 19 pruebas: todas pasaron; fecha futura bloqueada en el formulario |
+
+## 10. Regresión final H1/H3/H4 — 16 de octubre de 2026
+
+| Comando | Resultado |
+| --- | --- |
+| `mvn clean test` (`backend/springboot`) | `BUILD SUCCESS`: 143 pruebas, 0 fallos y 0 errores |
+| `npm test -- --run` (`frontend/usuario`) | 4 archivos, 49 pruebas pasaron |
+| `npm run build` (`frontend/usuario`) | Build de producción Vite exitoso |
+
+Commits por historia: `a78a9eb` (H1), `1ad2222` (H3), `9014636` (H4).
