@@ -58,6 +58,14 @@ public class Usuario {
     @Column(name = "codigo_expira")
     private LocalDateTime codigoExpira;
 
+    /** H11: intentos fallidos con el código vigente; al llegar al máximo el código se invalida. */
+    @Column(name = "intentos_codigo", nullable = false)
+    private int intentosCodigo = 0;
+
+    /** H11: momento del último envío del código, para limitar la frecuencia de reenvío. */
+    @Column(name = "codigo_enviado_en")
+    private LocalDateTime codigoEnviadoEn;
+
     /** H12: intentos fallidos consecutivos; al llegar a 5 se bloquea la cuenta. */
     @Column(name = "intentos_fallidos", nullable = false)
     private int intentosFallidos = 0;
