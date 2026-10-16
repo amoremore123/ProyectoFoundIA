@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -176,6 +177,39 @@ class ObjetoControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("255")));
         verify(objetoService, never()).crear(any(), any());
+    }
+
+    @Test
+    @DisplayName("H3 - API acepta ubicación de 255 caracteres con tildes y coordenadas vacías")
+    void crearConUbicacionEnLimiteYCoordenadasVacias() throws Exception {
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        String prefijo = "Laboratorio de cómputo ñ";
+        String ubicacion = prefijo + "U".repeat(255 - prefijo.length());
+        String body = PUBLICACION_VALIDA
+                .replace("Comedor principal", ubicacion)
+                .replace("19.43261", "null")
+                .replace("-99.1332", "null");
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<ObjetoRequest> captor = ArgumentCaptor.forClass(ObjetoRequest.class);
+        verify(objetoService).crear(captor.capture(), eq(1L));
+        org.assertj.core.api.Assertions.assertThat(captor.getValue().ubicacion()).isEqualTo(ubicacion);
+        org.assertj.core.api.Assertions.assertThat(captor.getValue().latitud()).isNull();
+        org.assertj.core.api.Assertions.assertThat(captor.getValue().longitud()).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"90, 180", "-90, -180", "0, 0"})
+    @DisplayName("H3 - API permite los extremos de latitud y longitud")
+    void coordenadasEnLimiteApi(String latitud, String longitud) throws Exception {
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        String body = PUBLICACION_VALIDA.replace("19.43261", latitud).replace("-99.1332", longitud);
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated());
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
     }
 
     @ParameterizedTest

@@ -123,20 +123,28 @@ class ObjetoServiceTest {
     }
 
     @Test
-    @DisplayName("Guarda la ubicación y las coordenadas del objeto")
+    @DisplayName("H3 - Guarda sin alterar ubicación acentuada y las coordenadas recibidas")
     void crearPublicacionConUbicacion() {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario()));
         when(categoriaRepository.findById(3L)).thenReturn(Optional.of(categoria()));
 
-        objetoService.crear(request(), 1L);
+        String ubicacion = "Laboratorio de cómputo, edificio ñ";
+        ObjetoRequest solicitud = new ObjetoRequest(3L, "Mochila negra", "Cédula, cálculo y emoji 😃",
+                LocalDate.now(), TipoObjeto.ENCONTRADO, ubicacion,
+                new BigDecimal("19.1234567"), new BigDecimal("-99.7654321"));
+        ObjetoResponse respuesta = objetoService.crear(solicitud, 1L);
 
         ArgumentCaptor<Objeto> captor = ArgumentCaptor.forClass(Objeto.class);
         verify(objetoRepository).save(captor.capture());
         Objeto guardado = captor.getValue();
 
-        assertThat(guardado.getUbicacion()).isEqualTo("Comedor principal");
-        assertThat(guardado.getLatitud()).isEqualByComparingTo(new BigDecimal("19.4326100"));
-        assertThat(guardado.getLongitud()).isEqualByComparingTo(new BigDecimal("-99.1332000"));
+        assertThat(guardado.getUbicacion()).isEqualTo(ubicacion);
+        assertThat(guardado.getDescripcion()).isEqualTo("Cédula, cálculo y emoji 😃");
+        assertThat(guardado.getLatitud()).isEqualByComparingTo(new BigDecimal("19.1234567"));
+        assertThat(guardado.getLongitud()).isEqualByComparingTo(new BigDecimal("-99.7654321"));
+        assertThat(respuesta.ubicacion()).isEqualTo(ubicacion);
+        assertThat(respuesta.latitud()).isEqualByComparingTo(new BigDecimal("19.1234567"));
+        assertThat(respuesta.longitud()).isEqualByComparingTo(new BigDecimal("-99.7654321"));
     }
 
     @Test

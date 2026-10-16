@@ -127,3 +127,23 @@ emojis 😃`, con su emoji en UTF-8 `F09F9883`; la columna reportó `TEXT` y
 | `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest test` | 46 pruebas: 0 fallos, 0 errores |
 | `npm test -- --run src/pages/Publicar.test.jsx` | 19 pruebas: todas pasaron |
 | Descripción ASCII/acento/emoji abajo y en límite, nombre 150, y error de campo en 16.001/70.000 | Aceptadas/rechazadas según el contrato; no se invocó el servicio para los rechazos |
+
+## 8. H3 — ubicación y coordenadas — 16 de octubre de 2026
+
+Se amplió `POST /api/objetos` para verificar la ubicación de 255 caracteres
+(incluidas `ó` y `ñ`), el rechazo de 256, ausencia de ubicación, coordenadas
+en los extremos ±90/±180, valores fuera de rango y las dos coordenadas vacías
+para dirección manual. El servicio comprueba que copia la dirección, tildes y
+coordenadas sin normalizarlas.
+
+La prueba de integración `ObjetoPublicacionIntegrationTest` hace una publicación
+por el endpoint autenticado, valida los campos en la respuesta, compara valores
+persistidos en la tabla y vuelve a leer el detalle `GET /api/objetos/{id}`.
+La persistencia se ejecutó contra H2 efímera; la prueba de sesión y bytes
+UTF-8 en MySQL 8.0.46 está registrada en la sección anterior.
+
+| Ejecución | Resultado |
+| --- | --- |
+| `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest,ObjetoServiceTest,ObjetoPublicacionIntegrationTest test` | 58 pruebas: 0 fallos, 0 errores |
+| API → persistencia → detalle | Ubicación `Laboratorio de cómputo, edificio ñ` y coordenadas `19.1234567`, `-99.7654321` idénticas en POST, base y GET de detalle |
+| Dirección manual | Ubicación de 255 caracteres aceptada; coordenadas `null` y `null` conservadas |

@@ -77,6 +77,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- H6/H7: consultas reales en una base temporal, sin depender de MySQL. -->
         <dependency>
             <groupId>com.h2database</groupId>
