@@ -193,6 +193,12 @@ encontró el objeto. El autor se toma del token.
 
 El nombre es obligatorio y admite hasta 150 caracteres. Superar ese límite
 devuelve `400` antes de guardar, no un error de base de datos.
+La descripción es obligatoria y admite hasta **2000 caracteres** (contados como
+caracteres reales: una tilde o un emoji cuentan como 1). Con utf8mb4 cada carácter
+ocupa como máximo 4 bytes, así que 2000 × 4 = 8000 bytes, siempre dentro de los
+65.535 bytes de la columna `TEXT`. El formulario web ya aplica este límite
+(`MAX_DESCRIPCION` en `frontend/usuario/src/utils/validaciones.js`); la API debe
+validarlo también y devolver `400` con error de campo antes de guardar (H1).
 La ubicación es obligatoria, no puede quedar en blanco y admite hasta 255
 caracteres. Es válida una dirección escrita a mano sin coordenadas.
 Si se envían coordenadas, la latitud debe estar entre -90 y 90 y la longitud
