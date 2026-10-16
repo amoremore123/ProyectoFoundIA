@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ChipTipo from './ChipTipo';
-import { fotoUrl } from '../services/api';
+import Icono from './Icono';
+import ImagenObjeto from './ImagenObjeto';
 
 function fechaCorta(valor) {
   if (!valor) return '';
@@ -11,27 +12,25 @@ function fechaCorta(valor) {
 }
 
 export default function ObjetoCard({ objeto }) {
-  const foto = objeto?.fotos?.length ? fotoUrl(objeto.fotos[0]) : '';
 
   return (
     <Link to={`/objeto/${objeto.id}`} className="objeto-card">
       <div className="objeto-card-media">
-        {foto ? (
-          <img src={foto} alt={objeto.nombre} loading="lazy" />
-        ) : (
-          <div className="objeto-placeholder">
-            <span aria-hidden="true">📦</span>
-            <span>Sin foto</span>
-          </div>
-        )}
+        <ImagenObjeto objeto={objeto} />
         <div className="objeto-card-chip">
           <ChipTipo tipo={objeto.tipo} />
         </div>
       </div>
       <div className="objeto-card-cuerpo">
         <h3 className="objeto-card-titulo">{objeto.nombre}</h3>
-        <p className="objeto-card-linea">📍 {objeto.ubicacion || 'Sin ubicación'}</p>
-        <p className="objeto-card-linea">📅 {fechaCorta(objeto.fechaObjeto)}</p>
+        {objeto.estado === 'RECUPERADO' && <span className="estado-recuperado">Recuperado · caso cerrado</span>}
+        <p className="objeto-card-linea">
+          <Icono nombre="ubicacion" tamano={14} /> {objeto.ubicacion || 'Sin ubicación'}
+        </p>
+        <p className="objeto-card-linea">
+          <Icono nombre="calendario" tamano={14} /> {fechaCorta(objeto.fechaObjeto)}
+        </p>
+        <span className="objeto-card-ver">Ver publicación <Icono nombre="flechaDer" tamano={14} className="icono-enlace" /></span>
       </div>
     </Link>
   );

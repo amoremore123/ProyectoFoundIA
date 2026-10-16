@@ -1,6 +1,8 @@
+import ExplorarVisual from '../components/ExplorarVisual';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
+import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import useCategorias from '../hooks/useCategorias';
@@ -48,16 +50,16 @@ export default function Inicio() {
   return (
     <div className="pagina">
       <section className="hero">
-        <span className="hero-etiqueta">✨ Objetos perdidos y encontrados</span>
-        <h1>Perdiste algo. Encuéntralo.</h1>
-        <p>Publica lo que perdiste o lo que encontraste y ayúdale a otros de la comunidad.</p>
+        <span className="hero-etiqueta">COMUNIDAD TECSUP</span>
+        <h1>Tus cosas tienen vuelta.</h1>
+        <p>¿La mochila, las llaves o ese cuaderno? Busca entre las publicaciones de nuestra comunidad o comparte lo que encontraste.</p>
       </section>
 
       <form className="buscador-card" onSubmit={enviarBusqueda}>
         <input
           type="search"
-          className="input"
-          placeholder="🔍 Buscar objeto..."
+          className="input input-busqueda"
+          placeholder="Buscar objeto..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
           aria-label="Buscar objeto"
@@ -96,11 +98,13 @@ export default function Inicio() {
         <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
       </form>
 
+      <ExplorarVisual />
+
       <section className="seccion">
         <div className="seccion-header">
           <h2>Objetos recientes</h2>
           <button type="button" className="btn btn-primario" onClick={() => navigate('/publicar')}>
-            + Publicar objeto
+            <Icono nombre="mas" tamano={16} /> Publicar objeto
           </button>
         </div>
 
@@ -111,7 +115,7 @@ export default function Inicio() {
         ) : recientes.length === 0 && !error ? (
           <div className="estado-vacio">
             <span className="estado-vacio-icono" aria-hidden="true">
-              🗂️
+              <Icono nombre="bandeja" tamano={28} />
             </span>
             <p>Todavía no hay publicaciones.</p>
             <button type="button" className="btn btn-secundario" onClick={() => navigate('/publicar')}>
