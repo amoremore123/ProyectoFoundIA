@@ -32,6 +32,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @DisplayName("H11/H12 - Seguridad con API, transacciones y base temporal")
 @SpringBootTest(properties = {
@@ -163,5 +170,71 @@ class AuthSecurityIntegrationTest {
         assertThat(guardado.isVerificado()).isFalse();
         assertThat(guardado.getCodigoVerificacion()).isEqualTo("123456");
         assertThat(guardado.getEstado()).isEqualTo(EstadoUsuario.SUSPENDIDO);
+    }
+
+    private static final String VERIFICAR_INCORRECTO =
+            "{\"correo\":\"seguridad@prueba.invalid\",\"codigo\":\"000000\"}";
+    private static final String VERIFICAR_CORRECTO =
+            "{\"correo\":\"seguridad@prueba.invalid\",\"codigo\":\"123456\"}";
+    private static final String REENVIAR = "{\"correo\":\"seguridad@prueba.invalid\"}";
+
+    private void sinVerificarConCodigo(LocalDateTime enviadoEn) {
+        usuario.setVerificado(false);
+        usuario.setCodigoVerificacion("123456");
+        usuario.setCodigoExpira(LocalDateTime.now().plusMinutes(10));
+        usuario.setCodigoEnviadoEn(enviadoEn);
+        usuarioRepository.saveAndFlush(usuario);
+    }
+
+    @Test
+    @DisplayName("H11 - Límite del código por API directa: el contador se guarda entre peticiones")
+    void limiteDeCodigoPersistido() throws Exception {
+        sinVerificarConCodigo(LocalDateTime.now());
+
+        // Cada petición es independiente, como otra pestaña o un cliente que llama a la API directo.
+        for (int i = 1; i < AuthService.MAX_INTENTOS_CODIGO; i++) {
+            mockMvc.perform(post("/api/auth/verificar").contentType(MediaType.APPLICATION_JSON).content(VERIFICAR_INCORRECTO))
+                    .andExpect(status().isBadRequest());
+            assertThat(usuarioRepository.findByCorreo(CORREO).orElseThrow().getIntentosCodigo()).isEqualTo(i);
+        }
+        mockMvc.perform(post("/api/auth/verificar").contentType(MediaType.APPLICATION_JSON).content(VERIFICAR_INCORRECTO))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(containsString("solicita uno nuevo")));
+
+        // Tras el exceso, ni el código correcto verifica ni devuelve token.
+        mockMvc.perform(post("/api/auth/verificar").contentType(MediaType.APPLICATION_JSON).content(VERIFICAR_CORRECTO))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.token").doesNotExist());
+        Usuario guardado = usuarioRepository.findByCorreo(CORREO).orElseThrow();
+        assertThat(guardado.isVerificado()).isFalse();
+        assertThat(guardado.getCodigoVerificacion()).isNull();
+    }
+
+    @Test
+    @DisplayName("H11 - Reenvío por API directa: 429 con Retry-After antes de 60 s y sin enviar correo")
+    void reenvioLimitadoPorApi() throws Exception {
+        sinVerificarConCodigo(LocalDateTime.now().minusSeconds(10));
+
+        mockMvc.perform(post("/api/auth/reenviar-codigo").contentType(MediaType.APPLICATION_JSON).content(REENVIAR))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"));
+        verify(emailService, never()).enviarCodigoVerificacion(anyString(), anyString(), anyString(), anyLong());
+        assertThat(usuarioRepository.findByCorreo(CORREO).orElseThrow().getCodigoVerificacion()).isEqualTo("123456");
+    }
+
+    @Test
+    @DisplayName("H11 - Dos reenvíos seguidos: solo el primero emite un código nuevo")
+    void dosReenviosSeguidos() throws Exception {
+        sinVerificarConCodigo(LocalDateTime.now().minusMinutes(5));
+
+        mockMvc.perform(post("/api/auth/reenviar-codigo").contentType(MediaType.APPLICATION_JSON).content(REENVIAR))
+                .andExpect(status().isOk());
+        String nuevo = usuarioRepository.findByCorreo(CORREO).orElseThrow().getCodigoVerificacion();
+        assertThat(nuevo).isNotEqualTo("123456");
+
+        mockMvc.perform(post("/api/auth/reenviar-codigo").contentType(MediaType.APPLICATION_JSON).content(REENVIAR))
+                .andExpect(status().isTooManyRequests());
+        assertThat(usuarioRepository.findByCorreo(CORREO).orElseThrow().getCodigoVerificacion()).isEqualTo(nuevo);
+        verify(emailService, times(1)).enviarCodigoVerificacion(anyString(), anyString(), anyString(), anyLong());
     }
 }

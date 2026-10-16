@@ -16,6 +16,7 @@ import com.proyectointegrador.exception.CuentaNoVerificadaException;
 import com.proyectointegrador.exception.DuplicateResourceException;
 import com.proyectointegrador.exception.EnvioCorreoException;
 import com.proyectointegrador.exception.InvalidCredentialsException;
+import com.proyectointegrador.exception.LimiteReenvioException;
 import com.proyectointegrador.repository.UsuarioRepository;
 import com.proyectointegrador.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -212,6 +213,105 @@ class AuthServiceTest {
             assertThat(u.getCodigoVerificacion()).isEqualTo("123456");
             verify(usuarioRepository, never()).save(any());
             verify(jwtService, never()).generateToken(any());
+        }
+
+        private Usuario conCodigo(String codigo, int intentos) {
+            Usuario u = usuario(false);
+            u.setCodigoVerificacion(codigo);
+            u.setCodigoExpira(AHORA.plusMinutes(10));
+            u.setIntentosCodigo(intentos);
+            when(usuarioRepository.findByCorreoForUpdate("ana@foundia.dev")).thenReturn(Optional.of(u));
+            return u;
+        }
+
+        @Test
+        @DisplayName("Límite de código: cada fallo cuenta y avisa cuántos intentos quedan")
+        void codigoIncorrectoCuentaIntentos() {
+            Usuario u = conCodigo("123456", 0);
+
+            assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "000000")))
+                    .isInstanceOf(CodigoVerificacionException.class)
+                    .hasMessageContaining("Te quedan 4 intentos");
+            assertThat(u.getIntentosCodigo()).isEqualTo(1);
+            assertThat(u.getCodigoVerificacion()).isEqualTo("123456");
+        }
+
+        @Test
+        @DisplayName("Límite de código: el quinto fallo invalida el código y no emite JWT")
+        void quintoFalloInvalidaCodigo() {
+            Usuario u = conCodigo("123456", AuthService.MAX_INTENTOS_CODIGO - 1);
+
+            assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "000000")))
+                    .isInstanceOf(CodigoVerificacionException.class)
+                    .hasMessageContaining("solicita uno nuevo");
+            assertThat(u.getCodigoVerificacion()).isNull();
+            assertThat(u.isVerificado()).isFalse();
+            verify(jwtService, never()).generateToken(any());
+        }
+
+        @Test
+        @DisplayName("Límite de código: tras invalidarlo, ni el código correcto verifica la cuenta")
+        void codigoInvalidadoNoVerifica() {
+            Usuario u = conCodigo("123456", AuthService.MAX_INTENTOS_CODIGO - 1);
+            assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "000000")))
+                    .isInstanceOf(CodigoVerificacionException.class);
+
+            assertThatThrownBy(() -> authService.verificar(new VerificarRequest("ana@foundia.dev", "123456")))
+                    .isInstanceOf(CodigoVerificacionException.class)
+                    .hasMessageContaining("expiró");
+            assertThat(u.isVerificado()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Límite de código: verificar con éxito reinicia el contador")
+        void exitoReiniciaIntentos() {
+            Usuario u = conCodigo("123456", 3);
+
+            authService.verificar(new VerificarRequest("ana@foundia.dev", "123456"));
+
+            assertThat(u.isVerificado()).isTrue();
+            assertThat(u.getIntentosCodigo()).isZero();
+        }
+
+        @Test
+        @DisplayName("Reenvío: antes de 60 s devuelve 429, no genera código ni envía correo")
+        void reenvioAntesDeLaEspera() {
+            Usuario u = conCodigo("123456", 2);
+            u.setCodigoEnviadoEn(AHORA.minusSeconds(20));
+
+            assertThatThrownBy(() -> authService.reenviarCodigo(new ReenviarCodigoRequest("ana@foundia.dev")))
+                    .isInstanceOf(LimiteReenvioException.class)
+                    .hasMessageContaining("40 segundos");
+            assertThat(u.getCodigoVerificacion()).isEqualTo("123456");
+            assertThat(u.getIntentosCodigo()).isEqualTo(2);
+            verify(emailService, never()).enviarCodigoVerificacion(anyString(), anyString(), anyString(), anyLong());
+        }
+
+        @Test
+        @DisplayName("Reenvío: a los 60 s se permite, invalida el código anterior y reinicia intentos")
+        void reenvioDespuesDeLaEspera() {
+            Usuario u = conCodigo("123456", 4);
+            u.setCodigoEnviadoEn(AHORA.minusSeconds(AuthService.SEGUNDOS_ESPERA_REENVIO));
+
+            authService.reenviarCodigo(new ReenviarCodigoRequest("ana@foundia.dev"));
+
+            assertThat(u.getCodigoEnviadoEn()).isEqualTo(AHORA);
+            assertThat(u.getIntentosCodigo()).isZero();
+            verify(emailService).enviarCodigoVerificacion(
+                    eq("ana@foundia.dev"), eq("Ana"), eq(u.getCodigoVerificacion()), anyLong());
+        }
+
+        @Test
+        @DisplayName("Registro: guarda la hora del envío para aplicar la espera de reenvío")
+        void registroGuardaHoraDeEnvio() {
+            when(usuarioRepository.existsByCorreo("ana@foundia.dev")).thenReturn(false);
+
+            authService.register(request);
+
+            ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+            verify(usuarioRepository).save(captor.capture());
+            assertThat(captor.getValue().getCodigoEnviadoEn()).isEqualTo(AHORA);
+            assertThat(captor.getValue().getIntentosCodigo()).isZero();
         }
     }
 
