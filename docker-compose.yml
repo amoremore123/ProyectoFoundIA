@@ -1,7 +1,8 @@
 # =====================================================================
 # Plataforma de Objetos Perdidos y Encontrados — infraestructura
 # Uso: docker compose up
-#   MySQL + API Spring Boot + API Django + Frontend usuario + Mailpit (correo de pruebas)
+#   MySQL + API Spring Boot + API Django + Frontend usuario
+#   + Frontend admin + Mailpit (correo de pruebas)
 # =====================================================================
 
 services:
@@ -41,6 +42,8 @@ services:
       MAIL_HOST: mailpit
       MAIL_PORT: "1025"
       MAIL_FROM: no-reply@foundia.dev
+      # Asistente con IA: se toma del entorno del host (vacío = motor local)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       - "8081:8081"
     depends_on:
@@ -88,6 +91,17 @@ services:
       - "5173:5173"
     depends_on:
       - api
+
+  frontend-admin:
+    build: ./frontend/admin
+    container_name: foundia-frontend-admin
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5174:5174"
+    depends_on:
+      - admin-api
 
 volumes:
   mysql_data:
