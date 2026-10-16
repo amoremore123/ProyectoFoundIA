@@ -145,3 +145,51 @@ esta guía, tomará el estilo nuevo automáticamente.
 - **Bottom nav (móvil)**: barra flotante redondeada; "Publicar" es botón destacado.
 - **Admin**: sidebar oscuro con degradado, métricas con icono de color por tipo,
   login en pantalla dividida.
+
+---
+
+## 11. Capa de interacción (modo oscuro, toasts y animaciones)
+
+Capa aditiva que se carga **al final** en ambas apps:
+`frontend/usuario/src/styles/interaccion.css` y
+`frontend/admin/src/styles/interaccion.css`. No reescribe el estilo base: solo
+añade comportamiento e interactividad, así que las pantallas nuevas heredan
+todo automáticamente con las clases de esta guía.
+
+### Modo oscuro
+
+- Se controla con el atributo `data-tema` en `<html>`: `claro` | `oscuro`.
+- Los tokens se redefinen con el selector `html[data-tema='oscuro']` (mayor
+  especificidad que `:root`).
+- En oscuro, `--primary` pasa a `#5c9dff` para enlaces; los botones con texto
+  blanco se sobreescriben a `#2f6ae0` para mantener contraste AA.
+- Preferencia guardada en `localStorage` (`foundia-tema` en Usuario,
+  `foundia-tema-admin` en Admin).
+- Cada `index.html` incluye un **script anti-flash** que aplica el tema antes de
+  pintar y ajusta `meta[theme-color]`.
+- Se alterna con el botón de tema en la navbar (Usuario) o en el pie del sidebar
+  (Admin). El hook vive en `context/TemaContext.jsx` (`useTema`).
+
+### Toasts
+
+- Proveedor `context/ToastContext.jsx`; se disparan con
+  `mostrarToast(mensaje, tipo)` donde `tipo` es `'exito' | 'error' | 'info'`.
+- Iconos: `exito` → `check`, `error` → `alerta`, `info` → `info`.
+- Se usan para confirmar acciones de éxito (crear, guardar, eliminar, resolver).
+  Los errores de carga/validación siguen usando banner en pantalla.
+- Los contextos tienen valor por defecto no-op para que las páginas puedan
+  renderizarse sin proveedor (p. ej. en tests).
+
+### Animaciones y microinteracciones
+
+- **Aparición al scroll**: hook `hooks/useRevelarEnScroll.js`
+  (IntersectionObserver + MutationObserver). Añade `data-reveal` a los bloques
+  y la clase `visible` cuando entran en pantalla, incluidos los que cargan
+  después.
+- **Contadores animados**: hooks `hooks/useContador.js`; se usan en
+  `CifrasComunidad` (Usuario, portada) y `CifraValor` (Admin, dashboard). Como
+  `requestAnimationFrame` se pausa en pestañas en segundo plano, un `setTimeout`
+  de respaldo garantiza que siempre se muestre el valor final.
+- **Microinteracciones**: hover/press en botones, tarjetas y filas de tabla.
+- Todo respeta `prefers-reduced-motion: reduce`: se desactivan las animaciones
+  y los contadores saltan directo al valor final.

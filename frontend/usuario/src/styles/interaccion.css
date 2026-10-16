@@ -1,0 +1,344 @@
+/* =====================================================================
+   FoundIA · Tecsup — Capa de interacción (app de usuario)
+   Se carga DESPUÉS de los demás CSS. Aporta:
+   · Modo oscuro (tokens + ajustes de colores fijos de las capas previas)
+   · Animaciones de página y aparición suave al hacer scroll
+   · Toasts flotantes y microinteracciones
+   No redefine el estilo base: solo lo potencia.
+   ===================================================================== */
+
+/* ---------- Modo oscuro · tokens ---------- */
+
+html[data-tema='oscuro'] {
+  color-scheme: dark;
+
+  --primary: #5c9dff;
+  --primary-700: #4a8bf5;
+  --primary-50: #16243c;
+  --primary-100: #274472;
+  --accent: #6cc9f2;
+  --accent-50: #10283a;
+  --accent-strong: #6cc9f2;
+
+  --bg: #0e1420;
+  --surface: #151c2b;
+  --surface-2: #1d2637;
+  --border: #26314a;
+  --border-strong: #354260;
+
+  --text: #e9eef8;
+  --text-muted: #a9b4c9;
+  --text-soft: #8f9bb3;
+
+  --success: #4ade9b;
+  --success-50: #11291e;
+  --danger: #ff7b6f;
+  --danger-50: #2c1714;
+  --warning: #f7b955;
+  --warning-50: #2a2010;
+
+  --sombra-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sombra-md: 0 14px 30px -10px rgba(0, 0, 0, 0.65), 0 4px 10px -4px rgba(0, 0, 0, 0.4);
+}
+
+/* Fondo de página con las veladuras azules suaves */
+html[data-tema='oscuro'] body {
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(92, 157, 255, 0.07), transparent 60%),
+    radial-gradient(900px 400px at -10% 0%, rgba(108, 201, 242, 0.05), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* ---------- Modo oscuro · navegación ---------- */
+
+html[data-tema='oscuro'] .navbar { background: rgba(21, 28, 43, 0.82); }
+html[data-tema='oscuro'] .bottom-nav { background: rgba(21, 28, 43, 0.92); }
+html[data-tema='oscuro'] .chat-panel { background: var(--surface); }
+html[data-tema='oscuro'] .chat-mensajes { background: var(--bg); }
+
+/* ---------- Modo oscuro · botones y enlaces ---------- */
+
+html[data-tema='oscuro'] .btn-primario,
+html[data-tema='oscuro'] .btn-primario:hover:not(:disabled),
+html[data-tema='oscuro'] .chat-enviar,
+html[data-tema='oscuro'] .chat-burbuja-usuario,
+html[data-tema='oscuro'] .chat-lanzador,
+html[data-tema='oscuro'] .nivel-alta,
+html[data-tema='oscuro'] .perfil-avatar,
+html[data-tema='oscuro'] .sidebar-avatar,
+html[data-tema='oscuro'] .no-leida .notificacion-icono {
+  background: #2f6ae0;
+}
+
+html[data-tema='oscuro'] .btn-primario:hover:not(:disabled),
+html[data-tema='oscuro'] .chat-lanzador:hover { background: #3a76ec; }
+html[data-tema='oscuro'] .btn-peligro { border-color: #5c2c28; }
+html[data-tema='oscuro'] .btn-reintentar:hover { background: #3d1d19; }
+html[data-tema='oscuro'] .chat-accion { background: var(--primary-50); }
+html[data-tema='oscuro'] .chat-accion:hover { background: var(--primary-100); }
+
+/* ---------- Modo oscuro · banners, chips y estados ---------- */
+
+html[data-tema='oscuro'] .banner-error { color: #ff9d93; border-color: #5c2c28; }
+html[data-tema='oscuro'] .banner-exito { color: #7ce3b2; border-color: #1f4a35; }
+html[data-tema='oscuro'] .chip-perdido { color: #f6c069; border-color: #5a4216; }
+html[data-tema='oscuro'] .chip-encontrado { color: #6ee7a8; border-color: #1f4a35; }
+html[data-tema='oscuro'] .estado-eliminado { color: #ff9d93; border-color: #5c2c28; }
+html[data-tema='oscuro'] .estado-recuperado { color: #7ce3b2; }
+html[data-tema='oscuro'] .input-error, html[data-tema='oscuro'] .input-error:hover { border-color: #ff8f85; }
+html[data-tema='oscuro'] .input-error:focus { box-shadow: 0 0 0 4px rgba(255, 123, 111, 0.14); }
+html[data-tema='oscuro'] .input::placeholder { color: var(--text-soft); }
+html[data-tema='oscuro'] .nivel-media { background: var(--accent-50); color: var(--accent); border-color: #1f4460; }
+html[data-tema='oscuro'] .perfil-rol { color: var(--accent); }
+html[data-tema='oscuro'] .chip-filtro.activo {
+  background: #2f6ae0;
+  border-color: #2f6ae0;
+  color: #fff;
+}
+
+/* Controles de formulario nativos (date picker, scrollbars, selects) */
+html[data-tema='oscuro'] select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a9b4c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+html[data-tema='oscuro'] .input-busqueda {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%237c89a3' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+}
+
+/* ---------- Modo oscuro · bloques con color fijo (estilos de portada/campus) ---------- */
+
+html[data-tema='oscuro'] .hero,
+html[data-tema='oscuro'] .portada-ia,
+html[data-tema='oscuro'] .consejos-campus { background: var(--surface-2); }
+
+html[data-tema='oscuro'] .ayuda-campus { background: #14253f; }
+
+html[data-tema='oscuro'] .portada-pregunta { border-color: var(--border-strong); box-shadow: var(--sombra-sm); }
+html[data-tema='oscuro'] .portada-acciones a,
+html[data-tema='oscuro'] .guia-pasos li,
+html[data-tema='oscuro'] .portada-ia-lista li,
+html[data-tema='oscuro'] .consejos-lista div { border-color: var(--border); }
+html[data-tema='oscuro'] .objeto-card:hover { border-color: var(--border-strong); }
+html[data-tema='oscuro'] .foto-referencial,
+html[data-tema='oscuro'] .foto-pendiente { background: var(--surface-2); }
+html[data-tema='oscuro'] .campus-visual figcaption { color: var(--text-muted); }
+html[data-tema='oscuro'] .objeto-card-media:has(img)::after {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.32), transparent);
+}
+
+/* Placeholder sin foto: rayas oscuras en lugar del tono claro */
+html[data-tema='oscuro'] .objeto-placeholder {
+  background: repeating-linear-gradient(135deg, var(--surface-2) 0 10px, var(--surface) 10px 20px);
+}
+
+/* Chip de tipo sobre la foto: fondo oscuro para que el texto claro resalte */
+html[data-tema='oscuro'] .objeto-card-chip .chip { background: rgba(21, 28, 43, 0.9); }
+
+/* Burbuja de error del asistente */
+html[data-tema='oscuro'] .chat-burbuja-error {
+  background: var(--danger-50);
+  border-color: #5c2c28;
+  color: #ff9d93;
+}
+
+/* Detalles con borde claro fijo */
+html[data-tema='oscuro'] .portada-paso { border-color: var(--border); }
+
+/* Paneles de marca (Login/Registro) conservan su azul; solo se suaviza el fondo */
+html[data-tema='oscuro'] .auth-pantalla { background: var(--bg); }
+html[data-tema='oscuro'] .auth-contenido { background: var(--bg); }
+
+/* Botón de tema en las pantallas de acceso */
+.auth-tema {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  background: var(--surface);
+}
+
+html[data-tema='oscuro'] .auth-tema { background: var(--surface); }
+
+/* ---------- Aparición suave al hacer scroll ---------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-reveal].visible { opacity: 1; transform: none; }
+
+/* Escalonado sutil para rejillas de tarjetas y listas */
+.grid-objetos > [data-reveal]:nth-child(2),
+.lista-mis-publicaciones > [data-reveal]:nth-child(2) { transition-delay: 0.06s; }
+.grid-objetos > [data-reveal]:nth-child(3),
+.lista-mis-publicaciones > [data-reveal]:nth-child(3) { transition-delay: 0.12s; }
+.grid-objetos > [data-reveal]:nth-child(4),
+.lista-mis-publicaciones > [data-reveal]:nth-child(4) { transition-delay: 0.18s; }
+.grid-objetos > [data-reveal]:nth-child(5),
+.lista-mis-publicaciones > [data-reveal]:nth-child(5) { transition-delay: 0.24s; }
+.grid-objetos > [data-reveal]:nth-child(n + 6),
+.lista-mis-publicaciones > [data-reveal]:nth-child(n + 6) { transition-delay: 0.3s; }
+
+/* ---------- Transición entre páginas ---------- */
+
+.pagina,
+.portada { animation: pagina-entrar 0.4s ease both; }
+
+@keyframes pagina-entrar {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- Toasts ---------- */
+
+.toasts {
+  position: fixed;
+  top: calc(var(--nav-alto, 68px) + 12px);
+  right: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--sombra-md);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+  animation: toast-entra 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes toast-entra {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+
+.toast-icono {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.toast-texto { flex: 1; min-width: 0; color: var(--text-muted); }
+.toast-texto strong { display: block; font-size: 13px; color: var(--text); }
+
+.toast-exito { border-left: 4px solid var(--success); }
+.toast-exito .toast-icono { background: var(--success-50); color: var(--success); }
+.toast-error { border-left: 4px solid var(--danger); }
+.toast-error .toast-icono { background: var(--danger-50); color: var(--danger); }
+.toast-info { border-left: 4px solid var(--primary); }
+.toast-info .toast-icono { background: var(--primary-50); color: var(--primary); }
+
+.toast-cerrar {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toast-cerrar:hover { background: var(--surface-2); color: var(--text); }
+
+@media (max-width: 520px) {
+  .toasts { left: 16px; right: 16px; width: auto; }
+}
+
+/* ---------- Microinteracciones ---------- */
+
+/* Botones con retroalimentación táctil */
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn-primario:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-primario:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+
+/* Iconos del navbar con tacto suave */
+.icono-btn { transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s; }
+.icono-btn:active { transform: scale(0.92); }
+
+/* Punto de notificaciones: pulso discreto para atraer la mirada */
+.punto-rojo { animation: punto-pulso 2.4s ease-in-out infinite; }
+
+@keyframes punto-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+}
+
+/* Chips de filtro con respuesta inmediata */
+.chip-filtro { transition: transform 0.12s, background 0.15s, border-color 0.15s, color 0.15s; }
+.chip-filtro:active { transform: scale(0.96); }
+
+/* Tarjetas de objeto: elevación al pasar el cursor */
+.objeto-card { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s, border-color 0.15s; }
+.objeto-card:hover, .objeto-card:focus-visible { transform: translateY(-3px); }
+.objeto-card-ver { transition: color 0.15s; }
+.objeto-card:hover .objeto-card-ver { color: var(--primary); }
+
+/* Toggle de tipo en Publicar: transición más viva */
+.toggle-tipo { transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s; }
+.toggle-tipo:active { transform: scale(0.98); }
+
+/* Enlaces del footer y secciones con subrayado animado */
+.portada-footer-links a,
+.historial-enlace,
+.guia-pasos a,
+.guia-pasos button,
+.inicio-seccion-cabecera > a {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  transition: background-size 0.25s ease, color 0.15s;
+}
+
+.portada-footer-links a:hover,
+.historial-enlace:hover,
+.guia-pasos a:hover,
+.guia-pasos button:hover,
+.inicio-seccion-cabecera > a:hover { background-size: 100% 1px; }
+
+/* FAQ con indicador rotatorio (refuerza el estilo existente) */
+.faq-item summary { transition: background 0.2s, color 0.15s; }
+.faq-item summary::after { transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* Barra de scroll sutil */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background-color: var(--text-soft); }
+
+/* Botón flotante del asistente: brillo sutil al abrir el chat */
+.chat-lanzador { transition: background 0.15s, transform 0.15s, box-shadow 0.2s; }
+.chat-lanzador:hover { box-shadow: 0 16px 34px -8px rgba(11, 61, 145, 0.6); }
+
+/* ---------- Accesibilidad: movimiento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; }
+  .pagina, .portada, .toast { animation: none; }
+  .punto-rojo { animation: none; }
+  .btn:active:not(:disabled), .icono-btn:active, .chip-filtro:active, .toggle-tipo:active { transform: none; }
+}
