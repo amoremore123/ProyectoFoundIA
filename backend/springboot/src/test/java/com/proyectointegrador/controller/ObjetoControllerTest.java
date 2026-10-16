@@ -295,4 +295,38 @@ class ObjetoControllerTest {
                 .andExpect(jsonPath("$.mensaje", containsString("fecha")));
         verify(objetoService, never()).crear(any(), any());
     }
+
+    @Test
+    @DisplayName("H4 - POST acepta la fecha de hoy en formato ISO")
+    void crearConFechaDeHoy() throws Exception {
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        String body = PUBLICACION_VALIDA.replace("2026-10-02", LocalDate.now().toString());
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated());
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
+    }
+
+    @Test
+    @DisplayName("H4 - POST sin fecha devuelve 400 con error de fechaObjeto antes de guardar")
+    void crearSinFecha() throws Exception {
+        String body = PUBLICACION_VALIDA.replace("\"fechaObjeto\":\"2026-10-02\",", "");
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("fechaObjeto")));
+        verify(objetoService, never()).crear(any(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"16/10/2026", "2026-02-30"})
+    @DisplayName("H4 - POST rechaza fechas mal formadas con error de campo y sin guardar")
+    void crearConFormatoFechaInvalido(String fecha) throws Exception {
+        String body = PUBLICACION_VALIDA.replace("2026-10-02", fecha);
+
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("fechaObjeto")));
+        verify(objetoService, never()).crear(any(), any());
+    }
 }

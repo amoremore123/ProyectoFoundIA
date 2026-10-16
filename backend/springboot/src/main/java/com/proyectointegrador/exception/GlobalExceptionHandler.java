@@ -1,5 +1,6 @@
 package com.proyectointegrador.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        String campo = campoJackson(ex);
+        if ("fechaObjeto".equals(campo)) {
+            return build(HttpStatus.BAD_REQUEST, "El campo fechaObjeto tiene un formato inválido; use yyyy-MM-dd", request);
+        }
         return build(HttpStatus.BAD_REQUEST, "Cuerpo de la solicitud inválido", request);
+    }
+
+    private String campoJackson(Throwable ex) {
+        Throwable actual = ex;
+        while (actual != null) {
+            if (actual instanceof JsonMappingException mappingException) {
+                return mappingException.getPath().stream()
+                        .map(JsonMappingException.Reference::getFieldName)
+                        .filter(campo -> campo != null && !campo.isBlank())
+                        .findFirst()
+                        .orElse(null);
+            }
+            actual = actual.getCause();
+        }
+        return null;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

@@ -66,6 +66,9 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H4-02 | Fecha pasada | 2026-10-02 | Se acepta, la publicación se crea | `datosValidos`, `crearValido` |
 | CP-H4-03 | Fecha futura | mañana | El input no permite elegirla (`max` = hoy) y el formulario marca "La fecha no puede ser futura" | `fechaFutura`, `Publicar.test.jsx` |
 | CP-H4-04 | Fecha futura enviada a la API | `fechaObjeto` = 3 días adelante | 400 "El campo fechaObjeto no puede ser futura", no se guarda nada | `crearConFechaFutura` |
+| CP-H4-05 | Fecha requerida por API | sin `fechaObjeto` | 400 con error de `fechaObjeto`, no se invoca el servicio | `crearSinFecha` |
+| CP-H4-06 | Formato inválido | `16/10/2026`, `2026-02-30` | 400 con mensaje que identifica `fechaObjeto` y especifica `yyyy-MM-dd`; no se invoca el servicio | `crearConFormatoFechaInvalido` |
+| CP-H4-07 | Fecha guardada | fecha ISO enviada en la publicación | POST, columna `fecha_objeto` y GET de detalle devuelven el mismo día | `ObjetoPublicacionIntegrationTest` |
 
 ## 5. Prueba manual de punta a punta
 
@@ -147,3 +150,17 @@ UTF-8 en MySQL 8.0.46 está registrada en la sección anterior.
 | `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest,ObjetoServiceTest,ObjetoPublicacionIntegrationTest test` | 58 pruebas: 0 fallos, 0 errores |
 | API → persistencia → detalle | Ubicación `Laboratorio de cómputo, edificio ñ` y coordenadas `19.1234567`, `-99.7654321` idénticas en POST, base y GET de detalle |
 | Dirección manual | Ubicación de 255 caracteres aceptada; coordenadas `null` y `null` conservadas |
+
+## 9. H4 — fecha del objeto — 16 de octubre de 2026
+
+La API acepta fechas ISO pasadas y la fecha actual, rechaza fecha ausente,
+valores que no cumplen `yyyy-MM-dd`, fechas de calendario imposibles y fechas
+futuras con 400 antes de invocar el servicio. El error del parser identifica
+`fechaObjeto` y documenta el formato esperado. En integración se envió una fecha
+ISO pasada y se verificó idéntica en la respuesta POST, columna `fecha_objeto`
+y detalle GET.
+
+| Ejecución | Resultado |
+| --- | --- |
+| `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest,ObjetoServiceTest,ObjetoPublicacionIntegrationTest test` | 62 pruebas: 0 fallos, 0 errores |
+| `npm test -- --run src/pages/Publicar.test.jsx` | 19 pruebas: todas pasaron; fecha futura bloqueada en el formulario |

@@ -78,12 +78,13 @@ class ObjetoPublicacionIntegrationTest {
         String nombre = "Cédula extraviada";
         String descripcion = "Cédula, cómputo, ñ y emoji 😃";
         String ubicacion = "Laboratorio de cómputo, edificio ñ";
+        LocalDate fechaObjeto = LocalDate.now().minusDays(1);
         BigDecimal latitud = new BigDecimal("19.1234567");
         BigDecimal longitud = new BigDecimal("-99.7654321");
         String body = """
                 {"categoriaId":%d,"nombre":"%s","descripcion":"%s","fechaObjeto":"%s",
                  "tipo":"PERDIDO","ubicacion":"%s","latitud":%s,"longitud":%s}
-                """.formatted(categoria.getId(), nombre, descripcion, LocalDate.now(), ubicacion, latitud, longitud);
+                """.formatted(categoria.getId(), nombre, descripcion, fechaObjeto, ubicacion, latitud, longitud);
 
         String response = mockMvc.perform(post("/api/objetos")
                         .with(authentication(auth))
@@ -93,6 +94,7 @@ class ObjetoPublicacionIntegrationTest {
                 .andExpect(jsonPath("$.nombre").value(nombre))
                 .andExpect(jsonPath("$.descripcion").value(descripcion))
                 .andExpect(jsonPath("$.ubicacion").value(ubicacion))
+                .andExpect(jsonPath("$.fechaObjeto").value(fechaObjeto.toString()))
                 .andExpect(jsonPath("$.latitud").value(latitud.doubleValue()))
                 .andExpect(jsonPath("$.longitud").value(longitud.doubleValue()))
                 .andReturn().getResponse().getContentAsString();
@@ -107,15 +109,19 @@ class ObjetoPublicacionIntegrationTest {
                 .setParameter("id", id).getSingleResult();
         Object longitudDb = entityManager.createNativeQuery("select longitud from objetos where id = :id")
                 .setParameter("id", id).getSingleResult();
+        Object fechaDb = entityManager.createNativeQuery("select fecha_objeto from objetos where id = :id")
+                .setParameter("id", id).getSingleResult();
         assertThat(ubicacionDb).isEqualTo(ubicacion);
         assertThat(new BigDecimal(latitudDb.toString())).isEqualByComparingTo(latitud);
         assertThat(new BigDecimal(longitudDb.toString())).isEqualByComparingTo(longitud);
+        assertThat(((java.sql.Date) fechaDb).toLocalDate()).isEqualTo(fechaObjeto);
 
         mockMvc.perform(get("/api/objetos/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value(nombre))
                 .andExpect(jsonPath("$.descripcion").value(descripcion))
                 .andExpect(jsonPath("$.ubicacion").value(ubicacion))
+                .andExpect(jsonPath("$.fechaObjeto").value(fechaObjeto.toString()))
                 .andExpect(jsonPath("$.latitud").value(latitud.doubleValue()))
                 .andExpect(jsonPath("$.longitud").value(longitud.doubleValue()));
     }
