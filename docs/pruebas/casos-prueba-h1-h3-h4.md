@@ -8,7 +8,7 @@ Ubicación: `backend/springboot/src/test/java/com/proyectointegrador/`
 
 | Clase | Tipo | Qué cubre |
 | ----- | ---- | --------- |
-| `dto/ObjetoRequestValidationTest` | Unitaria (Bean Validation) | Campos obligatorios, límites de nombre y ubicación y fecha no futura (H1, H3, H4) |
+| `dto/ObjetoRequestValidationTest` | Unitaria (Bean Validation) | Campos obligatorios, límites de nombre/descripcion/ubicación, UTF-8 y fecha no futura (H1, H3, H4) |
 | `service/ObjetoServiceTest` | Unitaria (JUnit 5 + Mockito) | Creación de la publicación, ubicación y coordenadas (H1, H3) |
 | `controller/ObjetoControllerTest` | Endpoints (MockMvc) | Códigos HTTP y mensajes de `POST /api/objetos` (H1, H3, H4) |
 
@@ -38,7 +38,9 @@ Simulan la API para comprobar validaciones, payload y navegación al detalle.
 | CP-H1-07 | Categoría inexistente | categoriaId = 99999 | 404 "Categoría no encontrada", no se guarda nada | `categoriaInexistente` |
 | CP-H1-08 | Usuario inexistente (servicio) | usuarioId inexistente al crear la publicación | El servicio devuelve 404 y no guarda nada; esta prueba no simula el filtro JWT | `usuarioInexistente` |
 | CP-H1-09 | Datos correctos en el formulario | llenar todos los campos | El frontend muestra errores solo de los campos vacíos y envía al backend | Manual |
-| CP-H1-10 | Límite del nombre | 150 y 151 caracteres | 150 se acepta; 151 da 400 antes de guardar; React limita y valida el nombre | `limiteNombre`, `crearConNombreLargo`, `Publicar.test.jsx` |
+| CP-H1-10 | Límite del nombre | 150 y 151 caracteres | 150 se acepta; 151 da 400 antes de guardar; React limita y valida el nombre | `limiteNombre`, `limitesNombreEnApi`, `Publicar.test.jsx` |
+| CP-H1-11 | Capacidad de descripción | 15.999/16.000/16.001 y 70.000 caracteres; ASCII, `é` y emoji | El máximo API/UI es 16.000 unidades UTF-16 (máximo 48.000 bytes para BMP de 3 bytes); los excesos responden 400 con error `descripcion`. Cabe en `TEXT` (65.535 bytes) | `limiteDescripcionCompatibleConTextUtf8mb4`, `limitesDescripcionEnApi`, `Publicar.test.jsx` |
+| CP-H1-12 | Importación y sesión UTF-8 | Seed (`Cédula`, `cómputo`, `ñ`) y publicación de prueba con emoji | Sesión cliente/conexión/resultados `utf8mb4`; `HEX('é') = C3A9`; texto leído coincide con lo enviado, no hay doble codificación | MySQL QA aislada, MySQL 8.0.46 |
 
 ## 3. Casos de prueba — H3 Ubicación
 
@@ -92,3 +94,36 @@ Resultado general y comandos: [verificación H11/H12](casos-prueba-h11-h12.md#5-
 El GPS y la geocodificación se simularon para repetir los escenarios; no es una
 prueba de sensores físicos ni del servicio externo. Todas las escrituras se
 hicieron en bases descartables, sin modificar datos del equipo.
+
+## 7. H1 — UTF-8, capacidad `TEXT` y límites de publicación — 16 de octubre de 2026
+
+### Configuración registrada
+
+- `database/script.sql` y `database/seed.sql` inician la sesión importadora con
+  `SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci`; la base se crea con ese charset.
+- El cliente CLI recomendado usa `--default-character-set=utf8mb4` y Django
+  establece `OPTIONS.charset=utf8mb4` al conectar.
+- `objetos.descripcion` es `TEXT`, con capacidad máxima de 65.535 bytes. El
+  límite acordado de interfaz/API es 16.000 unidades UTF-16. El peor caso BMP
+  usado en la prueba (`U+0800`, tres bytes UTF-8) ocupa 48.000 bytes. El máximo
+  queda por debajo de la capacidad incluso contando el overhead de fila.
+
+### Ejecución en base QA vacía
+
+Se levantó MySQL 8.0.46 en un contenedor aislado recién inicializado; se
+importaron `script.sql` y `seed.sql` y se consultó la base antes de insertar el
+caso de publicación. La sesión reportó `character_set_client`,
+`character_set_connection` y `character_set_results` como `utf8mb4`, y la
+collation de sesión como `utf8mb4_0900_ai_ci` (del servidor). En seed:
+`Cédula de identidad` se conservó y `HEX(nombre)` comenzó `43C3A9`;
+`HEX('é')` devolvió `C3A9`. Se insertó y volvió a leer `Cédula, cómputo, ñ y
+emojis 😃`, con su emoji en UTF-8 `F09F9883`; la columna reportó `TEXT` y
+65.535 bytes. No hubo mojibake (`C383C2A9`).
+
+### Resultados automáticos H1
+
+| Prueba | Resultado |
+| --- | --- |
+| `mvn clean -Dtest=ObjetoControllerTest,ObjetoRequestValidationTest test` | 46 pruebas: 0 fallos, 0 errores |
+| `npm test -- --run src/pages/Publicar.test.jsx` | 19 pruebas: todas pasaron |
+| Descripción ASCII/acento/emoji abajo y en límite, nombre 150, y error de campo en 16.001/70.000 | Aceptadas/rechazadas según el contrato; no se invocó el servicio para los rechazos |

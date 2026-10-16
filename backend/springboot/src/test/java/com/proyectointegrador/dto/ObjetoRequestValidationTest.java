@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -77,6 +78,22 @@ class ObjetoRequestValidationTest {
         assertThat(validar(permitido)).isEmpty();
         assertThat(validar(demasiadoLargo)).anyMatch(v -> v.getPropertyPath().toString().equals("nombre")
                 && v.getMessage().contains("150"));
+    }
+
+    @Test
+    @DisplayName("H1 - La descripción admite hasta 16000 unidades UTF-16 y no rebasa TEXT utf8mb4")
+    void limiteDescripcionCompatibleConTextUtf8mb4() {
+        String permitido = "\u0800".repeat(16000);
+        String demasiadoLargo = "A".repeat(16001);
+        ObjetoRequest enLimite = new ObjetoRequest(3L, "Mochila", permitido, LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", null, null);
+        ObjetoRequest sobreLimite = new ObjetoRequest(3L, "Mochila", demasiadoLargo, LocalDate.now(),
+                TipoObjeto.PERDIDO, "Biblioteca", null, null);
+
+        assertThat(permitido.getBytes(StandardCharsets.UTF_8)).hasSize(48000);
+        assertThat(validar(enLimite)).isEmpty();
+        assertThat(validar(sobreLimite)).anyMatch(v -> v.getPropertyPath().toString().equals("descripcion")
+                && v.getMessage().contains("16000"));
     }
 
     @ParameterizedTest

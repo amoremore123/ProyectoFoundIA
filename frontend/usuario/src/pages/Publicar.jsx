@@ -85,6 +85,7 @@ export default function Publicar() {
     if (!form.nombre.trim()) er.nombre = 'El nombre es obligatorio';
     else if (form.nombre.trim().length > 150) er.nombre = 'El nombre no debe superar los 150 caracteres';
     if (!form.descripcion.trim()) er.descripcion = 'La descripción es obligatoria';
+    else if (form.descripcion.length > 16000) er.descripcion = 'La descripción no debe superar los 16000 caracteres';
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
     else if (form.ubicacion.trim().length > 255) er.ubicacion = 'La ubicación no debe superar los 255 caracteres';
@@ -199,7 +200,9 @@ export default function Publicar() {
             value={form.descripcion}
             onChange={cambiar('descripcion')}
             placeholder="Describe el objeto con detalle..."
+            maxLength={16000}
           />
+          <span className="nota-suave">{form.descripcion.length}/16000 caracteres</span>
           {errores.descripcion && <span className="campo-error">{errores.descripcion}</span>}
         </label>
 

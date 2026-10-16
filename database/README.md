@@ -19,9 +19,17 @@ Base de datos principal de la plataforma: **`objetos_perdidos_db`** (MySQL 8).
 ### Opción 2 — Terminal
 
 ```bash
-mysql -u root -p < script.sql
-mysql -u root -p < seed.sql
+mysql --default-character-set=utf8mb4 -u root -p < script.sql
+mysql --default-character-set=utf8mb4 -u root -p < seed.sql
 ```
+
+Ambos archivos declaran también `SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci`
+para fijar explícitamente el charset de la sesión que ejecuta la importación.
+El esquema usa `utf8mb4`/`utf8mb4_unicode_ci`; Django fija `charset=utf8mb4` en
+su conexión. La columna `objetos.descripcion` es `TEXT` (65.535 bytes). El
+formulario y `POST /api/objetos` limitan la descripción a 16.000 unidades UTF-16:
+su peor caso (16.000 caracteres BMP de 3 bytes) ocupa 48.000 bytes; los
+caracteres suplementarios, como emojis, consumen 4 bytes por par sustituto.
 
 ### Opción 3 — Docker
 

@@ -102,6 +102,30 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     expect(crearObjeto).not.toHaveBeenCalled();
   });
 
+  it('limita y valida la descripción para que quepa en TEXT con utf8mb4', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    const descripcion = screen.getByRole('textbox', { name: /^Descripción/ });
+    expect(descripcion.maxLength).toBe(16000);
+    await rellenar(user);
+    fireEvent.change(descripcion, { target: { value: 'A'.repeat(16000) } });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await waitFor(() => expect(crearObjeto).toHaveBeenCalled());
+    expect(crearObjeto.mock.calls[0][0].descripcion).toHaveLength(16000);
+  });
+
+  it('rechaza descripción de 70000 caracteres incluso si se omite maxLength', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByRole('textbox', { name: /^Descripción/ }), {
+      target: { value: 'A'.repeat(70000) },
+    });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(screen.getByText('La descripción no debe superar los 16000 caracteres')).not.toBeNull();
+    expect(crearObjeto).not.toHaveBeenCalled();
+  });
+
   it('limita el input de ubicación a 255 caracteres', () => {
     renderizar();
     expect(screen.getByRole('textbox', { name: /^Ubicación/ }).maxLength).toBe(255);

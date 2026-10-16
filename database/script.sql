@@ -6,6 +6,9 @@
 -- MySQL 8
 -- =====================================================================
 
+-- Mantiene la conexión que importa este archivo en UTF-8 completo.
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 CREATE DATABASE IF NOT EXISTS objetos_perdidos_db
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;

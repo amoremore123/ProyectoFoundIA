@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -109,6 +110,51 @@ class ObjetoControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("150")));
         verify(objetoService, never()).crear(any(), any());
+    }
+
+    @Test
+    @DisplayName("H1 - POST acepta nombre de 150 y rechaza 151 caracteres antes de guardar")
+    void limitesNombreEnApi() throws Exception {
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        String enLimite = PUBLICACION_VALIDA.replace("Mochila negra", "N".repeat(150));
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(enLimite))
+                .andExpect(status().isCreated());
+
+        String excedido = PUBLICACION_VALIDA.replace("Mochila negra", "N".repeat(151));
+        mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(excedido))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("nombre")));
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
+    }
+
+    @Test
+    @DisplayName("H1 - API valida descripción por bytes UTF-8 y no intenta guardar si supera 16000")
+    void limitesDescripcionEnApi() throws Exception {
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        List<String> aceptadas = List.of(
+                "A".repeat(15999),
+                "A".repeat(16000),
+                "é".repeat(16000),
+                "😀".repeat(8000));
+        for (String descripcion : aceptadas) {
+            assertThatUtf8NoSuperaText(descripcion);
+            String body = PUBLICACION_VALIDA.replace("Mochila con libros de cálculo", descripcion);
+            mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isCreated());
+        }
+
+        for (String descripcion : List.of("A".repeat(16001), "A".repeat(70000))) {
+            String body = PUBLICACION_VALIDA.replace("Mochila con libros de cálculo", descripcion);
+            mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.mensaje", containsString("descripcion")));
+        }
+        verify(objetoService, org.mockito.Mockito.times(4)).crear(any(ObjetoRequest.class), eq(1L));
+    }
+
+    private void assertThatUtf8NoSuperaText(String texto) {
+        org.assertj.core.api.Assertions.assertThat(texto.getBytes(StandardCharsets.UTF_8).length)
+                .isLessThanOrEqualTo(65535);
     }
 
     @ParameterizedTest

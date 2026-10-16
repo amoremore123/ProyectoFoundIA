@@ -12,6 +12,8 @@
 -- Documentadas únicamente con fines de desarrollo.
 -- =====================================================================
 
+-- La sesión que importa los textos de ejemplo debe conservar UTF-8 completo.
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE objetos_perdidos_db;
 
 -- Limpieza en orden inverso a las dependencias (permite re-ejecutar)

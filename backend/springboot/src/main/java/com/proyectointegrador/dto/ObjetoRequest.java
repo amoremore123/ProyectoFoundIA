@@ -15,7 +15,8 @@ public record ObjetoRequest(
         @NotNull(message = "es obligatorio") Long categoriaId,
         @NotBlank(message = "es obligatorio")
         @Size(max = 150, message = "no debe superar los 150 caracteres") String nombre,
-        @NotBlank(message = "es obligatorio") String descripcion,
+        @NotBlank(message = "es obligatorio")
+        @Size(max = 16000, message = "no debe superar los 16000 caracteres") String descripcion,
         @NotNull(message = "es obligatorio") @PastOrPresent(message = "no puede ser futura") LocalDate fechaObjeto,
         @NotNull(message = "es obligatorio") TipoObjeto tipo,
         @NotBlank(message = "es obligatorio")
