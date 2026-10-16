@@ -1,9 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
+import Icono from '../components/Icono';
 import { mensajeError, reenviarCodigo } from '../services/api';
+
+const MINUTOS_BLOQUEO = 15;
+
+// El servidor indica el tiempo restante redondeado hacia arriba ("en 3 minutos", "por 15 minutos"),
+// así que reactivar Entrar al cumplirse ese tiempo nunca adelanta el fin real del bloqueo.
+function minutosDeBloqueo(mensaje) {
+  const coincidencia = /(\d+)\s*minuto/i.exec(mensaje || '');
+  return coincidencia ? Number(coincidencia[1]) : MINUTOS_BLOQUEO;
+}
 
 // H12 - Inicio de sesión con JWT, mensajes de error y bloqueo tras 5 intentos
 export default function Login() {
@@ -13,15 +23,26 @@ export default function Login() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [bloqueado, setBloqueado] = useState(false);
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(null);
   const [sinVerificar, setSinVerificar] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const bloqueado = bloqueadoHasta !== null;
+
+  // H12: al vencer el bloqueo se reactiva Entrar sin editar el correo ni recargar
+  useEffect(() => {
+    if (bloqueadoHasta === null) return undefined;
+    const t = setTimeout(() => {
+      setBloqueadoHasta(null);
+      setError('');
+    }, Math.max(0, bloqueadoHasta - Date.now()));
+    return () => clearTimeout(t);
+  }, [bloqueadoHasta]);
 
   const enviar = async (e) => {
     e.preventDefault();
     setError('');
     setSinVerificar(false);
-    setBloqueado(false);
+    setBloqueadoHasta(null);
 
     if (!correo.trim() || !password) {
       setError('Ingresa tu correo y tu contraseña.');
@@ -38,8 +59,9 @@ export default function Login() {
         // Credenciales incorrectas (incluye intentos restantes) o cuenta suspendida
         setError(mensajeError(err, 'Correo o contraseña incorrectos.'));
       } else if (status === 423) {
-        setBloqueado(true);
-        setError(mensajeError(err, 'Tu cuenta está bloqueada temporalmente. Intenta más tarde.'));
+        const mensaje = mensajeError(err, 'Tu cuenta está bloqueada temporalmente. Intenta más tarde.');
+        setBloqueadoHasta(Date.now() + minutosDeBloqueo(mensaje) * 60 * 1000);
+        setError(mensaje);
       } else if (status === 403) {
         setSinVerificar(true);
         setError(mensajeError(err, 'Debes verificar tu correo antes de iniciar sesión.'));
@@ -70,11 +92,11 @@ export default function Login() {
           <Logo tamano={56} />
         </div>
         <h1>Iniciar sesión</h1>
-        <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa para continuar.</p>
+        <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa con tu cuenta para continuar.</p>
 
         {error && (
           <div className="banner-error" role="alert">
-            {bloqueado ? '🔒' : '⚠️'} {error}
+            <Icono nombre={bloqueado ? 'candado' : 'alerta'} tamano={18} /> {error}
             {sinVerificar && (
               <button type="button" className="btn-enlace" onClick={irAVerificar}>
                 Enviar código y verificar
@@ -91,7 +113,7 @@ export default function Login() {
             value={correo}
             onChange={(e) => {
               setCorreo(e.target.value);
-              setBloqueado(false);
+              setBloqueadoHasta(null);
             }}
             placeholder="tu@correo.com"
             required

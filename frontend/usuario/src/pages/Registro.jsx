@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
+import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
 import { REGLAS_PASSWORD, validarRegistro } from '../utils/validaciones';
 
@@ -91,7 +92,7 @@ export default function Registro() {
 
         {error && (
           <div className="banner-error" role="alert">
-            ⚠️ {error}
+            <Icono nombre="alerta" tamano={18} /> {error}
           </div>
         )}
 

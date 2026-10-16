@@ -27,8 +27,17 @@ api.interceptors.response.use(
   }
 );
 
+// Los mensajes de axios ("Network Error", "timeout of ...") están en inglés: se traducen aquí
+// para que la interfaz siempre muestre el error en español y distinto de "Sin resultados".
 export function mensajeError(error, fallback = 'Ocurrió un error inesperado') {
-  return error?.response?.data?.mensaje || error?.response?.data?.message || error?.message || fallback;
+  const servidor = error?.response?.data?.mensaje || error?.response?.data?.message;
+  if (servidor) return servidor;
+  if (error?.response) return `${fallback} (error ${error.response.status}).`;
+  if (error?.code === 'ECONNABORTED') return `${fallback}: el servidor tardó demasiado en responder.`;
+  if (error?.isAxiosError || error?.message === 'Network Error') {
+    return `${fallback}: no hay conexión con el servidor. Revisa tu conexión e inténtalo de nuevo.`;
+  }
+  return error?.message || fallback;
 }
 
 export function statusDe(error) {
@@ -98,6 +107,13 @@ export const eliminarObjeto = async (id) => {
 
 export const getCoincidencias = async (id) => {
   const { data } = await api.get(`/api/objetos/${id}/coincidencias`);
+  return data;
+};
+
+// Asistente con IA: el backend interpreta el mensaje con Claude (la API key vive solo en el servidor).
+// Es público y opcional: va sin token ni interceptores para que un error nunca cierre la sesión.
+export const interpretarConIA = async (mensaje, { signal } = {}) => {
+  const { data } = await axios.post(`${API_URL}/api/asistente/interpretar`, { mensaje }, { signal, timeout: 12000 });
   return data;
 };
 

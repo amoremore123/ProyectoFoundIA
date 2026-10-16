@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
+import Icono from '../components/Icono';
 import { mensajeError, reenviarCodigo } from '../services/api';
 
 const ESPERA_REENVIO = 60; // segundos
@@ -70,10 +71,10 @@ export default function Verificar() {
         </div>
         <h1>Verifica tu correo</h1>
 
-        {aviso && <div className="banner-exito">✉️ {aviso}</div>}
+        {aviso && <div className="banner-exito"><Icono nombre="correo" tamano={18} /> {aviso}</div>}
         {error && (
           <div className="banner-error" role="alert">
-            ⚠️ {error}
+            <Icono nombre="alerta" tamano={18} /> {error}
           </div>
         )}
 
