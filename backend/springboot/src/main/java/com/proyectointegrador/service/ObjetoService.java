@@ -255,10 +255,8 @@ public class ObjetoService {
                 objeto.getEstado().name(),
                 objeto.getFechaPublicacion(),
                 new CategoriaResumen(objeto.getCategoria().getId(), objeto.getCategoria().getNombre()),
-                new UsuarioResumen(
-                        objeto.getUsuario().getId(),
-                        objeto.getUsuario().getNombre(),
-                        objeto.getUsuario().getApellido()),
+                // H19: el autor se expone solo con su vista pública (sin correo ni apellido completo).
+                UsuarioResumen.publico(objeto.getUsuario()),
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
                         .toList());
