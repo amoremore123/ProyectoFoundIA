@@ -41,6 +41,11 @@ Con Maven instalado: `mvn test`. Resultado esperado: `BUILD SUCCESS`, 0 fallos.
 | CP-H11-11 | Reenviar código | botón "Reenviar código" | Llega un código nuevo; el anterior deja de servir | `reenviarCodigo` |
 | CP-H11-12 | Servidor de correo caído | Mailpit apagado | 503, la cuenta NO se crea | `falloEnvioCorreo` |
 | CP-H11-13 | Cuenta suspendida con código correcto | código vigente de una cuenta SUSPENDIDO | 401, no emite JWT ni marca la cuenta como verificada; el código no se consume | `verificarCuentaSuspendida`, `verificarSuspendidaNoEmiteToken` |
+| CP-H11-15 | Límite de intentos del código | 4 códigos incorrectos | 400 con "Te quedan 4/3/2/1 intentos"; el contador se guarda en la base entre peticiones | `codigoIncorrectoCuentaIntentos`, `limiteDeCodigoPersistido` |
+| CP-H11-16 | Primer exceso del código | 5.º código incorrecto y luego el código correcto | El 5.º invalida el código; el correcto da 400 y no emite JWT | `quintoFalloInvalidaCodigo`, `codigoInvalidadoNoVerifica`, `limiteDeCodigoPersistido` |
+| CP-H11-17 | Reenvío antes de 60 s (API directa) | `/reenviar-codigo` a los 10-20 s del envío | 429 con `Retry-After`; no genera código ni envía correo | `reenvioAntesDeLaEspera`, `reenvioLimitadoPorApi` |
+| CP-H11-18 | Dos reenvíos seguidos (otra pestaña) | dos `/reenviar-codigo` consecutivos | Solo el primero emite código y correo; el segundo da 429 | `dosReenviosSeguidos` |
+| CP-H11-19 | Reenvío al cumplir la espera | `/reenviar-codigo` a los 60 s | 200, nuevo código, anterior invalidado e intentos en 0 | `reenvioDespuesDeLaEspera` |
 | CP-H11-14 | Límite UTF-8 de BCrypt | contraseñas ASCII, con acentos y con emoji, de 72 bytes o más | Hasta 72 bytes se aceptan si cumplen complejidad; más de 72 bytes da 400, no 500; React informa el mismo límite | `limiteBcryptUtf8`, `passwordAusente`, `registroPasswordMultibyteLarga`, `validaciones.test.js` |
 
 ## 3. Casos de prueba — H12 Iniciar sesión
@@ -81,7 +86,21 @@ base con datos que se quieran conservar: elimina el volumen MySQL. Tampoco
 ejecutar `database/script.sql` sobre una base existente, porque contiene
 `DROP TABLE`. Para pruebas destructivas, crear una base o un entorno separado.
 
-## 5. Verificación de regresión — 6 de octubre de 2026
+## 5. Límites del servidor del código (H11) — 16 de octubre de 2026
+
+Ejecutado contra la API real en Docker (`foundia-api`), con una cuenta de QA
+creada para la prueba y eliminada al terminar.
+
+| Caso | Esperado | Obtenido |
+| --- | --- | --- |
+| Registro de cuenta QA | 201 y correo en Mailpit | 201; correo recibido |
+| Reenvío inmediato | 429 y `Retry-After` | 429 "Espera 60 segundos antes de pedir otro código."; `Retry-After: 60` |
+| Códigos incorrectos 1-4 | 400 con intentos restantes | "Te quedan 4 / 3 / 2 intentos", "Te queda 1 intento" |
+| 5.º código incorrecto | Código invalidado | 400 "Superaste los 5 intentos permitidos. El código ya no es válido: solicita uno nuevo." |
+| Código real del correo tras el exceso | 400 sin token | 400; sin token |
+| Suite backend (`mvn test`) | Sin fallos | 117 pruebas, 0 fallos, 0 errores |
+
+## 6. Verificación de regresión — 6 de octubre de 2026
 
 Código comprobado: `6a3c8dd`. Los conteos siguientes abarcan las siete historias
 del sprint; no representan pruebas exclusivas de H11/H12.

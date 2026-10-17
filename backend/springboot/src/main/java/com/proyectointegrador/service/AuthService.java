@@ -16,6 +16,7 @@ import com.proyectointegrador.exception.CuentaBloqueadaException;
 import com.proyectointegrador.exception.CuentaNoVerificadaException;
 import com.proyectointegrador.exception.DuplicateResourceException;
 import com.proyectointegrador.exception.InvalidCredentialsException;
+import com.proyectointegrador.exception.LimiteReenvioException;
 import com.proyectointegrador.repository.UsuarioRepository;
 import com.proyectointegrador.security.JwtService;
 import com.proyectointegrador.security.UserPrincipal;
@@ -41,6 +42,10 @@ public class AuthService {
     public static final int MAX_INTENTOS = 5;
     public static final long MINUTOS_BLOQUEO = 15;
     public static final long MINUTOS_VIGENCIA_CODIGO = 15;
+    /** H11: intentos permitidos con un mismo código; el siguiente fallo lo invalida. */
+    public static final int MAX_INTENTOS_CODIGO = 5;
+    /** H11: espera mínima entre dos envíos del código (también por API directa u otra pestaña). */
+    public static final long SEGUNDOS_ESPERA_REENVIO = 60;
 
     private static final String MENSAJE_CREDENCIALES = "Correo o contraseña incorrectos.";
     private static final String MENSAJE_CUENTA_SUSPENDIDA = "Tu cuenta está suspendida. Contacta al administrador.";
@@ -97,7 +102,8 @@ public class AuthService {
                 correo);
     }
 
-    @Transactional
+    /** noRollbackFor: el contador de intentos del código debe guardarse aunque se rechace. */
+    @Transactional(noRollbackFor = CodigoVerificacionException.class)
     public AuthResponse verificar(VerificarRequest request) {
         Usuario usuario = usuarioRepository.findByCorreoForUpdate(normalizarCorreo(request.correo()))
                 .orElseThrow(() -> new CodigoVerificacionException("Código incorrecto."));
@@ -113,12 +119,13 @@ public class AuthService {
             throw new CodigoVerificacionException("El código expiró. Solicita uno nuevo.");
         }
         if (!codigosIguales(usuario.getCodigoVerificacion(), request.codigo().trim())) {
-            throw new CodigoVerificacionException("Código incorrecto.");
+            registrarIntentoCodigoFallido(usuario);
         }
 
         usuario.setVerificado(true);
         usuario.setCodigoVerificacion(null);
         usuario.setCodigoExpira(null);
+        usuario.setIntentosCodigo(0);
         usuarioRepository.save(usuario);
 
         return crearRespuestaConToken(usuario);
@@ -133,6 +140,7 @@ public class AuthService {
             throw new CodigoVerificacionException("Tu cuenta ya está verificada. Inicia sesión.");
         }
         if (usuario != null) {
+            exigirEsperaEntreEnvios(usuario);
             asignarNuevoCodigo(usuario);
             usuarioRepository.save(usuario);
             emailService.enviarCodigoVerificacion(
@@ -140,6 +148,38 @@ public class AuthService {
         }
         // Mismo mensaje exista o no el correo, para no revelar qué cuentas existen.
         return new MensajeResponse("Si el correo está registrado, te enviamos un nuevo código.");
+    }
+
+    /** Siempre lanza excepción: 400 con intentos restantes, o invalida el código al llegar al máximo. */
+    private void registrarIntentoCodigoFallido(Usuario usuario) {
+        int intentos = usuario.getIntentosCodigo() + 1;
+
+        if (intentos >= MAX_INTENTOS_CODIGO) {
+            usuario.setCodigoVerificacion(null);
+            usuario.setCodigoExpira(null);
+            usuario.setIntentosCodigo(0);
+            usuarioRepository.save(usuario);
+            throw new CodigoVerificacionException("Superaste los " + MAX_INTENTOS_CODIGO
+                    + " intentos permitidos. El código ya no es válido: solicita uno nuevo.");
+        }
+
+        usuario.setIntentosCodigo(intentos);
+        usuarioRepository.save(usuario);
+        int restantes = MAX_INTENTOS_CODIGO - intentos;
+        throw new CodigoVerificacionException("Código incorrecto. Te queda" + (restantes == 1 ? "" : "n")
+                + " " + restantes + " intento" + (restantes == 1 ? "" : "s") + ".");
+    }
+
+    /** 429 si el último código se envió hace menos de SEGUNDOS_ESPERA_REENVIO; no se emite otro. */
+    private void exigirEsperaEntreEnvios(Usuario usuario) {
+        LocalDateTime enviadoEn = usuario.getCodigoEnviadoEn();
+        if (enviadoEn == null) return;
+        long transcurridos = Duration.between(enviadoEn, ahora()).getSeconds();
+        if (transcurridos < SEGUNDOS_ESPERA_REENVIO) {
+            long restantes = SEGUNDOS_ESPERA_REENVIO - Math.max(0, transcurridos);
+            throw new LimiteReenvioException(
+                    "Espera " + restantes + " segundos antes de pedir otro código.", restantes);
+        }
     }
 
     // ------------------------------------------------------------------ H12
@@ -215,6 +255,8 @@ public class AuthService {
     private void asignarNuevoCodigo(Usuario usuario) {
         usuario.setCodigoVerificacion(String.format("%06d", RANDOM.nextInt(1_000_000)));
         usuario.setCodigoExpira(ahora().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
+        usuario.setIntentosCodigo(0);
+        usuario.setCodigoEnviadoEn(ahora());
     }
 
     private boolean codigosIguales(String esperado, String recibido) {

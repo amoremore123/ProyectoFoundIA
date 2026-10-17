@@ -70,7 +70,14 @@ Nombre y apellido: solo letras.
 }
 ```
 
-**Errores**: `400` código incorrecto, expirado o cuenta ya verificada · `401` cuenta suspendida
+**Errores**: `400` código incorrecto, expirado, invalidado o cuenta ya verificada · `401` cuenta suspendida
+
+**Límite de intentos (servidor)**: cada código admite **5 intentos**. Los fallos se
+guardan en la base (`usuarios.intentos_codigo`), así que cuentan igual desde otra
+pestaña o llamando a la API directamente. La respuesta indica los intentos que
+quedan ("Te quedan 4 intentos."); el quinto fallo **invalida el código** y, desde
+ese momento, ni el código correcto verifica la cuenta ni se emite JWT. Hay que
+pedir uno nuevo con `/reenviar-codigo`. Verificar con éxito reinicia el contador.
 
 La verificación no permite iniciar sesión con una cuenta suspendida, aunque el
 código sea correcto y siga vigente; no se consume el código ni se emite JWT.
@@ -81,7 +88,17 @@ código sea correcto y siga vigente; no se consume el código ni se emite JWT.
 
 **Response** `200 OK` `{ "mensaje": "Si el correo está registrado, te enviamos un nuevo código." }`
 
-**Errores**: `400` cuenta ya verificada · `503` fallo de correo
+**Errores**: `400` cuenta ya verificada · `429` reenvío antes de tiempo · `503` fallo de correo
+
+**Frecuencia de reenvío (servidor)**: entre dos envíos deben pasar **60 segundos**,
+contados desde el último envío guardado en `usuarios.codigo_enviado_en` (incluye el
+correo del registro). Antes de ese tiempo responde `429 Too Many Requests` con la
+cabecera `Retry-After` (segundos) y el mensaje "Espera N segundos antes de pedir
+otro código."; no genera código nuevo ni envía correo. Un reenvío válido invalida
+el código anterior y reinicia los intentos. Si el correo falla (`503`), el código
+anterior sigue vigente.
+
+Bases existentes: aplicar `database/migracion_h11_limites_codigo.sql` (solo agrega columnas).
 
 ### POST `/api/auth/login`  _(H12)_
 
