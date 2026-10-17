@@ -80,6 +80,21 @@ class ObjetoControllerTest {
     }
 
     @Test
+    @DisplayName("H6 - Error de consulta no devuelve un falso vacío y el reintento recupera resultados")
+    void errorDeBusquedaYReintento() throws Exception {
+        when(objetoService.buscar("negra", null, null))
+                .thenThrow(new IllegalStateException("Detalle interno de QA"))
+                .thenReturn(List.of(respuesta()));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "negra"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.mensaje").value("Error interno del servidor"));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "negra"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(10));
+    }
+
+    @Test
     @DisplayName("POST /api/objetos válido -> 201")
     void crearValido() throws Exception {
         when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());

@@ -131,6 +131,88 @@ class BusquedaObjetosIntegrationTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"neG", "CUADER", "BIBLIO", "  NEGRA  ", "CÁLCULO"})
+    @DisplayName("H6 - HTTP conserva coincidencias parciales y textos UTF-8 de los tres campos")
+    void fragmentosPorHttp(String texto) throws Exception {
+        mockMvc.perform(get("/api/objetos/buscar").param("q", texto))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(mochila.getId()))
+                .andExpect(jsonPath("$[0].descripcion").value("Cuaderno de cálculo"))
+                .andExpect(jsonPath("$[0].ubicacion").value("Biblioteca central"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"%", "_", "!", "!%_", "\\", "A+B", "O'Neil"})
+    @DisplayName("H6 - Los literales en nombre, descripción y ubicación no actúan como comodines")
+    void literalesPorHttp(String texto) throws Exception {
+        usuario = entityManager.getReference(Usuario.class, usuario.getId());
+        Categoria categoria = entityManager.getReference(Categoria.class, celulares.getId());
+        Objeto nombre = objeto("Etiqueta " + texto, "Detalle", "Laboratorio",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        Objeto descripcion = objeto("Descripción literal", "Detalle " + texto, "Laboratorio",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        Objeto ubicacion = objeto("Ubicación literal", "Detalle", "Sector " + texto,
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        objeto("Etiqueta 1000 A1B Avisoo A B ONeil", "Sin el literal", "Otro sector",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        sincronizar();
+
+        mockMvc.perform(get("/api/objetos/buscar").param("q", texto))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].id").value(ubicacion.getId()))
+                .andExpect(jsonPath("$[1].id").value(descripcion.getId()))
+                .andExpect(jsonPath("$[2].id").value(nombre.getId()));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", "   ", "\t"})
+    @DisplayName("H6 - q ausente o blanco conserva la lista pública y su orden también por HTTP")
+    void sinTextoPorHttp(String texto) throws Exception {
+        var solicitud = get("/api/objetos/buscar");
+        if (texto != null) solicitud.param("q", texto);
+        mockMvc.perform(solicitud)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$[0].id").value(historico.getId()))
+                .andExpect(jsonPath("$[1].id").value(recuperado.getId()))
+                .andExpect(jsonPath("$[2].id").value(celular.getId()))
+                .andExpect(jsonPath("$[3].id").value(mochila.getId()));
+    }
+
+    @Test
+    @DisplayName("H6 - La fecha tiene prioridad sobre el id y el id solo desempata")
+    void ordenPorFechaAntesDeId() throws Exception {
+        entityManager.createNativeQuery("update objetos set fecha_publicacion = :fecha where id = :id")
+                .setParameter("fecha", LocalDateTime.of(2026, 10, 6, 12, 0))
+                .setParameter("id", mochila.getId()).executeUpdate();
+        sincronizar();
+        mockMvc.perform(get("/api/objetos/buscar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$[0].id").value(mochila.getId()))
+                .andExpect(jsonPath("$[1].id").value(historico.getId()))
+                .andExpect(jsonPath("$[2].id").value(recuperado.getId()))
+                .andExpect(jsonPath("$[3].id").value(celular.getId()));
+    }
+
+    @Test
+    @DisplayName("H6 - Error de entrada, vacío y recuperación son respuestas diferentes")
+    void errorVacioYRecuperacion() throws Exception {
+        mockMvc.perform(get("/api/objetos/buscar").param("tipo", "OTRO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje", containsString("tipo")));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "no-existe-987"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "negra"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "   ", "\t"})
     @DisplayName("H6 - Sin texto devuelve solo objetos públicos, con orden estable")

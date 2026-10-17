@@ -108,3 +108,67 @@ La comprobación MySQL se hizo con una adaptación de configuración en una copi
 Los 25 casos repetidos en MySQL no son pruebas adicionales distintas. El adaptador, los scripts de comprobación y los servicios temporales se retiraron al terminar; el comando `mvn test` del repositorio sigue utilizando H2 para esta suite.
 
 Estos resultados verifican la implementación probada; el cierre formal de las historias corresponde a la revisión del equipo. Los casos de categoría se detallan en [H7 — Filtrar objetos por categoría](casos-prueba-h7.md).
+
+## 5. Validación integral del PDF — 17 de octubre de 2026
+
+Rama de trabajo: `dev/leonel`, base backend/datos `5cfb391`. Se integró
+`frontend/web` (`dd3e72b`) con autorización del usuario mediante el merge local
+`cafdf93`. Se conservaron las correcciones de Amore, incluidos IDs de categorías,
+historial de eliminados y descripción de 16.000 unidades UTF-16 como la API.
+Esta ejecución es nueva; no reutiliza como evidencia el intento local cancelado.
+
+### Refuerzo versionado de H6
+
+| Prueba | Cobertura nueva |
+| --- | --- |
+| `fragmentosPorHttp` | Fragmentos de nombre, descripción y ubicación; mayúsculas, espacios externos y tildes, conservando el texto de respuesta. |
+| `literalesPorHttp` | `%`, `_`, `!`, `!%_`, barra invertida, `A+B` y `O'Neil` en los tres campos; excluye falsas coincidencias y comprueba orden. |
+| `sinTextoPorHttp` | `q` ausente, vacío, espacios y tabulación mantienen exclusivamente las publicaciones públicas y su orden. |
+| `ordenPorFechaAntesDeId` | Una publicación más nueva con ID menor precede a las anteriores; el ID solo desempata fechas iguales. |
+| `errorVacioYRecuperacion` | 400 de parámetro, 200 con `[]` y 200 con coincidencias son respuestas diferentes. |
+| `ObjetoControllerTest.errorDeBusquedaYReintento` | Fallo 500 en español sin detalles internos; el siguiente intento recupera resultados, no un falso vacío. |
+| `Buscar.test.jsx` (7 entradas nuevas) | El texto literal se conserva al enviar y decodificar la URL, junto con categoría, tipo, ubicación y parámetros ajenos. |
+
+Se mantienen las pruebas previas de filtros combinados, privacidad, cancelación
+de consultas, navegación y estados independientes de búsqueda y catálogo.
+La implementación de búsqueda existente se reutiliza; no se presenta el refuerzo
+de pruebas como una corrección de lógica inexistente.
+
+### Resultados de esta ejecución
+
+| Verificación | Resultado nuevo |
+| --- | --- |
+| `mvn.cmd -B -ntp clean verify` | 173/173, sin fallos, errores ni omitidas; JAR generado. Son 19 casos nuevos de H6 sobre la base de 154; la suite completa incluye otras historias. |
+| `npm ci` y `npm test` del usuario | 87/87, sin omitidas; 7 entradas nuevas de H6 sobre las 80 de la interfaz integrada. |
+| `npm run build` | Correcto en usuario y administrador. El administrador no tiene script de tests; no se afirma haber ejecutado una suite inexistente. |
+| API/MySQL reales | 34/34 comprobaciones: fragmentos y literales en los tres campos, filtros, orden, privados excluidos, 400/404/401 y recuperación. |
+| Chrome real sobre el build | 7/7 casos agrupados: 12 búsquedas literales/parciales; URL, intersección y Atrás/Adelante/recarga; error/reintento; vacío, visibilidad y detalle; encabezados, Sin foto y contraste del detalle; tamaños/temas/teclado; ausencia de excepciones JavaScript. |
+| Caída controlada | Se detuvo únicamente MySQL QA: 500 con `Error interno del servidor`, no `[]`. Al recuperarlo, la consulta volvió a funcionar sin reiniciar la API. En navegador se inyectó además un 500 solo de búsqueda y se reintentó contra la API real sin perder filtros. |
+
+Las compilaciones y tests se ejecutan sobre copias temporales, sin cargar `.env`
+del equipo. Las suites del repositorio usan H2 efímera y API simulada en React;
+la integración aparte usa MySQL/Mailpit y un Chrome real automatizado por
+Playwright sobre el build de producción. No se reimporta SQL en la base del equipo.
+
+Se usaron 4 categorías con IDs 101/205/309/413 y 29 publicaciones ficticias,
+incluidas ocultas/eliminadas, fechas e IDs en orden distinto y literales en
+nombre/descripción/ubicación. El cliente HTTP y el navegador aplicaron codificación
+URL real. Se revisaron capturas a 320/375/1280 px en claro y oscuro, sin desborde
+horizontal. El contraste medido de los textos de detalle fue al menos 4,5:1;
+no equivale a una auditoría WCAG completa.
+
+Herramientas: Maven 3.9.16, JDK 21.0.12.1 (destino Java 17), Node 24.21.0,
+Vite 5.4.21 y Chrome local mediante Playwright. Los procesos Java/preview propios
+de esta fase se terminaron y se comprobó que no quedaran abiertos.
+
+Evidencia nueva: `C:\Users\Leonel\Downloads\FoundIA-Leonel-Integral-20261017\`.
+Contiene `evidencias/h6-backend.json`, `h6-surefire/`,
+`evidencias/h6-usuario.json`, logs de compilación, `evidencias/h6-fuentes.json`,
+`evidencias/h6-integral-casos.json`, `evidencias/h6-integral-resumen.json` y
+`evidencias/h6-capturas/`, además de los scripts y configuración QA.
+Cada comprobación registra esperado, obtenido y estado. Los siete casos de
+navegador contienen varias aserciones; no se suman como pruebas unitarias nuevas.
+
+**Resultado H6:** comprobada también con el frontend integrado antes de comenzar
+H7. El flujo completo registro → categoría y la regresión final se registran en
+la fase H7. No se declara aprobado el resto del Sprint 1 por este resultado.

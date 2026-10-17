@@ -320,4 +320,19 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
     await user.click(link);
     await screen.findByText('Detalle del objeto');
   });
+
+  it.each(['%', '_', '!%_', '\\', 'A+B', "O'Neil", 'CÁLCULO'])('H6 conserva %s literal en URL y petición con los demás filtros', async (texto) => {
+    const user = userEvent.setup();
+    renderizar('/buscar?categoriaId=2&tipo=PERDIDO&ubicacion=Biblioteca&extra=conservar');
+    await categoriasListas();
+    await user.type(screen.getByRole('searchbox'), `  ${texto}  `);
+    await user.click(screen.getByRole('button', { name: 'Buscar', exact: true }));
+    await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith(
+      { q: texto, categoriaId: '2', tipo: 'PERDIDO' }, { signal: expect.any(AbortSignal) },
+    ));
+    expect(Object.fromEntries(parametrosActuales())).toEqual({
+      q: texto, categoriaId: '2', tipo: 'PERDIDO', ubicacion: 'Biblioteca', extra: 'conservar',
+    });
+    expect(screen.getByRole('searchbox').value).toBe(texto);
+  });
 });
