@@ -6,29 +6,47 @@ import Icono from '../components/Icono';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { actualizarPerfil, getPerfil, mensajeError, statusDe } from '../services/api';
+import { REGLAS_PASSWORD, validarPerfil } from '../utils/validaciones';
 
+const SIN_PASSWORD = { password: '', confirmar: '', passwordActual: '' };
+
+// La API responde "El campo nombre ..." o "La contraseña actual ...": se ubica el error junto a su campo.
+function campoDelError(mensaje = '') {
+  const texto = mensaje.toLowerCase();
+  if (texto.includes('contraseña actual')) return 'passwordActual';
+  const campo = /el campo (\w+)/.exec(texto)?.[1];
+  return ['nombre', 'apellido', 'password'].includes(campo) ? campo : null;
+}
+
+// H13 - Edición del perfil propio. Las contraseñas solo viven en el formulario:
+// se borran al guardar o cancelar y nunca se guardan en el navegador.
 export default function Perfil() {
   const { logout, actualizarUsuario } = useAuth();
   const { mostrarToast } = useToast();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ nombre: '', apellido: '', password: '' });
+  const [original, setOriginal] = useState({ nombre: '', apellido: '' });
+  const [form, setForm] = useState({ nombre: '', apellido: '', ...SIN_PASSWORD });
   const [correo, setCorreo] = useState('');
   const [rol, setRol] = useState('');
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
+  const [errorCarga, setErrorCarga] = useState('');
+  const [errorGuardar, setErrorGuardar] = useState('');
+  const [errores, setErrores] = useState({});
   const [enviando, setEnviando] = useState(false);
 
   const cargar = async () => {
     setCargando(true);
-    setError('');
+    setErrorCarga('');
     try {
       const data = await getPerfil();
-      setForm({ nombre: data.nombre || '', apellido: data.apellido || '', password: '' });
+      const datos = { nombre: data.nombre || '', apellido: data.apellido || '' };
+      setOriginal(datos);
+      setForm({ ...datos, ...SIN_PASSWORD });
       setCorreo(data.correo || '');
       setRol(data.rol || '');
     } catch (e) {
-      setError(mensajeError(e, 'No se pudo cargar tu perfil'));
+      setErrorCarga(mensajeError(e, 'No se pudo cargar tu perfil'));
     } finally {
       setCargando(false);
     }
@@ -40,25 +58,45 @@ export default function Perfil() {
 
   const cambiar = (campo) => (e) => {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
+    setErrores((er) => ({ ...er, [campo]: undefined }));
+    setErrorGuardar('');
+  };
+
+  const hayCambios = form.nombre !== original.nombre || form.apellido !== original.apellido
+    || Boolean(form.password || form.confirmar || form.passwordActual);
+
+  const cancelar = () => {
+    setForm({ ...original, ...SIN_PASSWORD });
+    setErrores({});
+    setErrorGuardar('');
   };
 
   const guardar = async (e) => {
     e.preventDefault();
-    setError('');
+    if (enviando) return;
+    setErrorGuardar('');
+    const encontrados = validarPerfil(form);
+    setErrores(encontrados);
+    if (Object.keys(encontrados).length > 0) return;
+
     setEnviando(true);
     try {
       const payload = { nombre: form.nombre.trim(), apellido: form.apellido.trim() };
-      if (form.password) payload.password = form.password;
+      if (form.password) {
+        payload.password = form.password;
+        payload.passwordActual = form.passwordActual;
+      }
       const data = await actualizarPerfil(payload);
       actualizarUsuario(data);
-      setForm((f) => ({ ...f, password: '' }));
-      mostrarToast('Perfil actualizado correctamente.', 'exito');
+      const datos = { nombre: data.nombre || '', apellido: data.apellido || '' };
+      setOriginal(datos);
+      setForm({ ...datos, ...SIN_PASSWORD });
+      mostrarToast(form.password ? 'Perfil y contraseña actualizados.' : 'Perfil actualizado correctamente.', 'exito');
     } catch (err) {
-      if (statusDe(err) === 400) {
-        setError(mensajeError(err, 'Revisa los datos del formulario'));
-      } else {
-        setError(mensajeError(err, 'No se pudo actualizar el perfil'));
-      }
+      const mensaje = mensajeError(err, 'No se pudo actualizar el perfil');
+      const campo = statusDe(err) === 400 ? campoDelError(mensaje) : null;
+      if (campo) setErrores((er) => ({ ...er, [campo]: mensaje }));
+      else setErrorGuardar(mensaje);
     } finally {
       setEnviando(false);
     }
@@ -71,16 +109,40 @@ export default function Perfil() {
 
   if (cargando) return <Cargando />;
 
+  if (errorCarga) {
+    return (
+      <div className="pagina pagina-estrecha">
+        <h1 className="pagina-titulo">Mi perfil</h1>
+        <MensajeError mensaje={errorCarga} onReintentar={cargar} />
+      </div>
+    );
+  }
+
+  // El error va fuera de la etiqueta (enlazado con aria-describedby) para que no cambie el nombre del campo.
+  const campo = (nombre, etiqueta, props = {}) => (
+    <div className="campo">
+      <label className="campo-label" htmlFor={`perfil-${nombre}`}>{etiqueta}</label>
+      <input
+        id={`perfil-${nombre}`}
+        className={`input${errores[nombre] ? ' input-error' : ''}`}
+        value={form[nombre]}
+        onChange={cambiar(nombre)}
+        aria-invalid={Boolean(errores[nombre])}
+        aria-describedby={errores[nombre] ? `error-${nombre}` : undefined}
+        {...props}
+      />
+      {errores[nombre] && <span id={`error-${nombre}`} className="campo-error">{errores[nombre]}</span>}
+    </div>
+  );
+
   return (
     <div className="pagina pagina-estrecha">
       <h1 className="pagina-titulo">Mi perfil</h1>
 
-      <MensajeError mensaje={error} onReintentar={cargar} />
-
       <form className="tarjeta formulario" onSubmit={guardar} noValidate>
         <div className="perfil-resumen">
           <span className="perfil-avatar" aria-hidden="true">
-            {(form.nombre || correo || '?').charAt(0).toUpperCase()}
+            {(original.nombre || correo || '?').charAt(0).toUpperCase()}
           </span>
           <div>
             <p className="perfil-correo">{correo}</p>
@@ -88,31 +150,35 @@ export default function Perfil() {
           </div>
         </div>
 
-        <label className="campo">
-          <span className="campo-label">Nombre *</span>
-          <input type="text" className="input" value={form.nombre} onChange={cambiar('nombre')} required />
-        </label>
+        <MensajeError mensaje={errorGuardar} />
 
-        <label className="campo">
-          <span className="campo-label">Apellido *</span>
-          <input type="text" className="input" value={form.apellido} onChange={cambiar('apellido')} required />
-        </label>
+        {campo('nombre', 'Nombre *', { type: 'text', autoComplete: 'given-name', maxLength: 100 })}
+        {campo('apellido', 'Apellido *', { type: 'text', autoComplete: 'family-name', maxLength: 100 })}
 
-        <label className="campo">
-          <span className="campo-label">Nueva contraseña (opcional)</span>
-          <input
-            type="password"
-            className="input"
-            value={form.password}
-            onChange={cambiar('password')}
-            placeholder="Déjalo vacío para no cambiarla"
-            autoComplete="new-password"
-          />
-        </label>
+        <fieldset className="perfil-password">
+          <legend className="campo-label">Cambiar contraseña (opcional)</legend>
+          <p className="nota-suave">Déjalo vacío si no quieres cambiarla.</p>
 
-        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
-          {enviando ? 'Guardando...' : 'Guardar cambios'}
-        </button>
+          {campo('password', 'Nueva contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 72 })}
+          {form.password && (
+            <ul className="reglas-password" aria-label="Requisitos de la nueva contraseña">
+              {REGLAS_PASSWORD.map((r) => (
+                <li key={r.id} className={r.cumple(form.password) ? 'ok' : ''}>{r.texto}</li>
+              ))}
+            </ul>
+          )}
+          {campo('confirmar', 'Confirmar nueva contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 72 })}
+          {campo('passwordActual', 'Contraseña actual', { type: 'password', autoComplete: 'current-password', maxLength: 72 })}
+        </fieldset>
+
+        <div className="perfil-botones">
+          <button type="button" className="btn btn-secundario" onClick={cancelar} disabled={enviando || !hayCambios}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn btn-primario" disabled={enviando || !hayCambios}>
+            {enviando ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
       </form>
 
       <div className="perfil-acciones">
@@ -129,4 +195,3 @@ export default function Perfil() {
     </div>
   );
 }
-
