@@ -170,10 +170,14 @@ Casos de prueba: [H6 — Buscar objetos](../pruebas/casos-prueba-h6.md) y
   "estado": "ACTIVO",
   "fechaPublicacion": "2026-10-02T12:30:00",
   "categoria": { "id": 3, "nombre": "Mochila" },
-  "publicadoPor": { "id": 1, "nombre": "Ana", "apellido": "Pérez" },
+  "publicadoPor": { "id": 1, "nombre": "Ana", "apellido": "P." },
   "fotos": [ { "id": 1, "url": "/uploads/objetos/mochila-negra.jpg" } ]
 }
 ```
+
+**Privacidad (H19)**: `publicadoPor` es la vista pública del autor: solo `id`,
+`nombre` e **inicial del apellido**. Nunca incluye correo, apellido completo, rol
+ni estado. Reglas completas en [`docs/privacidad-datos.md`](../privacidad-datos.md).
 
 ### GET `/api/objetos`  _(público)_
 
