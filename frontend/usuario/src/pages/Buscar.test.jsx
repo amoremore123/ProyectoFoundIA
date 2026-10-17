@@ -335,4 +335,71 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
     });
     expect(screen.getByRole('searchbox').value).toBe(texto);
   });
+
+  it.each(['mo', 'MÓ'])('H7 filtra opciones con %s sin cambiar sus IDs ni excluir desactivadas', async (texto) => {
+    listarCategorias.mockResolvedValue([
+      { id: 101, nombre: 'Mochila', estado: true },
+      { id: 205, nombre: 'Celular', estado: true },
+      { id: 309, nombre: 'Móvil', estado: false },
+    ]);
+    const user = userEvent.setup();
+    renderizar('/buscar?q=mochila&tipo=PERDIDO');
+    await categoriasListas();
+    await user.type(screen.getByRole('textbox', { name: 'Buscar categoría' }), texto);
+    const selector = screen.getByRole('combobox');
+    expect([...selector.options].map((o) => o.value)).toEqual(['', '101', '309']);
+    expect(screen.getByRole('option', { name: 'Móvil (desactivada)' }).disabled).toBe(false);
+    await user.selectOptions(selector, '101');
+    expect(Object.fromEntries(parametrosActuales())).toEqual({ q: 'mochila', tipo: 'PERDIDO', categoriaId: '101' });
+    await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith(
+      { q: 'mochila', tipo: 'PERDIDO', categoriaId: '101' }, { signal: expect.any(AbortSignal) },
+    ));
+  });
+
+  it('H7 conserva la selección y URL cuando el filtro de opciones no tiene coincidencias', async () => {
+    const user = userEvent.setup();
+    renderizar('/buscar?q=mochila&categoriaId=2&tipo=PERDIDO');
+    await categoriasListas();
+    const antes = screen.getByTestId('ruta').textContent;
+    await user.type(screen.getByRole('textbox', { name: 'Buscar categoría' }), 'zzz');
+    expect(screen.getByText('Ninguna categoría coincide con ese texto.')).toBeTruthy();
+    expect([...screen.getByRole('combobox').options].map((o) => o.value)).toEqual(['', '2']);
+    expect(screen.getByRole('combobox').value).toBe('2');
+    expect(screen.getByTestId('ruta').textContent).toBe(antes);
+    expect(buscarObjetos).toHaveBeenCalledTimes(1);
+  });
+
+  it('H7 borrar el texto de opciones restaura el catálogo y limpiar filtros también vacía ese texto', async () => {
+    const user = userEvent.setup();
+    renderizar('/buscar?categoriaId=2&extra=conservar');
+    await categoriasListas();
+    const filtro = screen.getByRole('textbox', { name: 'Buscar categoría' });
+    await user.type(filtro, 'mo');
+    expect(screen.getByRole('combobox').options.length).toBe(2);
+    await user.clear(filtro);
+    expect([...screen.getByRole('combobox').options].map((o) => o.value)).toEqual(['', '1', '3', '2']);
+    await user.type(filtro, 'mo');
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    expect(filtro.value).toBe('');
+    expect(Object.fromEntries(parametrosActuales())).toEqual({ extra: 'conservar' });
+  });
+
+  it('H7 el reintento del catálogo conserva ID, texto, tipo, ubicación y resultados independientes', async () => {
+    listarCategorias.mockRejectedValueOnce(new Error('Catálogo QA no disponible'));
+    const user = userEvent.setup();
+    renderizar('/buscar?q=mochila&categoriaId=2&tipo=PERDIDO&ubicacion=Biblioteca');
+    const alerta = await screen.findByRole('alert');
+    await screen.findByRole('heading', { name: 'Mochila negra' });
+    const antes = screen.getByTestId('ruta').textContent;
+    expect(screen.getByRole('combobox').disabled).toBe(true);
+    expect(screen.getByRole('textbox', { name: 'Buscar categoría' }).disabled).toBe(true);
+    await user.click(within(alerta).getByRole('button', { name: 'Reintentar' }));
+    await categoriasListas();
+    expect(screen.getByRole('combobox').value).toBe('2');
+    expect(screen.getByRole('searchbox').value).toBe('mochila');
+    expect(screen.getByRole('button', { name: 'Perdidos' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('ruta').textContent).toBe(antes);
+    expect(buscarObjetos).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
 });

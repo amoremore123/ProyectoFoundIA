@@ -275,6 +275,116 @@ class BusquedaObjetosIntegrationTest {
                 .andExpect(jsonPath("$[2].nombre").value("Mochila"));
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("H7 - Una categoría vacía activa o desactivada se conserva y devuelve 200 en los tres filtros")
+    void categoriaVaciaEnLosTresFiltros(boolean activa) throws Exception {
+        Categoria vacia = categoria("Sin publicaciones " + activa, activa);
+        sincronizar();
+        for (String ruta : List.of("/api/objetos?categoriaId=" + vacia.getId(),
+                "/api/objetos/buscar?categoriaId=" + vacia.getId(),
+                "/api/objetos/categoria/" + vacia.getId())) {
+            mockMvc.perform(get(ruta))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+        mockMvc.perform(get("/api/categorias"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + vacia.getId() + ")].estado").value(hasItem(activa)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"mochilas", "celulares", "antigua"})
+    @DisplayName("H7 - Los tres filtros coinciden en objetos, orden y relación de categoría")
+    void relacionCategoriaEnLosTresFiltros(String caso) throws Exception {
+        Categoria categoria = switch (caso) {
+            case "mochilas" -> mochilas;
+            case "celulares" -> celulares;
+            default -> antigua;
+        };
+        List<Long> ids = switch (caso) {
+            case "mochilas" -> List.of(recuperado.getId(), mochila.getId());
+            case "celulares" -> List.of(celular.getId());
+            default -> List.of(historico.getId());
+        };
+        for (String ruta : List.of("/api/objetos?categoriaId=" + categoria.getId(),
+                "/api/objetos/buscar?categoriaId=" + categoria.getId(),
+                "/api/objetos/categoria/" + categoria.getId())) {
+            var resultado = mockMvc.perform(get(ruta))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(ids.size()));
+            for (int i = 0; i < ids.size(); i++) {
+                resultado.andExpect(jsonPath("$[" + i + "].id").value(ids.get(i)))
+                        .andExpect(jsonPath("$[" + i + "].categoria.id").value(categoria.getId()))
+                        .andExpect(jsonPath("$[" + i + "].categoria.nombre").value(categoria.getNombre()));
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("H7 - El orden visual alfabético no cambia los IDs ni sus publicaciones")
+    void ordenVisualNoCambiaIds() throws Exception {
+        mockMvc.perform(get("/api/categorias"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(celulares.getId()))
+                .andExpect(jsonPath("$[1].id").value(antigua.getId()))
+                .andExpect(jsonPath("$[2].id").value(mochilas.getId()));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "mochila")
+                        .param("categoriaId", mochilas.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "mochila")
+                        .param("categoriaId", celulares.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("H7 - Todas retira solo categoría y mantiene texto, tipo y privacidad")
+    void todasConservaTextoTipoYVisibilidad() throws Exception {
+        usuario = entityManager.getReference(Usuario.class, usuario.getId());
+        Categoria categoria = entityManager.getReference(Categoria.class, celulares.getId());
+        Objeto otra = objeto("Celular con funda", "Funda con dibujo de mochila", "Taller",
+                categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
+        sincronizar();
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "MOCHILA").param("tipo", "PERDIDO")
+                        .param("categoriaId", mochilas.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(mochila.getId()));
+        mockMvc.perform(get("/api/objetos/buscar").param("q", "MOCHILA").param("tipo", "PERDIDO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(otra.getId()))
+                .andExpect(jsonPath("$[1].id").value(mochila.getId()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"texto", "1.5", "9223372036854775808"})
+    @DisplayName("H7 - Formatos inválidos y desbordamiento del ID devuelven 400, no 500")
+    void formatoCategoriaEnLosTresFiltros(String id) throws Exception {
+        for (String ruta : List.of("/api/objetos?categoriaId=" + id,
+                "/api/objetos/buscar?categoriaId=" + id, "/api/objetos/categoria/" + id)) {
+            mockMvc.perform(get(ruta))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.mensaje", containsString("Valor inválido para el parámetro")));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0, -1, Long.MAX_VALUE})
+    @DisplayName("H7 - Un ID inexistente devuelve 404 incluso sin coincidencias de texto y tipo")
+    void inexistenteNoSeConfundeConVacia(Long id) throws Exception {
+        for (String ruta : List.of("/api/objetos", "/api/objetos/buscar")) {
+            mockMvc.perform(get(ruta).param("categoriaId", id.toString()).param("q", "no-existe-987")
+                            .param("tipo", "ENCONTRADO"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.mensaje", containsString("Categoría no encontrada")));
+        }
+        mockMvc.perform(get("/api/objetos/categoria/" + id))
+                .andExpect(status().isNotFound());
+    }
+
     @Test
     @DisplayName("H7 - Una categoría inexistente tiene la misma regla en los tres filtros")
     void categoriaInexistente() {

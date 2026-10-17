@@ -545,7 +545,7 @@ select.input {
   .filtros-buscar { min-width: 120px; }
 }
 
-.resultados-contador { font-size: 13px; font-weight: 500; color: var(--text-soft); margin-bottom: 12px; }
+.resultados-contador { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 12px; }
 
 /* ---------- Tarjetas de objeto ---------- */
 
