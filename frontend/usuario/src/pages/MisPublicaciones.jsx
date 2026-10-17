@@ -50,7 +50,8 @@ export default function MisPublicaciones() {
     setError('');
     try {
       await eliminarObjeto(objeto.id);
-      setObjetos((prev) => prev.filter((o) => o.id !== objeto.id));
+      setObjetos((prev) => prev.map((o) =>
+        o.id === objeto.id ? { ...o, estado: 'ELIMINADO' } : o));
     } catch (e) {
       setError(mensajeError(e, 'No se pudo eliminar la publicación'));
     } finally {
@@ -92,23 +93,34 @@ export default function MisPublicaciones() {
                     {ESTADOS[obj.estado] || obj.estado}
                   </span>
                 </div>
-                <Link to={`/objeto/${obj.id}`} className="mis-publicacion-titulo">
-                  {obj.nombre}
-                </Link>
+                {obj.estado === 'ELIMINADO' ? (
+                  <span className="mis-publicacion-titulo">{obj.nombre}</span>
+                ) : (
+                  <Link to={`/objeto/${obj.id}`} className="mis-publicacion-titulo">
+                    {obj.nombre}
+                  </Link>
+                )}
                 <p className="objeto-card-linea">📍 {obj.ubicacion || 'Sin ubicación'}</p>
                 <p className="objeto-card-linea">
                   📅 {fechaCorta(obj.fechaObjeto)} · 🗂️ {obj.categoria?.nombre || '—'}
                 </p>
+                {obj.estado === 'ELIMINADO' && (
+                  <p className="nota-suave" role="status">
+                    Se conserva en tu historial y ya no aparece en las búsquedas públicas.
+                  </p>
+                )}
               </div>
               <div className="mis-publicacion-acciones">
-                <button
-                  type="button"
-                  className="btn btn-peligro"
-                  onClick={() => borrar(obj)}
-                  disabled={eliminando === obj.id}
-                >
-                  {eliminando === obj.id ? 'Eliminando...' : 'Eliminar'}
-                </button>
+                {obj.estado !== 'ELIMINADO' && (
+                  <button
+                    type="button"
+                    className="btn btn-peligro"
+                    onClick={() => borrar(obj)}
+                    disabled={eliminando === obj.id}
+                  >
+                    {eliminando === obj.id ? 'Eliminando...' : 'Eliminar'}
+                  </button>
+                )}
               </div>
             </li>
           ))}

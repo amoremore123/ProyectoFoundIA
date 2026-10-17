@@ -71,6 +71,13 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
+  it('muestra las categorías del filtro en orden alfabético español', async () => {
+    renderizar();
+    await categoriasListas();
+    const opciones = Array.from(screen.getByRole('combobox').options).map((opcion) => opcion.textContent);
+    expect(opciones).toEqual(['Todas', 'Celular', 'Documentos (desactivada)', 'Mochila']);
+  });
+
   it('restaura el texto, tipo y categoría de un enlace compartido', async () => {
     renderizar('/buscar?q=mochila&categoriaId=2&tipo=PERDIDO');
     await categoriasListas();

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listarCategorias, mensajeError } from '../services/api';
 
+const ORDEN_CATEGORIAS = new Intl.Collator('es', { sensitivity: 'base' });
+
+function ordenarCategorias(categorias) {
+  return [...categorias].sort((a, b) =>
+    ORDEN_CATEGORIAS.compare(a.nombre || '', b.nombre || '') || Number(a.id) - Number(b.id));
+}
+
 export default function useCategorias() {
   const [categorias, setCategorias] = useState([]);
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
@@ -15,7 +22,8 @@ export default function useCategorias() {
       try {
         const data = await listarCategorias({ signal: controlador.signal });
         if (!controlador.signal.aborted) {
-          setCategorias(Array.isArray(data) ? data : data?.results || []);
+          const lista = Array.isArray(data) ? data : data?.results || [];
+          setCategorias(ordenarCategorias(lista));
         }
       } catch (e) {
         if (!controlador.signal.aborted) {
