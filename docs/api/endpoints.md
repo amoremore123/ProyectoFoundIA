@@ -304,11 +304,32 @@ coincide también la ubicación, `MEDIA` si no. No se persisten.
 
 **Response** `200 OK` — usuario actual (sin password).
 
-### PUT `/api/perfil`
+### PUT `/api/perfil`  _(H13)_
 
-**Request** `{ "nombre": "Ana", "apellido": "Pérez", "password": "Nueva123" }`
-(`password` opcional)
-**Response** `200 OK` — usuario actualizado.
+Modifica **solo el perfil del usuario del token**. No recibe `id`, así que no
+se puede modificar a otra persona cambiando un número.
+
+**Request**
+
+```json
+{ "nombre": "Ana", "apellido": "Pérez", "password": "Nueva456#", "passwordActual": "Segura123!" }
+```
+
+| Campo | Regla |
+| --- | --- |
+| `nombre`, `apellido` | Obligatorios, hasta 100 caracteres, solo letras, espacios, `'` y `-` (mismas reglas que el registro). Se guardan sin espacios al inicio ni al final. |
+| `password` | Opcional. Vacío o ausente = no se cambia. Si se envía, debe cumplir las reglas del registro: 8+ caracteres, mayúscula, minúscula, número, símbolo y máximo 72 bytes. Se guarda con hash BCrypt. |
+| `passwordActual` | Obligatoria **solo si se cambia la contraseña**. Debe coincidir con la contraseña actual. |
+
+Cualquier otro campo (`rol`, `estado`, `correo`, `id`, `verificado`) se ignora:
+un usuario no puede elevar su rol ni cambiar su estado o su correo.
+
+**Response** `200 OK` — usuario actualizado (nunca incluye contraseña ni hash).
+
+**Errores**: `400` dato inválido, contraseña nueva débil o contraseña actual
+ausente/incorrecta (en ese caso no se guarda **ningún** cambio) · `401` sin sesión.
+La contraseña actual incorrecta devuelve 400 y no 401, para no cerrar la sesión
+del usuario en la web.
 
 ### GET `/api/perfil/objetos`
 
