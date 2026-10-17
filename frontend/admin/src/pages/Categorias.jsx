@@ -7,10 +7,13 @@ import {
   statusDe,
   erroresDeValidacion,
 } from '../services/api';
+import Icono from '../components/Icono';
+import { useToast } from '../context/ToastContext';
 
 const VACIO = { nombre: '', descripcion: '' };
 
 export default function Categorias() {
+  const { mostrarToast } = useToast();
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -18,7 +21,6 @@ export default function Categorias() {
   const [erroresCampo, setErroresCampo] = useState({});
   const [enviando, setEnviando] = useState(false);
   const [accionando, setAccionando] = useState(null);
-  const [exito, setExito] = useState('');
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -44,7 +46,6 @@ export default function Categorias() {
   const crear = async (e) => {
     e.preventDefault();
     setError('');
-    setExito('');
     setErroresCampo({});
 
     if (!form.nombre.trim()) {
@@ -60,7 +61,7 @@ export default function Categorias() {
       });
       setCategorias((prev) => [...prev, creada]);
       setForm(VACIO);
-      setExito('Categoría creada correctamente.');
+      mostrarToast(`Categoría "${creada?.nombre || form.nombre.trim()}" creada correctamente.`, 'exito');
     } catch (err) {
       if (statusDe(err) === 400) {
         const campos = erroresDeValidacion(err);
@@ -84,11 +85,14 @@ export default function Categorias() {
     const nuevoEstado = !cat.estado;
     setAccionando(cat.id);
     setError('');
-    setExito('');
     try {
       await patchCategoria(cat.id, { estado: nuevoEstado });
       setCategorias((prev) =>
         prev.map((c) => (c.id === cat.id ? { ...c, estado: nuevoEstado } : c))
+      );
+      mostrarToast(
+        nuevoEstado ? `"${cat.nombre}" está activa de nuevo.` : `"${cat.nombre}" quedó desactivada.`,
+        'exito'
       );
     } catch (e) {
       const status = statusDe(e);
@@ -110,10 +114,9 @@ export default function Categorias() {
 
       {error && (
         <div className="banner-error" role="alert">
-          ⚠️ {error}
+          <Icono nombre="alerta" tamano={18} /> {error}
         </div>
       )}
-      {exito && <div className="banner-exito">✅ {exito}</div>}
 
       <form className="tarjeta formulario" onSubmit={crear} noValidate>
         <h2>Nueva categoría</h2>
@@ -163,7 +166,7 @@ export default function Categorias() {
       ) : categorias.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            🗂️
+            <Icono nombre="etiqueta" tamano={28} />
           </span>
           <p>No hay categorías todavía.</p>
         </div>

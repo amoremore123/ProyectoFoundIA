@@ -286,4 +286,38 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     expect(screen.getByText('La fecha no puede ser futura')).not.toBeNull();
     expect(crearObjeto).not.toHaveBeenCalled();
   });
+
+  it('indica con aria-pressed el tipo elegido y conserva los demás datos al cambiarlo', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    const perdi = screen.getByRole('button', { name: 'Perdí un objeto' });
+    const encontre = screen.getByRole('button', { name: 'Encontré un objeto' });
+    expect(perdi.getAttribute('aria-pressed')).toBe('true');
+    expect(encontre.getAttribute('aria-pressed')).toBe('false');
+    await rellenar(user);
+    await user.click(encontre);
+    expect(perdi.getAttribute('aria-pressed')).toBe('false');
+    expect(encontre.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('textbox', { name: /^Ubicación/ }).value).toBe('Biblioteca central');
+    expect(screen.getByLabelText(/^Fecha/).value).toBe(hoyISO());
+  });
+
+  it('conserva el límite UTF-16 de la API con tildes y emojis: acepta 16000 y rechaza 16001', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    const descripcion = screen.getByRole('textbox', { name: /^Descripción/ });
+
+    const limite = 'é😀'.repeat(5333) + 'é';
+    fireEvent.change(descripcion, { target: { value: limite + 'é' } });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(screen.getByText('La descripción no debe superar los 16000 caracteres')).not.toBeNull();
+    expect(crearObjeto).not.toHaveBeenCalled();
+
+    fireEvent.change(descripcion, { target: { value: limite } });
+    expect(screen.getByText('16000 / 16000 caracteres')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await screen.findByText('Detalle de prueba');
+    expect(crearObjeto.mock.calls[0][0].descripcion).toBe(limite);
+  });
 });

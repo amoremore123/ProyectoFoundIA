@@ -1,7 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { TemaProvider } from './context/TemaContext';
+import { ToastProvider } from './context/ToastContext';
 import MainLayout from './layouts/MainLayout';
 import Inicio from './pages/Inicio';
+import HistorialObjetos from './components/HistorialObjetos';
+import Portada from './pages/Portada';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
 import Verificar from './pages/Verificar';
@@ -20,52 +24,58 @@ function RutaProtegida({ children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} />
-          <Route path="/verificar" element={<Verificar />} />
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/buscar" element={<Buscar />} />
-            <Route path="/objeto/:id" element={<Detalle />} />
-            <Route
-              path="/publicar"
-              element={
-                <RutaProtegida>
-                  <Publicar />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil"
-              element={
-                <RutaProtegida>
-                  <Perfil />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/mis-publicaciones"
-              element={
-                <RutaProtegida>
-                  <MisPublicaciones />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/notificaciones"
-              element={
-                <RutaProtegida>
-                  <Notificaciones />
-                </RutaProtegida>
-              }
-            />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <TemaProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/registro" element={<Registro />} />
+              <Route path="/verificar" element={<Verificar />} />
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<Portada />} />
+                <Route path="/explorar" element={<Inicio />} />
+                <Route path="/historial" element={<HistorialObjetos />} />
+                <Route path="/buscar" element={<Buscar />} />
+                <Route path="/objeto/:id" element={<Detalle />} />
+                <Route
+                  path="/publicar"
+                  element={
+                    <RutaProtegida>
+                      <Publicar />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil"
+                  element={
+                    <RutaProtegida>
+                      <Perfil />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/mis-publicaciones"
+                  element={
+                    <RutaProtegida>
+                      <MisPublicaciones />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/notificaciones"
+                  element={
+                    <RutaProtegida>
+                      <Notificaciones />
+                    </RutaProtegida>
+                  }
+                />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
+    </TemaProvider>
   );
 }

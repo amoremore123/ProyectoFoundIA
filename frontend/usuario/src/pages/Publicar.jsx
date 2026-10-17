@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
-import { crearObjeto, listarCategorias, mensajeError, statusDe } from '../services/api';
+import Icono from '../components/Icono';
+import { crearObjeto, mensajeError, statusDe } from '../services/api';
+import useCategorias from '../hooks/useCategorias';
+import { MAX_DESCRIPCION, largoEnCaracteres } from '../utils/validaciones';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
+import { useToast } from '../context/ToastContext';
 
 const VACIO = {
   nombre: '',
@@ -19,10 +23,11 @@ const hoyISO = () => {
 
 export default function Publicar() {
   const navigate = useNavigate();
+  const { mostrarToast } = useToast();
 
   const [tipo, setTipo] = useState('PERDIDO');
   const [form, setForm] = useState(VACIO);
-  const [categorias, setCategorias] = useState([]);
+  const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
   const [errores, setErrores] = useState({});
   const [errorGeneral, setErrorGeneral] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -31,20 +36,8 @@ export default function Publicar() {
   const [avisoUbicacion, setAvisoUbicacion] = useState('');
   const solicitudUbicacion = useRef(0);
 
-  useEffect(() => {
-    let vivo = true;
-    (async () => {
-      try {
-        const cats = await listarCategorias();
-        if (vivo) setCategorias(Array.isArray(cats) ? cats : cats?.results || []);
-      } catch (e) {
-        if (vivo) setErrorGeneral(mensajeError(e, 'No se pudieron cargar las categorías'));
-      }
-    })();
-    return () => {
-      vivo = false;
-      solicitudUbicacion.current += 1;
-    };
+  useEffect(() => () => {
+    solicitudUbicacion.current += 1;
   }, []);
 
   const cambiar = (campo) => (e) => {
@@ -85,7 +78,9 @@ export default function Publicar() {
     if (!form.nombre.trim()) er.nombre = 'El nombre es obligatorio';
     else if (form.nombre.trim().length > 150) er.nombre = 'El nombre no debe superar los 150 caracteres';
     if (!form.descripcion.trim()) er.descripcion = 'La descripción es obligatoria';
-    else if (form.descripcion.length > 16000) er.descripcion = 'La descripción no debe superar los 16000 caracteres';
+    else if (largoEnCaracteres(form.descripcion) > MAX_DESCRIPCION) {
+      er.descripcion = `La descripción no debe superar los ${MAX_DESCRIPCION} caracteres`;
+    }
     if (!form.categoriaId) er.categoriaId = 'Selecciona una categoría';
     if (!form.ubicacion.trim()) er.ubicacion = 'La ubicación es obligatoria';
     else if (form.ubicacion.trim().length > 255) er.ubicacion = 'La ubicación no debe superar los 255 caracteres';
@@ -134,6 +129,12 @@ export default function Publicar() {
         longitud: coordenadas.longitud,
       };
       const creado = await crearObjeto(payload);
+      mostrarToast(
+        tipo === 'PERDIDO'
+          ? 'Tu objeto perdido ya está publicado. Te avisaremos si aparece una coincidencia.'
+          : '¡Gracias por reportarlo! Tu hallazgo ya es visible para la comunidad.',
+        'exito',
+      );
       navigate(`/objeto/${creado.id}`, { replace: true });
     } catch (err) {
       if (statusDe(err) === 400) {
@@ -152,9 +153,10 @@ export default function Publicar() {
   return (
     <div className="pagina pagina-estrecha">
       <button type="button" className="btn-fantasma btn-volver" onClick={() => navigate('/')}>
-        ← Volver
+        <Icono nombre="flechaIzq" tamano={16} /> Volver
       </button>
-      <h1 className="pagina-titulo">← Publicar objeto</h1>
+      <h1 className="pagina-titulo">Publicar objeto</h1>
+      <p className="pagina-subtitulo">Completa los datos para que la comunidad Tecsup pueda ayudarte.</p>
 
       <form className="tarjeta formulario" onSubmit={enviar} noValidate>
         <MensajeError mensaje={errorGeneral} />
@@ -165,6 +167,7 @@ export default function Publicar() {
             <button
               type="button"
               className={`toggle-tipo${tipo === 'PERDIDO' ? ' activo-perdido' : ''}`}
+              aria-pressed={tipo === 'PERDIDO'}
               onClick={() => setTipo('PERDIDO')}
             >
               Perdí un objeto
@@ -172,6 +175,7 @@ export default function Publicar() {
             <button
               type="button"
               className={`toggle-tipo${tipo === 'ENCONTRADO' ? ' activo-encontrado' : ''}`}
+              aria-pressed={tipo === 'ENCONTRADO'}
               onClick={() => setTipo('ENCONTRADO')}
             >
               Encontré un objeto
@@ -195,14 +199,21 @@ export default function Publicar() {
         <label className="campo">
           <span className="campo-label">Descripción *</span>
           <textarea
-            className="input textarea"
+            className={`input textarea${errores.descripcion ? ' input-error' : ''}`}
             rows={4}
             value={form.descripcion}
             onChange={cambiar('descripcion')}
             placeholder="Describe el objeto con detalle..."
-            maxLength={16000}
+            maxLength={MAX_DESCRIPCION}
+            aria-invalid={Boolean(errores.descripcion)}
+            aria-describedby="descripcion-contador"
           />
-          <span className="nota-suave">{form.descripcion.length}/16000 caracteres</span>
+          <span
+            id="descripcion-contador"
+            className={`nota-suave contador-caracteres${largoEnCaracteres(form.descripcion) > MAX_DESCRIPCION ? ' excedido' : ''}`}
+          >
+            {largoEnCaracteres(form.descripcion)} / {MAX_DESCRIPCION} caracteres
+          </span>
           {errores.descripcion && <span className="campo-error">{errores.descripcion}</span>}
         </label>
 
@@ -212,16 +223,18 @@ export default function Publicar() {
             className={`input${errores.categoriaId ? ' input-error' : ''}`}
             value={form.categoriaId}
             onChange={cambiar('categoriaId')}
+            disabled={cargandoCategorias || Boolean(errorCategorias)}
           >
-            <option value="">Selecciona una categoría</option>
+            <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Selecciona una categoría'}</option>
             {categorias.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
+              <option key={c.id} value={c.id} disabled={c.estado === false}>
+                {c.nombre}{c.estado === false ? ' (desactivada)' : ''}
               </option>
             ))}
           </select>
           {errores.categoriaId && <span className="campo-error">{errores.categoriaId}</span>}
         </label>
+        <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
 
         <label className="campo">
           <span className="campo-label">Ubicación *</span>
@@ -255,7 +268,8 @@ export default function Publicar() {
             onClick={usarMiUbicacion}
             disabled={ubicando || enviando}
           >
-            {ubicando ? '📍 Ubicando...' : '📍 Usar mi ubicación'}
+            <Icono nombre="ubicacion" tamano={16} />
+            {ubicando ? 'Ubicando...' : 'Usar mi ubicación'}
           </button>
           {coordenadas.latitud != null && (
             <span className="nota-suave">
@@ -266,7 +280,8 @@ export default function Publicar() {
         </div>
 
         <div className="proximamente">
-          <span>📷 Foto — próximamente</span>
+          <Icono nombre="camara" tamano={20} />
+          <span>Foto — próximamente</span>
         </div>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>

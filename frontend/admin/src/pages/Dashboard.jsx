@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getDashboard, mensajeError } from '../services/api';
+import Icono from '../components/Icono';
+import useContador from '../hooks/useContador';
+
+function CifraValor({ valor }) {
+  const animado = useContador(valor);
+  return <p className="metrica-valor">{valor == null ? '—' : animado}</p>;
+}
 
 export default function Dashboard() {
   const [datos, setDatos] = useState(null);
@@ -25,19 +32,22 @@ export default function Dashboard() {
   }, [cargar]);
 
   const tarjetas = [
-    { etiqueta: 'Usuarios', valor: datos?.usuarios, icono: '👥' },
-    { etiqueta: 'Objetos activos', valor: datos?.objetosActivos, icono: '📦' },
-    { etiqueta: 'Reportes pendientes', valor: datos?.reportesPendientes, icono: '🚩' },
-    { etiqueta: 'Categorías', valor: datos?.categorias, icono: '🗂️' },
+    { etiqueta: 'Usuarios', valor: datos?.usuarios, icono: 'usuarios' },
+    { etiqueta: 'Objetos activos', valor: datos?.objetosActivos, icono: 'caja' },
+    { etiqueta: 'Reportes pendientes', valor: datos?.reportesPendientes, icono: 'bandera' },
+    { etiqueta: 'Categorías', valor: datos?.categorias, icono: 'etiqueta' },
   ];
 
   return (
     <div className="pagina">
-      <h1 className="pagina-titulo">Dashboard</h1>
+      <div>
+        <h1 className="pagina-titulo">Dashboard</h1>
+        <p className="pagina-subtitulo">Resumen de la actividad de FoundIA en Tecsup.</p>
+      </div>
 
       {error && (
         <div className="banner-error" role="alert">
-          ⚠️ {error}
+          <Icono nombre="alerta" tamano={18} /> {error}
           <button type="button" className="btn-fantasma btn-reintentar" onClick={cargar}>
             Reintentar
           </button>
@@ -54,10 +64,10 @@ export default function Dashboard() {
           {tarjetas.map((t) => (
             <div key={t.etiqueta} className="tarjeta metrica">
               <span className="metrica-icono" aria-hidden="true">
-                {t.icono}
+                <Icono nombre={t.icono} tamano={20} />
               </span>
               <div>
-                <p className="metrica-valor">{t.valor ?? '—'}</p>
+                <CifraValor valor={t.valor} />
                 <p className="metrica-etiqueta">{t.etiqueta}</p>
               </div>
             </div>

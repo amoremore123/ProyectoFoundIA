@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
+import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import { eliminarObjeto, getMisObjetos, mensajeError } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 function fechaCorta(valor) {
   if (!valor) return '';
@@ -20,6 +22,7 @@ const ESTADOS = {
 };
 
 export default function MisPublicaciones() {
+  const { mostrarToast } = useToast();
   const [objetos, setObjetos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -52,6 +55,7 @@ export default function MisPublicaciones() {
       await eliminarObjeto(objeto.id);
       setObjetos((prev) => prev.map((o) =>
         o.id === objeto.id ? { ...o, estado: 'ELIMINADO' } : o));
+      mostrarToast(`"${objeto.nombre}" se eliminó y se conserva en tu historial.`, 'exito');
     } catch (e) {
       setError(mensajeError(e, 'No se pudo eliminar la publicación'));
     } finally {
@@ -64,7 +68,7 @@ export default function MisPublicaciones() {
       <div className="seccion-header">
         <h1 className="pagina-titulo">Mis publicaciones</h1>
         <Link to="/publicar" className="btn btn-primario">
-          + Publicar objeto
+          <Icono nombre="mas" tamano={16} /> Publicar objeto
         </Link>
       </div>
 
@@ -75,7 +79,7 @@ export default function MisPublicaciones() {
       ) : objetos.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            📭
+            <Icono nombre="bandeja" tamano={28} />
           </span>
           <p>Aún no has publicado nada.</p>
           <Link to="/publicar" className="btn btn-secundario">
@@ -100,9 +104,9 @@ export default function MisPublicaciones() {
                     {obj.nombre}
                   </Link>
                 )}
-                <p className="objeto-card-linea">📍 {obj.ubicacion || 'Sin ubicación'}</p>
+                <p className="objeto-card-linea"><Icono nombre="ubicacion" tamano={14} /> {obj.ubicacion || 'Sin ubicación'}</p>
                 <p className="objeto-card-linea">
-                  📅 {fechaCorta(obj.fechaObjeto)} · 🗂️ {obj.categoria?.nombre || '—'}
+                  <Icono nombre="calendario" tamano={14} /> {fechaCorta(obj.fechaObjeto)} · <Icono nombre="etiqueta" tamano={14} /> {obj.categoria?.nombre || '—'}
                 </p>
                 {obj.estado === 'ELIMINADO' && (
                   <p className="nota-suave" role="status">

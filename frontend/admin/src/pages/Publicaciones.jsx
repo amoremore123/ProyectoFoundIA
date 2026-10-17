@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getPublicaciones, mensajeError, patchPublicacion, statusDe } from '../services/api';
+import Icono from '../components/Icono';
+import { useToast } from '../context/ToastContext';
 
 function fechaCorta(valor) {
   if (!valor) return '—';
@@ -10,6 +12,7 @@ function fechaCorta(valor) {
 }
 
 export default function Publicaciones() {
+  const { mostrarToast } = useToast();
   const [publicaciones, setPublicaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -48,6 +51,12 @@ export default function Publicaciones() {
       setPublicaciones((prev) =>
         prev.map((p) => (p.id === pub.id ? { ...p, estado: nuevoEstado } : p))
       );
+      mostrarToast(
+        nuevoEstado === 'OCULTO'
+          ? `"${pub.nombre}" quedó oculta para la comunidad.`
+          : `"${pub.nombre}" volvió a estar visible.`,
+        'exito'
+      );
     } catch (e) {
       const status = statusDe(e);
       if (status === 401) setError('Sesión expirada. Vuelve a iniciar sesión.');
@@ -68,7 +77,7 @@ export default function Publicaciones() {
 
       {error && (
         <div className="banner-error" role="alert">
-          ⚠️ {error}
+          <Icono nombre="alerta" tamano={18} /> {error}
         </div>
       )}
 
@@ -80,7 +89,7 @@ export default function Publicaciones() {
       ) : publicaciones.length === 0 && !error ? (
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            📦
+            <Icono nombre="caja" tamano={28} />
           </span>
           <p>No hay publicaciones.</p>
         </div>
@@ -109,7 +118,9 @@ export default function Publicaciones() {
                       {p.tipo === 'PERDIDO' ? 'Perdido' : 'Encontrado'}
                     </span>
                   </td>
-                  <td data-label="Categoría">{p.categoria?.nombre || p.categoria || '—'}</td>
+                  <td data-label="Categoría">
+                    {p.categoria_nombre || p.categoria?.nombre || p.categoria || '—'}
+                  </td>
                   <td data-label="Ubicación">{p.ubicacion || '—'}</td>
                   <td data-label="Estado">
                     <span
@@ -120,7 +131,11 @@ export default function Publicaciones() {
                       {p.estado}
                     </span>
                   </td>
-                  <td data-label="Fecha">{fechaCorta(p.fechaObjeto || p.fechaPublicacion)}</td>
+                  <td data-label="Fecha">
+                    {fechaCorta(
+                      p.fecha_objeto || p.fechaObjeto || p.fecha_publicacion || p.fechaPublicacion
+                    )}
+                  </td>
                   <td data-label="Acción">
                     <button
                       type="button"

@@ -1,0 +1,235 @@
+/* =====================================================================
+   FoundIA · Tecsup — Capa de interacción (panel administrativo)
+   Se carga DESPUÉS de index.css. Aporta:
+   · Modo oscuro (tokens + ajustes de colores fijos)
+   · Animaciones de página y aparición suave al hacer scroll
+   · Toasts flotantes y microinteracciones
+   ===================================================================== */
+
+/* ---------- Modo oscuro · tokens ---------- */
+
+html[data-tema='oscuro'] {
+  color-scheme: dark;
+
+  --primary: #5c9dff;
+  --primary-700: #4a8bf5;
+  --primary-50: #16243c;
+  --primary-100: #274472;
+  --accent: #6cc9f2;
+  --accent-50: #10283a;
+
+  --bg: #0e1420;
+  --surface: #151c2b;
+  --surface-2: #1d2637;
+  --border: #26314a;
+  --border-strong: #354260;
+
+  --text: #e9eef8;
+  --text-muted: #a9b4c9;
+  --text-soft: #7c89a3;
+
+  --success: #4ade9b;
+  --success-50: #11291e;
+  --danger: #ff7b6f;
+  --danger-50: #2c1714;
+  --warning: #f7b955;
+  --warning-50: #2a2010;
+
+  --sombra-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Modo oscuro · ajustes de color fijo ---------- */
+
+html[data-tema='oscuro'] .btn-primario,
+html[data-tema='oscuro'] .btn-primario:hover:not(:disabled),
+html[data-tema='oscuro'] .sidebar-avatar { background: #2f6ae0; }
+
+html[data-tema='oscuro'] .btn-primario:hover:not(:disabled) { background: #3a76ec; }
+html[data-tema='oscuro'] .btn-peligro { border-color: #5c2c28; }
+html[data-tema='oscuro'] .btn-reintentar:hover { background: #3d1d19; }
+
+html[data-tema='oscuro'] .banner-error { color: #ff9d93; border-color: #5c2c28; }
+html[data-tema='oscuro'] .banner-exito { color: #7ce3b2; border-color: #1f4a35; }
+html[data-tema='oscuro'] .input-error,
+html[data-tema='oscuro'] .input-error:hover { border-color: #ff8f85; }
+html[data-tema='oscuro'] .chip-perdido,
+html[data-tema='oscuro'] .estado-pendiente { color: #f6c069; border-color: #5a4216; }
+html[data-tema='oscuro'] .chip-encontrado,
+html[data-tema='oscuro'] .estado-activo,
+html[data-tema='oscuro'] .estado-resuelto { color: #6ee7a8; border-color: #1f4a35; }
+html[data-tema='oscuro'] .estado-eliminado { color: #ff9d93; border-color: #5c2c28; }
+html[data-tema='oscuro'] .tabla tbody tr:hover { background: var(--surface-2); }
+html[data-tema='oscuro'] .metrica-icono { background: var(--surface-2); }
+html[data-tema='oscuro'] .login-pantalla { background: var(--bg); }
+
+/* ---------- Aparición suave al hacer scroll ---------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-reveal].visible { opacity: 1; transform: none; }
+
+/* Escalonado en métricas y filas de tabla */
+.grid-metricas > [data-reveal]:nth-child(2) { transition-delay: 0.06s; }
+.grid-metricas > [data-reveal]:nth-child(3) { transition-delay: 0.12s; }
+.grid-metricas > [data-reveal]:nth-child(4) { transition-delay: 0.18s; }
+.tabla tbody tr[data-reveal]:nth-child(2) { transition-delay: 0.04s; }
+.tabla tbody tr[data-reveal]:nth-child(3) { transition-delay: 0.08s; }
+.tabla tbody tr[data-reveal]:nth-child(4) { transition-delay: 0.12s; }
+.tabla tbody tr[data-reveal]:nth-child(5) { transition-delay: 0.16s; }
+.tabla tbody tr[data-reveal]:nth-child(n + 6) { transition-delay: 0.2s; }
+
+/* ---------- Transición entre páginas ---------- */
+
+.pagina { animation: pagina-entrar 0.4s ease both; }
+
+@keyframes pagina-entrar {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- Toasts ---------- */
+
+.toasts {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 40px));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px -16px rgba(16, 24, 40, 0.35);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+  animation: toast-entra 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes toast-entra {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+
+.toast-icono {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.toast-texto { flex: 1; min-width: 0; color: var(--text-muted); }
+.toast-texto strong { display: block; font-size: 13px; color: var(--text); }
+
+.toast-exito { border-left: 4px solid var(--success); }
+.toast-exito .toast-icono { background: var(--success-50); color: var(--success); }
+.toast-error { border-left: 4px solid var(--danger); }
+.toast-error .toast-icono { background: var(--danger-50); color: var(--danger); }
+.toast-info { border-left: 4px solid var(--primary); }
+.toast-info .toast-icono { background: var(--primary-50); color: var(--primary); }
+
+.toast-cerrar {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toast-cerrar:hover { background: var(--surface-2); color: var(--text); }
+
+/* ---------- Botón de tema ---------- */
+
+.boton-tema {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radio-sm);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.boton-tema:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-strong); }
+
+.login-tema {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 5;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  justify-content: center;
+  box-shadow: var(--sombra-xs);
+}
+
+/* ---------- Microinteracciones ---------- */
+
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn-primario:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-primario:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.btn, .sidebar-link, .sidebar-salir { transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+
+/* Métricas con elevación al pasar el cursor */
+.metrica {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s, border-color 0.15s;
+}
+
+.metrica:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -18px rgba(16, 24, 40, 0.4); border-color: var(--border-strong); }
+
+.metrica-icono { transition: transform 0.2s, background 0.2s, color 0.2s; }
+.metrica:hover .metrica-icono { transform: scale(1.06); background: var(--primary-50); color: var(--primary); }
+
+/* Enlaces del menú lateral con desplazamiento sutil */
+.sidebar-link:hover { transform: translateX(2px); }
+
+/* Tabla: filas con realce suave */
+.tabla tbody tr { transition: background 0.15s; }
+
+/* Barra de scroll sutil */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background-color: var(--text-soft); }
+
+/* ---------- Accesibilidad: movimiento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; }
+  .pagina, .toast { animation: none; }
+  .btn:active:not(:disabled), .metrica:hover, .sidebar-link:hover { transform: none; }
+}

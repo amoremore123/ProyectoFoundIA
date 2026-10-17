@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import * as api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -15,6 +15,17 @@ function leerUsuario() {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [user, setUser] = useState(leerUsuario);
+
+  // H12: si otra pestaña inicia o cierra sesión, esta se actualiza sin recargar
+  useEffect(() => {
+    const alCambiarStorage = (e) => {
+      if (e.key !== null && e.key !== 'token' && e.key !== 'usuario') return;
+      setToken(localStorage.getItem('token'));
+      setUser(leerUsuario());
+    };
+    window.addEventListener('storage', alCambiarStorage);
+    return () => window.removeEventListener('storage', alCambiarStorage);
+  }, []);
 
   const guardarSesion = (data) => {
     localStorage.setItem('token', data.token);

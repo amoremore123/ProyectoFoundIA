@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listarCategorias, mensajeError } from '../services/api';
 
-const ORDEN_CATEGORIAS = new Intl.Collator('es', { sensitivity: 'base' });
+const comparador = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
 
-function ordenarCategorias(categorias) {
-  return [...categorias].sort((a, b) =>
-    ORDEN_CATEGORIAS.compare(a.nombre || '', b.nombre || '') || Number(a.id) - Number(b.id));
+/** Orden alfabético en español (tildes y mayúsculas no alteran el orden); los IDs no cambian. */
+export function ordenarCategorias(lista) {
+  return [...lista].sort((a, b) =>
+    comparador.compare(a.nombre || '', b.nombre || '') || Number(a.id) - Number(b.id));
+}
+
+const normalizar = (texto) => (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** Filtra por texto parcial sin distinguir mayúsculas ni tildes ("mo" encuentra "Móvil" y "Mochila"). */
+export function filtrarCategorias(lista, texto) {
+  const buscado = normalizar(texto);
+  if (!buscado) return lista;
+  return lista.filter((c) => normalizar(c.nombre).includes(buscado));
 }
 
 export default function useCategorias() {

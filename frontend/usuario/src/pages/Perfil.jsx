@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
+import Icono from '../components/Icono';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { actualizarPerfil, getPerfil, mensajeError, statusDe } from '../services/api';
 
 export default function Perfil() {
   const { logout, actualizarUsuario } = useAuth();
+  const { mostrarToast } = useToast();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ nombre: '', apellido: '', password: '' });
@@ -14,7 +17,6 @@ export default function Perfil() {
   const [rol, setRol] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [guardado, setGuardado] = useState('');
   const [enviando, setEnviando] = useState(false);
 
   const cargar = async () => {
@@ -38,13 +40,11 @@ export default function Perfil() {
 
   const cambiar = (campo) => (e) => {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
-    setGuardado('');
   };
 
   const guardar = async (e) => {
     e.preventDefault();
     setError('');
-    setGuardado('');
     setEnviando(true);
     try {
       const payload = { nombre: form.nombre.trim(), apellido: form.apellido.trim() };
@@ -52,7 +52,7 @@ export default function Perfil() {
       const data = await actualizarPerfil(payload);
       actualizarUsuario(data);
       setForm((f) => ({ ...f, password: '' }));
-      setGuardado('Perfil actualizado correctamente.');
+      mostrarToast('Perfil actualizado correctamente.', 'exito');
     } catch (err) {
       if (statusDe(err) === 400) {
         setError(mensajeError(err, 'Revisa los datos del formulario'));
@@ -76,12 +76,11 @@ export default function Perfil() {
       <h1 className="pagina-titulo">Mi perfil</h1>
 
       <MensajeError mensaje={error} onReintentar={cargar} />
-      {guardado && <div className="banner-exito">✅ {guardado}</div>}
 
       <form className="tarjeta formulario" onSubmit={guardar} noValidate>
         <div className="perfil-resumen">
           <span className="perfil-avatar" aria-hidden="true">
-            👤
+            {(form.nombre || correo || '?').charAt(0).toUpperCase()}
           </span>
           <div>
             <p className="perfil-correo">{correo}</p>
@@ -118,15 +117,16 @@ export default function Perfil() {
 
       <div className="perfil-acciones">
         <Link to="/mis-publicaciones" className="btn btn-secundario btn-bloque">
-          Mis publicaciones
+          <Icono nombre="lista" tamano={16} /> Mis publicaciones
         </Link>
         <Link to="/notificaciones" className="btn btn-secundario btn-bloque">
-          Notificaciones
+          <Icono nombre="campana" tamano={16} /> Notificaciones
         </Link>
         <button type="button" className="btn btn-peligro btn-bloque" onClick={cerrarSesion}>
-          Cerrar sesión
+          <Icono nombre="salir" tamano={16} /> Cerrar sesión
         </button>
       </div>
     </div>
   );
 }
+

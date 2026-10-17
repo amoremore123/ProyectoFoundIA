@@ -1,6 +1,17 @@
 // H11 - Reglas de validación del registro (las mismas que valida el backend)
 
-const bytesUtf8 = (texto) => new TextEncoder().encode(texto).length;
+export const bytesUtf8 = (texto) => new TextEncoder().encode(texto).length;
+
+/*
+ * H1 - Límite de la descripción de una publicación.
+ * La API usa @Size, que cuenta unidades UTF-16 como String.length de JavaScript.
+ * Se conserva el límite de Amore: 16.000 unidades (un emoji ocupa 2).
+ * Incluso con 3 bytes por unidad son 48.000 bytes, por debajo de TEXT (65.535).
+ */
+export const MAX_DESCRIPCION = 16000;
+export const MAX_NOMBRE_OBJETO = 150;
+export const MAX_UBICACION = 255;
+export const largoEnCaracteres = (texto) => texto.length;
 
 export const REGLAS_PASSWORD = [
   { id: 'largo', texto: 'Mínimo 8 caracteres', cumple: (p) => p.length >= 8 },

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
+import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import useCategorias from '../hooks/useCategorias';
+import useCategorias, { filtrarCategorias } from '../hooks/useCategorias';
 import { buscarObjetos, mensajeError } from '../services/api';
 
 const OPCIONES_TIPO = [
@@ -25,6 +26,7 @@ export default function Buscar() {
   const [cargando, setCargando] = useState(true);
   const [errorBusqueda, setErrorBusqueda] = useState('');
   const [reintentosBusqueda, setReintentosBusqueda] = useState(0);
+  const [filtroCategoria, setFiltroCategoria] = useState('');
 
   useEffect(() => {
     setQ(qInicial);
@@ -82,10 +84,17 @@ export default function Buscar() {
 
   const limpiarFiltros = () => {
     setQ('');
+    setFiltroCategoria('');
     aplicar({ q: '', categoriaId: '', tipo: '', ubicacion: '' });
   };
 
   const hayFiltros = qInicial || tipoInicial || categoriaInicial || ubicacionInicial;
+  // La categoría elegida sigue visible aunque no coincida con el texto del filtro
+  const categoriasVisibles = filtrarCategorias(categorias, filtroCategoria);
+  const seleccionada = categorias.find((c) => String(c.id) === categoriaInicial);
+  if (seleccionada && !categoriasVisibles.includes(seleccionada)) categoriasVisibles.unshift(seleccionada);
+  const sinCoincidenciasCategoria = filtroCategoria.trim() && filtrarCategorias(categorias, filtroCategoria).length === 0;
+
   const categoriaNoDisponible = categoriaInicial && !cargandoCategorias && !errorCategorias
     && !categorias.some((categoria) => String(categoria.id) === categoriaInicial);
 
@@ -97,8 +106,8 @@ export default function Buscar() {
         <div className="buscador-fila">
           <input
             type="search"
-            className="input"
-            placeholder="🔍 Buscar objeto..."
+            className="input input-busqueda"
+            placeholder="Buscar objeto..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             aria-label="Buscar objeto"
@@ -122,9 +131,33 @@ export default function Buscar() {
           ))}
         </div>
 
+        <div className="campo">
+          <label className="campo-label" htmlFor="filtro-categoria">Buscar categoría</label>
+          <input
+            id="filtro-categoria"
+            type="text"
+            className="input"
+            placeholder="Escribe para filtrar (ej. mo)"
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+            disabled={cargandoCategorias || !!errorCategorias}
+            aria-controls="selector-categoria"
+            aria-describedby="filtro-categoria-estado"
+            autoComplete="off"
+          />
+          <span id="filtro-categoria-estado" className="nota-suave" role="status" aria-live="polite">
+            {sinCoincidenciasCategoria
+              ? 'Ninguna categoría coincide con ese texto.'
+              : filtroCategoria.trim()
+                ? `${filtrarCategorias(categorias, filtroCategoria).length} categorías coinciden.`
+                : ''}
+          </span>
+        </div>
+
         <label className="campo">
           <span className="campo-label">Categoría</span>
           <select
+            id="selector-categoria"
             className="input"
             value={categoriaInicial}
             onChange={(e) => aplicar({ categoriaId: e.target.value })}
@@ -134,7 +167,7 @@ export default function Buscar() {
             {categoriaNoDisponible && (
               <option value={categoriaInicial} disabled>Categoría no disponible</option>
             )}
-            {categorias.map((c) => (
+            {categoriasVisibles.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}{c.estado === false ? ' (desactivada)' : ''}
               </option>
@@ -142,7 +175,7 @@ export default function Buscar() {
           </select>
         </label>
         <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
-        {ubicacionInicial && <p>Ubicación: {ubicacionInicial}</p>}
+        {ubicacionInicial && <p className="nota-suave">Ubicación: {ubicacionInicial}</p>}
         {hayFiltros && (
           <button type="button" className="btn btn-secundario" onClick={limpiarFiltros}>
             Limpiar filtros
@@ -150,14 +183,15 @@ export default function Buscar() {
         )}
       </form>
 
-      <section aria-label="Resultados de búsqueda" aria-busy={cargando}>
+      <section aria-labelledby="titulo-resultados" aria-busy={cargando}>
+        <h2 id="titulo-resultados" className="solo-lector">Resultados de búsqueda</h2>
         <MensajeError mensaje={errorBusqueda} onReintentar={reintentarBusqueda} />
         {cargando ? (
           <Cargando />
         ) : errorBusqueda ? null : resultados.length === 0 ? (
           <div className="estado-vacio" role="status">
             <span className="estado-vacio-icono" aria-hidden="true">
-              🔎
+              <Icono nombre="buscar" tamano={28} />
             </span>
             <p>{hayFiltros ? 'Sin resultados para esa búsqueda.' : 'Todavía no hay publicaciones.'}</p>
           </div>

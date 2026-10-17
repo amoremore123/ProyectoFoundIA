@@ -1,9 +1,11 @@
+import ImagenObjeto from '../components/ImagenObjeto';
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
+import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { getCoincidencias, getObjeto, fotoUrl, mensajeError, statusDe } from '../services/api';
+import { getCoincidencias, getObjeto, mensajeError, statusDe } from '../services/api';
 
 function fechaLarga(valor) {
   if (!valor) return '—';
@@ -15,12 +17,15 @@ function fechaLarga(valor) {
 
 export default function Detalle() {
   const { id } = useParams();
+  const [indiceFoto, setIndiceFoto] = useState(0);
   const [objeto, setObjeto] = useState(null);
   const [coincidencias, setCoincidencias] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [cargandoCoincidencias, setCargandoCoincidencias] = useState(true);
   const [error, setError] = useState('');
   const [noEncontrado, setNoEncontrado] = useState(false);
+  const [errorCoincidencias, setErrorCoincidencias] = useState('');
+  const [reintentosCoincidencias, setReintentosCoincidencias] = useState(0);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -41,18 +46,24 @@ export default function Detalle() {
   }, [id]);
 
   useEffect(() => {
+    setIndiceFoto(0);
     cargar();
   }, [cargar]);
 
   useEffect(() => {
     let vivo = true;
     setCargandoCoincidencias(true);
+    setErrorCoincidencias('');
     (async () => {
       try {
         const data = await getCoincidencias(id);
         if (vivo) setCoincidencias(Array.isArray(data) ? data : data?.results || []);
-      } catch {
-        if (vivo) setCoincidencias([]);
+      } catch (e) {
+        // Un fallo no es lo mismo que "no hay coincidencias"
+        if (vivo) {
+          setCoincidencias([]);
+          setErrorCoincidencias(mensajeError(e, 'No se pudieron cargar las coincidencias'));
+        }
       } finally {
         if (vivo) setCargandoCoincidencias(false);
       }
@@ -60,7 +71,7 @@ export default function Detalle() {
     return () => {
       vivo = false;
     };
-  }, [id]);
+  }, [id, reintentosCoincidencias]);
 
   if (cargando) return <Cargando />;
 
@@ -69,7 +80,7 @@ export default function Detalle() {
       <div className="pagina">
         <div className="estado-vacio">
           <span className="estado-vacio-icono" aria-hidden="true">
-            🕵️
+            <Icono nombre="buscar" tamano={28} />
           </span>
           <p>Objeto no encontrado</p>
         </div>
@@ -85,7 +96,6 @@ export default function Detalle() {
     );
   }
 
-  const foto = objeto.fotos?.length ? fotoUrl(objeto.fotos[0]) : '';
   const autor = objeto.publicadoPor
     ? `${objeto.publicadoPor.nombre} ${objeto.publicadoPor.apellido || ''}`.trim()
     : '—';
@@ -94,14 +104,11 @@ export default function Detalle() {
     <div className="pagina">
       <div className="tarjeta detalle-card">
         <div className="detalle-media">
-          {foto ? (
-            <img src={foto} alt={objeto.nombre} />
-          ) : (
-            <div className="objeto-placeholder detalle-placeholder">
-              <span aria-hidden="true">📦</span>
-              <span>Sin foto</span>
-            </div>
-          )}
+          <div className="detalle-foto-principal"><ImagenObjeto objeto={objeto} indice={indiceFoto} /></div>
+          {objeto.fotos?.length > 1 && <div className="galeria-controles" aria-label="Fotos del objeto">
+            {objeto.fotos.map((_, indice) => <button key={indice} type="button" aria-label={`Ver foto ${indice + 1}`} aria-pressed={indiceFoto === indice} onClick={() => setIndiceFoto(indice)}><ImagenObjeto objeto={objeto} indice={indice} /></button>)}
+            <span aria-live="polite">Foto {indiceFoto + 1} de {objeto.fotos.length}</span>
+          </div>}
         </div>
 
         <div className="detalle-cuerpo">
@@ -111,19 +118,19 @@ export default function Detalle() {
 
           <div className="datos-grid">
             <div className="dato">
-              <span className="dato-label">📍 Ubicación</span>
+              <span className="dato-label"><Icono nombre="ubicacion" tamano={14} /> Ubicación</span>
               <span className="dato-valor">{objeto.ubicacion || '—'}</span>
             </div>
             <div className="dato">
-              <span className="dato-label">📅 Fecha</span>
+              <span className="dato-label"><Icono nombre="calendario" tamano={14} /> Fecha</span>
               <span className="dato-valor">{fechaLarga(objeto.fechaObjeto)}</span>
             </div>
             <div className="dato">
-              <span className="dato-label">🗂️ Categoría</span>
+              <span className="dato-label"><Icono nombre="etiqueta" tamano={14} /> Categoría</span>
               <span className="dato-valor">{objeto.categoria?.nombre || '—'}</span>
             </div>
             <div className="dato">
-              <span className="dato-label">👤 Publicado por</span>
+              <span className="dato-label"><Icono nombre="usuario" tamano={14} /> Publicado por</span>
               <span className="dato-valor">{autor}</span>
             </div>
           </div>
@@ -140,6 +147,11 @@ export default function Detalle() {
 
         {cargandoCoincidencias ? (
           <Cargando texto="Buscando coincidencias..." />
+        ) : errorCoincidencias ? (
+          <MensajeError
+            mensaje={errorCoincidencias}
+            onReintentar={() => setReintentosCoincidencias((n) => n + 1)}
+          />
         ) : coincidencias.length === 0 ? (
           <div className="estado-vacio estado-vacio-sutil">
             <p>No hay coincidencias sugeridas por ahora.</p>
@@ -157,8 +169,8 @@ export default function Detalle() {
                   </span>
                 </div>
                 <h3 className="coincidencia-nombre">{c.nombre}</h3>
-                <p className="objeto-card-linea">📍 {c.ubicacion || 'Sin ubicación'}</p>
-                <p className="objeto-card-linea">📅 {fechaLarga(c.fechaObjeto)}</p>
+                <p className="objeto-card-linea"><Icono nombre="ubicacion" tamano={14} /> {c.ubicacion || 'Sin ubicación'}</p>
+                <p className="objeto-card-linea"><Icono nombre="calendario" tamano={14} /> {fechaLarga(c.fechaObjeto)}</p>
                 <div className="coincidencia-barra">
                   <div
                     className="coincidencia-barra-llenado"
