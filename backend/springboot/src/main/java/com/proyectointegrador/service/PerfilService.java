@@ -4,6 +4,7 @@ import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.dto.PerfilUpdateRequest;
 import com.proyectointegrador.dto.UsuarioResponse;
 import com.proyectointegrador.entity.Usuario;
+import com.proyectointegrador.exception.PasswordActualIncorrectaException;
 import com.proyectointegrador.exception.ResourceNotFoundException;
 import com.proyectointegrador.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,12 +33,25 @@ public class PerfilService {
         return UsuarioResponse.from(buscarUsuario(usuarioId));
     }
 
+    /**
+     * H13 - Actualiza solo el perfil del usuario del token. Si se cambia la
+     * contraseña, primero se comprueba la actual; si no coincide no se guarda nada.
+     */
     @Transactional
     public UsuarioResponse actualizar(Long usuarioId, PerfilUpdateRequest request) {
         Usuario usuario = buscarUsuario(usuarioId);
-        usuario.setNombre(request.nombre());
-        usuario.setApellido(request.apellido());
-        if (request.password() != null && !request.password().isBlank()) {
+
+        if (request.cambiaPassword()) {
+            String actual = request.passwordActual();
+            if (actual == null || actual.isEmpty() || !passwordEncoder.matches(actual, usuario.getPassword())) {
+                throw new PasswordActualIncorrectaException(
+                        "La contraseña actual no es correcta. No se guardaron los cambios.");
+            }
+        }
+
+        usuario.setNombre(request.nombre().trim());
+        usuario.setApellido(request.apellido().trim());
+        if (request.cambiaPassword()) {
             usuario.setPassword(passwordEncoder.encode(request.password()));
         }
         usuarioRepository.save(usuario);

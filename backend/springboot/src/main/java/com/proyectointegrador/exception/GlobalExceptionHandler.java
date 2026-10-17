@@ -52,6 +52,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(PasswordActualIncorrectaException.class)
+    public ResponseEntity<ApiError> handlePasswordActual(PasswordActualIncorrectaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(CodigoVerificacionException.class)
     public ResponseEntity<ApiError> handleCodigoVerificacion(CodigoVerificacionException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
