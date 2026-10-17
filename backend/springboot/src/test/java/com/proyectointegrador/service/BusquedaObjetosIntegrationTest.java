@@ -184,6 +184,16 @@ class BusquedaObjetosIntegrationTest {
     }
 
     @Test
+    @DisplayName("El catálogo para el filtro entrega categorías en orden alfabético")
+    void categoriasEnOrdenAlfabetico() throws Exception {
+        mockMvc.perform(get("/api/categorias"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Celular"))
+                .andExpect(jsonPath("$[1].nombre").value("Documentos antiguos"))
+                .andExpect(jsonPath("$[2].nombre").value("Mochila"));
+    }
+
+    @Test
     @DisplayName("H7 - Una categoría inexistente tiene la misma regla en los tres filtros")
     void categoriaInexistente() {
         assertThatThrownBy(() -> objetoService.buscar(null, null, Long.MAX_VALUE))

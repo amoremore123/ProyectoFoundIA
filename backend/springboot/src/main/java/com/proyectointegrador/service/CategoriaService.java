@@ -18,7 +18,7 @@ public class CategoriaService {
 
     @Transactional(readOnly = true)
     public List<CategoriaResponse> listar() {
-        return categoriaRepository.findAllByOrderByIdAsc().stream()
+        return categoriaRepository.findAllByOrderByNombreAsc().stream()
                 .map(CategoriaResponse::from)
                 .toList();
     }

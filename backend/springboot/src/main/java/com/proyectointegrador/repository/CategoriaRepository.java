@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
-    List<Categoria> findAllByOrderByIdAsc();
+    List<Categoria> findAllByOrderByNombreAsc();
 }
