@@ -1,5 +1,9 @@
 # FoundIA: avance frente a la planificación del Sprint 1
 
+> Revisión histórica del checkout anterior a actualizar las ramas remotas.
+> Los pendientes de esta página no describen el estado actual de `dev/amore`.
+> Consulta la [integración posterior de Leonel y Yajaira](integracion-sprint1-amore-2026-10-20.md).
+
 Fecha: 20 de octubre de 2026. Rama local revisada: `dev/amore`, base `93536e4`.
 Referencia: PDF de 24 páginas `e2b4cb1c-7e0a-4c8e-add2-9364b6505e0c.pdf`,
 entregado por Amore. Se usa como planificación, no como autorización para ejecutar

@@ -2,6 +2,10 @@
 
 Base de datos principal de la plataforma: **`objetos_perdidos_db`** (MySQL 8).
 
+Autenticación compartida: Spring y Django utilizan `usuarios.intentos_fallidos`
+y `usuarios.bloqueado_hasta`. Los códigos y bloqueos nuevos se guardan en UTC;
+no hace falta crear una columna adicional para el contador del panel.
+
 ## Archivos
 
 | Archivo        | Descripción                                                        |

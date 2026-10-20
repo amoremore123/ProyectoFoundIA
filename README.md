@@ -2,8 +2,10 @@
 
 ## Entrega actual: Sprint 1 (Lab06, H1–H20)
 
-Estado contrastado con la planificación: [revisión del 20 de octubre de 2026](docs/pruebas/avance-sprint1-2026-10-20.md).
-Hay implementación avanzada, pero el sprint todavía tiene historias parciales y pruebas de aceptación pendientes.
+Estado actualizado: [integración de Leonel y Yajaira en dev/amore](docs/pruebas/integracion-sprint1-amore-2026-10-20.md).
+La rama integra las APIs H8/H9/H10/H16/H17 de Leonel y las pantallas de Yajaira,
+incluidos filtros avanzados y comparación de coincidencias. Las pruebas y sus
+límites están registrados en el informe; el cierre formal corresponde al equipo.
 Fotos, edición/eliminación, perfil, privacidad, administración de usuarios/publicaciones,
 coincidencias, contacto y reclamos pertenecen a este sprint.
 
