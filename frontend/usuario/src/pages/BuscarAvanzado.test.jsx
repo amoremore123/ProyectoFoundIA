@@ -72,3 +72,16 @@ it('obtiene GPS real y conserva fechas y categoría al aplicar cercanía', async
   fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
   await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith({ q: '', categoriaId: '2', desde: '2026-10-01', latitud: '-12', longitud: '-77', radioKm: '5' }, { signal: expect.any(AbortSignal) }));
 });
+
+it('una respuesta GPS tardía no reemplaza coordenadas escritas manualmente', async () => {
+  let resolver;
+  obtenerCoordenadasActuales.mockReturnValue(new Promise((resolve) => { resolver = resolve; }));
+  abrir();
+  await screen.findByText('Todavía no hay publicaciones.');
+  fireEvent.click(screen.getByRole('button', { name: 'Usar mi ubicación' }));
+  cambiar('Latitud', '-10'); cambiar('Longitud', '-70');
+  resolver({ latitud: -12, longitud: -77 });
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Usar mi ubicación' }).disabled).toBe(false));
+  expect(screen.getByLabelText('Latitud').value).toBe('-10');
+  expect(screen.getByLabelText('Longitud').value).toBe('-70');
+});

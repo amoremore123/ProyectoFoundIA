@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
 import Icono from '../components/Icono';
@@ -25,11 +25,21 @@ export default function Buscar() {
   const [avanzados, setAvanzados] = useState(filtrosAplicados);
   const [errorFiltros, setErrorFiltros] = useState('');
   const [ubicando, setUbicando] = useState(false);
+  const solicitudGps = useRef(0);
 
   useEffect(() => {
     setAvanzados(Object.fromEntries(CAMPOS_AVANZADOS.map((campo, indice) => [campo, JSON.parse(claveAvanzados)[indice]])));
     setErrorFiltros('');
+    solicitudGps.current += 1;
+    setUbicando(false);
   }, [claveAvanzados]);
+  useEffect(() => () => { solicitudGps.current += 1; }, []);
+
+  const cambiarAvanzado = (campo, valor) => {
+    solicitudGps.current += 1;
+    setUbicando(false);
+    setAvanzados((f) => ({ ...f, [campo]: valor }));
+  };
 
   const [q, setQ] = useState(qInicial);
   const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
@@ -95,19 +105,23 @@ export default function Buscar() {
   };
 
   const usarUbicacion = async () => {
+    const solicitud = ++solicitudGps.current;
     setUbicando(true);
     setErrorFiltros('');
     try {
       const coordenadas = await obtenerCoordenadasActuales();
+      if (solicitud !== solicitudGps.current) return;
       setAvanzados((actual) => ({ ...actual, latitud: String(coordenadas.latitud), longitud: String(coordenadas.longitud), radioKm: actual.radioKm || '5' }));
     } catch (error) {
-      setErrorFiltros(`${error.message}. Puedes escribir una ubicación o las coordenadas manualmente.`);
+      if (solicitud === solicitudGps.current) setErrorFiltros(`${error.message}. Puedes escribir una ubicación o las coordenadas manualmente.`);
     } finally {
-      setUbicando(false);
+      if (solicitud === solicitudGps.current) setUbicando(false);
     }
   };
 
   const limpiarFiltros = () => {
+    solicitudGps.current += 1;
+    setUbicando(false);
     setQ('');
     setFiltroCategoria('');
     setAvanzados(Object.fromEntries(CAMPOS_AVANZADOS.map((campo) => [campo, ''])));
@@ -205,14 +219,14 @@ export default function Buscar() {
         <fieldset className="filtros-avanzados">
           <legend>Ubicación y fechas</legend>
           <label className="campo"><span className="campo-label">Ubicación</span>
-            <input className="input" value={avanzados.ubicacion} maxLength={255} placeholder="Ej. Biblioteca" onChange={(e) => setAvanzados((f) => ({ ...f, ubicacion: e.target.value }))} />
+            <input className="input" value={avanzados.ubicacion} maxLength={255} placeholder="Ej. Biblioteca" onChange={(e) => cambiarAvanzado('ubicacion', e.target.value)} />
           </label>
           <div className="filtros-grid">
-            {[['desde', 'Desde'], ['hasta', 'Hasta']].map(([campo, nombre]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="date" value={avanzados[campo]} onChange={(e) => setAvanzados((f) => ({ ...f, [campo]: e.target.value }))} /></label>)}
+            {[['desde', 'Desde'], ['hasta', 'Hasta']].map(([campo, nombre]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="date" value={avanzados[campo]} onChange={(e) => cambiarAvanzado(campo, e.target.value)} /></label>)}
           </div>
           <p className="nota-suave">Busca por lugar o añade coordenadas para ordenar por cercanía. Las fechas incluyen ambos extremos.</p>
           <div className="filtros-grid">
-            {[['latitud', 'Latitud', -90, 90], ['longitud', 'Longitud', -180, 180], ['radioKm', 'Radio en kilómetros', 0, 1000]].map(([campo, nombre, min, max]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="number" step="any" min={min} max={max} value={avanzados[campo]} onChange={(e) => setAvanzados((f) => ({ ...f, [campo]: e.target.value }))} /></label>)}
+            {[['latitud', 'Latitud', -90, 90], ['longitud', 'Longitud', -180, 180], ['radioKm', 'Radio en kilómetros', 0, 1000]].map(([campo, nombre, min, max]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="number" step="any" min={min} max={max} value={avanzados[campo]} onChange={(e) => cambiarAvanzado(campo, e.target.value)} /></label>)}
           </div>
           <button className="btn btn-secundario" type="button" disabled={ubicando} onClick={usarUbicacion}>{ubicando ? 'Obteniendo ubicación...' : 'Usar mi ubicación'}</button>
           <MensajeError mensaje={errorFiltros} />

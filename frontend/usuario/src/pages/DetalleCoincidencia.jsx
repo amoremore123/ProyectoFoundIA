@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getDetalleCoincidencia, iniciarContacto, mensajeError, statusDe } from '../services/api';
@@ -37,6 +37,7 @@ export default function DetalleCoincidencia() {
   const [enviando, setEnviando] = useState(false);
   const [errorContacto, setErrorContacto] = useState('');
   const [resultado, setResultado] = useState('');
+  const accionActual = useRef(0);
 
   useEffect(() => {
     const controlador = new AbortController();
@@ -51,16 +52,22 @@ export default function DetalleCoincidencia() {
     return () => controlador.abort();
   }, [id, intento]);
 
-  useEffect(() => { setResultado(''); setErrorContacto(''); }, [id, token, user?.id]);
+  useEffect(() => {
+    accionActual.current += 1;
+    setResultado(''); setErrorContacto(''); setEnviando(false);
+    return () => { accionActual.current += 1; };
+  }, [id, token, user?.id]);
 
   const contactar = async () => {
+    const accion = accionActual.current;
     setEnviando(true); setErrorContacto('');
     try {
       const respuesta = await iniciarContacto(datos.perdido.id, datos.encontrado.id);
+      if (accion !== accionActual.current) return;
       setResultado(respuesta.repetido ? 'Ya habías enviado esta solicitud de contacto.' : 'Solicitud enviada. Quien encontró el objeto recibió un aviso.');
     } catch (fallo) {
-      setErrorContacto(mensajeError(fallo, 'No se pudo enviar la solicitud de contacto'));
-    } finally { setEnviando(false); }
+      if (accion === accionActual.current) setErrorContacto(mensajeError(fallo, 'No se pudo enviar la solicitud de contacto'));
+    } finally { if (accion === accionActual.current) setEnviando(false); }
   };
 
   if (cargando) return <Cargando texto="Cargando comparación..." />;

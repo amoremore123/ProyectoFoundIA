@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import * as api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -15,6 +15,16 @@ function leerUsuario() {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('admin_token'));
   const [user, setUser] = useState(leerUsuario);
+
+  useEffect(() => {
+    const sincronizar = (evento) => {
+      if (evento.key !== null && !['admin_token', 'admin_usuario'].includes(evento.key)) return;
+      setToken(localStorage.getItem('admin_token'));
+      setUser(leerUsuario());
+    };
+    window.addEventListener('storage', sincronizar);
+    return () => window.removeEventListener('storage', sincronizar);
+  }, []);
 
   const login = async (correo, password) => {
     const data = await api.loginAdmin(correo, password);
