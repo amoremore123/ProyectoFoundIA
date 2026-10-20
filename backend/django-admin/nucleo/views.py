@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 import bcrypt
 import jwt
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -30,19 +31,27 @@ class LoginView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @transaction.atomic
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        correo = serializer.validated_data["correo"]
+        correo = serializer.validated_data["correo"].strip().lower()
         password = serializer.validated_data["password"]
 
-        usuario = Usuario.objects.filter(correo=correo).first()
+        usuario = Usuario.objects.select_for_update().filter(correo=correo).first()
         if usuario is None:
             return Response(
                 {"detail": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+        ahora = timezone.now()
+        if usuario.bloqueado_hasta and usuario.bloqueado_hasta > ahora:
+            return Response({"detail": "Tu cuenta está bloqueada temporalmente. Intenta de nuevo más tarde."}, status=423)
+        if usuario.bloqueado_hasta:
+            usuario.intentos_login = 0
+            usuario.bloqueado_hasta = None
 
         try:
             password_ok = bcrypt.checkpw(
@@ -52,6 +61,12 @@ class LoginView(APIView):
             password_ok = False
 
         if not password_ok:
+            usuario.intentos_login += 1
+            if usuario.intentos_login >= 5:
+                usuario.bloqueado_hasta = ahora + timedelta(minutes=15)
+            usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
+            if usuario.bloqueado_hasta:
+                return Response({"detail": "Tu cuenta está bloqueada por 15 minutos tras cinco intentos fallidos."}, status=423)
             return Response(
                 {"detail": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -69,6 +84,9 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        usuario.intentos_login = 0
+        usuario.bloqueado_hasta = None
+        usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
         secret = os.environ.get("JWT_SECRET", JWT_SECRET_DEFAULT)
         exp = datetime.now(dt_timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(

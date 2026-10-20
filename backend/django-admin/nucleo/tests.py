@@ -22,6 +22,30 @@ def token_de(usuario, horas=1):
 
 class PanelAdministracionTests(APITestCase):
 
+    def test_bloqueo_compartido_impide_login_y_token_anterior(self):
+        self.admin.bloqueado_hasta = datetime.now(dt_timezone.utc) + timedelta(minutes=15)
+        self.admin.save()
+        r = self.client.post('/api/admin/auth/login/', {'correo': self.admin.correo, 'password': PASSWORD}, format='json')
+        self.assertEqual(r.status_code, 423)
+        self.assertNotIn('token', r.data)
+        self.como(self.admin)
+        self.assertEqual(self.client.get('/api/admin/usuarios/').status_code, 401)
+
+    def test_login_admin_bloquea_cinco_fallos_y_recupera_al_vencer(self):
+        for intento in range(5):
+            r = self.client.post('/api/admin/auth/login/', {'correo': self.admin.correo, 'password': 'incorrecta'}, format='json')
+            self.assertEqual(r.status_code, 423 if intento == 4 else 401)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.intentos_login, 5)
+        self.assertIsNotNone(self.admin.bloqueado_hasta)
+        self.admin.bloqueado_hasta = datetime.now(dt_timezone.utc) - timedelta(seconds=1)
+        self.admin.save()
+        r = self.client.post('/api/admin/auth/login/', {'correo': self.admin.correo.upper(), 'password': PASSWORD}, format='json')
+        self.assertEqual(r.status_code, 200)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.intentos_login, 0)
+        self.assertIsNone(self.admin.bloqueado_hasta)
+
     def setUp(self):
         hash_ = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt(rounds=4)).decode()
         self.admin = Usuario.objects.create(nombre="Admin", apellido="QA", correo="admin@prueba.invalid",

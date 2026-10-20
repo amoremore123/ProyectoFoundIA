@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.sql.SQLException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -33,6 +35,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiError> handleDuplicate(DuplicateResourceException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        // Dos registros pueden superar simultáneamente existsByCorreo. La BD decide
+        // cuál gana; solo la unicidad del alta se traduce a conflicto de correo.
+        if ("/api/auth/register".equals(request.getRequestURI())) {
+            for (Throwable causa = ex; causa != null; causa = causa.getCause()) {
+                if (causa instanceof SQLException sql && ("23505".equals(sql.getSQLState()) || sql.getErrorCode() == 1062)) {
+                    return build(HttpStatus.CONFLICT, "El correo ya está registrado", request);
+                }
+            }
+        }
+        return handleGeneric(ex, request);
     }
 
     @ExceptionHandler(LimiteReenvioException.class)
