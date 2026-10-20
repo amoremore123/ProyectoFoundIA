@@ -23,11 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 public class ObjetoService {
@@ -137,34 +135,6 @@ public class ObjetoService {
         objetoRepository.save(objeto);
     }
 
-    @Transactional(readOnly = true)
-    public List<ObjetoResponse> buscar(String texto, TipoObjeto tipo, Long categoriaId) {
-        validarCategoria(categoriaId);
-        Specification<Objeto> specification =
-                (root, query, cb) -> {
-                    List<Predicate> predicates = new ArrayList<>();
-                    predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
-                    if (texto != null && !texto.isBlank()) {
-                        String like = "%" + escaparTextoLike(texto.trim().toLowerCase(Locale.ROOT)) + "%";
-                        predicates.add(cb.or(
-                                cb.like(cb.lower(root.get("nombre")), like, '!'),
-                                cb.like(cb.lower(root.get("descripcion")), like, '!'),
-                                cb.like(cb.lower(root.get("ubicacion")), like, '!')));
-                    }
-                    if (tipo != null) {
-                        predicates.add(cb.equal(root.get("tipo"), tipo));
-                    }
-                    if (categoriaId != null) {
-                        predicates.add(cb.equal(root.get("categoria").get("id"), categoriaId));
-                    }
-                    return cb.and(predicates.toArray(new Predicate[0]));
-                };
-
-        return objetoRepository.findAll(specification, ORDEN_PUBLICACION)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
 
     @Transactional(readOnly = true)
     public List<ObjetoResponse> porCategoria(Long categoriaId) {
@@ -176,36 +146,7 @@ public class ObjetoService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<ObjetoResponse> porUbicacion(String ubicacion) {
-        String texto = ubicacion == null ? "" : ubicacion.trim();
-        return objetoRepository.findByUbicacionContainingIgnoreCaseAndEstadoInOrderByFechaPublicacionDescIdDesc(
-                        texto, ESTADOS_PUBLICOS)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
 
-    @Transactional(readOnly = true)
-    public List<ObjetoResponse> porFecha(LocalDate desde, LocalDate hasta) {
-        Specification<Objeto> specification =
-                (root, query, cb) -> {
-                    List<Predicate> predicates = new ArrayList<>();
-                    predicates.add(root.get("estado").in(ESTADOS_PUBLICOS));
-                    if (desde != null) {
-                        predicates.add(cb.greaterThanOrEqualTo(root.get("fechaObjeto"), desde));
-                    }
-                    if (hasta != null) {
-                        predicates.add(cb.lessThanOrEqualTo(root.get("fechaObjeto"), hasta));
-                    }
-                    return cb.and(predicates.toArray(new Predicate[0]));
-                };
-
-        return objetoRepository.findAll(specification, ORDEN_PUBLICACION)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
 
     @Transactional(readOnly = true)
     public List<ObjetoResponse> porUsuario(Long usuarioId) {
@@ -274,10 +215,6 @@ public class ObjetoService {
         }
     }
 
-    private String escaparTextoLike(String texto) {
-        // El texto del usuario es literal: % y _ no deben convertirse en comodines SQL.
-        return texto.replace("!", "!!").replace("%", "!%").replace("_", "!_");
-    }
 
     private Objeto buscarPublico(Long id) {
         Objeto objeto = buscarEntidad(id);

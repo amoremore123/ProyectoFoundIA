@@ -77,7 +77,7 @@ class FiltrosCoincidenciasIntegrationTest {
     }
     @ParameterizedTest @ValueSource(strings={"latitud=0","longitud=0","latitud=91&longitud=0","latitud=0&longitud=181","latitud=NaN&longitud=0","latitud=0&longitud=Infinity","radioKm=2","latitud=0&longitud=0&radioKm=0","latitud=0&longitud=0&radioKm=-1","latitud=0&longitud=0&radioKm=1001","latitud=0&longitud=0&radioKm=NaN","latitud=texto&longitud=0"})
     void coordenadasYRadioInvalidosSon400(String query) throws Exception {
-        api.perform(get("/api/objetos/ubicacion?"+query)).andExpect(status().isBadRequest());
+        api.perform(get("/api/objetos/buscar?"+query)).andExpect(status().isBadRequest());
     }
     @Test void fechasSonInclusivasYRecientesPrimero() throws Exception {
         api.perform(get("/api/objetos/fecha").param("desde",hoy.minusDays(2).toString()).param("hasta",hoy.toString()).param("q","Mochila"))
@@ -106,12 +106,30 @@ class FiltrosCoincidenciasIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
     @ParameterizedTest @ValueSource(strings={"desde=2026-10-10&hasta=2026-10-01","desde=2026-02-30","hasta=texto","tipo=NO","categoriaId=texto"})
-    void filtrosInvalidosNoSon500(String query) throws Exception {api.perform(get("/api/objetos/fecha?"+query)).andExpect(status().isBadRequest());}
+    void filtrosInvalidosNoSon500(String query) throws Exception {api.perform(get("/api/objetos/buscar?"+query)).andExpect(status().isBadRequest());}
+    @Test void todosLosFiltrosSeCombinanConANDEnBD() throws Exception {
+        api.perform(get("/api/objetos/buscar").param("q","mochila").param("tipo","ENCONTRADO").param("ubicacion","Biblioteca")
+                .param("categoriaId",cerca.getCategoria().getId().toString()).param("desde",hoy.toString()).param("hasta",hoy.toString())
+                .param("latitud","0").param("longitud","0").param("radioKm","2"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].id").value(cerca.getId()));
+    }
+    @Test void categoriaInexistenteSigueSiendo404() throws Exception {api.perform(get("/api/objetos/buscar?categoriaId=999999")).andExpect(status().isNotFound());}
     @Test
     void desdeSoloIncluyeSuExtremoYRecuperadosSiguenSiendoPublicos() throws Exception {
         cerca.setEstado(EstadoObjeto.RECUPERADO);
         objetos.flush();
         api.perform(get("/api/objetos/fecha").param("q", "Mochila").param("desde", hoy.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(cerca.getId()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"q,tipo,ubicacion", "q,ubicacion", "tipo,ubicacion"})
+    void combinacionesParcialesNoSeConviertenEnOR(String parametros) throws Exception {
+        var consulta = get("/api/objetos/buscar").param("ubicacion", "100%");
+        if (parametros.contains("q")) consulta.param("q", "Mochila");
+        if (parametros.contains("tipo")) consulta.param("tipo", "ENCONTRADO");
+        api.perform(consulta)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(cerca.getId()));
     }

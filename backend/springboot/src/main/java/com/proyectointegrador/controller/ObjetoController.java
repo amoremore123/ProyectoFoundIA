@@ -1,17 +1,17 @@
 package com.proyectointegrador.controller;
 
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
-import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.dto.FotoResponse;
+import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
-import com.proyectointegrador.service.BusquedaService;
 import com.proyectointegrador.service.FotoService;
+import com.proyectointegrador.service.BusquedaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,18 +41,16 @@ public class ObjetoController {
     private final FotoService fotoService;
     private final BusquedaService busquedaService;
 
-    public ObjetoController(ObjetoService objetoService, FotoService fotoService, BusquedaService busquedaService) {
+    public ObjetoController(ObjetoService objetoService, FotoService fotoService,
+                            BusquedaService busquedaService) {
         this.objetoService = objetoService;
         this.fotoService = fotoService;
         this.busquedaService = busquedaService;
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<ObjetoResponse>> buscar(
-            @RequestParam(name = "q", required = false) String q,
-            @RequestParam(name = "tipo", required = false) TipoObjeto tipo,
-            @RequestParam(name = "categoriaId", required = false) Long categoriaId) {
-        return ResponseEntity.ok(objetoService.buscar(q, tipo, categoriaId));
+    public ResponseEntity<List<ObjetoResponse>> buscar(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.buscar(filtros));
     }
 
     @GetMapping("/categoria/{id}")

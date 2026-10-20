@@ -1,5 +1,6 @@
 package com.proyectointegrador.service;
 
+import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.entity.Categoria;
 import com.proyectointegrador.entity.EstadoObjeto;
@@ -46,7 +47,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class BusquedaObjetosIntegrationTest {
-
+    @Autowired
+    private BusquedaService busquedaService;
     @Autowired
     private EntityManager entityManager;
     @Autowired
@@ -122,11 +124,16 @@ class BusquedaObjetosIntegrationTest {
         entityManager.clear();
     }
 
+    private List<ObjetoResponse> buscar(String texto, TipoObjeto tipo, Long categoriaId) {
+        return busquedaService.buscar(new FiltroBusqueda(texto, tipo, categoriaId, null, null, null,
+                null, null, null));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"negra", "cuaderno", "biblioteca", "  NEGRA  "})
     @DisplayName("H6 - Busca por nombre, descripción o ubicación sin distinguir mayúsculas")
     void busquedaTextual(String texto) {
-        assertThat(objetoService.buscar(texto, null, null))
+        assertThat(buscar(texto, null, null))
                 .extracting(ObjetoResponse::id).containsExactly(mochila.getId());
     }
 
@@ -217,7 +224,7 @@ class BusquedaObjetosIntegrationTest {
     @ValueSource(strings = {"", "   ", "\t"})
     @DisplayName("H6 - Sin texto devuelve solo objetos públicos, con orden estable")
     void sinTexto(String texto) {
-        assertThat(objetoService.buscar(texto, null, null))
+        assertThat(buscar(texto, null, null))
                 .extracting(ObjetoResponse::id)
                 .containsExactly(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
     }
@@ -235,28 +242,28 @@ class BusquedaObjetosIntegrationTest {
                 categoria, TipoObjeto.PERDIDO, EstadoObjeto.ACTIVO);
         sincronizar();
 
-        assertThat(objetoService.buscar(texto, null, null))
+        assertThat(buscar(texto, null, null))
                 .extracting(ObjetoResponse::id).containsExactly(literal.getId());
     }
 
     @Test
     @DisplayName("H6 - Un texto sin coincidencias devuelve una lista vacía")
     void sinResultados() {
-        assertThat(objetoService.buscar("no-existe-987", null, null)).isEmpty();
+        assertThat(buscar("no-existe-987", null, null)).isEmpty();
     }
 
     @Test
     @DisplayName("H6/H7 - Texto, tipo y categoría se combinan, no se suman")
     void filtrosCombinados() {
-        assertThat(objetoService.buscar("mochila", TipoObjeto.ENCONTRADO, mochilas.getId()))
+        assertThat(buscar("mochila", TipoObjeto.ENCONTRADO, mochilas.getId()))
                 .extracting(ObjetoResponse::id).containsExactly(recuperado.getId());
-        assertThat(objetoService.buscar("mochila", TipoObjeto.PERDIDO, celulares.getId())).isEmpty();
+        assertThat(buscar("mochila", TipoObjeto.PERDIDO, celulares.getId())).isEmpty();
     }
 
     @Test
     @DisplayName("H7 - Desactivar una categoría conserva el catálogo y sus publicaciones anteriores")
     void categoriaDesactivada() throws Exception {
-        assertThat(objetoService.buscar(null, null, antigua.getId()))
+        assertThat(buscar(null, null, antigua.getId()))
                 .extracting(ObjetoResponse::id).containsExactly(historico.getId());
         assertThat(objetoService.porCategoria(antigua.getId()))
                 .extracting(ObjetoResponse::id).containsExactly(historico.getId());
@@ -388,7 +395,7 @@ class BusquedaObjetosIntegrationTest {
     @Test
     @DisplayName("H7 - Una categoría inexistente tiene la misma regla en los tres filtros")
     void categoriaInexistente() {
-        assertThatThrownBy(() -> objetoService.buscar(null, null, Long.MAX_VALUE))
+        assertThatThrownBy(() -> buscar(null, null, Long.MAX_VALUE))
                 .isInstanceOf(ResourceNotFoundException.class);
         assertThatThrownBy(() -> objetoService.listar(null, null, Long.MAX_VALUE))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -421,7 +428,7 @@ class BusquedaObjetosIntegrationTest {
     @DisplayName("Las consultas generales solo devuelven objetos públicos")
     void consultasPublicas() {
         for (List<ObjetoResponse> resultado : List.of(
-                objetoService.listar(null, null, null), objetoService.buscar(null, null, null))) {
+                objetoService.listar(null, null, null), buscar(null, null, null))) {
             assertThat(resultado).extracting(ObjetoResponse::id)
                     .containsExactlyInAnyOrder(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
         }
@@ -446,9 +453,11 @@ class BusquedaObjetosIntegrationTest {
     @Test
     @DisplayName("Los otros filtros públicos tampoco revelan objetos ocultos")
     void otrosFiltrosPublicos() {
-        assertThat(objetoService.porUbicacion("BIBLIOTECA"))
+        assertThat(busquedaService.buscar(new FiltroBusqueda(null, null, null, "BIBLIOTECA",
+                null, null, null, null, null)))
                 .extracting(ObjetoResponse::id).containsExactly(mochila.getId());
-        assertThat(objetoService.porFecha(LocalDate.now().minusDays(2), LocalDate.now()))
+        assertThat(busquedaService.porFecha(new FiltroBusqueda(null, null, null, null,
+                LocalDate.now().minusDays(2), LocalDate.now(), null, null, null)))
                 .extracting(ObjetoResponse::id)
                 .containsExactly(historico.getId(), recuperado.getId(), celular.getId(), mochila.getId());
     }

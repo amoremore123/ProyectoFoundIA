@@ -1,6 +1,7 @@
 package com.proyectointegrador.controller;
 
 import com.proyectointegrador.dto.CategoriaResumen;
+import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.dto.UsuarioResumen;
@@ -8,8 +9,8 @@ import com.proyectointegrador.entity.Rol;
 import com.proyectointegrador.exception.GlobalExceptionHandler;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
-import com.proyectointegrador.service.BusquedaService;
 import com.proyectointegrador.service.FotoService;
+import com.proyectointegrador.service.BusquedaService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,7 @@ class ObjetoControllerTest {
 
     private ObjetoService objetoService;
     private FotoService fotoService;
+    private BusquedaService busquedaService;
     private MockMvc mockMvc;
 
     private static final String PUBLICACION_VALIDA = """
@@ -59,9 +61,11 @@ class ObjetoControllerTest {
     void setUp() {
         objetoService = mock(ObjetoService.class);
         fotoService = mock(FotoService.class);
+        busquedaService = mock(BusquedaService.class);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new ObjetoController(objetoService, fotoService, mock(BusquedaService.class)))
+        mockMvc = MockMvcBuilders.standaloneSetup(new ObjetoController(objetoService, fotoService,
+                        busquedaService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
@@ -86,7 +90,7 @@ class ObjetoControllerTest {
     @Test
     @DisplayName("H6 - Error de consulta no devuelve un falso vacío y el reintento recupera resultados")
     void errorDeBusquedaYReintento() throws Exception {
-        when(objetoService.buscar("negra", null, null))
+        when(busquedaService.buscar(any()))
                 .thenThrow(new IllegalStateException("Detalle interno de QA"))
                 .thenReturn(List.of(respuesta()));
         mockMvc.perform(get("/api/objetos/buscar").param("q", "negra"))
@@ -282,12 +286,13 @@ class ObjetoControllerTest {
     @Test
     @DisplayName("H7 - GET /api/objetos/buscar?categoriaId=3 -> 200 pasando el filtro")
     void buscarPorCategoria() throws Exception {
-        when(objetoService.buscar(null, null, 3L)).thenReturn(List.of(respuesta()));
+        var filtro = new FiltroBusqueda(null, null, 3L, null, null, null, null, null, null);
+        when(busquedaService.buscar(filtro)).thenReturn(List.of(respuesta()));
 
         mockMvc.perform(get("/api/objetos/buscar").param("categoriaId", "3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nombre").value("Mochila negra"));
-        verify(objetoService).buscar(null, null, 3L);
+        verify(busquedaService).buscar(filtro);
     }
 
     @Test
