@@ -118,6 +118,12 @@ export const reclamarObjeto = async (id) => {
   return data;
 };
 
+// H5/H14: solo el autor puede editar; la API valida igual que al publicar.
+export const actualizarObjeto = async (id, payload) => {
+  const { data } = await api.put(`/api/objetos/${id}`, payload);
+  return data;
+};
+
 export const eliminarObjeto = async (id) => {
   await api.delete(`/api/objetos/${id}`);
 };
