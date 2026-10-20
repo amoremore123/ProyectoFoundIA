@@ -63,6 +63,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/mis-publicaciones/:id/editar"
+                  element={
+                    <RutaProtegida>
+                      <Publicar />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
                   path="/notificaciones"
                   element={
                     <RutaProtegida>
