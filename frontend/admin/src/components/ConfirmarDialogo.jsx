@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 // Modal de confirmación accesible: el foco empieza en "Cancelar" (la opción segura),
 // Escape o clic fuera cancelan, y Tab no sale del diálogo mientras está abierto.
+// Se dibuja en <body> (portal) para que ninguna animación de la página lo recorte ni lo tape.
 export default function ConfirmarDialogo({
   abierto, titulo, mensaje, textoConfirmar = 'Confirmar', peligro = false, procesando = false,
   onConfirmar, onCancelar,
@@ -33,7 +35,7 @@ export default function ConfirmarDialogo({
     }
   };
 
-  return (
+  return createPortal(
     <div className="dialogo-fondo" onMouseDown={(e) => { if (e.target === e.currentTarget && !procesando) onCancelar(); }}>
       <div
         ref={caja}
@@ -60,6 +62,7 @@ export default function ConfirmarDialogo({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

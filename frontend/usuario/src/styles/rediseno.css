@@ -359,3 +359,18 @@ html[data-tema='oscuro'] .chip-estado.estado-oculto { color: #f6c069; border-col
 }
 .mis-publicacion-foto .foto-pendiente { min-height: 0; gap: 0; font-size: 12px; text-align: center; }
 .mis-publicacion-foto .foto-pendiente small { display: none; }
+
+/* ---------- H18/H20: contacto, reclamo y notificaciones ---------- */
+.aviso-accion { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+.aviso-ok { background: var(--success-50); color: #067647; border: 1px solid #abefc6; }
+html[data-tema='oscuro'] .aviso-ok { color: #7ce3b2; border-color: #1f4a35; }
+.reclamo-objeto { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.coincidencia-contacto { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.notificaciones-ayuda { max-width: 720px; margin: 0 0 16px; }
+.notificacion-tipo {
+  align-self: flex-start; display: inline-block; margin-bottom: 4px;
+  padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--primary-50); color: var(--primary);
+}
+.notificacion-tipo.tipo-reclamo { background: var(--warning-50); color: #93370d; }
+html[data-tema='oscuro'] .notificacion-tipo.tipo-reclamo { color: #f6c069; }

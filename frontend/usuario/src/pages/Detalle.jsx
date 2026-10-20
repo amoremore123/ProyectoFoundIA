@@ -1,7 +1,8 @@
 import ImagenObjeto from '../components/ImagenObjeto';
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
+import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
@@ -30,11 +31,12 @@ export default function Detalle() {
   const [errorCoincidencias, setErrorCoincidencias] = useState('');
   const [reintentosCoincidencias, setReintentosCoincidencias] = useState(0);
   const [contactos, setContactos] = useState({});
-  const [contactoError, setContactoError] = useState('');
+  const [erroresContacto, setErroresContacto] = useState({});
   const [contactandoId, setContactandoId] = useState(null);
   const [reclamo, setReclamo] = useState('');
   const [reclamoError, setReclamoError] = useState('');
   const [reclamando, setReclamando] = useState(false);
+  const [confirmarReclamo, setConfirmarReclamo] = useState(false);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -54,8 +56,9 @@ export default function Detalle() {
     }
   }, [id]);
 
+  // H18: el error se muestra en la tarjeta de esa coincidencia y el botón queda para reintentar.
   const contactar = async (coincidencia) => {
-    setContactoError('');
+    setErroresContacto((e) => ({ ...e, [coincidencia.objetoId]: '' }));
     setContactandoId(coincidencia.objetoId);
     try {
       const respuesta = await iniciarContacto(objeto.id, coincidencia.objetoId);
@@ -64,12 +67,16 @@ export default function Detalle() {
         [coincidencia.objetoId]: respuesta.repetido ? 'repetido' : 'enviado',
       }));
     } catch (errorContacto) {
-      setContactoError(mensajeError(errorContacto, 'No se pudo iniciar el contacto'));
+      setErroresContacto((e) => ({
+        ...e,
+        [coincidencia.objetoId]: mensajeError(errorContacto, 'No se pudo enviar la solicitud de contacto'),
+      }));
     } finally {
       setContactandoId(null);
     }
   };
 
+  // H20: el reclamo avisa a otra persona, por eso se confirma antes de enviarlo.
   const reclamar = async () => {
     setReclamoError('');
     setReclamando(true);
@@ -80,6 +87,7 @@ export default function Detalle() {
       setReclamoError(mensajeError(errorReclamo, 'No se pudo enviar el reclamo'));
     } finally {
       setReclamando(false);
+      setConfirmarReclamo(false);
     }
   };
 
@@ -139,8 +147,9 @@ export default function Detalle() {
     : '—';
   const puedeContactar = Boolean(token && user && objeto.tipo === 'PERDIDO'
     && String(user.id) === String(objeto.publicadoPor?.id));
-  const puedeReclamar = Boolean(token && user && objeto.tipo === 'ENCONTRADO'
-    && objeto.estado === 'ACTIVO' && String(user.id) !== String(objeto.publicadoPor?.id));
+  const esReclamable = objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO';
+  const puedeReclamar = Boolean(token && user && esReclamable && String(user.id) !== String(objeto.publicadoPor?.id));
+  const reclamoSinSesion = esReclamable && !token;
 
   return (
     <div className="pagina">
@@ -178,24 +187,46 @@ export default function Detalle() {
           </div>
 
           {puedeReclamar && (reclamo ? (
-            <p role="status" className="nota-suave">
-              {reclamo === 'repetido' ? 'Ya habías enviado este reclamo.' : 'Reclamo enviado al propietario.'}
+            <p role="status" className="aviso-accion aviso-ok">
+              {reclamo === 'repetido'
+                ? 'Ya habías enviado este reclamo. Quien lo publicó ya fue avisado.'
+                : 'Reclamo enviado. Quien lo publicó recibió un aviso para coordinar la entrega contigo.'}
             </p>
           ) : (
             <div className="reclamo-objeto">
+              <p className="nota-suave">
+                ¿Es tuyo? Al reclamarlo, avisamos a quien lo encontró para que coordine la entrega contigo.
+                Tu correo no se comparte.
+              </p>
               {reclamoError && <MensajeError mensaje={reclamoError} />}
-              <button type="button" className="btn btn-secundario btn-bloque" disabled={reclamando} onClick={reclamar}>
-                {reclamando ? 'Enviando reclamo...' : 'Reclamar este objeto'}
+              <button
+                type="button"
+                className="btn btn-secundario btn-bloque"
+                disabled={reclamando}
+                onClick={() => { setReclamoError(''); setConfirmarReclamo(true); }}
+              >
+                Reclamar este objeto
               </button>
             </div>
           ))}
+
+          {reclamoSinSesion && (
+            <p className="nota-suave">
+              ¿Es tuyo? <Link to="/login">Inicia sesión para reclamar este objeto</Link> y avisaremos a quien lo encontró.
+            </p>
+          )}
 
         </div>
       </div>
 
       <section className="seccion">
         <h2>Coincidencias sugeridas</h2>
-        {contactoError && <MensajeError mensaje={contactoError} />}
+        {puedeContactar && (
+          <p className="nota-suave">
+            Si una coincidencia parece tu objeto, pulsa <strong>Contactar</strong>: quien lo encontró recibirá un aviso
+            de solicitud de contacto. Tu correo no se comparte.
+          </p>
+        )}
 
         {cargandoCoincidencias ? (
           <Cargando texto="Buscando coincidencias..." />
@@ -233,20 +264,27 @@ export default function Detalle() {
                 {puedeContactar && (
                   <div className="coincidencia-contacto">
                     {contactos[c.objetoId] ? (
-                      <p role="status" className="nota-suave">
+                      <p role="status" className="aviso-accion aviso-ok">
                         {contactos[c.objetoId] === 'repetido'
                           ? 'Ya habías enviado una solicitud de contacto.'
                           : 'Solicitud de contacto enviada.'}
                       </p>
                     ) : (
-                      <button
-                        type="button"
-                        className="btn btn-primario"
-                        disabled={contactandoId === c.objetoId}
-                        onClick={() => contactar(c)}
-                      >
-                        {contactandoId === c.objetoId ? 'Enviando...' : 'Contactar'}
-                      </button>
+                      <>
+                        {erroresContacto[c.objetoId] && (
+                          <p role="alert" className="campo-error">{erroresContacto[c.objetoId]}</p>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-primario"
+                          disabled={contactandoId === c.objetoId}
+                          onClick={() => contactar(c)}
+                        >
+                          {contactandoId === c.objetoId
+                            ? 'Enviando...'
+                            : erroresContacto[c.objetoId] ? 'Reintentar contacto' : 'Contactar'}
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -255,6 +293,16 @@ export default function Detalle() {
           </ul>
         )}
       </section>
+
+      <ConfirmarDialogo
+        abierto={confirmarReclamo}
+        titulo="¿Reclamar este objeto?"
+        mensaje={`Avisaremos a quien publicó "${objeto.nombre}" que crees que es tuyo, para que coordine la entrega contigo. Tu correo no se comparte.`}
+        textoConfirmar="Sí, reclamar"
+        procesando={reclamando}
+        onConfirmar={reclamar}
+        onCancelar={() => setConfirmarReclamo(false)}
+      />
     </div>
   );
 }
