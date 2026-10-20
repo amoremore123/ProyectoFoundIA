@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Publicar from './Publicar';
-import { crearObjeto, listarCategorias } from '../services/api';
+import { crearObjeto, listarCategorias, subirFotoObjeto } from '../services/api';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
 
 vi.mock('../services/api', async (importOriginal) => ({
-  ...await importOriginal(), crearObjeto: vi.fn(), listarCategorias: vi.fn(),
+  ...await importOriginal(), crearObjeto: vi.fn(), listarCategorias: vi.fn(), subirFotoObjeto: vi.fn(),
 }));
 vi.mock('../services/geolocalizacion', () => ({ obtenerUbicacionActual: vi.fn() }));
 
@@ -48,6 +48,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   listarCategorias.mockResolvedValue([{ id: 3, nombre: 'Mochila', estado: true }]);
   crearObjeto.mockResolvedValue({ id: 55 });
+  subirFotoObjeto.mockResolvedValue({ id: 99, url: '/uploads/foto.png' });
   obtenerUbicacionActual.mockResolvedValue(gps);
 });
 afterEach(cleanup);
@@ -70,6 +71,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     await rellenar(user);
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     await screen.findByText('Detalle de prueba');
+    expect(subirFotoObjeto).not.toHaveBeenCalled();
     expect(crearObjeto).toHaveBeenCalledWith({
       nombre: 'Mochila de prueba', descripcion: 'Objeto ficticio', categoriaId: 3,
       ubicacion: 'Biblioteca central', fechaObjeto: hoyISO(), tipo: 'PERDIDO',
@@ -319,5 +321,50 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     await screen.findByText('Detalle de prueba');
     expect(crearObjeto.mock.calls[0][0].descripcion).toBe(limite);
+  });
+
+  it('sube la foto seleccionada después de crear la publicación', async () => {
+    const user = userEvent.setup();
+    const foto = new File(['png de prueba'], 'mochila.png', { type: 'image/png' });
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await screen.findByText('Detalle de prueba');
+
+    expect(crearObjeto).toHaveBeenCalledTimes(1);
+    expect(subirFotoObjeto).toHaveBeenCalledWith(55, foto);
+  });
+
+  it('permite reintentar la carga fallida sin crear otra publicación', async () => {
+    const user = userEvent.setup();
+    const foto = new File(['png de prueba'], 'mochila.png', { type: 'image/png' });
+    subirFotoObjeto.mockRejectedValueOnce(new Error('sin conexión'));
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(await screen.findByText(/La publicación quedó guardada, pero no se pudo subir la foto/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Reintentar carga de foto' }));
+    await screen.findByText('Detalle de prueba');
+
+    expect(crearObjeto).toHaveBeenCalledTimes(1);
+    expect(subirFotoObjeto).toHaveBeenCalledTimes(2);
+  });
+
+  it('valida tipo y tamaño antes de enviar una foto', async () => {
+    renderizar();
+    const entrada = screen.getByLabelText('Foto (opcional)');
+    fireEvent.change(entrada, {
+      target: { files: [new File(['texto'], 'nota.txt', { type: 'text/plain' })] },
+    });
+    expect(await screen.findByText('Elige una imagen JPEG o PNG.')).toBeTruthy();
+    fireEvent.change(entrada, {
+      target: { files: [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.png', { type: 'image/png' })] },
+    });
+    expect(await screen.findByText('La imagen no debe superar los 5 MiB.')).toBeTruthy();
+    expect(subirFotoObjeto).not.toHaveBeenCalled();
   });
 });

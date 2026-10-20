@@ -3,14 +3,17 @@ package com.proyectointegrador.controller;
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
+import com.proyectointegrador.dto.FotoResponse;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
+import com.proyectointegrador.service.FotoService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,7 +25,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,9 +37,11 @@ import java.util.List;
 public class ObjetoController {
 
     private final ObjetoService objetoService;
+    private final FotoService fotoService;
 
-    public ObjetoController(ObjetoService objetoService) {
+    public ObjetoController(ObjetoService objetoService, FotoService fotoService) {
         this.objetoService = objetoService;
+        this.fotoService = fotoService;
     }
 
     @GetMapping("/buscar")
@@ -98,6 +105,13 @@ public class ObjetoController {
         UserPrincipal usuario = usuarioActual();
         objetoService.eliminar(id, usuario.getId(), usuario.getRol());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/fotos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FotoResponse> subirFoto(@PathVariable Long id,
+                                                   @RequestPart("archivo") MultipartFile archivo) {
+        FotoResponse foto = fotoService.agregar(id, usuarioActual().getId(), archivo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(foto);
     }
 
     private UserPrincipal usuarioActual() {

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -73,6 +74,16 @@ public class GlobalExceptionHandler {
                 ? "No tienes permiso para realizar esta operación"
                 : ex.getMessage();
         return build(HttpStatus.FORBIDDEN, mensaje, request);
+    }
+
+    @ExceptionHandler(ImagenInvalidaException.class)
+    public ResponseEntity<ApiError> handleImagenInvalida(ImagenInvalidaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleTamanoCarga(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "La imagen supera el máximo permitido de 5 MiB", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

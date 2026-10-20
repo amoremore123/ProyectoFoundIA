@@ -8,6 +8,7 @@ import com.proyectointegrador.entity.Rol;
 import com.proyectointegrador.exception.GlobalExceptionHandler;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
+import com.proyectointegrador.service.FotoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ObjetoControllerTest {
 
     private ObjetoService objetoService;
+    private FotoService fotoService;
     private MockMvc mockMvc;
 
     private static final String PUBLICACION_VALIDA = """
@@ -55,9 +57,10 @@ class ObjetoControllerTest {
     @BeforeEach
     void setUp() {
         objetoService = mock(ObjetoService.class);
+        fotoService = mock(FotoService.class);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new ObjetoController(objetoService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new ObjetoController(objetoService, fotoService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();

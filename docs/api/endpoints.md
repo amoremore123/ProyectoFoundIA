@@ -130,7 +130,7 @@ correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
 ### GET `/api/categorias`  _(público)_
 
-Devuelve el catálogo ordenado por id, incluidas las categorías desactivadas
+Devuelve el catálogo ordenado alfabéticamente por nombre, incluidas las categorías desactivadas
 (`estado = false`), para consultar publicaciones anteriores. En Inicio y
 búsqueda se identifican como "(desactivada)"; esta regla no cambia la publicación.
 
@@ -231,6 +231,22 @@ edición manual; si no hay geocodificación, se muestra el texto de las coordena
 
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token
+
+### POST `/api/objetos/{id}/fotos`  _(H2, JWT del autor)_
+
+Sube una imagen con `multipart/form-data`, parte `archivo`. Se admiten JPEG y PNG,
+hasta 5 MiB y 40 megapíxeles. El servidor identifica el formato real del archivo,
+no confía en el nombre ni en el `Content-Type`. Solo el autor de la publicación
+puede añadir fotos. El archivo se guarda con nombre generado en `UPLOAD_DIRECTORY`
+(por defecto `uploads/`) y la fila asociada se guarda en `fotos`; el endpoint
+público `/uploads/{nombre-generado}` permite mostrarla en el detalle y las tarjetas.
+En Docker, el directorio se conserva en el volumen `uploads_data`.
+
+**Response** `201 Created` `{ "id": 4, "url": "/uploads/<uuid>.png" }`
+
+**Errores**: `400` formato inválido o tamaño superior · `401` sin token · `403`
+la publicación es de otra persona · `404` objeto inexistente/eliminado.
+Una carga rechazada no crea la asociación ni deja archivo en disco.
 
 ### PUT `/api/objetos/{id}`  _(JWT — dueño o ADMIN)_
 

@@ -101,6 +101,13 @@ export const crearObjeto = async (payload) => {
   return data;
 };
 
+export const subirFotoObjeto = async (id, archivo) => {
+  const formulario = new FormData();
+  formulario.append('archivo', archivo);
+  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario);
+  return data;
+};
+
 export const eliminarObjeto = async (id) => {
   await api.delete(`/api/objetos/${id}`);
 };

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
-import { crearObjeto, mensajeError, statusDe } from '../services/api';
+import { crearObjeto, mensajeError, statusDe, subirFotoObjeto } from '../services/api';
 import useCategorias from '../hooks/useCategorias';
 import { MAX_DESCRIPCION, largoEnCaracteres } from '../utils/validaciones';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
@@ -21,6 +21,8 @@ const hoyISO = () => {
   return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
 };
 
+const MAX_FOTO_BYTES = 5 * 1024 * 1024;
+
 export default function Publicar() {
   const navigate = useNavigate();
   const { mostrarToast } = useToast();
@@ -31,6 +33,9 @@ export default function Publicar() {
   const [errores, setErrores] = useState({});
   const [errorGeneral, setErrorGeneral] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [archivoFoto, setArchivoFoto] = useState(null);
+  const [errorFoto, setErrorFoto] = useState('');
+  const [publicacionCreada, setPublicacionCreada] = useState(null);
   const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
   const [ubicando, setUbicando] = useState(false);
   const [avisoUbicacion, setAvisoUbicacion] = useState('');
@@ -51,6 +56,28 @@ export default function Publicar() {
       setAvisoUbicacion('');
       setUbicando(false);
     }
+  };
+
+  const seleccionarFoto = (e) => {
+    const archivo = e.target.files?.[0] || null;
+    setErrorFoto('');
+    if (!archivo) {
+      setArchivoFoto(null);
+      return;
+    }
+    if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
+      setArchivoFoto(null);
+      setErrorFoto('Elige una imagen JPEG o PNG.');
+      e.target.value = '';
+      return;
+    }
+    if (archivo.size > MAX_FOTO_BYTES) {
+      setArchivoFoto(null);
+      setErrorFoto('La imagen no debe superar los 5 MiB.');
+      e.target.value = '';
+      return;
+    }
+    setArchivoFoto(archivo);
   };
 
   const usarMiUbicacion = async () => {
@@ -118,17 +145,29 @@ export default function Publicar() {
 
     setEnviando(true);
     try {
-      const payload = {
-        nombre: form.nombre.trim(),
-        descripcion: form.descripcion.trim(),
-        categoriaId: Number(form.categoriaId),
-        ubicacion: form.ubicacion.trim(),
-        fechaObjeto: form.fechaObjeto,
-        tipo,
-        latitud: coordenadas.latitud,
-        longitud: coordenadas.longitud,
-      };
-      const creado = await crearObjeto(payload);
+      let creado = publicacionCreada;
+      if (!creado) {
+        const payload = {
+          nombre: form.nombre.trim(),
+          descripcion: form.descripcion.trim(),
+          categoriaId: Number(form.categoriaId),
+          ubicacion: form.ubicacion.trim(),
+          fechaObjeto: form.fechaObjeto,
+          tipo,
+          latitud: coordenadas.latitud,
+          longitud: coordenadas.longitud,
+        };
+        creado = await crearObjeto(payload);
+        setPublicacionCreada(creado);
+      }
+      if (archivoFoto) {
+        try {
+          await subirFotoObjeto(creado.id, archivoFoto);
+        } catch (errorCarga) {
+          setErrorGeneral(`La publicación quedó guardada, pero no se pudo subir la foto: ${mensajeError(errorCarga, 'Error de carga')}`);
+          return;
+        }
+      }
       mostrarToast(
         tipo === 'PERDIDO'
           ? 'Tu objeto perdido ya está publicado. Te avisaremos si aparece una coincidencia.'
@@ -279,14 +318,29 @@ export default function Publicar() {
           {avisoUbicacion && <span className="campo-error">{avisoUbicacion}</span>}
         </div>
 
-        <div className="proximamente">
-          <Icono nombre="camara" tamano={20} />
-          <span>Foto — próximamente</span>
-        </div>
+        <label className="campo">
+          <span className="campo-label">Foto (opcional)</span>
+          <input
+            type="file"
+            className="input"
+            accept="image/jpeg,image/png"
+            aria-label="Foto (opcional)"
+            onChange={seleccionarFoto}
+            disabled={enviando}
+          />
+          <span className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
+          {archivoFoto && <span className="nota-suave">Seleccionada: {archivoFoto.name}</span>}
+          {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
+        </label>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
-          {enviando ? 'Publicando...' : 'PUBLICAR OBJETO'}
+          {enviando ? 'Guardando...' : publicacionCreada && archivoFoto ? 'Reintentar carga de foto' : 'PUBLICAR OBJETO'}
         </button>
+        {publicacionCreada && archivoFoto && !enviando && (
+          <button type="button" className="btn btn-secundario btn-bloque" onClick={() => navigate(`/objeto/${publicacionCreada.id}`, { replace: true })}>
+            Continuar sin foto
+          </button>
+        )}
       </form>
     </div>
   );
