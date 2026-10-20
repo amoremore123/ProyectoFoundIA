@@ -252,6 +252,7 @@ export default function Detalle() {
                   </span>
                 </div>
                 <h3 className="coincidencia-nombre">{c.nombre}</h3>
+                {c.coincidenciaId && <Link className="btn btn-secundario" to={`/coincidencias/${encodeURIComponent(c.coincidenciaId)}`}>Comparar objetos</Link>}
                 <p className="objeto-card-linea"><Icono nombre="ubicacion" tamano={14} /> {c.ubicacion || 'Sin ubicación'}</p>
                 <p className="objeto-card-linea"><Icono nombre="calendario" tamano={14} /> {fechaLarga(c.fechaObjeto)}</p>
                 <div className="coincidencia-barra">
@@ -260,7 +261,7 @@ export default function Detalle() {
                     style={{ width: `${Math.max(0, Math.min(100, Number(c.porcentaje) || 0))}%` }}
                   />
                 </div>
-                <span className="coincidencia-porcentaje">{Number(c.porcentaje) || 0}% de coincidencia</span>
+                <span className="coincidencia-porcentaje">{Number(c.porcentaje) || 0}% de similitud</span>
                 {puedeContactar && (
                   <div className="coincidencia-contacto">
                     {contactos[c.objetoId] ? (

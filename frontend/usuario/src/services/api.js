@@ -138,6 +138,11 @@ export const getCoincidencias = async (id) => {
   return data;
 };
 
+export const getDetalleCoincidencia = async (id, { signal } = {}) => {
+  const { data } = await api.get(`/api/coincidencias/${encodeURIComponent(id)}`, { signal });
+  return data;
+};
+
 // Asistente con IA: el backend interpreta el mensaje con Claude (la API key vive solo en el servidor).
 // Es público y opcional: va sin token ni interceptores para que un error nunca cierre la sesión.
 export const interpretarConIA = async (mensaje, { signal } = {}) => {

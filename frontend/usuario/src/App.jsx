@@ -12,6 +12,7 @@ import Verificar from './pages/Verificar';
 import Buscar from './pages/Buscar';
 import Publicar from './pages/Publicar';
 import Detalle from './pages/Detalle';
+import DetalleCoincidencia from './pages/DetalleCoincidencia';
 import Perfil from './pages/Perfil';
 import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
@@ -39,6 +40,7 @@ export default function App() {
                 <Route path="/historial" element={EXTRAS_HABILITADOS ? <HistorialObjetos /> : <Navigate to="/explorar" replace />} />
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
+                <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route
                   path="/publicar"
                   element={
