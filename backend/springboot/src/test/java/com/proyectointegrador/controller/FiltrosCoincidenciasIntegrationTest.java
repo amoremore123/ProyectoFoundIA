@@ -114,6 +114,19 @@ class FiltrosCoincidenciasIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1)).andExpect(jsonPath("$[0].id").value(cerca.getId()));
     }
     @Test void categoriaInexistenteSigueSiendo404() throws Exception {api.perform(get("/api/objetos/buscar?categoriaId=999999")).andExpect(status().isNotFound());}
+    @Test void coincidenciasUsanCuatroCriteriosOrdenanYNoDuplicanLecturas() throws Exception {
+        for(int i=0;i<2;i++)api.perform(get("/api/objetos/"+base.getId()+"/coincidencias")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2)).andExpect(jsonPath("$[0].objetoId").value(similar.getId()))
+                .andExpect(jsonPath("$[0].porcentaje").value(100)).andExpect(jsonPath("$[0].nivel").value("ALTA"))
+                .andExpect(jsonPath("$[0].coincidenciaId").value(par())).andExpect(jsonPath("$[1].nivel").value("MEDIA"));
+        assertThat(coincidencias.count()).isZero();
+    }
+    @Test void ocultosEliminadosYRecuperadosNoSonCoincidencias() throws Exception {
+        for(var estado:new EstadoObjeto[]{EstadoObjeto.OCULTO,EstadoObjeto.ELIMINADO,EstadoObjeto.RECUPERADO}) {
+            similar.setEstado(estado);objetos.flush();
+            api.perform(get("/api/objetos/"+base.getId()+"/coincidencias")).andExpect(jsonPath("$.length()").value(1));
+        }
+    }
     @Test
     void desdeSoloIncluyeSuExtremoYRecuperadosSiguenSiendoPublicos() throws Exception {
         cerca.setEstado(EstadoObjeto.RECUPERADO);
@@ -134,4 +147,26 @@ class FiltrosCoincidenciasIntegrationTest {
                 .andExpect(jsonPath("$[0].id").value(cerca.getId()));
     }
 
+    @Test
+    void cuarentaPuntosEsElUmbralYUnaBaseRecuperadaNoSugiere() throws Exception {
+        var baja = objeto("Candado", TipoObjeto.ENCONTRADO, luis, null, hoy, null, null);
+        var insuficiente = objeto("Llavero", TipoObjeto.ENCONTRADO, luis, null, hoy.minusDays(4), null, null);
+        objetos.flush();
+        api.perform(get("/api/objetos/" + base.getId() + "/coincidencias"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[2].objetoId").value(baja.getId()))
+                .andExpect(jsonPath("$[2].porcentaje").value(40)).andExpect(jsonPath("$[2].nivel").value("BAJA"));
+        base.setEstado(EstadoObjeto.RECUPERADO);
+        objetos.flush();
+        api.perform(get("/api/objetos/" + base.getId() + "/coincidencias"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void desdeUnHallazgoSeResuelveLaMismaParejaYPuntuacion() throws Exception {
+        api.perform(get("/api/objetos/" + similar.getId() + "/coincidencias"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].objetoId").value(base.getId()))
+                .andExpect(jsonPath("$[0].coincidenciaId").value(par()))
+                .andExpect(jsonPath("$[0].porcentaje").value(100));
+    }
 }

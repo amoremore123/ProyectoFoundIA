@@ -48,6 +48,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class BusquedaObjetosIntegrationTest {
     @Autowired
+    private CoincidenciaService coincidenciaService;
+    @Autowired
     private BusquedaService busquedaService;
     @Autowired
     private EntityManager entityManager;
@@ -468,7 +470,7 @@ class BusquedaObjetosIntegrationTest {
         for (Objeto objeto : List.of(oculto, eliminado)) {
             assertThatThrownBy(() -> objetoService.obtener(objeto.getId()))
                     .isInstanceOf(ResourceNotFoundException.class);
-            assertThatThrownBy(() -> objetoService.coincidencias(objeto.getId()))
+            assertThatThrownBy(() -> coincidenciaService.listar(objeto.getId()))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
         assertThat(objetoService.obtener(recuperado.getId()).id()).isEqualTo(recuperado.getId());

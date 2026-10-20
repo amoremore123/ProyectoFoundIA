@@ -12,6 +12,7 @@ import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
 import com.proyectointegrador.service.FotoService;
 import com.proyectointegrador.service.BusquedaService;
+import com.proyectointegrador.service.CoincidenciaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,12 +41,14 @@ public class ObjetoController {
     private final ObjetoService objetoService;
     private final FotoService fotoService;
     private final BusquedaService busquedaService;
+    private final CoincidenciaService coincidenciaService;
 
     public ObjetoController(ObjetoService objetoService, FotoService fotoService,
-                            BusquedaService busquedaService) {
+                            BusquedaService busquedaService, CoincidenciaService coincidenciaService) {
         this.objetoService = objetoService;
         this.fotoService = fotoService;
         this.busquedaService = busquedaService;
+        this.coincidenciaService = coincidenciaService;
     }
 
     @GetMapping("/buscar")
@@ -70,7 +73,7 @@ public class ObjetoController {
 
     @GetMapping("/{id}/coincidencias")
     public ResponseEntity<List<CoincidenciaSugeridaResponse>> coincidencias(@PathVariable Long id) {
-        return ResponseEntity.ok(objetoService.coincidencias(id));
+        return ResponseEntity.ok(coincidenciaService.listar(id));
     }
 
     @GetMapping("/{id}")

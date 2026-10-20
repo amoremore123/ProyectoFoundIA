@@ -11,6 +11,7 @@ import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
 import com.proyectointegrador.service.FotoService;
 import com.proyectointegrador.service.BusquedaService;
+import com.proyectointegrador.service.CoincidenciaService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,7 +66,7 @@ class ObjetoControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(new ObjetoController(objetoService, fotoService,
-                        busquedaService))
+                        busquedaService, mock(CoincidenciaService.class)))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
