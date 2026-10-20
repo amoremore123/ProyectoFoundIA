@@ -1,5 +1,6 @@
 package com.proyectointegrador.service;
 
+import com.proyectointegrador.dto.CoincidenciaDetalleResponse;
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
@@ -65,7 +66,43 @@ public class CoincidenciaService {
                 BigDecimal.valueOf(total), nivel(total), clave);
     }
 
+    @Transactional(readOnly = true)
+    public CoincidenciaDetalleResponse detalle(String id) {
+        long[] par = identificar(id);
+        Objeto perdido = publico(par[0]);
+        Objeto encontrado = publico(par[1]);
+        if (perdido.getEstado() != EstadoObjeto.ACTIVO || encontrado.getEstado() != EstadoObjeto.ACTIVO
+                || perdido.getTipo() != TipoObjeto.PERDIDO || encontrado.getTipo() != TipoObjeto.ENCONTRADO
+                || !perdido.getCategoria().getId().equals(encontrado.getCategoria().getId())
+                || perdido.getUsuario().getId().equals(encontrado.getUsuario().getId())) {
+            throw noDisponible();
+        }
+        Map<String, Integer> puntos = criterios(perdido, encontrado);
+        int total = puntos.values().stream().mapToInt(Integer::intValue).sum();
+        if (total < UMBRAL_SIMILITUD) {
+            throw noDisponible();
+        }
+        return new CoincidenciaDetalleResponse(perdido.getId() + "-" + encontrado.getId(),
+                objetoService.toResponse(perdido), objetoService.toResponse(encontrado),
+                BigDecimal.valueOf(total), nivel(total), puntos);
+    }
 
+    private long[] identificar(String id) {
+        try {
+            if (id.matches("[1-9][0-9]*-[1-9][0-9]*")) {
+                String[] partes = id.split("-");
+                return new long[]{Long.parseLong(partes[0]), Long.parseLong(partes[1])};
+            }
+            if (!id.matches("[1-9][0-9]*")) {
+                throw noDisponible();
+            }
+            // Compatibilidad con coincidencias ya persistidas en el esquema compartido.
+            var coincidencia = coincidenciaRepository.findById(Long.parseLong(id)).orElseThrow(this::noDisponible);
+            return new long[]{coincidencia.getObjetoPerdido().getId(), coincidencia.getObjetoEncontrado().getId()};
+        } catch (NumberFormatException ex) {
+            throw noDisponible();
+        }
+    }
 
     private Objeto publico(Long id) {
         Objeto objeto = objetoRepository.findById(id).orElseThrow(this::noDisponible);

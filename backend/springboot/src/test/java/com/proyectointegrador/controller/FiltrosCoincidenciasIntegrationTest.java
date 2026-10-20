@@ -121,12 +121,29 @@ class FiltrosCoincidenciasIntegrationTest {
                 .andExpect(jsonPath("$[0].coincidenciaId").value(par())).andExpect(jsonPath("$[1].nivel").value("MEDIA"));
         assertThat(coincidencias.count()).isZero();
     }
+    @Test void detalleComparaAmbosPublicosSinContactoPrivado() throws Exception {
+        String cuerpo=api.perform(get("/api/coincidencias/"+par())).andExpect(status().isOk())
+                .andExpect(jsonPath("$.perdido.id").value(base.getId())).andExpect(jsonPath("$.encontrado.id").value(similar.getId()))
+                .andExpect(jsonPath("$.criterios.nombre").value(40)).andExpect(jsonPath("$.criterios.categoria").value(25))
+                .andExpect(jsonPath("$.criterios.ubicacion").value(20)).andExpect(jsonPath("$.criterios.fecha").value(15))
+                .andExpect(jsonPath("$.perdido.fotos").isArray()).andReturn().getResponse().getContentAsString();
+        assertThat(cuerpo).doesNotContain("@qa.invalid","Privado","password","correo");
+    }
     @Test void ocultosEliminadosYRecuperadosNoSonCoincidencias() throws Exception {
         for(var estado:new EstadoObjeto[]{EstadoObjeto.OCULTO,EstadoObjeto.ELIMINADO,EstadoObjeto.RECUPERADO}) {
             similar.setEstado(estado);objetos.flush();
+            api.perform(get("/api/coincidencias/"+par())).andExpect(status().isNotFound());
             api.perform(get("/api/objetos/"+base.getId()+"/coincidencias")).andExpect(jsonPath("$.length()").value(1));
         }
     }
+    @Test void mismaPersonaCategoriaDistintaOTipoInvertidoNoValen() throws Exception {
+        api.perform(get("/api/coincidencias/"+similar.getId()+"-"+base.getId())).andExpect(status().isNotFound());
+        similar.setUsuario(ana);objetos.flush();api.perform(get("/api/coincidencias/"+par())).andExpect(status().isNotFound());
+        similar.setUsuario(luis);similar.setCategoria(cerca.getCategoria());objetos.flush();api.perform(get("/api/coincidencias/"+par())).andExpect(status().isNotFound());
+    }
+    @ParameterizedTest @ValueSource(strings={"abc","-1","0-1","999999999999999999999-1","1-99999999"})
+    void identificadorInvalidoNoExponeDatos(String id) throws Exception {api.perform(get("/api/coincidencias/"+id)).andExpect(status().isNotFound());}
+
     @Test
     void desdeSoloIncluyeSuExtremoYRecuperadosSiguenSiendoPublicos() throws Exception {
         cerca.setEstado(EstadoObjeto.RECUPERADO);
@@ -156,10 +173,46 @@ class FiltrosCoincidenciasIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[2].objetoId").value(baja.getId()))
                 .andExpect(jsonPath("$[2].porcentaje").value(40)).andExpect(jsonPath("$[2].nivel").value("BAJA"));
+        api.perform(get("/api/coincidencias/" + base.getId() + "-" + insuficiente.getId()))
+                .andExpect(status().isNotFound());
         base.setEstado(EstadoObjeto.RECUPERADO);
         objetos.flush();
         api.perform(get("/api/objetos/" + base.getId() + "/coincidencias"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void idPersistidoResuelveLaMismaParejaYRecalculaSinEscribir() throws Exception {
+        var guardada = new Coincidencia();
+        guardada.setObjetoPerdido(base);
+        guardada.setObjetoEncontrado(similar);
+        guardada.setPorcentaje(new BigDecimal("65"));
+        guardada.setNivel(NivelCoincidencia.MEDIA);
+        coincidencias.saveAndFlush(guardada);
+        api.perform(get("/api/coincidencias/" + guardada.getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(par()))
+                .andExpect(jsonPath("$.porcentaje").value(100)).andExpect(jsonPath("$.nivel").value("ALTA"));
+        assertThat(guardada.getPorcentaje()).isEqualByComparingTo("65");
+        assertThat(coincidencias.count()).isEqualTo(1);
+    }
+
+    @Test
+    void detalleRecuperaLasFotosDeCadaObjetoSinConfundirLaPareja() throws Exception {
+        var fotoPerdida = new Foto();
+        fotoPerdida.setObjeto(base);
+        fotoPerdida.setUrl("/uploads/qa-perdido.png");
+        datos.persist(fotoPerdida);
+        var fotoEncontrada = new Foto();
+        fotoEncontrada.setObjeto(similar);
+        fotoEncontrada.setUrl("/uploads/qa-encontrado.jpg");
+        datos.persist(fotoEncontrada);
+        datos.flush();
+        datos.clear();
+        api.perform(get("/api/coincidencias/" + par()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.perdido.fotos[0].url").value(fotoPerdida.getUrl()))
+                .andExpect(jsonPath("$.encontrado.fotos[0].url").value(fotoEncontrada.getUrl()));
+        api.perform(get("/api/coincidencias/" + base.getId())).andExpect(status().isNotFound());
     }
 
     @Test
