@@ -316,3 +316,14 @@ html[data-tema='oscuro'] .punto-campus::before { background: linear-gradient(120
 .objeto-card-cuerpo { flex: 1; }
 .objeto-card-ver { margin-top: auto; padding-top: 8px; }
 .imagen-referencial-etiqueta { font-size: 11px; padding: 3px 9px; }
+
+/* ---------- H13: perfil, cambio de contraseña ---------- */
+.perfil-password {
+  display: flex; flex-direction: column; gap: 12px;
+  margin: 4px 0 0; padding: 16px; min-width: 0;
+  border: 1px solid var(--border); border-radius: 14px;
+}
+.perfil-password legend { padding: 0 6px; }
+.perfil-password .nota-suave { margin: -4px 0 0; }
+.perfil-botones { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.perfil-botones .btn { flex: 1 1 140px; }

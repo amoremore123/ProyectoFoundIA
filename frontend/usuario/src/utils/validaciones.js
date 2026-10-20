@@ -51,3 +51,36 @@ export function validarRegistro({ nombre, apellido, correo, password, confirmar 
 
   return errores;
 }
+
+export const MAX_NOMBRE_PERSONA = 100;
+
+/**
+ * H13 - Edición del perfil propio (mismas reglas que PUT /api/perfil).
+ * La contraseña es opcional: si se escribe una nueva, debe cumplir las reglas
+ * del registro, confirmarse e ir acompañada de la contraseña actual.
+ */
+export function validarPerfil({ nombre, apellido, password, confirmar, passwordActual }) {
+  const errores = {};
+
+  if (!nombre.trim()) errores.nombre = 'El nombre es obligatorio.';
+  else if (nombre.trim().length > MAX_NOMBRE_PERSONA) errores.nombre = `El nombre no debe superar los ${MAX_NOMBRE_PERSONA} caracteres.`;
+  else if (!SOLO_LETRAS.test(nombre.trim())) errores.nombre = 'El nombre solo puede contener letras.';
+
+  if (!apellido.trim()) errores.apellido = 'El apellido es obligatorio.';
+  else if (apellido.trim().length > MAX_NOMBRE_PERSONA) errores.apellido = `El apellido no debe superar los ${MAX_NOMBRE_PERSONA} caracteres.`;
+  else if (!SOLO_LETRAS.test(apellido.trim())) errores.apellido = 'El apellido solo puede contener letras.';
+
+  const cambiaPassword = Boolean(password || confirmar);
+  if (cambiaPassword) {
+    if (!password) errores.password = 'Escribe la nueva contraseña.';
+    else if (bytesUtf8(password) > 72) errores.password = 'La contraseña no debe superar los 72 bytes en UTF-8.';
+    else if (!passwordEsSegura(password)) errores.password = 'La contraseña no cumple todos los requisitos.';
+
+    if (!confirmar) errores.confirmar = 'Confirma la nueva contraseña.';
+    else if (confirmar !== password) errores.confirmar = 'Las contraseñas no coinciden.';
+
+    if (!passwordActual) errores.passwordActual = 'Para cambiar la contraseña, escribe tu contraseña actual.';
+  }
+
+  return errores;
+}
