@@ -383,7 +383,19 @@ del usuario en la web.
 
 ### GET `/api/perfil/objetos`
 
-**Response** `200 OK` — publicaciones propias (incluye `ELIMINADO`).
+**Response** `200 OK` — publicaciones **del usuario del token** (H14), más recientes primero,
+con fotos, categoría y `estado` (`ACTIVO`, `RECUPERADO`, `OCULTO` o `ELIMINADO`). Una cuenta
+sin publicaciones recibe `[]`. No hay ruta para pedir las publicaciones de otra persona por `id`.
+
+Acciones que ofrece la pantalla "Mis publicaciones" (mismas reglas que la API de H5):
+
+| Estado | Editar | Eliminar |
+| --- | --- | --- |
+| `ACTIVO`, `RECUPERADO` | Sí | Sí (lógico, con confirmación) |
+| `OCULTO` (lo ocultó un ADMIN) | Sí | No |
+| `ELIMINADO` | No | No |
+
+**Errores**: `401` sin token.
 
 ---
 
@@ -461,12 +473,27 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 
 | Recurso                          | Rutas                                     | Notas                                        |
 | -------------------------------- | ----------------------------------------- | -------------------------------------------- |
-| Usuarios                         | `GET/POST /api/admin/usuarios/` · `GET/PUT/PATCH/DELETE /api/admin/usuarios/{id}/` | `PATCH { "estado": "SUSPENDIDO" }` para suspender |
+| Usuarios _(H15)_                 | `GET /api/admin/usuarios/` · `GET/PATCH /api/admin/usuarios/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "SUSPENDIDO" }` |
 | Categorías                       | `GET/POST /api/admin/categorias/` · `GET/PUT/PATCH/DELETE /api/admin/categorias/{id}/` | `PATCH { "estado": false }` para desactivar  |
-| Publicaciones (objetos)          | `GET/POST /api/admin/publicaciones/` · `GET/PUT/PATCH/DELETE /api/admin/publicaciones/{id}/` | `PATCH { "estado": "OCULTO" }` para ocultar  |
+| Publicaciones (objetos) _(H15)_  | `GET /api/admin/publicaciones/` · `GET/PATCH /api/admin/publicaciones/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "OCULTO" \| "ELIMINADO" }` |
 | Reportes                         | `GET/POST /api/admin/reportes/` · `GET/PUT/PATCH/DELETE /api/admin/reportes/{id}/` | `PATCH { "estado": "RESUELTO", "fechaResolucion": "2026-10-04T12:00:00" }` |
 
-**Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe
+**Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe · `405` método no permitido
+
+#### Reglas de H15 (usuarios y publicaciones)
+
+- **Solo ADMIN activo.** Visitante = 401; cuenta USUARIO = 403 (también por URL o API directa).
+  Un ADMIN suspendido pierde el acceso en la siguiente petición.
+- **Solo se cambia el estado.** Cualquier otro campo (`rol`, `correo`, `nombre`, `password`,
+  contenido de la publicación) o un estado no permitido devuelve `400` y no guarda nada.
+- **No se crean ni se borran filas.** `POST`, `PUT` y `DELETE` responden `405`.
+  Eliminar una publicación es **lógico**: `PATCH { "estado": "ELIMINADO" }`. La fila se conserva
+  y deja de verse en búsqueda, detalle público y coincidencias. Una eliminada no se vuelve a mostrar.
+- **El ADMIN no puede suspender su propia cuenta** (`400`), para no quedar sin acceso al panel.
+- Suspender a un usuario invalida su sesión abierta en Spring (`401`) y le impide iniciar sesión;
+  al reactivarlo vuelve a entrar.
+- Las listas están paginadas de 10 en 10 (`count`, `next`, `results`); el panel recorre todas las páginas.
+- Pruebas: `python manage.py test nucleo --settings=config.settings_test` (SQLite en memoria).
 
 ---
 
