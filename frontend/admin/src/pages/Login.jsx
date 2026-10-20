@@ -1,17 +1,24 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
 
+// H15: motivo por el que el panel cerró la sesión (lo envía el interceptor de la API).
+const MOTIVOS = {
+  'sin-permiso': 'Tu cuenta ya no tiene permisos de administrador o fue suspendida. Se cerró la sesión del panel.',
+  'sesion-vencida': 'Tu sesión venció. Vuelve a iniciar sesión.',
+};
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(MOTIVOS[params.get('motivo')] || '');
   const [enviando, setEnviando] = useState(false);
 
   const enviar = async (e) => {
