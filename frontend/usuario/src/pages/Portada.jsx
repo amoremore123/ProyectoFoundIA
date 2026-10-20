@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CifrasComunidad from '../components/CifrasComunidad';
 import ExplorarVisual from '../components/ExplorarVisual';
 import HistorialObjetos from '../components/HistorialObjetos';
@@ -11,13 +11,16 @@ import CarruselHorizontal from '../components/CarruselHorizontal';
 import PerfilComunidad from '../components/PerfilComunidad';
 import PuntosCampus from '../components/PuntosCampus';
 import { useAsistente } from '../context/AsistenteContext';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 export default function Portada() {
   const { abrir } = useAsistente();
+  const navigate = useNavigate();
   const [pregunta, setPregunta] = useState('');
   const buscar = (event) => {
     event.preventDefault();
-    abrir(pregunta);
+    if (EXTRAS_HABILITADOS) abrir(pregunta);
+    else navigate(`/buscar?q=${encodeURIComponent(pregunta.trim())}`);
     setPregunta('');
   };
 
@@ -32,8 +35,8 @@ export default function Portada() {
       </div>
       <form className="portada-pregunta" onSubmit={buscar}>
         <Icono nombre="buscar" tamano={20} className="portada-pregunta-icono" />
-        <input className="portada-pregunta-input" value={pregunta} onChange={(event) => setPregunta(event.target.value)} placeholder="Ej. Dejé mi mochila en la biblioteca" aria-label="Describe lo que perdiste para el asistente" />
-        <button type="submit" className="btn btn-primario">Ayúdame a buscar</button>
+        <input className="portada-pregunta-input" value={pregunta} onChange={(event) => setPregunta(event.target.value)} placeholder={EXTRAS_HABILITADOS ? 'Ej. Dejé mi mochila en la biblioteca' : 'Ej. mochila'} aria-label={EXTRAS_HABILITADOS ? 'Describe lo que perdiste para el asistente' : 'Buscar objeto por palabras clave'} />
+        <button type="submit" className="btn btn-primario">{EXTRAS_HABILITADOS ? 'Ayúdame a buscar' : 'Buscar objetos'}</button>
       </form>
       <div className="buscador-portada-pie">
         <ul className="buscador-rapidos" aria-label="Búsquedas frecuentes">
@@ -42,23 +45,23 @@ export default function Portada() {
           ))}
         </ul>
         <div className="portada-acciones">
-          <Link to="/historial">Ver historial de objetos <Icono nombre="flechaDer" tamano={14} className="icono-enlace" /></Link>
+          <Link to={EXTRAS_HABILITADOS ? '/historial' : '/explorar'}>{EXTRAS_HABILITADOS ? 'Ver historial de objetos' : 'Ver publicaciones'} <Icono nombre="flechaDer" tamano={14} className="icono-enlace" /></Link>
           <Link to="/publicar">Publicar un objeto <Icono nombre="flechaDer" tamano={14} className="icono-enlace" /></Link>
         </div>
       </div>
     </section>
 
-    <CifrasComunidad />
+    {EXTRAS_HABILITADOS && <CifrasComunidad />}
 
-    <CarruselHorizontal etiqueta="publicaciones">
+    {EXTRAS_HABILITADOS && <CarruselHorizontal etiqueta="publicaciones">
       <HistorialObjetos resumen />
-    </CarruselHorizontal>
+    </CarruselHorizontal>}
 
     <CarruselHorizontal etiqueta="objetos">
       <ExplorarVisual />
     </CarruselHorizontal>
 
-    <PerfilComunidad />
+    {EXTRAS_HABILITADOS && <PerfilComunidad />}
     <PuntosCampus />
     <GuiaCampus />
 
@@ -69,7 +72,7 @@ export default function Portada() {
 
     <footer className="portada-footer">
       <div className="portada-footer-marca"><Logo tamano={28} /><p>Objetos perdidos y encontrados en la comunidad Tecsup.</p></div>
-      <nav className="portada-footer-links" aria-label="Enlaces del sitio"><Link to="/historial">Historial</Link><Link to="/buscar">Buscar</Link><a href="#como-funciona">Cómo funciona</a><a href="#preguntas-frecuentes">Preguntas frecuentes</a></nav>
+      <nav className="portada-footer-links" aria-label="Enlaces del sitio"><Link to={EXTRAS_HABILITADOS ? '/historial' : '/explorar'}>{EXTRAS_HABILITADOS ? 'Historial' : 'Publicaciones'}</Link><Link to="/buscar">Buscar</Link><a href="#como-funciona">Cómo funciona</a><a href="#preguntas-frecuentes">Preguntas frecuentes</a></nav>
       <p className="portada-footer-legal">© 2026 FoundIA · Proyecto integrador Tecsup</p>
     </footer>
   </div>;

@@ -9,6 +9,7 @@ import Usuarios from './pages/Usuarios';
 import Publicaciones from './pages/Publicaciones';
 import Reportes from './pages/Reportes';
 import Categorias from './pages/Categorias';
+import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
   const { token } = useAuth();
@@ -34,8 +35,8 @@ export default function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/publicaciones" element={<Publicaciones />} />
-                <Route path="/reportes" element={<Reportes />} />
-                <Route path="/categorias" element={<Categorias />} />
+                {EXTRAS_HABILITADOS && <Route path="/reportes" element={<Reportes />} />}
+                {EXTRAS_HABILITADOS && <Route path="/categorias" element={<Categorias />} />}
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

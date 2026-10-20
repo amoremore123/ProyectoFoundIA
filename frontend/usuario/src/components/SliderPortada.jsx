@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icono from './Icono';
 import { useAsistente } from '../context/AsistenteContext';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 const INTERVALO = 6500;
 
@@ -30,7 +31,7 @@ const DIAPOSITIVAS = [
     texto: 'Descríbelo con tus palabras y el asistente busca publicaciones parecidas.',
     accion: { texto: 'Hablar con el asistente', asistente: true },
   },
-];
+].filter((diapositiva) => EXTRAS_HABILITADOS || !diapositiva.accion.asistente);
 
 const movimientoReducido = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

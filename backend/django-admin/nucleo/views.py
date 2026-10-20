@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 
 import bcrypt
 import jwt
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -97,14 +98,16 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated, EsAdmin]
 
     def get(self, request):
-        return Response(
-            {
-                "usuarios": Usuario.objects.count(),
-                "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+        datos = {
+            "usuarios": Usuario.objects.count(),
+            "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+        }
+        if settings.HABILITAR_EXTRAS:
+            datos.update({
                 "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
                 "categorias": Categoria.objects.count(),
-            }
-        )
+            })
+        return Response(datos)
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):

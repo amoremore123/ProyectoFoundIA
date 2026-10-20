@@ -4,13 +4,16 @@ import { useTema } from '../context/TemaContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 const menu = [
   { to: '/', icono: 'panel', label: 'Dashboard', exact: true },
   { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
   { to: '/publicaciones', icono: 'caja', label: 'Publicaciones' },
-  { to: '/reportes', icono: 'bandera', label: 'Reportes' },
-  { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
+  ...(EXTRAS_HABILITADOS ? [
+    { to: '/reportes', icono: 'bandera', label: 'Reportes' },
+    { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
+  ] : []),
 ];
 
 export default function AdminLayout() {

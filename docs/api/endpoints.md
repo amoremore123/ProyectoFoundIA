@@ -1,5 +1,11 @@
 # API — Endpoints
 
+> Entrega Sprint 1 (H1–H20): las rutas Django de reportes y gestión de
+> categorías, y el admin general `/admin/`, se conservan documentados pero
+> están deshabilitados por defecto. Se reactivan con `HABILITAR_EXTRAS=true`.
+> El catálogo público de Spring `/api/categorias` sigue habilitado.
+> Estado y pendientes: [revisión del 20 de octubre](../pruebas/avance-sprint1-2026-10-20.md).
+
 Contrato único de la plataforma. **Spring Boot** (`http://localhost:8081`) expone
 la API pública (usuario + móvil) y **Django** (`http://localhost:8000`) expone la
 API administrativa (React Admin).

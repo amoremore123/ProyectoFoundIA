@@ -15,6 +15,7 @@ import Detalle from './pages/Detalle';
 import Perfil from './pages/Perfil';
 import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
+import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
   const { token } = useAuth();
@@ -35,7 +36,7 @@ export default function App() {
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Portada />} />
                 <Route path="/explorar" element={<Inicio />} />
-                <Route path="/historial" element={<HistorialObjetos />} />
+                <Route path="/historial" element={EXTRAS_HABILITADOS ? <HistorialObjetos /> : <Navigate to="/explorar" replace />} />
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
                 <Route

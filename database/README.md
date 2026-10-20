@@ -6,7 +6,7 @@ Base de datos principal de la plataforma: **`objetos_perdidos_db`** (MySQL 8).
 
 | Archivo        | Descripción                                                        |
 | -------------- | ------------------------------------------------------------------ |
-| `script.sql`   | Crea la base de datos, las 8 tablas, claves foráneas, índices y check constraints. |
+| `script.sql`   | Crea la base de datos, las 9 tablas, claves foráneas, índices y check constraints. |
 | `seed.sql`     | Datos iniciales de desarrollo: categorías, usuarios de prueba y objetos de prueba. |
 | `migracion_h20_reclamos.sql` | Agrega la tabla de reclamos a bases ya existentes (H20). |
 

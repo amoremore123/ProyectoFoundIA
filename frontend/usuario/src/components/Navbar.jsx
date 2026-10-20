@@ -4,6 +4,7 @@ import { useTema } from '../context/TemaContext';
 import { useNotificaciones } from '../hooks/useNotificaciones';
 import Logo from './Logo';
 import Icono from './Icono';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 function BotonTema() {
   const { tema, alternarTema } = useTema();
@@ -37,7 +38,7 @@ export default function Navbar() {
           <NavLink to="/" end>
             Inicio
           </NavLink>
-          <NavLink to="/historial">Historial</NavLink>
+          {EXTRAS_HABILITADOS ? <NavLink to="/historial">Historial</NavLink> : <NavLink to="/explorar">Publicaciones</NavLink>}
           <NavLink to="/buscar">Buscar</NavLink>
           <NavLink to="/publicar">Publicar</NavLink>
           {token ? <NavLink to="/perfil">Perfil</NavLink> : <NavLink to="/login">Iniciar sesión</NavLink>}

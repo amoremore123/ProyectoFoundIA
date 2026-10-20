@@ -21,6 +21,9 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "on")
 
+# Sprint 1: solo gestión de usuarios y publicaciones (H15).
+HABILITAR_EXTRAS = os.environ.get("HABILITAR_EXTRAS", "false").lower() == "true"
+
 ALLOWED_HOSTS = ["*"] if DEBUG else [
     h.strip() for h in os.environ.get("DJANGO_HOSTS", "").split(",") if h.strip()
 ]
