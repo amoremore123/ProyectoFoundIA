@@ -383,3 +383,17 @@ html[data-tema='oscuro'] .notificacion-tipo.tipo-reclamo { color: #f6c069; }
 .progreso-foto { display: flex; flex-direction: column; gap: 4px; }
 .progreso-foto-barra { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
 .progreso-foto-barra span { display: block; height: 100%; background: var(--primary); transition: width .2s ease; }
+/* Filtros H8-H10 y comparación H17: los nombres largos conservan su contenido. */
+.filtros-avanzados { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; min-width: 0; }
+.filtros-avanzados legend { font-weight: 700; padding: 0 8px; }
+.filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+.filtros-avanzados > .btn { margin: 8px 8px 0 0; }
+.filtros-activos { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.filtros-activos button { white-space: normal; overflow-wrap: anywhere; text-align: left; }
+.comparacion-objetos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 20px 0; }
+.comparacion-objeto { padding: 20px; min-width: 0; overflow-wrap: anywhere; }
+.comparacion-objeto h2 { overflow-wrap: anywhere; }
+.comparacion-foto { aspect-ratio: 4 / 3; overflow: hidden; border-radius: 10px; }
+.comparacion-foto img { width: 100%; height: 100%; object-fit: cover; }
+.comparacion-criterios { display: flex; flex-wrap: wrap; gap: 12px; padding: 0; list-style: none; }
+@media (max-width: 640px) { .comparacion-objetos { grid-template-columns: 1fr; } }

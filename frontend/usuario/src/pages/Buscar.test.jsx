@@ -295,12 +295,12 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
   });
 
   it('conserva el filtro de ubicación que ya envía la página de inicio', async () => {
-    buscarObjetos.mockResolvedValue([mochila, celular]);
+    buscarObjetos.mockResolvedValue([mochila]);
     renderizar('/buscar?ubicacion=BIBLIOTECA');
     await screen.findByRole('heading', { name: 'Mochila negra' });
     expect(screen.queryByRole('heading', { name: 'Celular azul' })).toBeNull();
-    expect(screen.getByText('Ubicación: BIBLIOTECA')).toBeTruthy();
-    expect(buscarObjetos).toHaveBeenCalledWith({ q: '' }, { signal: expect.any(AbortSignal) });
+    expect(screen.getByLabelText('Ubicación').value).toBe('BIBLIOTECA');
+    expect(buscarObjetos).toHaveBeenCalledWith({ q: '', ubicacion: 'BIBLIOTECA' }, { signal: expect.any(AbortSignal) });
   });
 
   it('funciona con StrictMode sin aceptar la carga inicial cancelada', async () => {
@@ -328,7 +328,7 @@ describe('H6/H7 - Búsqueda y filtros en la pantalla de resultados', () => {
     await user.type(screen.getByRole('searchbox'), `  ${texto}  `);
     await user.click(screen.getByRole('button', { name: 'Buscar', exact: true }));
     await waitFor(() => expect(buscarObjetos).toHaveBeenLastCalledWith(
-      { q: texto, categoriaId: '2', tipo: 'PERDIDO' }, { signal: expect.any(AbortSignal) },
+      { q: texto, categoriaId: '2', tipo: 'PERDIDO', ubicacion: 'Biblioteca' }, { signal: expect.any(AbortSignal) },
     ));
     expect(Object.fromEntries(parametrosActuales())).toEqual({
       q: texto, categoriaId: '2', tipo: 'PERDIDO', ubicacion: 'Biblioteca', extra: 'conservar',
