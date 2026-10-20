@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 import bcrypt
 import jwt
 from django.utils import timezone
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -107,12 +107,40 @@ class DashboardView(APIView):
         )
 
 
-class UsuarioViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/admin/usuarios/ · GET/PUT/PATCH/DELETE /api/admin/usuarios/{id}/"""
+def _solo_estado(request, permitidos):
+    """H15: el panel solo cambia el estado. Devuelve (estado, error) para responder 400 en español."""
+    campos = set(request.data.keys())
+    if campos != {"estado"}:
+        return None, "Desde el panel solo se puede cambiar el estado."
+    estado = request.data.get("estado")
+    if estado not in permitidos:
+        return None, f"Estado inválido. Valores permitidos: {', '.join(permitidos)}."
+    return estado, None
+
+
+class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H15 - GET /api/admin/usuarios/ y /{id}/ · PATCH /{id}/ {"estado": "ACTIVO" | "SUSPENDIDO"}.
+
+    No se crean ni borran cuentas, ni se cambian rol, correo o contraseña desde el panel.
+    """
 
     queryset = Usuario.objects.all().order_by("id")
     serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+    def partial_update(self, request, *args, **kwargs):
+        usuario = self.get_object()
+        estado, error = _solo_estado(request, ("ACTIVO", "SUSPENDIDO"))
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        if usuario.pk == request.user.pk and estado == "SUSPENDIDO":
+            return Response(
+                {"detail": "No puedes suspender tu propia cuenta de administrador."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        usuario.estado = estado
+        usuario.save(update_fields=["estado", "fecha_actualizacion"])
+        return Response(UsuarioSerializer(usuario).data)
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -123,12 +151,30 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, EsAdmin]
 
 
-class ObjetoViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/admin/publicaciones/ · GET/PUT/PATCH/DELETE /api/admin/publicaciones/{id}/"""
+class ObjetoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H15 - GET /api/admin/publicaciones/ y /{id}/ · PATCH /{id}/ {"estado": "ACTIVO" | "OCULTO" | "ELIMINADO"}.
+
+    Eliminar es lógico (estado ELIMINADO): nunca se borra la fila. Una publicación
+    eliminada ya no se puede volver a mostrar desde el panel.
+    """
 
     queryset = Objeto.objects.select_related("categoria", "usuario").order_by("id")
     serializer_class = ObjetoSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+    def partial_update(self, request, *args, **kwargs):
+        objeto = self.get_object()
+        estado, error = _solo_estado(request, ("ACTIVO", "OCULTO", "ELIMINADO"))
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        if objeto.estado == "ELIMINADO" and estado != "ELIMINADO":
+            return Response(
+                {"detail": "La publicación ya fue eliminada y no se puede volver a mostrar."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        objeto.estado = estado
+        objeto.save(update_fields=["estado", "fecha_actualizacion"])
+        return Response(ObjetoSerializer(objeto).data)
 
 
 class ReporteViewSet(viewsets.ModelViewSet):
