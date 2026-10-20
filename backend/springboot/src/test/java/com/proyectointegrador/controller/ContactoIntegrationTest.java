@@ -128,6 +128,8 @@ class ContactoIntegrationTest {
                 .isEqualTo(1L);
         assertThat(entityManager.createQuery("select count(c) from Coincidencia c", Long.class).getSingleResult())
                 .isEqualTo(1L);
+        assertThat(entityManager.createQuery("select c.porcentaje from Coincidencia c", java.math.BigDecimal.class).getSingleResult())
+                .isEqualByComparingTo("73");
 
         Long notificacionId = ((Number) JsonPath.read(
                 mockMvc.perform(get("/api/notificaciones").with(autenticar(autorEncontrado)))
@@ -147,6 +149,20 @@ class ContactoIntegrationTest {
         entityManager.clear();
         assertThat(entityManager.createQuery("select n.leida from Notificacion n where n.id = :id", Boolean.class)
                 .setParameter("id", notificacionId).getSingleResult()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Una pareja por debajo del umbral no crea contacto ni aviso")
+    void rechazaParejaSinSimilitudSuficiente() throws Exception {
+        encontrado.setNombre("Teléfono rojo");
+        encontrado.setUbicacion("Comedor");
+        encontrado.setFechaObjeto(LocalDate.now().minusDays(60));
+        entityManager.flush();
+        mockMvc.perform(post("/api/contactos").with(autenticar(autorPerdido))
+                        .contentType(MediaType.APPLICATION_JSON).content(body(perdido.getId(), encontrado.getId())))
+                .andExpect(status().isBadRequest());
+        assertThat(entityManager.createQuery("select count(c) from Contacto c", Long.class).getSingleResult()).isZero();
+        assertThat(entityManager.createQuery("select count(n) from Notificacion n", Long.class).getSingleResult()).isZero();
     }
 
     @Test

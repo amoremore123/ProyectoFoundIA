@@ -26,18 +26,21 @@ public class ContactoService {
     private final CoincidenciaRepository coincidenciaRepository;
     private final ContactoRepository contactoRepository;
     private final NotificacionService notificacionService;
+    private final CoincidenciaService motorCoincidencias;
 
     public ContactoService(ObjetoRepository objetoRepository, CoincidenciaRepository coincidenciaRepository,
-                           ContactoRepository contactoRepository, NotificacionService notificacionService) {
+                          ContactoRepository contactoRepository, NotificacionService notificacionService,
+                          CoincidenciaService motorCoincidencias) {
         this.objetoRepository = objetoRepository;
         this.coincidenciaRepository = coincidenciaRepository;
         this.contactoRepository = contactoRepository;
         this.notificacionService = notificacionService;
+        this.motorCoincidencias = motorCoincidencias;
     }
 
     @Transactional
     public ContactoResponse iniciar(ContactoRequest request, Long usuarioId) {
-        var perdido = objetoRepository.findById(request.objetoPerdidoId())
+        var perdido = objetoRepository.findByIdForUpdate(request.objetoPerdidoId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Objeto perdido no encontrado con id " + request.objetoPerdidoId()));
         if (!perdido.getUsuario().getId().equals(usuarioId)) {
@@ -58,6 +61,10 @@ public class ContactoService {
         }
         if (!perdido.getCategoria().getId().equals(encontrado.getCategoria().getId())) {
             throw new SolicitudContactoInvalidaException("Los objetos deben pertenecer a la misma categoría");
+        }
+
+        if (motorCoincidencias.puntuar(perdido, encontrado) < CoincidenciaService.UMBRAL_SIMILITUD) {
+            throw new SolicitudContactoInvalidaException("Los objetos no alcanzan la similitud mínima para iniciar contacto");
         }
 
         Coincidencia coincidencia = coincidenciaRepository
@@ -82,13 +89,12 @@ public class ContactoService {
 
     private Coincidencia crearCoincidencia(com.proyectointegrador.entity.Objeto perdido,
                                            com.proyectointegrador.entity.Objeto encontrado) {
-        boolean ubicacionCoincide = perdido.getUbicacion() != null && encontrado.getUbicacion() != null
-                && perdido.getUbicacion().trim().equalsIgnoreCase(encontrado.getUbicacion().trim());
+        int puntos = motorCoincidencias.puntuar(perdido, encontrado);
         Coincidencia coincidencia = new Coincidencia();
         coincidencia.setObjetoPerdido(perdido);
         coincidencia.setObjetoEncontrado(encontrado);
-        coincidencia.setPorcentaje(new BigDecimal(ubicacionCoincide ? "90.00" : "65.00"));
-        coincidencia.setNivel(ubicacionCoincide ? NivelCoincidencia.ALTA : NivelCoincidencia.MEDIA);
+        coincidencia.setPorcentaje(BigDecimal.valueOf(puntos));
+        coincidencia.setNivel(NivelCoincidencia.valueOf(motorCoincidencias.nivel(puntos)));
         coincidencia.setEstado(EstadoCoincidencia.PENDIENTE);
         return coincidenciaRepository.saveAndFlush(coincidencia);
     }
