@@ -4,10 +4,13 @@ import com.proyectointegrador.entity.Coincidencia;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CoincidenciaRepository extends JpaRepository<Coincidencia, Long> {
 
     boolean existsByObjetoPerdidoIdAndObjetoEncontradoId(Long objetoPerdidoId, Long objetoEncontradoId);
+
+    Optional<Coincidencia> findByObjetoPerdidoIdAndObjetoEncontradoId(Long objetoPerdidoId, Long objetoEncontradoId);
 
     List<Coincidencia> findByObjetoPerdidoId(Long objetoPerdidoId);
 

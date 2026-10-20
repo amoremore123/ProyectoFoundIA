@@ -108,6 +108,11 @@ export const subirFotoObjeto = async (id, archivo) => {
   return data;
 };
 
+export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
+  const { data } = await api.post('/api/contactos', { objetoPerdidoId, objetoEncontradoId });
+  return data;
+};
+
 export const eliminarObjeto = async (id) => {
   await api.delete(`/api/objetos/${id}`);
 };

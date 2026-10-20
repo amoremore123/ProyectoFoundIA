@@ -5,7 +5,8 @@ import ChipTipo from '../components/ChipTipo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { getCoincidencias, getObjeto, mensajeError, statusDe } from '../services/api';
+import { getCoincidencias, getObjeto, iniciarContacto, mensajeError, statusDe } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 function fechaLarga(valor) {
   if (!valor) return '—';
@@ -17,6 +18,8 @@ function fechaLarga(valor) {
 
 export default function Detalle() {
   const { id } = useParams();
+  const sesion = useAuth() || {};
+  const { user, token } = sesion;
   const [indiceFoto, setIndiceFoto] = useState(0);
   const [objeto, setObjeto] = useState(null);
   const [coincidencias, setCoincidencias] = useState([]);
@@ -26,6 +29,9 @@ export default function Detalle() {
   const [noEncontrado, setNoEncontrado] = useState(false);
   const [errorCoincidencias, setErrorCoincidencias] = useState('');
   const [reintentosCoincidencias, setReintentosCoincidencias] = useState(0);
+  const [contactos, setContactos] = useState({});
+  const [contactoError, setContactoError] = useState('');
+  const [contactandoId, setContactandoId] = useState(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -44,6 +50,22 @@ export default function Detalle() {
       setCargando(false);
     }
   }, [id]);
+
+  const contactar = async (coincidencia) => {
+    setContactoError('');
+    setContactandoId(coincidencia.objetoId);
+    try {
+      const respuesta = await iniciarContacto(objeto.id, coincidencia.objetoId);
+      setContactos((anteriores) => ({
+        ...anteriores,
+        [coincidencia.objetoId]: respuesta.repetido ? 'repetido' : 'enviado',
+      }));
+    } catch (errorContacto) {
+      setContactoError(mensajeError(errorContacto, 'No se pudo iniciar el contacto'));
+    } finally {
+      setContactandoId(null);
+    }
+  };
 
   useEffect(() => {
     setIndiceFoto(0);
@@ -99,6 +121,8 @@ export default function Detalle() {
   const autor = objeto.publicadoPor
     ? `${objeto.publicadoPor.nombre} ${objeto.publicadoPor.apellido || ''}`.trim()
     : '—';
+  const puedeContactar = Boolean(token && user && objeto.tipo === 'PERDIDO'
+    && String(user.id) === String(objeto.publicadoPor?.id));
 
   return (
     <div className="pagina">
@@ -135,15 +159,12 @@ export default function Detalle() {
             </div>
           </div>
 
-          <button type="button" className="btn btn-secundario btn-bloque" disabled>
-            Contactar
-          </button>
-          <p className="nota-suave">Disponible próximamente</p>
         </div>
       </div>
 
       <section className="seccion">
         <h2>Coincidencias sugeridas</h2>
+        {contactoError && <MensajeError mensaje={contactoError} />}
 
         {cargandoCoincidencias ? (
           <Cargando texto="Buscando coincidencias..." />
@@ -178,6 +199,26 @@ export default function Detalle() {
                   />
                 </div>
                 <span className="coincidencia-porcentaje">{Number(c.porcentaje) || 0}% de coincidencia</span>
+                {puedeContactar && (
+                  <div className="coincidencia-contacto">
+                    {contactos[c.objetoId] ? (
+                      <p role="status" className="nota-suave">
+                        {contactos[c.objetoId] === 'repetido'
+                          ? 'Ya habías enviado una solicitud de contacto.'
+                          : 'Solicitud de contacto enviada.'}
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-primario"
+                        disabled={contactandoId === c.objetoId}
+                        onClick={() => contactar(c)}
+                      >
+                        {contactandoId === c.objetoId ? 'Enviando...' : 'Contactar'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

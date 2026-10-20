@@ -263,6 +263,30 @@ como historial. Solo el autor puede borrarlo; ADMIN no puede usar esta ruta.
 **Response** `204 No Content` · `401` sin sesión · `403` no es el autor · `404`
 no existe o ya fue eliminado.
 
+### POST `/api/contactos`  _(H18, JWT)_
+
+Inicia una solicitud de contacto desde una publicación propia `PERDIDO` hacia
+una publicación `ENCONTRADO` ajena. Ambas deben estar activas y pertenecer a la
+misma categoría. El servidor crea o reutiliza la coincidencia, registra el
+contacto y genera una notificación in-app para el autor del hallazgo. El mensaje
+es genérico: no revela correo, teléfono ni apellido completo. Contactar no
+reclama ni cambia el estado del objeto.
+
+**Request**
+
+```json
+{ "objetoPerdidoId": 15, "objetoEncontradoId": 27 }
+```
+
+**Response** `201 Created` (primera solicitud) o `200 OK` (repetición
+idempotente): `{ "id": 8, "coincidenciaId": 4, "estado": "PENDIENTE",
+"fechaContacto": "2026-10-19T12:00:00", "repetido": false }`.
+
+**Errores**: `400` pareja de objetos inválida · `401` sin token · `403` el
+solicitante no es autor del objeto perdido o intenta contactarse a sí mismo ·
+`404` objeto inexistente/no activo. Las repeticiones del mismo autor y pareja
+devuelven el mismo contacto y no vuelven a notificar.
+
 ### GET `/api/objetos/buscar`  _(público)_
 
 Query params opcionales: `q`, `tipo` (`PERDIDO` o `ENCONTRADO`) y `categoriaId`.
