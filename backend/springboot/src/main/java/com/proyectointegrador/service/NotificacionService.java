@@ -46,4 +46,16 @@ public class NotificacionService {
         notificacion.setLeida(Boolean.FALSE);
         notificacionRepository.save(notificacion);
     }
+
+    @Transactional
+    public void notificarReclamo(Usuario destinatario, Long objetoId) {
+        Notificacion notificacion = new Notificacion();
+        notificacion.setUsuario(destinatario);
+        notificacion.setTitulo("Nuevo reclamo de objeto");
+        notificacion.setMensaje("Un usuario ha enviado un reclamo sobre tu publicación #" + objetoId
+                + ". Revisa la solicitud para atenderla.");
+        notificacion.setTipo("RECLAMO_RECIBIDO");
+        notificacion.setLeida(Boolean.FALSE);
+        notificacionRepository.save(notificacion);
+    }
 }

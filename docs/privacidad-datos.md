@@ -30,6 +30,7 @@ no se envía.
 | `ObjetoResponse.publicadoPor` | Listado, detalle, búsqueda, filtro por categoría, publicaciones propias. Usa `UsuarioResumen.publico`. |
 | Coincidencias (`/api/objetos/{id}/coincidencias`) | No incluyen datos del autor. H16/H17 deben usar `UsuarioResumen.publico` si los agregan. |
 | Contacto (H18) | Debe vincular a las cuentas sin revelar el correo; mostrar solo `UsuarioResumen.publico`. |
+| Reclamos (H20) | Al reclamante solo se le devuelve el estado/identificador del reclamo; el propietario recibe un aviso genérico sin datos de contacto del reclamante. |
 | `/api/perfil` | Siempre devuelve el usuario del token. No hay ruta para pedir el perfil de otra persona por `id`. |
 | API Django `/api/admin/...` | Solo rol `ADMIN` y estado `ACTIVO` (`EsAdmin`); sin token responde 401. |
 | Errores (404, 400) | Mensajes genéricos; nunca incluyen datos del usuario. |

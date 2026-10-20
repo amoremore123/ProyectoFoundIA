@@ -410,6 +410,22 @@ del usuario en la web.
 
 **Response** `200 OK` — notificación marcada como leída · `404`
 
+### POST `/api/objetos/{id}/reclamos`  _(H20, JWT)_
+
+Inicia un reclamo pendiente sobre una publicación activa de tipo `ENCONTRADO`.
+No requiere datos personales ni cambia el estado del objeto: registra el objeto
+y la cuenta reclamante, y avisa al propietario mediante una notificación in-app.
+Solo otra cuenta puede reclamar; cada cuenta tiene un reclamo por objeto. Una
+repetición devuelve el reclamo existente sin duplicar la notificación.
+
+**Request**: sin body.
+
+**Response** `201 Created` (nuevo) o `200 OK` (repetido):
+`{ "id": 3, "objetoId": 27, "estado": "PENDIENTE", "fechaReclamo": "2026-10-19T12:00:00", "repetido": false }`.
+
+**Errores**: `400` objeto que no es hallazgo activo · `401` sin sesión · `403`
+el usuario es propietario del objeto · `404` objeto inexistente.
+
 ---
 
 ## 6. API Admin — Django  (React Admin)

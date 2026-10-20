@@ -5,7 +5,7 @@ import ChipTipo from '../components/ChipTipo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { getCoincidencias, getObjeto, iniciarContacto, mensajeError, statusDe } from '../services/api';
+import { getCoincidencias, getObjeto, iniciarContacto, mensajeError, reclamarObjeto, statusDe } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function fechaLarga(valor) {
@@ -32,6 +32,9 @@ export default function Detalle() {
   const [contactos, setContactos] = useState({});
   const [contactoError, setContactoError] = useState('');
   const [contactandoId, setContactandoId] = useState(null);
+  const [reclamo, setReclamo] = useState('');
+  const [reclamoError, setReclamoError] = useState('');
+  const [reclamando, setReclamando] = useState(false);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -64,6 +67,19 @@ export default function Detalle() {
       setContactoError(mensajeError(errorContacto, 'No se pudo iniciar el contacto'));
     } finally {
       setContactandoId(null);
+    }
+  };
+
+  const reclamar = async () => {
+    setReclamoError('');
+    setReclamando(true);
+    try {
+      const respuesta = await reclamarObjeto(objeto.id);
+      setReclamo(respuesta.repetido ? 'repetido' : 'enviado');
+    } catch (errorReclamo) {
+      setReclamoError(mensajeError(errorReclamo, 'No se pudo enviar el reclamo'));
+    } finally {
+      setReclamando(false);
     }
   };
 
@@ -123,6 +139,8 @@ export default function Detalle() {
     : '—';
   const puedeContactar = Boolean(token && user && objeto.tipo === 'PERDIDO'
     && String(user.id) === String(objeto.publicadoPor?.id));
+  const puedeReclamar = Boolean(token && user && objeto.tipo === 'ENCONTRADO'
+    && objeto.estado === 'ACTIVO' && String(user.id) !== String(objeto.publicadoPor?.id));
 
   return (
     <div className="pagina">
@@ -158,6 +176,19 @@ export default function Detalle() {
               <span className="dato-valor">{autor}</span>
             </div>
           </div>
+
+          {puedeReclamar && (reclamo ? (
+            <p role="status" className="nota-suave">
+              {reclamo === 'repetido' ? 'Ya habías enviado este reclamo.' : 'Reclamo enviado al propietario.'}
+            </p>
+          ) : (
+            <div className="reclamo-objeto">
+              {reclamoError && <MensajeError mensaje={reclamoError} />}
+              <button type="button" className="btn btn-secundario btn-bloque" disabled={reclamando} onClick={reclamar}>
+                {reclamando ? 'Enviando reclamo...' : 'Reclamar este objeto'}
+              </button>
+            </div>
+          ))}
 
         </div>
       </div>

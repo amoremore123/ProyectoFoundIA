@@ -19,6 +19,7 @@ USE objetos_perdidos_db;
 -- 1. USUARIOS
 -- =====================================================================
 DROP TABLE IF EXISTS reportes;
+DROP TABLE IF EXISTS reclamos;
 DROP TABLE IF EXISTS notificaciones;
 DROP TABLE IF EXISTS contactos;
 DROP TABLE IF EXISTS coincidencias;
@@ -189,7 +190,29 @@ CREATE INDEX idx_contactos_emisor       ON contactos (usuario_emisor_id);
 CREATE INDEX idx_contactos_receptor     ON contactos (usuario_receptor_id);
 
 -- =====================================================================
--- 7. NOTIFICACIONES
+-- 7. RECLAMOS (H20)
+-- =====================================================================
+CREATE TABLE reclamos (
+    id             BIGINT      NOT NULL AUTO_INCREMENT,
+    objeto_id      BIGINT      NOT NULL,
+    usuario_id     BIGINT      NOT NULL,
+    estado         VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    fecha_reclamo  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_reclamos_objeto_usuario (objeto_id, usuario_id),
+    CONSTRAINT fk_reclamos_objeto FOREIGN KEY (objeto_id)
+        REFERENCES objetos (id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_reclamos_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuarios (id)
+        ON DELETE RESTRICT,
+    CONSTRAINT chk_reclamos_estado CHECK (estado IN ('PENDIENTE', 'ACEPTADO', 'RECHAZADO'))
+) ENGINE = InnoDB;
+
+CREATE INDEX idx_reclamos_usuario ON reclamos (usuario_id);
+
+-- =====================================================================
+-- 8. NOTIFICACIONES
 -- =====================================================================
 CREATE TABLE notificaciones (
     id            BIGINT       NOT NULL AUTO_INCREMENT,
@@ -208,7 +231,7 @@ CREATE TABLE notificaciones (
 CREATE INDEX idx_notificaciones_usuario ON notificaciones (usuario_id);
 
 -- =====================================================================
--- 8. REPORTES
+-- 9. REPORTES
 -- =====================================================================
 CREATE TABLE reportes (
     id                BIGINT       NOT NULL AUTO_INCREMENT,

@@ -113,6 +113,11 @@ export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
   return data;
 };
 
+export const reclamarObjeto = async (id) => {
+  const { data } = await api.post(`/api/objetos/${id}/reclamos`);
+  return data;
+};
+
 export const eliminarObjeto = async (id) => {
   await api.delete(`/api/objetos/${id}`);
 };
