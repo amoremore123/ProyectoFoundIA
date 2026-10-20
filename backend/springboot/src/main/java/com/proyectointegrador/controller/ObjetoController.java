@@ -1,6 +1,7 @@
 package com.proyectointegrador.controller;
 
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
+import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
 import com.proyectointegrador.dto.FotoResponse;
@@ -9,6 +10,7 @@ import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
+import com.proyectointegrador.service.BusquedaService;
 import com.proyectointegrador.service.FotoService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,10 +41,12 @@ public class ObjetoController {
 
     private final ObjetoService objetoService;
     private final FotoService fotoService;
+    private final BusquedaService busquedaService;
 
-    public ObjetoController(ObjetoService objetoService, FotoService fotoService) {
+    public ObjetoController(ObjetoService objetoService, FotoService fotoService, BusquedaService busquedaService) {
         this.objetoService = objetoService;
         this.fotoService = fotoService;
+        this.busquedaService = busquedaService;
     }
 
     @GetMapping("/buscar")
@@ -58,8 +63,8 @@ public class ObjetoController {
     }
 
     @GetMapping("/ubicacion")
-    public ResponseEntity<List<ObjetoResponse>> porUbicacion(@RequestParam(name = "ubicacion", required = false) String ubicacion) {
-        return ResponseEntity.ok(objetoService.porUbicacion(ubicacion));
+    public ResponseEntity<List<ObjetoResponse>> porUbicacion(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.buscar(filtros));
     }
 
     @GetMapping("/fecha")
