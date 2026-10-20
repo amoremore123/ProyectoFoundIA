@@ -248,14 +248,20 @@ En Docker, el directorio se conserva en el volumen `uploads_data`.
 la publicación es de otra persona · `404` objeto inexistente/eliminado.
 Una carga rechazada no crea la asociación ni deja archivo en disco.
 
-### PUT `/api/objetos/{id}`  _(JWT — dueño o ADMIN)_
+### PUT `/api/objetos/{id}`  _(H5, JWT — autor)_
 
-Mismo body que POST. **Response** `200 OK` · `403` no es el dueño · `404`
+Mismo body y validaciones que POST. Solo el autor del JWT puede editar; ADMIN no
+puede usar esta ruta (la moderación se define aparte en H15). **Response** `200 OK`
+· `400` validación · `401` sin sesión · `403` no es el autor · `404` no existe o
+ya fue eliminado.
 
-### DELETE `/api/objetos/{id}`  _(JWT — dueño o ADMIN)_
+### DELETE `/api/objetos/{id}`  _(H5, JWT — autor)_
 
-Borrado lógico: pasa a `estado = ELIMINADO`.
-**Response** `204 No Content` · `403` · `404`
+Borrado lógico: pasa a `estado = ELIMINADO`; no elimina físicamente el objeto ni
+sus fotos. Las consultas públicas lo excluyen y `/api/perfil/objetos` lo mantiene
+como historial. Solo el autor puede borrarlo; ADMIN no puede usar esta ruta.
+**Response** `204 No Content` · `401` sin sesión · `403` no es el autor · `404`
+no existe o ya fue eliminado.
 
 ### GET `/api/objetos/buscar`  _(público)_
 

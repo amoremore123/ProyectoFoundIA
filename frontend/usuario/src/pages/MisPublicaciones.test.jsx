@@ -51,6 +51,18 @@ afterEach(() => {
 });
 
 describe('Historial de mis publicaciones', () => {
+  it('cancelar la confirmación mantiene la publicación activa', async () => {
+    renderizar();
+    await screen.findByRole('link', { name: 'Mochila encontrada' });
+    window.confirm.mockReturnValueOnce(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    expect(eliminarObjeto).not.toHaveBeenCalled();
+    expect(screen.getByRole('link', { name: 'Mochila encontrada' })).toBeTruthy();
+    expect(screen.getByText('Activo')).toBeTruthy();
+  });
+
   it('conserva la publicación eliminada en pantalla y después de recargar', async () => {
     const primeraCarga = renderizar();
     await screen.findByRole('link', { name: 'Mochila encontrada' });

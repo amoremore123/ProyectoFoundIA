@@ -9,7 +9,6 @@ import com.proyectointegrador.dto.UsuarioResumen;
 import com.proyectointegrador.entity.Categoria;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
-import com.proyectointegrador.entity.Rol;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.entity.Usuario;
 import com.proyectointegrador.exception.ResourceNotFoundException;
@@ -104,9 +103,12 @@ public class ObjetoService {
     }
 
     @Transactional
-    public ObjetoResponse actualizar(Long id, ObjetoRequest request, Long usuarioId, Rol rolActual) {
+    public ObjetoResponse actualizar(Long id, ObjetoRequest request, Long usuarioId) {
         Objeto objeto = buscarEntidad(id);
-        verificarPermiso(objeto, usuarioId, rolActual);
+        verificarAutor(objeto, usuarioId);
+        if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
+            throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
+        }
 
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id " + request.categoriaId()));
@@ -125,9 +127,12 @@ public class ObjetoService {
     }
 
     @Transactional
-    public void eliminar(Long id, Long usuarioId, Rol rolActual) {
+    public void eliminar(Long id, Long usuarioId) {
         Objeto objeto = buscarEntidad(id);
-        verificarPermiso(objeto, usuarioId, rolActual);
+        verificarAutor(objeto, usuarioId);
+        if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
+            throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
+        }
         objeto.setEstado(EstadoObjeto.ELIMINADO);
         objetoRepository.save(objeto);
     }
@@ -287,11 +292,9 @@ public class ObjetoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Objeto no encontrado con id " + id));
     }
 
-    private void verificarPermiso(Objeto objeto, Long usuarioId, Rol rolActual) {
-        boolean esDuenio = objeto.getUsuario().getId().equals(usuarioId);
-        boolean esAdmin = rolActual == Rol.ADMIN;
-        if (!esDuenio && !esAdmin) {
-            throw new AccessDeniedException("No tienes permiso sobre este objeto");
+    private void verificarAutor(Objeto objeto, Long usuarioId) {
+        if (!objeto.getUsuario().getId().equals(usuarioId)) {
+            throw new AccessDeniedException("Solo el autor puede administrar esta publicación");
         }
     }
 

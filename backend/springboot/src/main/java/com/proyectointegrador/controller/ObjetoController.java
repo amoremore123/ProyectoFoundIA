@@ -97,13 +97,13 @@ public class ObjetoController {
     public ResponseEntity<ObjetoResponse> actualizar(@PathVariable Long id,
                                                      @Valid @RequestBody ObjetoRequest request) {
         UserPrincipal usuario = usuarioActual();
-        return ResponseEntity.ok(objetoService.actualizar(id, request, usuario.getId(), usuario.getRol()));
+        return ResponseEntity.ok(objetoService.actualizar(id, request, usuario.getId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         UserPrincipal usuario = usuarioActual();
-        objetoService.eliminar(id, usuario.getId(), usuario.getRol());
+        objetoService.eliminar(id, usuario.getId());
         return ResponseEntity.noContent().build();
     }
 
