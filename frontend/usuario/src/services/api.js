@@ -101,10 +101,15 @@ export const crearObjeto = async (payload) => {
   return data;
 };
 
-export const subirFotoObjeto = async (id, archivo) => {
+// H2: onProgreso(0..100) informa el avance real de la subida para la barra de progreso.
+export const subirFotoObjeto = async (id, archivo, onProgreso) => {
   const formulario = new FormData();
   formulario.append('archivo', archivo);
-  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario);
+  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario, {
+    onUploadProgress: (e) => {
+      if (onProgreso && e.total) onProgreso(Math.round((e.loaded / e.total) * 100));
+    },
+  });
   return data;
 };
 
@@ -115,6 +120,12 @@ export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
 
 export const reclamarObjeto = async (id) => {
   const { data } = await api.post(`/api/objetos/${id}/reclamos`);
+  return data;
+};
+
+// H5/H14: solo el autor puede editar; la API valida igual que al publicar.
+export const actualizarObjeto = async (id, payload) => {
+  const { data } = await api.put(`/api/objetos/${id}`, payload);
   return data;
 };
 

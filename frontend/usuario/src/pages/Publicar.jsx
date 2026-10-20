@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
+import Cargando from '../components/Cargando';
 import Icono from '../components/Icono';
-import { crearObjeto, mensajeError, statusDe, subirFotoObjeto } from '../services/api';
+import {
+  actualizarObjeto, crearObjeto, getMisObjetos, mensajeError, statusDe, subirFotoObjeto,
+} from '../services/api';
 import useCategorias from '../hooks/useCategorias';
 import { MAX_DESCRIPCION, largoEnCaracteres } from '../utils/validaciones';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
@@ -23,9 +26,18 @@ const hoyISO = () => {
 
 const MAX_FOTO_BYTES = 5 * 1024 * 1024;
 
+// Estados en los que el autor puede editar (la API rechaza ELIMINADO).
+export const ESTADOS_EDITABLES = ['ACTIVO', 'RECUPERADO', 'OCULTO'];
+
+// H1/H3/H4 al publicar y H5/H14 al editar: un solo formulario con las mismas reglas.
 export default function Publicar() {
   const navigate = useNavigate();
   const { mostrarToast } = useToast();
+  const { id: idEditar } = useParams();
+  const editando = Boolean(idEditar);
+  const [cargandoEdicion, setCargandoEdicion] = useState(editando);
+  const [errorEdicion, setErrorEdicion] = useState('');
+  const [intentoEdicion, setIntentoEdicion] = useState(0);
 
   const [tipo, setTipo] = useState('PERDIDO');
   const [form, setForm] = useState(VACIO);
@@ -35,6 +47,9 @@ export default function Publicar() {
   const [enviando, setEnviando] = useState(false);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [errorFoto, setErrorFoto] = useState('');
+  const [vistaPrevia, setVistaPrevia] = useState('');
+  const [progresoFoto, setProgresoFoto] = useState(null); // null = sin subida en curso
+  const entradaFoto = useRef(null);
   const [publicacionCreada, setPublicacionCreada] = useState(null);
   const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
   const [ubicando, setUbicando] = useState(false);
@@ -44,6 +59,54 @@ export default function Publicar() {
   useEffect(() => () => {
     solicitudUbicacion.current += 1;
   }, []);
+
+  // H2: vista previa de la foto elegida, para comprobar que es la del objeto antes de publicar.
+  useEffect(() => {
+    if (!archivoFoto || typeof URL.createObjectURL !== 'function') {
+      setVistaPrevia('');
+      return undefined;
+    }
+    const url = URL.createObjectURL(archivoFoto);
+    setVistaPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [archivoFoto]);
+
+  const quitarFoto = () => {
+    setArchivoFoto(null);
+    setErrorFoto('');
+    if (entradaFoto.current) entradaFoto.current.value = '';
+  };
+
+  // Al editar se toma la publicación de la lista propia: así solo se edita lo que es tuyo,
+  // incluso si la administración la ocultó (el detalle público ya no la muestra).
+  useEffect(() => {
+    if (!editando) return undefined;
+    let vigente = true;
+    setCargandoEdicion(true);
+    setErrorEdicion('');
+    getMisObjetos()
+      .then((lista) => {
+        if (!vigente) return;
+        const objeto = (Array.isArray(lista) ? lista : []).find((o) => String(o.id) === String(idEditar));
+        if (!objeto || !ESTADOS_EDITABLES.includes(objeto.estado)) {
+          setErrorEdicion('No encontramos esta publicación entre las tuyas o ya no se puede editar.');
+          return;
+        }
+        setTipo(objeto.tipo || 'PERDIDO');
+        setForm({
+          nombre: objeto.nombre || '',
+          descripcion: objeto.descripcion || '',
+          categoriaId: objeto.categoria?.id ? String(objeto.categoria.id) : '',
+          ubicacion: objeto.ubicacion || '',
+          fechaObjeto: String(objeto.fechaObjeto || '').split('T')[0],
+        });
+        setCoordenadas({ latitud: objeto.latitud ?? null, longitud: objeto.longitud ?? null });
+        setPublicacionCreada(null);
+      })
+      .catch((e) => { if (vigente) setErrorEdicion(mensajeError(e, 'No se pudo cargar la publicación')); })
+      .finally(() => { if (vigente) setCargandoEdicion(false); });
+    return () => { vigente = false; };
+  }, [editando, idEditar, intentoEdicion]);
 
   const cambiar = (campo) => (e) => {
     const valor = e.target.value;
@@ -157,16 +220,25 @@ export default function Publicar() {
           latitud: coordenadas.latitud,
           longitud: coordenadas.longitud,
         };
-        creado = await crearObjeto(payload);
+        creado = editando ? await actualizarObjeto(idEditar, payload) : await crearObjeto(payload);
         setPublicacionCreada(creado);
       }
       if (archivoFoto) {
+        setProgresoFoto(0);
         try {
-          await subirFotoObjeto(creado.id, archivoFoto);
+          await subirFotoObjeto(creado.id, archivoFoto, setProgresoFoto);
         } catch (errorCarga) {
+          // No se anuncia éxito: la publicación existe, pero la foto no se guardó.
           setErrorGeneral(`La publicación quedó guardada, pero no se pudo subir la foto: ${mensajeError(errorCarga, 'Error de carga')}`);
           return;
+        } finally {
+          setProgresoFoto(null);
         }
+      }
+      if (editando) {
+        mostrarToast('Los cambios de tu publicación se guardaron.', 'exito');
+        navigate('/mis-publicaciones', { replace: true });
+        return;
       }
       mostrarToast(
         tipo === 'PERDIDO'
@@ -181,21 +253,43 @@ export default function Publicar() {
         if (!asignarErrorDeCampo(mensaje)) setErrorGeneral(mensaje);
       } else if (statusDe(err) === 401) {
         setErrorGeneral('Tu sesión expiró. Inicia sesión nuevamente.');
+      } else if (editando && (statusDe(err) === 403 || statusDe(err) === 404)) {
+        setErrorGeneral('No puedes editar esta publicación: no es tuya o ya fue eliminada.');
       } else {
-        setErrorGeneral(mensajeError(err, 'No se pudo publicar el objeto'));
+        setErrorGeneral(mensajeError(err, editando ? 'No se pudieron guardar los cambios' : 'No se pudo publicar el objeto'));
       }
     } finally {
       setEnviando(false);
     }
   };
 
+  const volver = () => navigate(editando ? '/mis-publicaciones' : '/');
+
+  if (editando && cargandoEdicion) return <Cargando texto="Cargando tu publicación..." />;
+
+  if (editando && errorEdicion) {
+    return (
+      <div className="pagina pagina-estrecha">
+        <button type="button" className="btn-fantasma btn-volver" onClick={volver}>
+          <Icono nombre="flechaIzq" tamano={16} /> Volver a mis publicaciones
+        </button>
+        <h1 className="pagina-titulo">Editar publicación</h1>
+        <MensajeError mensaje={errorEdicion} onReintentar={() => setIntentoEdicion((n) => n + 1)} />
+      </div>
+    );
+  }
+
   return (
     <div className="pagina pagina-estrecha">
-      <button type="button" className="btn-fantasma btn-volver" onClick={() => navigate('/')}>
-        <Icono nombre="flechaIzq" tamano={16} /> Volver
+      <button type="button" className="btn-fantasma btn-volver" onClick={volver}>
+        <Icono nombre="flechaIzq" tamano={16} /> {editando ? 'Volver a mis publicaciones' : 'Volver'}
       </button>
-      <h1 className="pagina-titulo">Publicar objeto</h1>
-      <p className="pagina-subtitulo">Completa los datos para que la comunidad Tecsup pueda ayudarte.</p>
+      <h1 className="pagina-titulo">{editando ? 'Editar publicación' : 'Publicar objeto'}</h1>
+      <p className="pagina-subtitulo">
+        {editando
+          ? 'Corrige los datos de tu publicación. Se aplican las mismas reglas que al publicar.'
+          : 'Completa los datos para que la comunidad Tecsup pueda ayudarte.'}
+      </p>
 
       <form className="tarjeta formulario" onSubmit={enviar} noValidate>
         <MensajeError mensaje={errorGeneral} />
@@ -318,27 +412,74 @@ export default function Publicar() {
           {avisoUbicacion && <span className="campo-error">{avisoUbicacion}</span>}
         </div>
 
-        <label className="campo">
-          <span className="campo-label">Foto (opcional)</span>
+        <div className="campo">
+          <label className="campo-label" htmlFor="foto-objeto">
+            {editando ? 'Agregar otra foto (opcional)' : 'Foto (opcional)'}
+          </label>
           <input
+            id="foto-objeto"
+            ref={entradaFoto}
             type="file"
             className="input"
             accept="image/jpeg,image/png"
             aria-label="Foto (opcional)"
+            aria-describedby="foto-ayuda"
             onChange={seleccionarFoto}
             disabled={enviando}
           />
-          <span className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
-          {archivoFoto && <span className="nota-suave">Seleccionada: {archivoFoto.name}</span>}
+          <span id="foto-ayuda" className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
-        </label>
+
+          {archivoFoto && (
+            <div className="foto-seleccionada">
+              {vistaPrevia && <img src={vistaPrevia} alt={`Vista previa de ${archivoFoto.name}`} />}
+              <div className="foto-seleccionada-info">
+                <span className="nota-suave">Seleccionada: {archivoFoto.name}</span>
+                {progresoFoto !== null ? (
+                  <div className="progreso-foto">
+                    <div
+                      className="progreso-foto-barra"
+                      role="progressbar"
+                      aria-label="Subida de la foto"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={progresoFoto}
+                    >
+                      <span style={{ width: `${progresoFoto}%` }} />
+                    </div>
+                    <span className="nota-suave" aria-live="polite">Subiendo foto… {progresoFoto}%</span>
+                  </div>
+                ) : (
+                  !enviando && (
+                    <button type="button" className="btn-fantasma btn-quitar-foto" onClick={quitarFoto}>
+                      Quitar foto
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
-          {enviando ? 'Guardando...' : publicacionCreada && archivoFoto ? 'Reintentar carga de foto' : 'PUBLICAR OBJETO'}
+          {enviando
+            ? 'Guardando...'
+            : publicacionCreada && archivoFoto
+              ? 'Reintentar carga de foto'
+              : editando ? 'GUARDAR CAMBIOS' : 'PUBLICAR OBJETO'}
         </button>
         {publicacionCreada && archivoFoto && !enviando && (
-          <button type="button" className="btn btn-secundario btn-bloque" onClick={() => navigate(`/objeto/${publicacionCreada.id}`, { replace: true })}>
+          <button
+            type="button"
+            className="btn btn-secundario btn-bloque"
+            onClick={() => navigate(editando ? '/mis-publicaciones' : `/objeto/${publicacionCreada.id}`, { replace: true })}
+          >
             Continuar sin foto
+          </button>
+        )}
+        {editando && !enviando && (
+          <button type="button" className="btn btn-secundario btn-bloque" onClick={volver}>
+            Cancelar
           </button>
         )}
       </form>
