@@ -79,6 +79,23 @@ class FiltrosCoincidenciasIntegrationTest {
     void coordenadasYRadioInvalidosSon400(String query) throws Exception {
         api.perform(get("/api/objetos/ubicacion?"+query)).andExpect(status().isBadRequest());
     }
+    @Test void fechasSonInclusivasYRecientesPrimero() throws Exception {
+        api.perform(get("/api/objetos/fecha").param("desde",hoy.minusDays(2).toString()).param("hasta",hoy.toString()).param("q","Mochila"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].id").value(cerca.getId())).andExpect(jsonPath("$[2].id").value(lejos.getId()));
+    }
+    @Test void rangoDeUnSoloDiaYLimiteAbierto() throws Exception {
+        api.perform(get("/api/objetos/fecha").param("desde",hoy.toString()).param("hasta",hoy.toString()).param("q","Mochila"))
+                .andExpect(jsonPath("$.length()").value(1));
+        api.perform(get("/api/objetos/fecha").param("hasta",hoy.minusDays(1).toString()).param("q","Mochila"))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+    @Test void fechaSinRangoMantieneOrdenDelObjetoNoDelAlta() throws Exception {
+        api.perform(get("/api/objetos/fecha").param("q", "Mochila"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].id").value(cerca.getId()))
+                .andExpect(jsonPath("$[2].id").value(lejos.getId()));
+    }
     @Test void limiteDeRadioIncluyeSoloLasDistanciasDentroDelRadio() throws Exception {
         double distancia = 6371d * Math.toRadians(.001);
         api.perform(get("/api/objetos/ubicacion").param("latitud", "0").param("longitud", "0")
@@ -88,4 +105,15 @@ class FiltrosCoincidenciasIntegrationTest {
                 .param("radioKm", Double.toString(distancia - .000001)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
+    @ParameterizedTest @ValueSource(strings={"desde=2026-10-10&hasta=2026-10-01","desde=2026-02-30","hasta=texto","tipo=NO","categoriaId=texto"})
+    void filtrosInvalidosNoSon500(String query) throws Exception {api.perform(get("/api/objetos/fecha?"+query)).andExpect(status().isBadRequest());}
+    @Test
+    void desdeSoloIncluyeSuExtremoYRecuperadosSiguenSiendoPublicos() throws Exception {
+        cerca.setEstado(EstadoObjeto.RECUPERADO);
+        objetos.flush();
+        api.perform(get("/api/objetos/fecha").param("q", "Mochila").param("desde", hoy.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(cerca.getId()));
+    }
+
 }

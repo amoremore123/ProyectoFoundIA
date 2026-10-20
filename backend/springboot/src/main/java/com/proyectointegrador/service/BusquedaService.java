@@ -40,7 +40,16 @@ public class BusquedaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ObjetoResponse> buscar(FiltroBusqueda f) {
+    public List<ObjetoResponse> buscar(FiltroBusqueda filtros) {
+        return buscar(filtros, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ObjetoResponse> porFecha(FiltroBusqueda filtros) {
+        return buscar(filtros, true);
+    }
+
+    private List<ObjetoResponse> buscar(FiltroBusqueda f, boolean ordenarPorFecha) {
         validar(f);
         if (f.categoriaId() != null && !categoriaRepository.existsById(f.categoriaId())) {
             throw new ResourceNotFoundException("Categoría no encontrada con id " + f.categoriaId());
@@ -65,6 +74,12 @@ public class BusquedaService {
             if (f.ubicacion() != null && !f.ubicacion().isBlank()) {
                 condiciones.add(cb.like(cb.lower(root.get("ubicacion")), like(f.ubicacion()), '!'));
             }
+            if (f.desde() != null) {
+                condiciones.add(cb.greaterThanOrEqualTo(root.get("fechaObjeto"), f.desde()));
+            }
+            if (f.hasta() != null) {
+                condiciones.add(cb.lessThanOrEqualTo(root.get("fechaObjeto"), f.hasta()));
+            }
 
             var orden = new ArrayList<Order>();
             if (f.latitud() != null) {
@@ -73,6 +88,9 @@ public class BusquedaService {
                 Expression<Double> distancia = distancia(cb, root, f.latitud(), f.longitud());
                 condiciones.add(cb.le(distancia, f.radioKm() == null ? RADIO_PREDETERMINADO_KM : f.radioKm()));
                 orden.add(cb.asc(distancia));
+            }
+            if (ordenarPorFecha || f.desde() != null || f.hasta() != null) {
+                orden.add(cb.desc(root.get("fechaObjeto")));
             }
             orden.add(cb.desc(root.get("fechaPublicacion")));
             orden.add(cb.desc(root.get("id")));
@@ -83,6 +101,9 @@ public class BusquedaService {
     }
 
     private void validar(FiltroBusqueda f) {
+        if (f.desde() != null && f.hasta() != null && f.desde().isAfter(f.hasta())) {
+            throw new SolicitudInvalidaException("La fecha desde no puede ser posterior a hasta");
+        }
         if ((f.latitud() == null) != (f.longitud() == null)) {
             throw new SolicitudInvalidaException("Indica latitud y longitud juntas");
         }

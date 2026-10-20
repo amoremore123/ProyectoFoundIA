@@ -13,7 +13,6 @@ import com.proyectointegrador.service.ObjetoService;
 import com.proyectointegrador.service.BusquedaService;
 import com.proyectointegrador.service.FotoService;
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -68,10 +66,8 @@ public class ObjetoController {
     }
 
     @GetMapping("/fecha")
-    public ResponseEntity<List<ObjetoResponse>> porFecha(
-            @RequestParam(name = "desde", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate desde,
-            @RequestParam(name = "hasta", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate hasta) {
-        return ResponseEntity.ok(objetoService.porFecha(desde, hasta));
+    public ResponseEntity<List<ObjetoResponse>> porFecha(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.porFecha(filtros));
     }
 
     @GetMapping("/{id}/coincidencias")
