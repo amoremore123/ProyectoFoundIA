@@ -4,6 +4,7 @@ import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -25,5 +26,6 @@ public interface ObjetoRepository extends JpaRepository<Objeto, Long>, JpaSpecif
 
     List<Objeto> findByUsuarioIdOrderByFechaPublicacionDesc(Long usuarioId);
 
+    @EntityGraph(attributePaths = {"usuario", "categoria", "fotos"})
     List<Objeto> findByTipoAndCategoriaIdAndEstado(TipoObjeto tipo, Long categoriaId, EstadoObjeto estado);
 }

@@ -20,6 +20,11 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(SolicitudInvalidaException.class)
+    public ResponseEntity<ApiError> solicitudInvalida(SolicitudInvalidaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
@@ -101,7 +106,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String mensaje = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(error -> "El campo " + error.getField() + " " + error.getDefaultMessage())
+                .map(error -> error.isBindingFailure() ? "Valor inválido para el parámetro " + error.getField()
+                        : "El campo " + error.getField() + " " + error.getDefaultMessage())
                 .orElse("Error de validación en la solicitud");
         return build(HttpStatus.BAD_REQUEST, mensaje, request);
     }
