@@ -47,6 +47,9 @@ export default function Publicar() {
   const [enviando, setEnviando] = useState(false);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [errorFoto, setErrorFoto] = useState('');
+  const [vistaPrevia, setVistaPrevia] = useState('');
+  const [progresoFoto, setProgresoFoto] = useState(null); // null = sin subida en curso
+  const entradaFoto = useRef(null);
   const [publicacionCreada, setPublicacionCreada] = useState(null);
   const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
   const [ubicando, setUbicando] = useState(false);
@@ -56,6 +59,23 @@ export default function Publicar() {
   useEffect(() => () => {
     solicitudUbicacion.current += 1;
   }, []);
+
+  // H2: vista previa de la foto elegida, para comprobar que es la del objeto antes de publicar.
+  useEffect(() => {
+    if (!archivoFoto || typeof URL.createObjectURL !== 'function') {
+      setVistaPrevia('');
+      return undefined;
+    }
+    const url = URL.createObjectURL(archivoFoto);
+    setVistaPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [archivoFoto]);
+
+  const quitarFoto = () => {
+    setArchivoFoto(null);
+    setErrorFoto('');
+    if (entradaFoto.current) entradaFoto.current.value = '';
+  };
 
   // Al editar se toma la publicación de la lista propia: así solo se edita lo que es tuyo,
   // incluso si la administración la ocultó (el detalle público ya no la muestra).
@@ -204,11 +224,15 @@ export default function Publicar() {
         setPublicacionCreada(creado);
       }
       if (archivoFoto) {
+        setProgresoFoto(0);
         try {
-          await subirFotoObjeto(creado.id, archivoFoto);
+          await subirFotoObjeto(creado.id, archivoFoto, setProgresoFoto);
         } catch (errorCarga) {
+          // No se anuncia éxito: la publicación existe, pero la foto no se guardó.
           setErrorGeneral(`La publicación quedó guardada, pero no se pudo subir la foto: ${mensajeError(errorCarga, 'Error de carga')}`);
           return;
+        } finally {
+          setProgresoFoto(null);
         }
       }
       if (editando) {
@@ -388,20 +412,54 @@ export default function Publicar() {
           {avisoUbicacion && <span className="campo-error">{avisoUbicacion}</span>}
         </div>
 
-        <label className="campo">
-          <span className="campo-label">{editando ? 'Agregar otra foto (opcional)' : 'Foto (opcional)'}</span>
+        <div className="campo">
+          <label className="campo-label" htmlFor="foto-objeto">
+            {editando ? 'Agregar otra foto (opcional)' : 'Foto (opcional)'}
+          </label>
           <input
+            id="foto-objeto"
+            ref={entradaFoto}
             type="file"
             className="input"
             accept="image/jpeg,image/png"
             aria-label="Foto (opcional)"
+            aria-describedby="foto-ayuda"
             onChange={seleccionarFoto}
             disabled={enviando}
           />
-          <span className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
-          {archivoFoto && <span className="nota-suave">Seleccionada: {archivoFoto.name}</span>}
+          <span id="foto-ayuda" className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
-        </label>
+
+          {archivoFoto && (
+            <div className="foto-seleccionada">
+              {vistaPrevia && <img src={vistaPrevia} alt={`Vista previa de ${archivoFoto.name}`} />}
+              <div className="foto-seleccionada-info">
+                <span className="nota-suave">Seleccionada: {archivoFoto.name}</span>
+                {progresoFoto !== null ? (
+                  <div className="progreso-foto">
+                    <div
+                      className="progreso-foto-barra"
+                      role="progressbar"
+                      aria-label="Subida de la foto"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={progresoFoto}
+                    >
+                      <span style={{ width: `${progresoFoto}%` }} />
+                    </div>
+                    <span className="nota-suave" aria-live="polite">Subiendo foto… {progresoFoto}%</span>
+                  </div>
+                ) : (
+                  !enviando && (
+                    <button type="button" className="btn-fantasma btn-quitar-foto" onClick={quitarFoto}>
+                      Quitar foto
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
           {enviando

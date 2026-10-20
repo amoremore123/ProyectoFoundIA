@@ -101,10 +101,15 @@ export const crearObjeto = async (payload) => {
   return data;
 };
 
-export const subirFotoObjeto = async (id, archivo) => {
+// H2: onProgreso(0..100) informa el avance real de la subida para la barra de progreso.
+export const subirFotoObjeto = async (id, archivo, onProgreso) => {
   const formulario = new FormData();
   formulario.append('archivo', archivo);
-  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario);
+  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario, {
+    onUploadProgress: (e) => {
+      if (onProgreso && e.total) onProgreso(Math.round((e.loaded / e.total) * 100));
+    },
+  });
   return data;
 };
 

@@ -374,3 +374,12 @@ html[data-tema='oscuro'] .aviso-ok { color: #7ce3b2; border-color: #1f4a35; }
 }
 .notificacion-tipo.tipo-reclamo { background: var(--warning-50); color: #93370d; }
 html[data-tema='oscuro'] .notificacion-tipo.tipo-reclamo { color: #f6c069; }
+
+/* ---------- H2: foto seleccionada, vista previa y progreso ---------- */
+.foto-seleccionada { display: flex; gap: 12px; align-items: center; margin-top: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; }
+.foto-seleccionada img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: var(--surface-2); }
+.foto-seleccionada-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.btn-quitar-foto { align-self: flex-start; padding: 4px 0; color: var(--danger); font-weight: 600; }
+.progreso-foto { display: flex; flex-direction: column; gap: 4px; }
+.progreso-foto-barra { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.progreso-foto-barra span { display: block; height: 100%; background: var(--primary); transition: width .2s ease; }

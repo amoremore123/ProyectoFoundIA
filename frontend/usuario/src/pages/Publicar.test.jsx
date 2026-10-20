@@ -334,7 +334,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     await screen.findByText('Detalle de prueba');
 
     expect(crearObjeto).toHaveBeenCalledTimes(1);
-    expect(subirFotoObjeto).toHaveBeenCalledWith(55, foto);
+    expect(subirFotoObjeto).toHaveBeenCalledWith(55, foto, expect.any(Function));
   });
 
   it('permite reintentar la carga fallida sin crear otra publicación', async () => {
@@ -366,5 +366,69 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     });
     expect(await screen.findByText('La imagen no debe superar los 5 MiB.')).toBeTruthy();
     expect(subirFotoObjeto).not.toHaveBeenCalled();
+  });
+
+  it('acepta una imagen de exactamente 5 MiB (el límite)', async () => {
+    renderizar();
+    const limite = new File([new Uint8Array(5 * 1024 * 1024)], 'limite.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [limite] } });
+    expect(await screen.findByText('Seleccionada: limite.png')).toBeTruthy();
+    expect(screen.queryByText('La imagen no debe superar los 5 MiB.')).toBeNull();
+  });
+
+  it('muestra la vista previa de la foto elegida y permite quitarla', async () => {
+    const user = userEvent.setup();
+    // jsdom no implementa createObjectURL: se simula solo en esta prueba.
+    URL.createObjectURL = vi.fn(() => 'blob:vista-previa');
+    URL.revokeObjectURL = vi.fn();
+    const revocar = URL.revokeObjectURL;
+    renderizar();
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
+    });
+
+    const vista = await screen.findByRole('img', { name: 'Vista previa de mochila.png' });
+    expect(vista.getAttribute('src')).toBe('blob:vista-previa');
+    await user.click(screen.getByRole('button', { name: 'Quitar foto' }));
+    expect(screen.queryByRole('img', { name: /Vista previa/ })).toBeNull();
+    expect(revocar).toHaveBeenCalledWith('blob:vista-previa');
+    delete URL.createObjectURL;
+    delete URL.revokeObjectURL;
+  });
+
+  it('muestra el progreso de la subida con una barra accesible', async () => {
+    const user = userEvent.setup();
+    let terminar;
+    subirFotoObjeto.mockImplementationOnce((id, archivo, onProgreso) => new Promise((resolve) => {
+      onProgreso(45);
+      terminar = () => resolve({ id: 99, url: '/uploads/foto.png' });
+    }));
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
+    });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+
+    const barra = await screen.findByRole('progressbar', { name: 'Subida de la foto' });
+    expect(barra.getAttribute('aria-valuenow')).toBe('45');
+    expect(screen.getByText('Subiendo foto… 45%')).toBeTruthy();
+    await act(async () => terminar());
+    await screen.findByText('Detalle de prueba');
+  });
+
+  it('si el servidor rechaza la foto no anuncia éxito ni sale del formulario', async () => {
+    const user = userEvent.setup();
+    subirFotoObjeto.mockRejectedValueOnce({ response: { status: 400, data: { mensaje: 'Formato de imagen no admitido' } } });
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['falso'], 'falsa.png', { type: 'image/png' })] },
+    });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+
+    expect(await screen.findByText(/no se pudo subir la foto: Formato de imagen no admitido/)).toBeTruthy();
+    expect(screen.queryByText('Detalle de prueba')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Continuar sin foto' })).toBeTruthy();
   });
 });
