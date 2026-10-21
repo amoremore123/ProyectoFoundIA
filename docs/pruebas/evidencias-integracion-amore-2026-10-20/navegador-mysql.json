@@ -1,0 +1,485 @@
+{
+  "fecha": "2026-10-20T23:33:28.715Z",
+  "entorno": {
+    "API": "http://localhost:18081",
+    "ADMIN": "http://localhost:18000",
+    "WEB": "http://localhost:15173",
+    "PANEL": "http://localhost:15174",
+    "MAIL": "http://localhost:18368"
+  },
+  "casos": [
+    {
+      "nombre": "Registro, SMTP real y verificación de dos cuentas QA",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "MySQL: registro simultáneo devuelve 201 y 409",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Login web real con JWT",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Perfil: guardar persiste y Cancelar restaura el valor real",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Publicar con GPS, fecha y foto: API y persistencia consultadas",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H5/H14: edición web persiste sin perder foto ni coordenadas",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H8/H9/H10: todos los filtros combinados contra API real",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H16/H17/H18: pareja correcta, similitud y contacto con aviso real",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H20: reclamo web separado de contacto y aviso al destinatario correcto",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Notificaciones: lectura propia persistida",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Buscar: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Comparación: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Perfil: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Publicar: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Mis publicaciones: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Buscar: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Comparación: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Perfil: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Publicar: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Mis publicaciones: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Buscar: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Comparación: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Perfil: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Publicar: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Mis publicaciones: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Buscar en claro: contraste de textos medidos",
+      "resultado": "correcto",
+      "mediciones": [
+        {
+          "texto": "Buscar objetos",
+          "ratio": 14.72,
+          "minimo": 3
+        },
+        {
+          "texto": "Ubicación y fechas",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ubicación",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Desde",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Hasta",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Busca por lugar o añade coordenadas para ordenar por cercanía. Las fechas incluyen ambos e",
+          "ratio": 4.51,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Latitud",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Longitud",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Radio en kilómetros",
+          "ratio": 15.12,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Texto: Mochila azul QA 1792539185891 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Tipo: ENCONTRADO ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Categoría: Accesorio ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ubicación: Biblioteca ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Desde: 2026-10-20 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Hasta: 2026-10-20 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Latitud: -12 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Longitud: -77 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Radio km: 2 ×",
+          "ratio": 6.11,
+          "minimo": 4.5
+        }
+      ]
+    },
+    {
+      "nombre": "Comparación en claro: contraste de textos medidos",
+      "resultado": "correcto",
+      "mediciones": [
+        {
+          "texto": "Comparar posible coincidencia",
+          "ratio": 14.72,
+          "minimo": 3
+        },
+        {
+          "texto": "Nombre: 40 puntos",
+          "ratio": 5.94,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Categoría: 25 puntos",
+          "ratio": 5.94,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ubicación: 20 puntos",
+          "ratio": 5.94,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Fecha: 15 puntos",
+          "ratio": 5.94,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Mochila azul QA 1792539185891",
+          "ratio": 15.12,
+          "minimo": 3
+        },
+        {
+          "texto": "Biblioteca QA",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "20/10/2026",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Accesorio",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ámore",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Mochila azul QA 1792539185891",
+          "ratio": 15.12,
+          "minimo": 3
+        },
+        {
+          "texto": "Biblioteca QA",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "20/10/2026",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Accesorio",
+          "ratio": 6.11,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Bruno",
+          "ratio": 6.11,
+          "minimo": 4.5
+        }
+      ]
+    },
+    {
+      "nombre": "Buscar en oscuro: contraste de textos medidos",
+      "resultado": "correcto",
+      "mediciones": [
+        {
+          "texto": "Ubicación y fechas",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ubicación",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Desde",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Hasta",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Busca por lugar o añade coordenadas para ordenar por cercanía. Las fechas incluyen ambos e",
+          "ratio": 6.09,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Latitud",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Longitud",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Radio en kilómetros",
+          "ratio": 14.64,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Texto: Mochila azul QA 1792539185891 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Tipo: ENCONTRADO ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Categoría: Accesorio ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ubicación: Biblioteca ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Desde: 2026-10-20 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Hasta: 2026-10-20 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Latitud: -12 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Longitud: -77 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Radio km: 2 ×",
+          "ratio": 8.16,
+          "minimo": 4.5
+        }
+      ]
+    },
+    {
+      "nombre": "Comparación en oscuro: contraste de textos medidos",
+      "resultado": "correcto",
+      "mediciones": [
+        {
+          "texto": "Mochila azul QA 1792539185891",
+          "ratio": 14.64,
+          "minimo": 3
+        },
+        {
+          "texto": "Biblioteca QA",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "20/10/2026",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Accesorio",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Ámore",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Mochila azul QA 1792539185891",
+          "ratio": 14.64,
+          "minimo": 3
+        },
+        {
+          "texto": "Biblioteca QA",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "20/10/2026",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Accesorio",
+          "ratio": 8.16,
+          "minimo": 4.5
+        },
+        {
+          "texto": "Bruno",
+          "ratio": 8.16,
+          "minimo": 4.5
+        }
+      ]
+    },
+    {
+      "nombre": "Teclado, quitar cercanía y Atrás restauran consulta y controles",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Cerrar sesión en otra pestaña abandona la ruta protegida sin recargar",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H15: publicaciones de páginas posteriores aparecen en el listado completo",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H15: ocultar y restaurar publicación desde el panel real",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H15: cancelar conserva la publicación; confirmar elimina lógicamente y conserva la fila",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Panel administrativo: sin desborde a 320px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Panel administrativo: sin desborde a 375px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Panel administrativo: sin desborde a 1280px",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "H15: cerrar sesión en otra pestaña oculta inmediatamente el panel",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Spring y Django: bloqueo y token anterior comparten vencimiento UTC en MySQL",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Extras fuera del sprint siguen deshabilitados por URL directa",
+      "resultado": "correcto"
+    },
+    {
+      "nombre": "Sin errores JavaScript no controlados en las pantallas recorridas",
+      "resultado": "correcto"
+    }
+  ],
+  "erroresConsola": []
+}

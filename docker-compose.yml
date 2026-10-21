@@ -42,10 +42,11 @@ services:
       MAIL_HOST: mailpit
       MAIL_PORT: "1025"
       MAIL_FROM: no-reply@foundia.dev
-      # Asistente con IA: se toma del entorno del host (vacío = motor local)
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      UPLOAD_DIRECTORY: /app/uploads
     ports:
       - "8081:8081"
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
@@ -75,6 +76,7 @@ services:
       DJANGO_SECRET_KEY: foundia-dev-django-secret-key-cambiar-en-produccion
       JWT_SECRET: foundia-dev-jwt-secret-cambiar-en-produccion-123456
       DJANGO_DEBUG: "True"
+      HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}
     ports:
       - "8000:8000"
     depends_on:
@@ -87,6 +89,7 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:8081
+      VITE_HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}
     ports:
       - "5173:5173"
     depends_on:
@@ -98,6 +101,7 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:8000
+      VITE_HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}
     ports:
       - "5174:5174"
     depends_on:
@@ -105,3 +109,4 @@ services:
 
 volumes:
   mysql_data:
+  uploads_data:

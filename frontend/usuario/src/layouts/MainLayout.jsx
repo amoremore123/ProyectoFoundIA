@@ -4,6 +4,7 @@ import BottomNav from '../components/BottomNav';
 import ChatAsistente from '../components/ChatAsistente';
 import { AsistenteProvider } from '../context/AsistenteContext';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 export default function MainLayout() {
   useRevelarEnScroll();
@@ -16,7 +17,7 @@ export default function MainLayout() {
           <Outlet />
         </main>
         <BottomNav />
-        <ChatAsistente />
+        {EXTRAS_HABILITADOS && <ChatAsistente />}
       </div>
     </AsistenteProvider>
   );

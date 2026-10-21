@@ -14,27 +14,45 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// H15: con 401 (sesión vencida) o 403 (la cuenta dejó de ser ADMIN o fue suspendida)
+// se borra la sesión y se sale del panel, para que no queden datos administrativos a la vista.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    if (status === 401 && localStorage.getItem('admin_token')) {
+    if ((status === 401 || status === 403) && localStorage.getItem('admin_token')) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_usuario');
-      window.location.href = '/login';
+      window.location.href = `/login?motivo=${status === 403 ? 'sin-permiso' : 'sesion-vencida'}`;
     }
     return Promise.reject(error);
   }
 );
 
+// Django responde los errores en "detail"; axios trae sus mensajes en inglés.
 export function mensajeError(error, fallback = 'Ocurrió un error inesperado') {
-  return (
-    error?.response?.data?.mensaje ||
-    error?.response?.data?.message ||
-    (typeof error?.response?.data === 'string' ? error.response.data : null) ||
-    error?.message ||
-    fallback
-  );
+  const data = error?.response?.data;
+  const servidor = data?.detail || data?.mensaje || data?.message || (typeof data === 'string' ? data : null);
+  if (servidor) return servidor;
+  if (error?.response) return `${fallback} (error ${error.response.status}).`;
+  if (error?.code === 'ECONNABORTED') return `${fallback}: el servidor tardó demasiado en responder.`;
+  if (error?.isAxiosError || error?.message === 'Network Error') {
+    return `${fallback}: no hay conexión con el servidor. Revisa tu conexión e inténtalo de nuevo.`;
+  }
+  return error?.message || fallback;
+}
+
+// Las listas de Django vienen paginadas de 10 en 10: se recorren todas las páginas.
+async function obtenerTodas(ruta) {
+  const todos = [];
+  let siguiente = ruta;
+  for (let pagina = 0; siguiente && pagina < 200; pagina += 1) {
+    const { data } = await api.get(siguiente);
+    if (Array.isArray(data)) return data;
+    todos.push(...(data?.results || []));
+    siguiente = data?.next || null;
+  }
+  return todos;
 }
 
 export function statusDe(error) {
@@ -64,21 +82,15 @@ export const getDashboard = async () => {
   return data;
 };
 
-// Listas paginadas DRF {count, results}
-export const getUsuarios = async () => {
-  const { data } = await api.get('/api/admin/usuarios/');
-  return data;
-};
+// Listas paginadas DRF {count, results, next}: se devuelven todos los registros.
+export const getUsuarios = async () => obtenerTodas('/api/admin/usuarios/');
 
 export const patchUsuario = async (id, payload) => {
   const { data } = await api.patch(`/api/admin/usuarios/${id}/`, payload);
   return data;
 };
 
-export const getPublicaciones = async () => {
-  const { data } = await api.get('/api/admin/publicaciones/');
-  return data;
-};
+export const getPublicaciones = async () => obtenerTodas('/api/admin/publicaciones/');
 
 export const patchPublicacion = async (id, payload) => {
   const { data } = await api.patch(`/api/admin/publicaciones/${id}/`, payload);

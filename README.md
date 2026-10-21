@@ -1,4 +1,18 @@
-# ENCUENTRA+ — Plataforma de Objetos Perdidos y Encontrados
+# FoundIA — Plataforma de Objetos Perdidos y Encontrados
+
+## Entrega actual: Sprint 1 (Lab06, H1–H20)
+
+Estado actualizado: [integración de Leonel y Yajaira en dev/amore](docs/pruebas/integracion-sprint1-amore-2026-10-20.md).
+La rama integra las APIs H8/H9/H10/H16/H17 de Leonel y las pantallas de Yajaira,
+incluidos filtros avanzados y comparación de coincidencias. Las pruebas y sus
+límites están registrados en el informe; el cierre formal corresponde al equipo.
+Fotos, edición/eliminación, perfil, privacidad, administración de usuarios/publicaciones,
+coincidencias, contacto y reclamos pertenecen a este sprint.
+
+Los extras se ocultan por defecto conservando su código: asistente, historial público,
+secciones adicionales de portada, reportes y gestión de categorías. El catálogo de
+categorías para publicar y buscar sigue disponible. Android se conserva fuera de esta entrega.
+Para reactivar los extras, consulta las instrucciones del informe; no requiere borrar datos.
 
 Proyecto integrador: plataforma web y móvil para **reportar y buscar objetos
 perdidos o encontrados**. Los usuarios publican objetos (perdidos o
@@ -50,9 +64,9 @@ PROYECTO-INTEGRADOR/
 │   ├── usuario/           # App pública (React + Vite)     :5173
 │   └── admin/             # Panel administrativo (React)   :5174
 ├── movil/
-│   └── android/           # App móvil (Kotlin + Compose)
+│   └── android/           # Avance futuro, fuera de la entrega Sprint 1
 ├── database/
-│   ├── script.sql         # Esquema completo (8 tablas)
+│   ├── script.sql         # Esquema completo (9 tablas)
 │   ├── seed.sql           # Datos iniciales de desarrollo
 │   └── README.md
 ├── docs/
@@ -105,10 +119,11 @@ Para detener: `docker compose down` (con `-v` borra también los datos).
 > `MAIL_SMTP_AUTH=true`, `MAIL_STARTTLS=true`, `MAIL_USERNAME`, `MAIL_PASSWORD`
 > (contraseña de aplicación) y `MAIL_FROM`.
 >
-> Si tu base se creó antes de este cambio, ejecuta `docker compose down -v`
-> (o `database/migracion_h11_h12.sql` en MySQL local).
+> Para una base existente, respalda los datos y aplica las migraciones pendientes
+> de `database/` según su esquema actual: H11/H12, límites de código y H20.
+> No reimportes `script.sql`/`seed.sql` ni borres el volumen para actualizarla.
 
-> El frontend admin no está en compose: ejecútalo localmente (sección 8).
+> El frontend admin también está en Compose: http://localhost:5174.
 
 ## 6. Configuración de MySQL
 
@@ -190,7 +205,13 @@ py manage.py runserver        # http://localhost:8000
 > `py manage.py migrate` solo crea las tablas internas de Django
 > (auth/sessions) y es opcional.
 
-## 10. Ejecución de Android
+## 10. Android (fuera de Sprint 1)
+
+Este módulo se conserva como trabajo futuro. No se inicia con Compose ni forma
+parte de la demostración y aceptación de H1–H20 de esta entrega.
+
+<details>
+<summary>Instrucciones del módulo móvil para retomarlo después</summary>
 
 1. Abrir `movil/android/` con **Android Studio** (Generate/Import y esperar la
    sincronización de Gradle).
@@ -204,6 +225,8 @@ Desde terminal (requiere SDK de Android configurado):
 cd movil/android
 ./gradlew assembleDebug     # en Windows: gradlew.bat assembleDebug
 ```
+
+</details>
 
 ## 11. Credenciales de desarrollo (seed)
 

@@ -9,15 +9,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.sql.SQLException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(SolicitudInvalidaException.class)
+    public ResponseEntity<ApiError> solicitudInvalida(SolicitudInvalidaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
@@ -27,6 +35,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiError> handleDuplicate(DuplicateResourceException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        // Dos registros pueden superar simultáneamente existsByCorreo. La BD decide
+        // cuál gana; solo la unicidad del alta se traduce a conflicto de correo.
+        if ("/api/auth/register".equals(request.getRequestURI())) {
+            for (Throwable causa = ex; causa != null; causa = causa.getCause()) {
+                if (causa instanceof SQLException sql && ("23505".equals(sql.getSQLState()) || sql.getErrorCode() == 1062)) {
+                    return build(HttpStatus.CONFLICT, "El correo ya está registrado", request);
+                }
+            }
+        }
+        return handleGeneric(ex, request);
     }
 
     @ExceptionHandler(LimiteReenvioException.class)
@@ -52,6 +74,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(PasswordActualIncorrectaException.class)
+    public ResponseEntity<ApiError> handlePasswordActual(PasswordActualIncorrectaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(CodigoVerificacionException.class)
     public ResponseEntity<ApiError> handleCodigoVerificacion(CodigoVerificacionException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
@@ -70,11 +97,33 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, mensaje, request);
     }
 
+    @ExceptionHandler(ImagenInvalidaException.class)
+    public ResponseEntity<ApiError> handleImagenInvalida(ImagenInvalidaException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SolicitudContactoInvalidaException.class)
+    public ResponseEntity<ApiError> handleSolicitudContactoInvalida(SolicitudContactoInvalidaException ex,
+                                                                     HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ReclamoInvalidoException.class)
+    public ResponseEntity<ApiError> handleReclamoInvalido(ReclamoInvalidoException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleTamanoCarga(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "La imagen supera el máximo permitido de 5 MiB", request);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String mensaje = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(error -> "El campo " + error.getField() + " " + error.getDefaultMessage())
+                .map(error -> error.isBindingFailure() ? "Valor inválido para el parámetro " + error.getField()
+                        : "El campo " + error.getField() + " " + error.getDefaultMessage())
                 .orElse("Error de validación en la solicitud");
         return build(HttpStatus.BAD_REQUEST, mensaje, request);
     }

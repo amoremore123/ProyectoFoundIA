@@ -2,6 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { getNotificaciones, marcarNotificacionLeida, mensajeError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+const EVENTO = 'foundia:notificaciones';
+
+/** Avisa a la campana (y a cualquier otro uso del hook) que las notificaciones cambiaron. */
+export function avisarCambioNotificaciones() {
+  window.dispatchEvent(new Event(EVENTO));
+}
+
 export function useNotificaciones() {
   const { token } = useAuth();
   const [notificaciones, setNotificaciones] = useState([]);
@@ -27,6 +34,8 @@ export function useNotificaciones() {
 
   useEffect(() => {
     cargar();
+    window.addEventListener(EVENTO, cargar);
+    return () => window.removeEventListener(EVENTO, cargar);
   }, [cargar]);
 
   const marcarLeida = async (id) => {

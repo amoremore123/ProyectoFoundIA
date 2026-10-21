@@ -47,5 +47,6 @@ Thumbs.db
 *.log
 logs/
 tmp/
+uploads/
 *.tmp
 *.swp

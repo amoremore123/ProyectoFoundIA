@@ -1,0 +1,14 @@
+{
+  "estados": [
+    401,
+    401,
+    401,
+    401,
+    423
+  ],
+  "inicio": "2026-10-20T18:45:39.312Z",
+  "fin": "2026-10-20T19:00:41.650Z",
+  "segundosTranscurridos": 902,
+  "resultado": "correcto",
+  "metodo": "Espera natural, sin modificar reloj, bloqueo en BD, correo ni recargar la pantalla."
+}

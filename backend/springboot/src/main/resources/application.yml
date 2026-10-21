@@ -6,6 +6,10 @@ spring:
     url: 'jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:objetos_perdidos_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8'
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:5MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:6MB}
   jpa:
     ddl-auto: none
     open-in-view: false
@@ -34,6 +38,10 @@ spring:
     time-zone: UTC
 
 app:
+  upload:
+    directory: ${UPLOAD_DIRECTORY:uploads}
+    max-size-bytes: ${UPLOAD_MAX_SIZE_BYTES:5242880}
+    max-pixels: ${UPLOAD_MAX_PIXELS:40000000}
   mail:
     from: ${MAIL_FROM:no-reply@foundia.dev}
   jwt:

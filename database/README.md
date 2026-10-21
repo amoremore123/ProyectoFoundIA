@@ -2,12 +2,17 @@
 
 Base de datos principal de la plataforma: **`objetos_perdidos_db`** (MySQL 8).
 
+Autenticación compartida: Spring y Django utilizan `usuarios.intentos_fallidos`
+y `usuarios.bloqueado_hasta`. Los códigos y bloqueos nuevos se guardan en UTC;
+no hace falta crear una columna adicional para el contador del panel.
+
 ## Archivos
 
 | Archivo        | Descripción                                                        |
 | -------------- | ------------------------------------------------------------------ |
-| `script.sql`   | Crea la base de datos, las 8 tablas, claves foráneas, índices y check constraints. |
+| `script.sql`   | Crea la base de datos, las 9 tablas, claves foráneas, índices y check constraints. |
 | `seed.sql`     | Datos iniciales de desarrollo: categorías, usuarios de prueba y objetos de prueba. |
+| `migracion_h20_reclamos.sql` | Agrega la tabla de reclamos a bases ya existentes (H20). |
 
 ## Cómo ejecutarlas
 
@@ -49,6 +54,10 @@ automáticamente al levantar el contenedor de MySQL.
 6. `contactos`
 7. `notificaciones`
 8. `reportes`
+9. `reclamos`
+
+Para una base existente, ejecutar `migracion_h20_reclamos.sql` para añadir la
+tabla de reclamos sin recrear el resto del esquema.
 
 Detalle completo en [`docs/base-datos/modelo-bd.md`](../docs/base-datos/modelo-bd.md).
 

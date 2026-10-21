@@ -1,5 +1,11 @@
 # API — Endpoints
 
+> Entrega Sprint 1 (H1–H20): las rutas Django de reportes y gestión de
+> categorías, y el admin general `/admin/`, se conservan documentados pero
+> están deshabilitados por defecto. Se reactivan con `HABILITAR_EXTRAS=true`.
+> El catálogo público de Spring `/api/categorias` sigue habilitado.
+> Estado integrado y pruebas: [integración del 20 de octubre](../pruebas/integracion-sprint1-amore-2026-10-20.md).
+
 Contrato único de la plataforma. **Spring Boot** (`http://localhost:8081`) expone
 la API pública (usuario + móvil) y **Django** (`http://localhost:8000`) expone la
 API administrativa (React Admin).
@@ -130,7 +136,7 @@ correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
 ### GET `/api/categorias`  _(público)_
 
-Devuelve el catálogo ordenado por id, incluidas las categorías desactivadas
+Devuelve el catálogo ordenado alfabéticamente por nombre, incluidas las categorías desactivadas
 (`estado = false`), para consultar publicaciones anteriores. En Inicio y
 búsqueda se identifican como "(desactivada)"; esta regla no cambia la publicación.
 
@@ -170,10 +176,14 @@ Casos de prueba: [H6 — Buscar objetos](../pruebas/casos-prueba-h6.md) y
   "estado": "ACTIVO",
   "fechaPublicacion": "2026-10-02T12:30:00",
   "categoria": { "id": 3, "nombre": "Mochila" },
-  "publicadoPor": { "id": 1, "nombre": "Ana", "apellido": "Pérez" },
+  "publicadoPor": { "id": 1, "nombre": "Ana", "apellido": "P." },
   "fotos": [ { "id": 1, "url": "/uploads/objetos/mochila-negra.jpg" } ]
 }
 ```
+
+**Privacidad (H19)**: `publicadoPor` es la vista pública del autor: solo `id`,
+`nombre` e **inicial del apellido**. Nunca incluye correo, apellido completo, rol
+ni estado. Reglas completas en [`docs/privacidad-datos.md`](../privacidad-datos.md).
 
 ### GET `/api/objetos`  _(público)_
 
@@ -228,14 +238,60 @@ edición manual; si no hay geocodificación, se muestra el texto de las coordena
 **Response** `201 Created` — `ObjetoResponse`
 **Errores**: `400` validación · `401` sin token
 
-### PUT `/api/objetos/{id}`  _(JWT — dueño o ADMIN)_
+### POST `/api/objetos/{id}/fotos`  _(H2, JWT del autor)_
 
-Mismo body que POST. **Response** `200 OK` · `403` no es el dueño · `404`
+Sube una imagen con `multipart/form-data`, parte `archivo`. Se admiten JPEG y PNG,
+hasta 5 MiB y 40 megapíxeles. El servidor identifica el formato real del archivo,
+no confía en el nombre ni en el `Content-Type`. Solo el autor de la publicación
+puede añadir fotos. El archivo se guarda con nombre generado en `UPLOAD_DIRECTORY`
+(por defecto `uploads/`) y la fila asociada se guarda en `fotos`; el endpoint
+público `/uploads/{nombre-generado}` permite mostrarla en el detalle y las tarjetas.
+En Docker, el directorio se conserva en el volumen `uploads_data`.
 
-### DELETE `/api/objetos/{id}`  _(JWT — dueño o ADMIN)_
+**Response** `201 Created` `{ "id": 4, "url": "/uploads/<uuid>.png" }`
 
-Borrado lógico: pasa a `estado = ELIMINADO`.
-**Response** `204 No Content` · `403` · `404`
+**Errores**: `400` formato inválido o tamaño superior · `401` sin token · `403`
+la publicación es de otra persona · `404` objeto inexistente/eliminado.
+Una carga rechazada no crea la asociación ni deja archivo en disco.
+
+### PUT `/api/objetos/{id}`  _(H5, JWT — autor)_
+
+Mismo body y validaciones que POST. Solo el autor del JWT puede editar; ADMIN no
+puede usar esta ruta (la moderación se define aparte en H15). **Response** `200 OK`
+· `400` validación · `401` sin sesión · `403` no es el autor · `404` no existe o
+ya fue eliminado.
+
+### DELETE `/api/objetos/{id}`  _(H5, JWT — autor)_
+
+Borrado lógico: pasa a `estado = ELIMINADO`; no elimina físicamente el objeto ni
+sus fotos. Las consultas públicas lo excluyen y `/api/perfil/objetos` lo mantiene
+como historial. Solo el autor puede borrarlo; ADMIN no puede usar esta ruta.
+**Response** `204 No Content` · `401` sin sesión · `403` no es el autor · `404`
+no existe o ya fue eliminado.
+
+### POST `/api/contactos`  _(H18, JWT)_
+
+Inicia una solicitud de contacto desde una publicación propia `PERDIDO` hacia
+una publicación `ENCONTRADO` ajena. Ambas deben estar activas y pertenecer a la
+misma categoría. El servidor crea o reutiliza la coincidencia, registra el
+contacto y genera una notificación in-app para el autor del hallazgo. El mensaje
+es genérico: no revela correo, teléfono ni apellido completo. Contactar no
+reclama ni cambia el estado del objeto.
+
+**Request**
+
+```json
+{ "objetoPerdidoId": 15, "objetoEncontradoId": 27 }
+```
+
+**Response** `201 Created` (primera solicitud) o `200 OK` (repetición
+idempotente): `{ "id": 8, "coincidenciaId": 4, "estado": "PENDIENTE",
+"fechaContacto": "2026-10-19T12:00:00", "repetido": false }`.
+
+**Errores**: `400` pareja de objetos inválida · `401` sin token · `403` el
+solicitante no es autor del objeto perdido o intenta contactarse a sí mismo ·
+`404` objeto inexistente/no activo. Las repeticiones del mismo autor y pareja
+devuelven el mismo contacto y no vuelven a notificar.
 
 ### GET `/api/objetos/buscar`  _(público)_
 
@@ -304,15 +360,48 @@ coincide también la ubicación, `MEDIA` si no. No se persisten.
 
 **Response** `200 OK` — usuario actual (sin password).
 
-### PUT `/api/perfil`
+### PUT `/api/perfil`  _(H13)_
 
-**Request** `{ "nombre": "Ana", "apellido": "Pérez", "password": "Nueva123" }`
-(`password` opcional)
-**Response** `200 OK` — usuario actualizado.
+Modifica **solo el perfil del usuario del token**. No recibe `id`, así que no
+se puede modificar a otra persona cambiando un número.
+
+**Request**
+
+```json
+{ "nombre": "Ana", "apellido": "Pérez", "password": "Nueva456#", "passwordActual": "Segura123!" }
+```
+
+| Campo | Regla |
+| --- | --- |
+| `nombre`, `apellido` | Obligatorios, hasta 100 caracteres, solo letras, espacios, `'` y `-` (mismas reglas que el registro). Se guardan sin espacios al inicio ni al final. |
+| `password` | Opcional. Vacío o ausente = no se cambia. Si se envía, debe cumplir las reglas del registro: 8+ caracteres, mayúscula, minúscula, número, símbolo y máximo 72 bytes. Se guarda con hash BCrypt. |
+| `passwordActual` | Obligatoria **solo si se cambia la contraseña**. Debe coincidir con la contraseña actual. |
+
+Cualquier otro campo (`rol`, `estado`, `correo`, `id`, `verificado`) se ignora:
+un usuario no puede elevar su rol ni cambiar su estado o su correo.
+
+**Response** `200 OK` — usuario actualizado (nunca incluye contraseña ni hash).
+
+**Errores**: `400` dato inválido, contraseña nueva débil o contraseña actual
+ausente/incorrecta (en ese caso no se guarda **ningún** cambio) · `401` sin sesión.
+La contraseña actual incorrecta devuelve 400 y no 401, para no cerrar la sesión
+del usuario en la web.
 
 ### GET `/api/perfil/objetos`
 
-**Response** `200 OK` — publicaciones propias (incluye `ELIMINADO`).
+**Response** `200 OK` — publicaciones **del usuario del token** (H14), más recientes primero,
+con fotos, categoría y `estado` (`ACTIVO`, `RECUPERADO`, `OCULTO` o `ELIMINADO`). Una cuenta
+sin publicaciones recibe `[]`. No hay ruta para pedir las publicaciones de otra persona por `id`.
+
+Acciones que ofrece la pantalla "Mis publicaciones" (mismas reglas que la API de H5):
+
+| Estado | Editar | Eliminar |
+| --- | --- | --- |
+| `ACTIVO`, `RECUPERADO` | Sí | Sí (lógico, con confirmación) |
+| `OCULTO` (lo ocultó un ADMIN) | Sí | No |
+| `ELIMINADO` | No | No |
+
+**Errores**: `401` sin token.
 
 ---
 
@@ -338,6 +427,22 @@ coincide también la ubicación, `MEDIA` si no. No se persisten.
 ### PUT `/api/notificaciones/{id}/leida`
 
 **Response** `200 OK` — notificación marcada como leída · `404`
+
+### POST `/api/objetos/{id}/reclamos`  _(H20, JWT)_
+
+Inicia un reclamo pendiente sobre una publicación activa de tipo `ENCONTRADO`.
+No requiere datos personales ni cambia el estado del objeto: registra el objeto
+y la cuenta reclamante, y avisa al propietario mediante una notificación in-app.
+Solo otra cuenta puede reclamar; cada cuenta tiene un reclamo por objeto. Una
+repetición devuelve el reclamo existente sin duplicar la notificación.
+
+**Request**: sin body.
+
+**Response** `201 Created` (nuevo) o `200 OK` (repetido):
+`{ "id": 3, "objetoId": 27, "estado": "PENDIENTE", "fechaReclamo": "2026-10-19T12:00:00", "repetido": false }`.
+
+**Errores**: `400` objeto que no es hallazgo activo · `401` sin sesión · `403`
+el usuario es propietario del objeto · `404` objeto inexistente.
 
 ---
 
@@ -374,12 +479,27 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 
 | Recurso                          | Rutas                                     | Notas                                        |
 | -------------------------------- | ----------------------------------------- | -------------------------------------------- |
-| Usuarios                         | `GET/POST /api/admin/usuarios/` · `GET/PUT/PATCH/DELETE /api/admin/usuarios/{id}/` | `PATCH { "estado": "SUSPENDIDO" }` para suspender |
+| Usuarios _(H15)_                 | `GET /api/admin/usuarios/` · `GET/PATCH /api/admin/usuarios/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "SUSPENDIDO" }` |
 | Categorías                       | `GET/POST /api/admin/categorias/` · `GET/PUT/PATCH/DELETE /api/admin/categorias/{id}/` | `PATCH { "estado": false }` para desactivar  |
-| Publicaciones (objetos)          | `GET/POST /api/admin/publicaciones/` · `GET/PUT/PATCH/DELETE /api/admin/publicaciones/{id}/` | `PATCH { "estado": "OCULTO" }` para ocultar  |
+| Publicaciones (objetos) _(H15)_  | `GET /api/admin/publicaciones/` · `GET/PATCH /api/admin/publicaciones/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "OCULTO" \| "ELIMINADO" }` |
 | Reportes                         | `GET/POST /api/admin/reportes/` · `GET/PUT/PATCH/DELETE /api/admin/reportes/{id}/` | `PATCH { "estado": "RESUELTO", "fechaResolucion": "2026-10-04T12:00:00" }` |
 
-**Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe
+**Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe · `405` método no permitido
+
+#### Reglas de H15 (usuarios y publicaciones)
+
+- **Solo ADMIN activo.** Visitante = 401; cuenta USUARIO = 403 (también por URL o API directa).
+  Un ADMIN suspendido pierde el acceso en la siguiente petición.
+- **Solo se cambia el estado.** Cualquier otro campo (`rol`, `correo`, `nombre`, `password`,
+  contenido de la publicación) o un estado no permitido devuelve `400` y no guarda nada.
+- **No se crean ni se borran filas.** `POST`, `PUT` y `DELETE` responden `405`.
+  Eliminar una publicación es **lógico**: `PATCH { "estado": "ELIMINADO" }`. La fila se conserva
+  y deja de verse en búsqueda, detalle público y coincidencias. Una eliminada no se vuelve a mostrar.
+- **El ADMIN no puede suspender su propia cuenta** (`400`), para no quedar sin acceso al panel.
+- Suspender a un usuario invalida su sesión abierta en Spring (`401`) y le impide iniciar sesión;
+  al reactivarlo vuelve a entrar.
+- Las listas están paginadas de 10 en 10 (`count`, `next`, `results`); el panel recorre todas las páginas.
+- Pruebas: `python manage.py test nucleo --settings=config.settings_test` (SQLite en memoria).
 
 ---
 

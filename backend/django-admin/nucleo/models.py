@@ -73,6 +73,9 @@ class Usuario(models.Model):
     apellido = models.CharField(max_length=100)
     correo = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=255)
+    # Columnas existentes de H12, compartidas con Spring Boot.
+    intentos_login = models.IntegerField(default=0, db_column="intentos_fallidos")
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True)
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="USUARIO")
     estado = models.CharField(
         max_length=20, choices=ESTADO_USUARIO_CHOICES, default="ACTIVO"

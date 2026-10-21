@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
@@ -13,15 +13,18 @@ export default function Verificar() {
   const { verificar } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { state } = useLocation();
+  const envioConfirmado = Number.isFinite(state?.codigoEnviadoEn);
 
   const [correo, setCorreo] = useState(params.get('correo') || '');
   const [codigo, setCodigo] = useState('');
   const [error, setError] = useState('');
   const [aviso, setAviso] = useState(
-    params.get('correo') ? `Te enviamos un código de 6 dígitos a ${params.get('correo')}.` : ''
+    envioConfirmado ? `Te enviamos un código de 6 dígitos a ${params.get('correo')}.` : ''
   );
   const [enviando, setEnviando] = useState(false);
-  const [espera, setEspera] = useState(params.get('correo') ? ESPERA_REENVIO : 0);
+  const [espera, setEspera] = useState(envioConfirmado ? Math.max(0, ESPERA_REENVIO - Math.floor((Date.now() - state.codigoEnviadoEn) / 1000)) : 0);
+  const [reenviando, setReenviando] = useState(false);
 
   useEffect(() => {
     if (espera <= 0) return undefined;
@@ -48,18 +51,26 @@ export default function Verificar() {
   };
 
   const reenviar = async () => {
+    if (reenviando || espera > 0) return;
     setError('');
     setAviso('');
     if (!correo.trim()) {
       setError('Ingresa tu correo para reenviar el código.');
       return;
     }
+    setReenviando(true);
     try {
       const data = await reenviarCodigo(correo.trim().toLowerCase());
       setAviso(data.mensaje);
       setEspera(ESPERA_REENVIO);
     } catch (err) {
       setError(mensajeError(err, 'No se pudo reenviar el código'));
+      if (err?.response?.status === 429) {
+        const segundos = Number(err.response.headers?.['retry-after']);
+        if (Number.isFinite(segundos) && segundos > 0) setEspera(Math.ceil(segundos));
+      }
+    } finally {
+      setReenviando(false);
     }
   };
 
@@ -111,8 +122,8 @@ export default function Verificar() {
 
         <p className="auth-texto">
           ¿No te llegó?{' '}
-          <button type="button" className="btn-enlace" onClick={reenviar} disabled={espera > 0}>
-            {espera > 0 ? `Reenviar en ${espera}s` : 'Reenviar código'}
+          <button type="button" className="btn-enlace" onClick={reenviar} disabled={espera > 0 || reenviando}>
+            {reenviando ? 'Enviando código...' : espera > 0 ? `Reenviar en ${espera}s` : 'Reenviar código'}
           </button>
         </p>
 

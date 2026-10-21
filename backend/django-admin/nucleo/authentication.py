@@ -2,6 +2,7 @@
 import os
 
 import jwt
+from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -44,6 +45,9 @@ class JwtAuthentication(BaseAuthentication):
             raise
         except Exception:
             raise AuthenticationFailed("Token inválido")
+
+        if usuario.bloqueado_hasta and usuario.bloqueado_hasta > timezone.now():
+            raise AuthenticationFailed("Tu cuenta está bloqueada temporalmente")
 
         # DRF asigna request.user con el primer elemento de la tupla.
         request.user = usuario

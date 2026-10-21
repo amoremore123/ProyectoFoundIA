@@ -100,6 +100,26 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("La restricción única ante registro simultáneo responde 409 sin filtrar SQL")
+    void registroConcurrenteDuplicado() throws Exception {
+        when(authService.register(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException(
+                "detalle SQL privado", new java.sql.SQLException("correo duplicado", "23000", 1062)));
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO_VALIDO))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensaje").value("El correo ya está registrado"));
+    }
+
+    @Test
+    @DisplayName("Un fallo de integridad diferente no se anuncia como correo duplicado")
+    void registroIntegridadDistinta() throws Exception {
+        when(authService.register(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException(
+                "detalle SQL privado", new java.sql.SQLException("campo obligatorio", "23502", 0)));
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO_VALIDO))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.mensaje").value("Error interno del servidor"));
+    }
+
+    @Test
     @DisplayName("POST /verificar código correcto -> 200 con token")
     void verificar() throws Exception {
         when(authService.verificar(any(VerificarRequest.class))).thenReturn(respuestaConToken());

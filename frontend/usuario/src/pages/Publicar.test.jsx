@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Publicar from './Publicar';
-import { crearObjeto, listarCategorias } from '../services/api';
+import { crearObjeto, listarCategorias, subirFotoObjeto } from '../services/api';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
 
 vi.mock('../services/api', async (importOriginal) => ({
-  ...await importOriginal(), crearObjeto: vi.fn(), listarCategorias: vi.fn(),
+  ...await importOriginal(), crearObjeto: vi.fn(), listarCategorias: vi.fn(), subirFotoObjeto: vi.fn(),
 }));
 vi.mock('../services/geolocalizacion', () => ({ obtenerUbicacionActual: vi.fn() }));
 
@@ -48,6 +48,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   listarCategorias.mockResolvedValue([{ id: 3, nombre: 'Mochila', estado: true }]);
   crearObjeto.mockResolvedValue({ id: 55 });
+  subirFotoObjeto.mockResolvedValue({ id: 99, url: '/uploads/foto.png' });
   obtenerUbicacionActual.mockResolvedValue(gps);
 });
 afterEach(cleanup);
@@ -70,6 +71,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     await rellenar(user);
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     await screen.findByText('Detalle de prueba');
+    expect(subirFotoObjeto).not.toHaveBeenCalled();
     expect(crearObjeto).toHaveBeenCalledWith({
       nombre: 'Mochila de prueba', descripcion: 'Objeto ficticio', categoriaId: 3,
       ubicacion: 'Biblioteca central', fechaObjeto: hoyISO(), tipo: 'PERDIDO',
@@ -319,5 +321,114 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     await screen.findByText('Detalle de prueba');
     expect(crearObjeto.mock.calls[0][0].descripcion).toBe(limite);
+  });
+
+  it('sube la foto seleccionada después de crear la publicación', async () => {
+    const user = userEvent.setup();
+    const foto = new File(['png de prueba'], 'mochila.png', { type: 'image/png' });
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await screen.findByText('Detalle de prueba');
+
+    expect(crearObjeto).toHaveBeenCalledTimes(1);
+    expect(subirFotoObjeto).toHaveBeenCalledWith(55, foto, expect.any(Function));
+  });
+
+  it('permite reintentar la carga fallida sin crear otra publicación', async () => {
+    const user = userEvent.setup();
+    const foto = new File(['png de prueba'], 'mochila.png', { type: 'image/png' });
+    subirFotoObjeto.mockRejectedValueOnce(new Error('sin conexión'));
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    expect(await screen.findByText(/La publicación quedó guardada, pero no se pudo subir la foto/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Reintentar carga de foto' }));
+    await screen.findByText('Detalle de prueba');
+
+    expect(crearObjeto).toHaveBeenCalledTimes(1);
+    expect(subirFotoObjeto).toHaveBeenCalledTimes(2);
+  });
+
+  it('valida tipo y tamaño antes de enviar una foto', async () => {
+    renderizar();
+    const entrada = screen.getByLabelText('Foto (opcional)');
+    fireEvent.change(entrada, {
+      target: { files: [new File(['texto'], 'nota.txt', { type: 'text/plain' })] },
+    });
+    expect(await screen.findByText('Elige una imagen JPEG o PNG.')).toBeTruthy();
+    fireEvent.change(entrada, {
+      target: { files: [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.png', { type: 'image/png' })] },
+    });
+    expect(await screen.findByText('La imagen no debe superar los 5 MiB.')).toBeTruthy();
+    expect(subirFotoObjeto).not.toHaveBeenCalled();
+  });
+
+  it('acepta una imagen de exactamente 5 MiB (el límite)', async () => {
+    renderizar();
+    const limite = new File([new Uint8Array(5 * 1024 * 1024)], 'limite.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [limite] } });
+    expect(await screen.findByText('Seleccionada: limite.png')).toBeTruthy();
+    expect(screen.queryByText('La imagen no debe superar los 5 MiB.')).toBeNull();
+  });
+
+  it('muestra la vista previa de la foto elegida y permite quitarla', async () => {
+    const user = userEvent.setup();
+    // jsdom no implementa createObjectURL: se simula solo en esta prueba.
+    URL.createObjectURL = vi.fn(() => 'blob:vista-previa');
+    URL.revokeObjectURL = vi.fn();
+    const revocar = URL.revokeObjectURL;
+    renderizar();
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
+    });
+
+    const vista = await screen.findByRole('img', { name: 'Vista previa de mochila.png' });
+    expect(vista.getAttribute('src')).toBe('blob:vista-previa');
+    await user.click(screen.getByRole('button', { name: 'Quitar foto' }));
+    expect(screen.queryByRole('img', { name: /Vista previa/ })).toBeNull();
+    expect(revocar).toHaveBeenCalledWith('blob:vista-previa');
+    delete URL.createObjectURL;
+    delete URL.revokeObjectURL;
+  });
+
+  it('muestra el progreso de la subida con una barra accesible', async () => {
+    const user = userEvent.setup();
+    let terminar;
+    subirFotoObjeto.mockImplementationOnce((id, archivo, onProgreso) => new Promise((resolve) => {
+      onProgreso(45);
+      terminar = () => resolve({ id: 99, url: '/uploads/foto.png' });
+    }));
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
+    });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+
+    const barra = await screen.findByRole('progressbar', { name: 'Subida de la foto' });
+    expect(barra.getAttribute('aria-valuenow')).toBe('45');
+    expect(screen.getByText('Subiendo foto… 45%')).toBeTruthy();
+    await act(async () => terminar());
+    await screen.findByText('Detalle de prueba');
+  });
+
+  it('si el servidor rechaza la foto no anuncia éxito ni sale del formulario', async () => {
+    const user = userEvent.setup();
+    subirFotoObjeto.mockRejectedValueOnce({ response: { status: 400, data: { mensaje: 'Formato de imagen no admitido' } } });
+    renderizar();
+    await rellenar(user);
+    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+      target: { files: [new File(['falso'], 'falsa.png', { type: 'image/png' })] },
+    });
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+
+    expect(await screen.findByText(/no se pudo subir la foto: Formato de imagen no admitido/)).toBeTruthy();
+    expect(screen.queryByText('Detalle de prueba')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Continuar sin foto' })).toBeTruthy();
   });
 });

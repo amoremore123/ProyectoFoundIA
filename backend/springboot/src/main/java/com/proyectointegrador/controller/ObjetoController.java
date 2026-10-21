@@ -3,28 +3,35 @@ package com.proyectointegrador.controller;
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
 import com.proyectointegrador.dto.ObjetoRequest;
 import com.proyectointegrador.dto.ObjetoResponse;
+import com.proyectointegrador.dto.FotoResponse;
+import com.proyectointegrador.dto.FiltroBusqueda;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ObjetoService;
+import com.proyectointegrador.service.FotoService;
+import com.proyectointegrador.service.BusquedaService;
+import com.proyectointegrador.service.CoincidenciaService;
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -32,17 +39,21 @@ import java.util.List;
 public class ObjetoController {
 
     private final ObjetoService objetoService;
+    private final FotoService fotoService;
+    private final BusquedaService busquedaService;
+    private final CoincidenciaService coincidenciaService;
 
-    public ObjetoController(ObjetoService objetoService) {
+    public ObjetoController(ObjetoService objetoService, FotoService fotoService,
+                            BusquedaService busquedaService, CoincidenciaService coincidenciaService) {
         this.objetoService = objetoService;
+        this.fotoService = fotoService;
+        this.busquedaService = busquedaService;
+        this.coincidenciaService = coincidenciaService;
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<ObjetoResponse>> buscar(
-            @RequestParam(name = "q", required = false) String q,
-            @RequestParam(name = "tipo", required = false) TipoObjeto tipo,
-            @RequestParam(name = "categoriaId", required = false) Long categoriaId) {
-        return ResponseEntity.ok(objetoService.buscar(q, tipo, categoriaId));
+    public ResponseEntity<List<ObjetoResponse>> buscar(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.buscar(filtros));
     }
 
     @GetMapping("/categoria/{id}")
@@ -51,20 +62,18 @@ public class ObjetoController {
     }
 
     @GetMapping("/ubicacion")
-    public ResponseEntity<List<ObjetoResponse>> porUbicacion(@RequestParam(name = "ubicacion", required = false) String ubicacion) {
-        return ResponseEntity.ok(objetoService.porUbicacion(ubicacion));
+    public ResponseEntity<List<ObjetoResponse>> porUbicacion(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.buscar(filtros));
     }
 
     @GetMapping("/fecha")
-    public ResponseEntity<List<ObjetoResponse>> porFecha(
-            @RequestParam(name = "desde", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate desde,
-            @RequestParam(name = "hasta", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate hasta) {
-        return ResponseEntity.ok(objetoService.porFecha(desde, hasta));
+    public ResponseEntity<List<ObjetoResponse>> porFecha(@ModelAttribute FiltroBusqueda filtros) {
+        return ResponseEntity.ok(busquedaService.porFecha(filtros));
     }
 
     @GetMapping("/{id}/coincidencias")
     public ResponseEntity<List<CoincidenciaSugeridaResponse>> coincidencias(@PathVariable Long id) {
-        return ResponseEntity.ok(objetoService.coincidencias(id));
+        return ResponseEntity.ok(coincidenciaService.listar(id));
     }
 
     @GetMapping("/{id}")
@@ -90,14 +99,21 @@ public class ObjetoController {
     public ResponseEntity<ObjetoResponse> actualizar(@PathVariable Long id,
                                                      @Valid @RequestBody ObjetoRequest request) {
         UserPrincipal usuario = usuarioActual();
-        return ResponseEntity.ok(objetoService.actualizar(id, request, usuario.getId(), usuario.getRol()));
+        return ResponseEntity.ok(objetoService.actualizar(id, request, usuario.getId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         UserPrincipal usuario = usuarioActual();
-        objetoService.eliminar(id, usuario.getId(), usuario.getRol());
+        objetoService.eliminar(id, usuario.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/fotos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FotoResponse> subirFoto(@PathVariable Long id,
+                                                   @RequestPart("archivo") MultipartFile archivo) {
+        FotoResponse foto = fotoService.agregar(id, usuarioActual().getId(), archivo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(foto);
     }
 
     private UserPrincipal usuarioActual() {

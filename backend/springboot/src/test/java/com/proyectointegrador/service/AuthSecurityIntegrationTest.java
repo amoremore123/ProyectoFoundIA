@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
@@ -70,6 +71,33 @@ class AuthSecurityIntegrationTest {
 
     private Usuario usuario;
 
+    @Test
+    @Timeout(30)
+    @DisplayName("H11 - Dos registros simultáneos conservan una sola cuenta y responden 201 y 409")
+    void registrosSimultaneosMismoCorreo() throws Exception {
+        String body = """
+                {"nombre":"Amore","apellido":"Prueba","correo":"duplicado@prueba.invalid","password":"Segura123!"}
+                """;
+        CyclicBarrier inicio = new CyclicBarrier(2);
+        ExecutorService ejecutor = Executors.newFixedThreadPool(2);
+        try {
+            List<Future<Integer>> respuestas = new ArrayList<>();
+            for (int i = 0; i < 2; i++) {
+                respuestas.add(ejecutor.submit(() -> {
+                    inicio.await(5, TimeUnit.SECONDS);
+                    return mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+                            .andReturn().getResponse().getStatus();
+                }));
+            }
+            List<Integer> estados = new ArrayList<>();
+            for (Future<Integer> respuesta : respuestas) estados.add(respuesta.get(20, TimeUnit.SECONDS));
+            assertThat(estados).containsExactlyInAnyOrder(201, 409);
+            assertThat(usuarioRepository.findAll().stream().filter(u -> u.getCorreo().equals("duplicado@prueba.invalid")).count()).isEqualTo(1);
+        } finally {
+            ejecutor.shutdownNow();
+        }
+    }
+
     @BeforeEach
     void prepararUsuario() {
         // Esta clase usa una base propia; las escrituras deben ser visibles para otros hilos.
@@ -118,7 +146,7 @@ class AuthSecurityIntegrationTest {
             assertThat(estados).containsExactlyInAnyOrder(401, 401, 401, 401, 423, 423, 423, 423);
             Usuario guardado = usuarioRepository.findByCorreo(CORREO).orElseThrow();
             assertThat(guardado.getIntentosFallidos()).isZero();
-            assertThat(guardado.getBloqueadoHasta()).isAfter(LocalDateTime.now());
+            assertThat(guardado.getBloqueadoHasta()).isAfter(LocalDateTime.now(ZoneOffset.UTC));
             mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                             .content(LOGIN_INCORRECTO.replace("Incorrecta123!", "Segura123!")))
                     .andExpect(status().isLocked());
@@ -159,7 +187,7 @@ class AuthSecurityIntegrationTest {
         usuario.setVerificado(false);
         usuario.setEstado(EstadoUsuario.SUSPENDIDO);
         usuario.setCodigoVerificacion("123456");
-        usuario.setCodigoExpira(LocalDateTime.now().plusMinutes(10));
+        usuario.setCodigoExpira(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(10));
         usuarioRepository.saveAndFlush(usuario);
 
         mockMvc.perform(post("/api/auth/verificar").contentType(MediaType.APPLICATION_JSON)
@@ -181,7 +209,7 @@ class AuthSecurityIntegrationTest {
     private void sinVerificarConCodigo(LocalDateTime enviadoEn) {
         usuario.setVerificado(false);
         usuario.setCodigoVerificacion("123456");
-        usuario.setCodigoExpira(LocalDateTime.now().plusMinutes(10));
+        usuario.setCodigoExpira(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(10));
         usuario.setCodigoEnviadoEn(enviadoEn);
         usuarioRepository.saveAndFlush(usuario);
     }
@@ -189,7 +217,7 @@ class AuthSecurityIntegrationTest {
     @Test
     @DisplayName("H11 - Límite del código por API directa: el contador se guarda entre peticiones")
     void limiteDeCodigoPersistido() throws Exception {
-        sinVerificarConCodigo(LocalDateTime.now());
+        sinVerificarConCodigo(LocalDateTime.now(ZoneOffset.UTC));
 
         // Cada petición es independiente, como otra pestaña o un cliente que llama a la API directo.
         for (int i = 1; i < AuthService.MAX_INTENTOS_CODIGO; i++) {
@@ -213,7 +241,7 @@ class AuthSecurityIntegrationTest {
     @Test
     @DisplayName("H11 - Reenvío por API directa: 429 con Retry-After antes de 60 s y sin enviar correo")
     void reenvioLimitadoPorApi() throws Exception {
-        sinVerificarConCodigo(LocalDateTime.now().minusSeconds(10));
+        sinVerificarConCodigo(LocalDateTime.now(ZoneOffset.UTC).minusSeconds(10));
 
         mockMvc.perform(post("/api/auth/reenviar-codigo").contentType(MediaType.APPLICATION_JSON).content(REENVIAR))
                 .andExpect(status().isTooManyRequests())
@@ -225,7 +253,7 @@ class AuthSecurityIntegrationTest {
     @Test
     @DisplayName("H11 - Dos reenvíos seguidos: solo el primero emite un código nuevo")
     void dosReenviosSeguidos() throws Exception {
-        sinVerificarConCodigo(LocalDateTime.now().minusMinutes(5));
+        sinVerificarConCodigo(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(5));
 
         mockMvc.perform(post("/api/auth/reenviar-codigo").contentType(MediaType.APPLICATION_JSON).content(REENVIAR))
                 .andExpect(status().isOk());

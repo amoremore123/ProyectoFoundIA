@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ObjetoCard from '../components/ObjetoCard';
 import Icono from '../components/Icono';
@@ -6,6 +6,8 @@ import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import useCategorias, { filtrarCategorias } from '../hooks/useCategorias';
 import { buscarObjetos, mensajeError } from '../services/api';
+import { obtenerCoordenadasActuales } from '../services/geolocalizacion';
+import { CAMPOS_AVANZADOS, distanciaKm, validarFiltros } from '../utils/busqueda';
 
 const OPCIONES_TIPO = [
   { valor: '', texto: 'Todos' },
@@ -17,8 +19,27 @@ export default function Buscar() {
   const [searchParams, setSearchParams] = useSearchParams();
   const qInicial = searchParams.get('q') || '';
   const categoriaInicial = searchParams.get('categoriaId') || '';
-  const ubicacionInicial = searchParams.get('ubicacion') || '';
   const tipoInicial = searchParams.get('tipo') || '';
+  const claveAvanzados = JSON.stringify(CAMPOS_AVANZADOS.map((campo) => searchParams.get(campo) || ''));
+  const filtrosAplicados = Object.fromEntries(CAMPOS_AVANZADOS.map((campo) => [campo, searchParams.get(campo) || '']));
+  const [avanzados, setAvanzados] = useState(filtrosAplicados);
+  const [errorFiltros, setErrorFiltros] = useState('');
+  const [ubicando, setUbicando] = useState(false);
+  const solicitudGps = useRef(0);
+
+  useEffect(() => {
+    setAvanzados(Object.fromEntries(CAMPOS_AVANZADOS.map((campo, indice) => [campo, JSON.parse(claveAvanzados)[indice]])));
+    setErrorFiltros('');
+    solicitudGps.current += 1;
+    setUbicando(false);
+  }, [claveAvanzados]);
+  useEffect(() => () => { solicitudGps.current += 1; }, []);
+
+  const cambiarAvanzado = (campo, valor) => {
+    solicitudGps.current += 1;
+    setUbicando(false);
+    setAvanzados((f) => ({ ...f, [campo]: valor }));
+  };
 
   const [q, setQ] = useState(qInicial);
   const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
@@ -41,13 +62,10 @@ export default function Buscar() {
         const params = { q: qInicial.trim() };
         if (tipoInicial) params.tipo = tipoInicial;
         if (categoriaInicial) params.categoriaId = categoriaInicial;
+        CAMPOS_AVANZADOS.forEach((campo) => { if (filtrosAplicados[campo]) params[campo] = filtrosAplicados[campo]; });
         const data = await buscarObjetos(params, { signal: controlador.signal });
         if (controlador.signal.aborted) return;
-        let lista = Array.isArray(data) ? data : data?.results || [];
-        const ubicacion = ubicacionInicial.trim().toLowerCase();
-        if (ubicacion) {
-          lista = lista.filter((objeto) => (objeto.ubicacion || '').toLowerCase().includes(ubicacion));
-        }
+        const lista = Array.isArray(data) ? data : data?.results || [];
         setResultados(lista);
       } catch (e) {
         if (!controlador.signal.aborted) {
@@ -61,7 +79,7 @@ export default function Buscar() {
     cargar();
     // Una respuesta lenta anterior no debe reemplazar el filtro actual.
     return () => controlador.abort();
-  }, [qInicial, tipoInicial, categoriaInicial, ubicacionInicial, reintentosBusqueda]);
+  }, [qInicial, tipoInicial, categoriaInicial, claveAvanzados, reintentosBusqueda]);
 
   const reintentarBusqueda = () => setReintentosBusqueda((valor) => valor + 1);
 
@@ -78,17 +96,40 @@ export default function Buscar() {
 
   const enviarBusqueda = (e) => {
     e.preventDefault();
-    if (q.trim() === qInicial) reintentarBusqueda();
-    else aplicar({ q: q.trim() });
+    const limpios = Object.fromEntries(Object.entries(avanzados).map(([campo, valor]) => [campo, valor.trim()]));
+    const error = validarFiltros(limpios);
+    setErrorFiltros(error);
+    if (error) return;
+    if (q.trim() === qInicial && CAMPOS_AVANZADOS.every((campo) => limpios[campo] === filtrosAplicados[campo])) reintentarBusqueda();
+    else aplicar({ q: q.trim(), ...limpios });
+  };
+
+  const usarUbicacion = async () => {
+    const solicitud = ++solicitudGps.current;
+    setUbicando(true);
+    setErrorFiltros('');
+    try {
+      const coordenadas = await obtenerCoordenadasActuales();
+      if (solicitud !== solicitudGps.current) return;
+      setAvanzados((actual) => ({ ...actual, latitud: String(coordenadas.latitud), longitud: String(coordenadas.longitud), radioKm: actual.radioKm || '5' }));
+    } catch (error) {
+      if (solicitud === solicitudGps.current) setErrorFiltros(`${error.message}. Puedes escribir una ubicación o las coordenadas manualmente.`);
+    } finally {
+      if (solicitud === solicitudGps.current) setUbicando(false);
+    }
   };
 
   const limpiarFiltros = () => {
+    solicitudGps.current += 1;
+    setUbicando(false);
     setQ('');
     setFiltroCategoria('');
-    aplicar({ q: '', categoriaId: '', tipo: '', ubicacion: '' });
+    setAvanzados(Object.fromEntries(CAMPOS_AVANZADOS.map((campo) => [campo, ''])));
+    setErrorFiltros('');
+    aplicar({ q: '', categoriaId: '', tipo: '', ...Object.fromEntries(CAMPOS_AVANZADOS.map((campo) => [campo, ''])) });
   };
 
-  const hayFiltros = qInicial || tipoInicial || categoriaInicial || ubicacionInicial;
+  const hayFiltros = qInicial || tipoInicial || categoriaInicial || CAMPOS_AVANZADOS.some((campo) => filtrosAplicados[campo]);
   // La categoría elegida sigue visible aunque no coincida con el texto del filtro
   const categoriasVisibles = filtrarCategorias(categorias, filtroCategoria);
   const seleccionada = categorias.find((c) => String(c.id) === categoriaInicial);
@@ -102,7 +143,7 @@ export default function Buscar() {
     <div className="pagina">
       <h1 className="pagina-titulo">Buscar objetos</h1>
 
-      <form className="buscador-card" onSubmit={enviarBusqueda} aria-label="Búsqueda de objetos">
+      <form className="buscador-card" onSubmit={enviarBusqueda} aria-label="Búsqueda de objetos" noValidate>
         <div className="buscador-fila">
           <input
             type="search"
@@ -175,7 +216,25 @@ export default function Buscar() {
           </select>
         </label>
         <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
-        {ubicacionInicial && <p className="nota-suave">Ubicación: {ubicacionInicial}</p>}
+        <fieldset className="filtros-avanzados">
+          <legend>Ubicación y fechas</legend>
+          <label className="campo"><span className="campo-label">Ubicación</span>
+            <input className="input" value={avanzados.ubicacion} maxLength={255} placeholder="Ej. Biblioteca" onChange={(e) => cambiarAvanzado('ubicacion', e.target.value)} />
+          </label>
+          <div className="filtros-grid">
+            {[['desde', 'Desde'], ['hasta', 'Hasta']].map(([campo, nombre]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="date" value={avanzados[campo]} onChange={(e) => cambiarAvanzado(campo, e.target.value)} /></label>)}
+          </div>
+          <p className="nota-suave">Busca por lugar o añade coordenadas para ordenar por cercanía. Las fechas incluyen ambos extremos.</p>
+          <div className="filtros-grid">
+            {[['latitud', 'Latitud', -90, 90], ['longitud', 'Longitud', -180, 180], ['radioKm', 'Radio en kilómetros', 0, 1000]].map(([campo, nombre, min, max]) => <label className="campo" key={campo}><span className="campo-label">{nombre}</span><input className="input" type="number" step="any" min={min} max={max} value={avanzados[campo]} onChange={(e) => cambiarAvanzado(campo, e.target.value)} /></label>)}
+          </div>
+          <button className="btn btn-secundario" type="button" disabled={ubicando} onClick={usarUbicacion}>{ubicando ? 'Obteniendo ubicación...' : 'Usar mi ubicación'}</button>
+          <MensajeError mensaje={errorFiltros} />
+          <button className="btn btn-primario" type="submit" disabled={ubicando}>Aplicar filtros</button>
+        </fieldset>
+        {hayFiltros && <div className="filtros-activos" aria-label="Filtros activos">
+          {Object.entries({ q: qInicial, tipo: tipoInicial, categoriaId: categoriaInicial, ...filtrosAplicados }).filter(([, valor]) => valor).map(([campo, valor]) => <button className="chip-filtro" type="button" key={campo} aria-label={`Quitar filtro ${campo}`} onClick={() => aplicar(['latitud', 'longitud', 'radioKm'].includes(campo) ? { latitud: '', longitud: '', radioKm: '' } : { [campo]: '' })}>{({ q: 'Texto', tipo: 'Tipo', categoriaId: 'Categoría', ubicacion: 'Ubicación', desde: 'Desde', hasta: 'Hasta', latitud: 'Latitud', longitud: 'Longitud', radioKm: 'Radio km' })[campo]}: {campo === 'categoriaId' ? seleccionada?.nombre || valor : valor} ×</button>)}
+        </div>}
         {hayFiltros && (
           <button type="button" className="btn btn-secundario" onClick={limpiarFiltros}>
             Limpiar filtros
@@ -202,7 +261,7 @@ export default function Buscar() {
             </p>
             <div className="grid-objetos">
               {resultados.map((obj) => (
-                <ObjetoCard key={obj.id} objeto={obj} />
+                <ObjetoCard key={obj.id} objeto={obj} distancia={distanciaKm(filtrosAplicados, obj)} />
               ))}
             </div>
           </>

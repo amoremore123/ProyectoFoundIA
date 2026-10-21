@@ -12,9 +12,11 @@ import Verificar from './pages/Verificar';
 import Buscar from './pages/Buscar';
 import Publicar from './pages/Publicar';
 import Detalle from './pages/Detalle';
+import DetalleCoincidencia from './pages/DetalleCoincidencia';
 import Perfil from './pages/Perfil';
 import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
+import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
   const { token } = useAuth();
@@ -35,9 +37,10 @@ export default function App() {
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Portada />} />
                 <Route path="/explorar" element={<Inicio />} />
-                <Route path="/historial" element={<HistorialObjetos />} />
+                <Route path="/historial" element={EXTRAS_HABILITADOS ? <HistorialObjetos /> : <Navigate to="/explorar" replace />} />
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
+                <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route
                   path="/publicar"
                   element={
@@ -59,6 +62,14 @@ export default function App() {
                   element={
                     <RutaProtegida>
                       <MisPublicaciones />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/mis-publicaciones/:id/editar"
+                  element={
+                    <RutaProtegida>
+                      <Publicar />
                     </RutaProtegida>
                   }
                 />

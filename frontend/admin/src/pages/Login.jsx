@@ -1,17 +1,25 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
+import { EXTRAS_HABILITADOS } from '../config/alcance';
+
+// H15: motivo por el que el panel cerró la sesión (lo envía el interceptor de la API).
+const MOTIVOS = {
+  'sin-permiso': 'Tu cuenta ya no tiene permisos de administrador o fue suspendida. Se cerró la sesión del panel.',
+  'sesion-vencida': 'Tu sesión venció. Vuelve a iniciar sesión.',
+};
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(MOTIVOS[params.get('motivo')] || '');
   const [enviando, setEnviando] = useState(false);
 
   const enviar = async (e) => {
@@ -42,12 +50,12 @@ export default function Login() {
         <div className="login-panel-texto">
           <span className="login-panel-etiqueta">Panel administrativo · Tecsup</span>
           <h2>Gestiona los objetos perdidos del campus</h2>
-          <p>Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.</p>
+          <p>{EXTRAS_HABILITADOS ? 'Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.' : 'Gestiona usuarios y modera las publicaciones de la comunidad desde un solo lugar.'}</p>
         </div>
         <div className="login-panel-stats">
           <div><strong><Icono nombre="usuarios" tamano={18} /></strong>Usuarios</div>
           <div><strong><Icono nombre="caja" tamano={18} /></strong>Publicaciones</div>
-          <div><strong><Icono nombre="bandera" tamano={18} /></strong>Reportes</div>
+          {EXTRAS_HABILITADOS && <div><strong><Icono nombre="bandera" tamano={18} /></strong>Reportes</div>}
         </div>
       </aside>
 

@@ -3,8 +3,10 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 
 import bcrypt
 import jwt
+from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -29,19 +31,27 @@ class LoginView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @transaction.atomic
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        correo = serializer.validated_data["correo"]
+        correo = serializer.validated_data["correo"].strip().lower()
         password = serializer.validated_data["password"]
 
-        usuario = Usuario.objects.filter(correo=correo).first()
+        usuario = Usuario.objects.select_for_update().filter(correo=correo).first()
         if usuario is None:
             return Response(
                 {"detail": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+        ahora = timezone.now()
+        if usuario.bloqueado_hasta and usuario.bloqueado_hasta > ahora:
+            return Response({"detail": "Tu cuenta está bloqueada temporalmente. Intenta de nuevo más tarde."}, status=423)
+        if usuario.bloqueado_hasta:
+            usuario.intentos_login = 0
+            usuario.bloqueado_hasta = None
 
         try:
             password_ok = bcrypt.checkpw(
@@ -51,6 +61,12 @@ class LoginView(APIView):
             password_ok = False
 
         if not password_ok:
+            usuario.intentos_login += 1
+            if usuario.intentos_login >= 5:
+                usuario.bloqueado_hasta = ahora + timedelta(minutes=15)
+            usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
+            if usuario.bloqueado_hasta:
+                return Response({"detail": "Tu cuenta está bloqueada por 15 minutos tras cinco intentos fallidos."}, status=423)
             return Response(
                 {"detail": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -68,6 +84,9 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        usuario.intentos_login = 0
+        usuario.bloqueado_hasta = None
+        usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
         secret = os.environ.get("JWT_SECRET", JWT_SECRET_DEFAULT)
         exp = datetime.now(dt_timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(
@@ -97,22 +116,52 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated, EsAdmin]
 
     def get(self, request):
-        return Response(
-            {
-                "usuarios": Usuario.objects.count(),
-                "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+        datos = {
+            "usuarios": Usuario.objects.count(),
+            "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+        }
+        if settings.HABILITAR_EXTRAS:
+            datos.update({
                 "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
                 "categorias": Categoria.objects.count(),
-            }
-        )
+            })
+        return Response(datos)
 
 
-class UsuarioViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/admin/usuarios/ · GET/PUT/PATCH/DELETE /api/admin/usuarios/{id}/"""
+def _solo_estado(request, permitidos):
+    """H15: el panel solo cambia el estado. Devuelve (estado, error) para responder 400 en español."""
+    campos = set(request.data.keys())
+    if campos != {"estado"}:
+        return None, "Desde el panel solo se puede cambiar el estado."
+    estado = request.data.get("estado")
+    if estado not in permitidos:
+        return None, f"Estado inválido. Valores permitidos: {', '.join(permitidos)}."
+    return estado, None
+
+
+class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H15 - GET /api/admin/usuarios/ y /{id}/ · PATCH /{id}/ {"estado": "ACTIVO" | "SUSPENDIDO"}.
+
+    No se crean ni borran cuentas, ni se cambian rol, correo o contraseña desde el panel.
+    """
 
     queryset = Usuario.objects.all().order_by("id")
     serializer_class = UsuarioSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+    def partial_update(self, request, *args, **kwargs):
+        usuario = self.get_object()
+        estado, error = _solo_estado(request, ("ACTIVO", "SUSPENDIDO"))
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        if usuario.pk == request.user.pk and estado == "SUSPENDIDO":
+            return Response(
+                {"detail": "No puedes suspender tu propia cuenta de administrador."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        usuario.estado = estado
+        usuario.save(update_fields=["estado", "fecha_actualizacion"])
+        return Response(UsuarioSerializer(usuario).data)
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -123,12 +172,30 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, EsAdmin]
 
 
-class ObjetoViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/admin/publicaciones/ · GET/PUT/PATCH/DELETE /api/admin/publicaciones/{id}/"""
+class ObjetoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H15 - GET /api/admin/publicaciones/ y /{id}/ · PATCH /{id}/ {"estado": "ACTIVO" | "OCULTO" | "ELIMINADO"}.
+
+    Eliminar es lógico (estado ELIMINADO): nunca se borra la fila. Una publicación
+    eliminada ya no se puede volver a mostrar desde el panel.
+    """
 
     queryset = Objeto.objects.select_related("categoria", "usuario").order_by("id")
     serializer_class = ObjetoSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+    def partial_update(self, request, *args, **kwargs):
+        objeto = self.get_object()
+        estado, error = _solo_estado(request, ("ACTIVO", "OCULTO", "ELIMINADO"))
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        if objeto.estado == "ELIMINADO" and estado != "ELIMINADO":
+            return Response(
+                {"detail": "La publicación ya fue eliminada y no se puede volver a mostrar."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        objeto.estado = estado
+        objeto.save(update_fields=["estado", "fecha_actualizacion"])
+        return Response(ObjetoSerializer(objeto).data)
 
 
 class ReporteViewSet(viewsets.ModelViewSet):

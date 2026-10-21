@@ -46,7 +46,7 @@ export default function Registro() {
         correo,
         password: form.password,
       });
-      navigate(`/verificar?correo=${encodeURIComponent(correo)}`, { replace: true });
+      navigate(`/verificar?correo=${encodeURIComponent(correo)}`, { replace: true, state: { codigoEnviadoEn: Date.now() } });
     } catch (err) {
       const status = statusDe(err);
       if (status === 409) {

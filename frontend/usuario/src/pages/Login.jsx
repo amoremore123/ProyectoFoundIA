@@ -26,6 +26,7 @@ export default function Login() {
   const [bloqueadoHasta, setBloqueadoHasta] = useState(null);
   const [sinVerificar, setSinVerificar] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
   const bloqueado = bloqueadoHasta !== null;
 
   // H12: al vencer el bloqueo se reactiva Entrar sin editar el correo ni recargar
@@ -76,13 +77,17 @@ export default function Login() {
   };
 
   const irAVerificar = async () => {
+    if (reenviando) return;
     const limpio = correo.trim().toLowerCase();
+    setReenviando(true);
     try {
       await reenviarCodigo(limpio);
-    } catch {
-      // Si falla el reenvío, igual se puede ingresar un código anterior vigente
+      navigate(`/verificar?correo=${encodeURIComponent(limpio)}`, { state: { codigoEnviadoEn: Date.now() } });
+    } catch (fallo) {
+      setError(mensajeError(fallo, 'No se pudo enviar el código. Intenta nuevamente.'));
+    } finally {
+      setReenviando(false);
     }
-    navigate(`/verificar?correo=${encodeURIComponent(limpio)}`);
   };
 
   return (
@@ -98,8 +103,8 @@ export default function Login() {
           <div className="banner-error" role="alert">
             <Icono nombre={bloqueado ? 'candado' : 'alerta'} tamano={18} /> {error}
             {sinVerificar && (
-              <button type="button" className="btn-enlace" onClick={irAVerificar}>
-                Enviar código y verificar
+              <button type="button" className="btn-enlace" onClick={irAVerificar} disabled={reenviando}>
+                {reenviando ? 'Enviando código...' : 'Enviar código y verificar'}
               </button>
             )}
           </div>

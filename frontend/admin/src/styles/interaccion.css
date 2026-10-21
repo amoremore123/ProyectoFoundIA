@@ -26,7 +26,7 @@ html[data-tema='oscuro'] {
 
   --text: #e9eef8;
   --text-muted: #a9b4c9;
-  --text-soft: #7c89a3;
+  --text-soft: #8f9bb3;
 
   --success: #4ade9b;
   --success-50: #11291e;
@@ -233,3 +233,20 @@ html[data-tema='oscuro'] .login-pantalla { background: var(--bg); }
   .pagina, .toast { animation: none; }
   .btn:active:not(:disabled), .metrica:hover, .sidebar-link:hover { transform: none; }
 }
+
+/* ---------- H15: diálogo de confirmación y acciones del panel ---------- */
+.btn-secundario { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong, var(--border)); }
+.btn-secundario:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.dialogo-fondo {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(7, 26, 61, .55);
+}
+.dialogo { width: min(440px, 100%); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.dialogo-titulo { font-size: 20px; margin: 0; }
+.dialogo-mensaje { margin: 0; overflow-wrap: anywhere; }
+.dialogo-botones { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 8px; }
+.dialogo-botones .btn { flex: 1 1 140px; }
+.acciones-fila { display: flex; gap: 6px; flex-wrap: wrap; }
+.etiqueta-tu { margin-left: 6px; font-size: 12px; color: var(--text-soft); }
+.nota-acciones { font-size: 13px; color: var(--text-soft); }

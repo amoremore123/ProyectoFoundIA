@@ -60,7 +60,8 @@ public class AuthService {
     @Autowired
     public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, EmailService emailService) {
-        this(usuarioRepository, passwordEncoder, jwtService, emailService, Clock.systemDefaultZone());
+        // Los códigos y bloqueos compartidos con Django se guardan en UTC.
+        this(usuarioRepository, passwordEncoder, jwtService, emailService, Clock.systemUTC());
     }
 
     /** Constructor para pruebas: permite fijar la hora. */

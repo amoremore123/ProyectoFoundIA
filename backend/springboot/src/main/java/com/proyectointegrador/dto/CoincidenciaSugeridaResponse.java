@@ -11,6 +11,7 @@ public record CoincidenciaSugeridaResponse(
         String ubicacion,
         LocalDate fechaObjeto,
         BigDecimal porcentaje,
-        String nivel
+        String nivel,
+        String coincidenciaId
 ) {
 }

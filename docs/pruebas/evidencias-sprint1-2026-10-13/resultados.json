@@ -1,0 +1,843 @@
+{
+  "date": "2026-10-13",
+  "generatedAt": "2026-10-13T19:31:46.310Z",
+  "branch": "frontend/web",
+  "actualCommit": "143decf4980e117422706ad5bf84c9f15b82a20f",
+  "scope": [
+    "H1",
+    "H3",
+    "H4",
+    "H6",
+    "H7",
+    "H11",
+    "H12",
+    "integracion administrativa complementaria"
+  ],
+  "applicationCorrectionsApplied": false,
+  "environment": {
+    "mysql": "8.0.46",
+    "database": "objetos_perdidos_db, contenedor aislado",
+    "smtp": "Mailpit aislado, SMTP real de desarrollo",
+    "browser": "Microsoft Edge 155.0.4283.45",
+    "mode": "headless",
+    "viewportDesktop": "1280x900",
+    "viewportMobile": "360x800",
+    "api": "127.0.0.1:18081",
+    "django": "127.0.0.1:18000",
+    "frontend": "127.0.0.1:15173",
+    "frontendAdmin": "127.0.0.1:15174",
+    "databasePort": 13306,
+    "mailpitPort": 18025
+  },
+  "methods": {
+    "core": "HTTP y UI reales, persistencia consultada en MySQL",
+    "gps": "Ubicacion proporcionada por la emulacion del navegador; geocodificacion controlada para normalidad, 503 y lentitud",
+    "smtpFailure": "Se detuvo temporalmente el Mailpit aislado; la API devolvio 503 real",
+    "lockExpiry": "Se adelanto la expiracion solo en la cuenta de prueba y se comprobo 200 por API antes de observar el boton",
+    "uiFaults": "503 de busqueda/catalogo inyectados en el navegador para comprobar manejo de errores y reintento",
+    "adminLockScope": "Hallazgo complementario: el bloqueo de H12 esta documentado para Spring; definir alcance compartido con Django"
+  },
+  "summary": {
+    "api": {
+      "total": 45,
+      "passed": 43,
+      "failed": 2
+    },
+    "browser": {
+      "total": 40,
+      "passed": 37,
+      "failed": 3
+    },
+    "total": {
+      "total": 85,
+      "passed": 80,
+      "failed": 5
+    }
+  },
+  "automatedBaseline": {
+    "commit": "143decf",
+    "backend": {
+      "tests": 131,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "frontend": {
+      "tests": 47,
+      "failures": 0
+    },
+    "builds": [
+      "frontend usuario correcto",
+      "frontend admin correcto"
+    ],
+    "djangoCheck": "Sin incidencias de configuracion en manage.py check"
+  },
+  "runtimeErrors": [],
+  "cases": [
+    {
+      "id": "API-01",
+      "story": "Equipo",
+      "name": "Esquema MySQL real y seed",
+      "expected": "8 tablas, 4 usuarios, 8 categorias y 6 objetos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 22
+    },
+    {
+      "id": "API-02",
+      "story": "H11",
+      "name": "Registro pendiente y correo recibido",
+      "expected": "201, sin token, BCrypt y codigo en Mailpit",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 731
+    },
+    {
+      "id": "API-03",
+      "story": "H12",
+      "name": "Cuenta sin verificar",
+      "expected": "403 sin token",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 176
+    },
+    {
+      "id": "API-04",
+      "story": "H11",
+      "name": "Codigo incorrecto",
+      "expected": "400",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 30
+    },
+    {
+      "id": "API-05",
+      "story": "H11",
+      "name": "Codigo correcto",
+      "expected": "200 y cuenta verificada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 142
+    },
+    {
+      "id": "API-06",
+      "story": "H11",
+      "name": "Codigo consumido no se reutiliza",
+      "expected": "400 sin JWT nuevo",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 32
+    },
+    {
+      "id": "API-07",
+      "story": "H11",
+      "name": "Correo duplicado normalizado",
+      "expected": "409",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 39
+    },
+    {
+      "id": "API-08",
+      "story": "H11",
+      "name": "Validaciones de registro",
+      "expected": "400 en datos invalidos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 57
+    },
+    {
+      "id": "API-09",
+      "story": "H11",
+      "name": "Codigo vencido",
+      "expected": "400 y cuenta aun no verificada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 211
+    },
+    {
+      "id": "API-10",
+      "story": "H11",
+      "name": "Reenvio y codigo nuevo",
+      "expected": "200, correo recibido y codigo viejo invalido",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 131
+    },
+    {
+      "id": "API-11",
+      "story": "H11",
+      "name": "SMTP caido revierte el registro",
+      "expected": "503 y cuenta no creada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2164
+    },
+    {
+      "id": "API-12",
+      "story": "H12",
+      "name": "Login correcto y perfil",
+      "expected": "200, JWT y sin password",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 278
+    },
+    {
+      "id": "API-13",
+      "story": "H12",
+      "name": "Credenciales incorrectas y correo inexistente",
+      "expected": "401",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 179
+    },
+    {
+      "id": "API-14",
+      "story": "H12",
+      "name": "Cinco intentos fallidos",
+      "expected": "401,401,401,401,423 y bloqueo persistido",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 750
+    },
+    {
+      "id": "API-15",
+      "story": "H12",
+      "name": "Password correcto durante bloqueo",
+      "expected": "423",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 22
+    },
+    {
+      "id": "API-16",
+      "story": "H12",
+      "name": "Login despues del bloqueo",
+      "expected": "200 y contador/bloqueo limpios",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 160
+    },
+    {
+      "id": "API-17",
+      "story": "H12",
+      "name": "Ocho intentos simultaneos",
+      "expected": "Cuatro 401 y cuatro 423",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 687
+    },
+    {
+      "id": "API-18",
+      "story": "H12",
+      "name": "JWT anterior de una cuenta suspendida",
+      "expected": "401 en perfil",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 35
+    },
+    {
+      "id": "API-19",
+      "story": "H11",
+      "name": "Verificar una cuenta suspendida",
+      "expected": "401 y codigo sin consumir",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 201
+    },
+    {
+      "id": "API-20",
+      "story": "H12",
+      "name": "JWT alterado y solicitud anonima",
+      "expected": "401 en rutas privadas",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 14
+    },
+    {
+      "id": "API-21",
+      "story": "H1/H3/H4",
+      "name": "Publicacion manual y persistencia",
+      "expected": "201, fecha/ubicacion/dueño correctos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 116
+    },
+    {
+      "id": "API-22",
+      "story": "H3",
+      "name": "Publicacion con coordenadas",
+      "expected": "201 y coordenadas persistidas",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 54
+    },
+    {
+      "id": "API-23",
+      "story": "H1",
+      "name": "Campos obligatorios de publicacion",
+      "expected": "400 antes de guardar",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 106
+    },
+    {
+      "id": "API-24",
+      "story": "H1/H3",
+      "name": "Limites de nombre y ubicacion",
+      "expected": "150/255 aceptados; 151/256 rechazados",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 129
+    },
+    {
+      "id": "API-25",
+      "story": "H4",
+      "name": "Fechas pasada, actual y futura",
+      "expected": "Pasada/hoy 201; futura 400",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 61
+    },
+    {
+      "id": "API-26",
+      "story": "H3",
+      "name": "Limites geograficos",
+      "expected": "Limites aceptados; fuera de rango 400",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 83
+    },
+    {
+      "id": "API-27",
+      "story": "H1",
+      "name": "Categoria inexistente al publicar",
+      "expected": "404",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 28
+    },
+    {
+      "id": "API-28",
+      "story": "H1",
+      "name": "Publicar sin JWT y editar publicacion ajena",
+      "expected": "401 y 403",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 45
+    },
+    {
+      "id": "API-29",
+      "story": "H6",
+      "name": "Busqueda parcial y espacios/mayusculas",
+      "expected": "Solo coincidencias publicas correctas",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 105
+    },
+    {
+      "id": "API-30",
+      "story": "H6",
+      "name": "Busqueda por descripcion",
+      "expected": "Solo la mochila con cuaderno",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 55
+    },
+    {
+      "id": "API-31",
+      "story": "H6",
+      "name": "Busqueda por ubicacion",
+      "expected": "Solo coincidencias de Biblioteca, sin ocultas",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 61
+    },
+    {
+      "id": "API-32",
+      "story": "H6/H7",
+      "name": "Filtro combinado texto/categoria/tipo",
+      "expected": "Interseccion exacta",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 129
+    },
+    {
+      "id": "API-33",
+      "story": "H7",
+      "name": "Tres endpoints de categoria",
+      "expected": "Todos devuelven solo la categoria indicada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 210
+    },
+    {
+      "id": "API-34",
+      "story": "H7",
+      "name": "Categoria inexistente y parametros invalidos",
+      "expected": "404 o 400 segun el caso",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 82
+    },
+    {
+      "id": "API-35",
+      "story": "H7",
+      "name": "Categoria vacia y categoria desactivada",
+      "expected": "Vacia devuelve []; desactivada conserva historial",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 64
+    },
+    {
+      "id": "API-36",
+      "story": "H6",
+      "name": "Caracteres literales %, _ y !",
+      "expected": "No funcionan como comodines",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 99
+    },
+    {
+      "id": "API-37",
+      "story": "H6",
+      "name": "Busqueda sin coincidencias",
+      "expected": "200 y []",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 25
+    },
+    {
+      "id": "API-38",
+      "story": "H6/H7",
+      "name": "Visibilidad publica y orden estable",
+      "expected": "Solo ACTIVO/RECUPERADO, fecha e id descendentes",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 226
+    },
+    {
+      "id": "API-39",
+      "story": "H4",
+      "name": "Filtro API por fecha",
+      "expected": "Resultados dentro del intervalo y publicos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 75
+    },
+    {
+      "id": "API-40",
+      "story": "H3",
+      "name": "Filtro API por ubicacion",
+      "expected": "Resultados correctos sin objetos ocultos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 58
+    },
+    {
+      "id": "API-41",
+      "story": "Admin",
+      "name": "Login y dashboard administrativos",
+      "expected": "200 con rol ADMIN y datos reales",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 230
+    },
+    {
+      "id": "API-42",
+      "story": "Admin",
+      "name": "Admin rechaza usuario normal y JWT invalido",
+      "expected": "403 por rol y 401 por token",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 282
+    },
+    {
+      "id": "API-43",
+      "story": "Admin",
+      "name": "Moderacion afecta las consultas publicas",
+      "expected": "Ocultar en Django quita la publicacion de Spring",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 430
+    },
+    {
+      "id": "API-44",
+      "story": "H11",
+      "name": "Dos registros simultaneos del mismo correo",
+      "expected": "Un 201 y un 409; nunca 500",
+      "status": "FAIL",
+      "observation": "Estados observados: 201, 500\n+ actual - expected\n\n  [\n    201,\n+   500\n-   409\n  ]\n",
+      "durationMs": 239
+    },
+    {
+      "id": "API-45",
+      "story": "Admin/H12",
+      "name": "Bloqueo compartido en login administrativo",
+      "expected": "El admin tampoco entra durante el bloqueo de su cuenta",
+      "status": "FAIL",
+      "observation": "Django permite entrar pese a bloqueado_hasta vigente",
+      "durationMs": 323
+    },
+    {
+      "id": "UI-01",
+      "story": "H12",
+      "name": "Ruta de publicar sin sesion",
+      "expected": "Redirige a login",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1768
+    },
+    {
+      "id": "UI-02",
+      "story": "H11",
+      "name": "Formulario de registro invalido",
+      "expected": "Campos obligatorios y contrasenas distintas bloquean el envio",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2417
+    },
+    {
+      "id": "UI-03",
+      "story": "H11/H12",
+      "name": "Registro, correo, verificacion y sesion reales",
+      "expected": "201, correo SMTP y sesion con JWT",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1351
+    },
+    {
+      "id": "UI-04",
+      "story": "H11",
+      "name": "Registro duplicado en pantalla",
+      "expected": "Mensaje de correo ya registrado",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2663
+    },
+    {
+      "id": "UI-05",
+      "story": "H12",
+      "name": "Error de credenciales en pantalla",
+      "expected": "401 con intentos restantes",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2259
+    },
+    {
+      "id": "UI-06",
+      "story": "H12",
+      "name": "Bloqueo al quinto intento desde la interfaz",
+      "expected": "Se muestra aviso de bloqueo",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3975
+    },
+    {
+      "id": "UI-07",
+      "story": "H12",
+      "name": "Volver a ingresar al vencer el bloqueo",
+      "expected": "Boton Entrar disponible cuando el backend ya permite ingresar",
+      "status": "FAIL",
+      "observation": "El backend acepta el login, pero Entrar sigue deshabilitado\n\ntrue !== false\n",
+      "durationMs": 1107
+    },
+    {
+      "id": "UI-08",
+      "story": "H11",
+      "name": "Fallo real de SMTP al reenviar desde login",
+      "expected": "Error visible sin afirmar que se envio un codigo",
+      "status": "FAIL",
+      "observation": "Se muestra Te enviamos un codigo pese a recibir 503\n\n1 !== 0\n",
+      "durationMs": 5041
+    },
+    {
+      "id": "UI-09",
+      "story": "H11",
+      "name": "Codigo incorrecto en interfaz",
+      "expected": "Mensaje de codigo incorrecto",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1948
+    },
+    {
+      "id": "UI-10",
+      "story": "H11",
+      "name": "Error SMTP en reenvio directo desde Verificar",
+      "expected": "Muestra el fallo de envio",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3581
+    },
+    {
+      "id": "UI-11",
+      "story": "H1/H3/H4",
+      "name": "Publicacion vacia",
+      "expected": "No publica y marca campos obligatorios",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2286
+    },
+    {
+      "id": "UI-12",
+      "story": "H1/H3/H4",
+      "name": "Publicacion manual real desde navegador",
+      "expected": "Abre detalle y persiste fecha/ubicacion sin coordenadas",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 179
+    },
+    {
+      "id": "UI-13",
+      "story": "H4",
+      "name": "Fecha futura en navegador",
+      "expected": "El formulario la rechaza",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1872
+    },
+    {
+      "id": "UI-14",
+      "story": "H3",
+      "name": "GPS y direccion con navegador",
+      "expected": "Guarda coordenadas del GPS y direccion",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2104
+    },
+    {
+      "id": "UI-15",
+      "story": "H3",
+      "name": "Editar direccion despues del GPS",
+      "expected": "Limpia y guarda coordenadas null",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1894
+    },
+    {
+      "id": "UI-16",
+      "story": "H3",
+      "name": "Geocodificacion con HTTP 503",
+      "expected": "Continua con coordenadas y habilita publicar",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2190
+    },
+    {
+      "id": "UI-17",
+      "story": "H3",
+      "name": "Geocodificacion que no responde",
+      "expected": "Aplica tiempo limite y libera la publicacion con coordenadas",
+      "status": "FAIL",
+      "observation": "Despues de 11 s la consulta de direccion sigue bloqueando PUBLICAR OBJETO\n\ntrue !== false\n",
+      "durationMs": 13219
+    },
+    {
+      "id": "UI-18",
+      "story": "H3",
+      "name": "GPS con permiso denegado",
+      "expected": "Aviso y publicacion manual disponible",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1875
+    },
+    {
+      "id": "UI-19",
+      "story": "H6",
+      "name": "Resultados reales de busqueda",
+      "expected": "La lista corresponde a los resultados de la API",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1727
+    },
+    {
+      "id": "UI-20",
+      "story": "H7",
+      "name": "Cambiar categoria actualiza resultados",
+      "expected": "Solo resultados de la categoria elegida",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 117
+    },
+    {
+      "id": "UI-21",
+      "story": "H6/H7",
+      "name": "Combinar categoria y tipo",
+      "expected": "Solo Mochila azul y Recuperada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 101
+    },
+    {
+      "id": "UI-22",
+      "story": "H6/H7",
+      "name": "Texto combinado con filtros",
+      "expected": "Solo Mochila azul; conserva categoria/tipo",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 132
+    },
+    {
+      "id": "UI-23",
+      "story": "H7",
+      "name": "Otra categoria conserva filtros",
+      "expected": "Estado vacio sin error",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 65
+    },
+    {
+      "id": "UI-24",
+      "story": "H7",
+      "name": "Todas quita solamente la categoria",
+      "expected": "Mantiene texto/tipo y vuelve la coincidencia",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 66
+    },
+    {
+      "id": "UI-25",
+      "story": "H6/H7",
+      "name": "Limpiar filtros",
+      "expected": "Limpia URL, formulario y lista",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 170
+    },
+    {
+      "id": "UI-26",
+      "story": "H7",
+      "name": "Categoria vacia",
+      "expected": "Mensaje vacio y sin error",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1756
+    },
+    {
+      "id": "UI-27",
+      "story": "H7",
+      "name": "Categoria desactivada conserva historial",
+      "expected": "Identifica desactivada y muestra Historica",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3247
+    },
+    {
+      "id": "UI-28",
+      "story": "H7",
+      "name": "Categoria inexistente y recuperacion",
+      "expected": "Error 404, opcion no disponible y limpiar recupera",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3354
+    },
+    {
+      "id": "UI-29",
+      "story": "H6",
+      "name": "Busqueda literal de % y _",
+      "expected": "Solo la publicacion con el caracter literal",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 10690
+    },
+    {
+      "id": "UI-30",
+      "story": "H6/H7",
+      "name": "Atras y Adelante conservan filtros",
+      "expected": "URL y selector restaurados",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3635
+    },
+    {
+      "id": "UI-31",
+      "story": "H6",
+      "name": "Fallo de busqueda y reintento",
+      "expected": "Error distinguible de vacio y recuperacion",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 4121
+    },
+    {
+      "id": "UI-32",
+      "story": "H7",
+      "name": "Fallo del catalogo independiente",
+      "expected": "Resultados disponibles, selector bloqueado y reintento recupera",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 4909
+    },
+    {
+      "id": "UI-33",
+      "story": "H6",
+      "name": "Abrir detalle desde resultados",
+      "expected": "Detalle real correcto",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1944
+    },
+    {
+      "id": "UI-34",
+      "story": "Admin",
+      "name": "Login real del panel administrativo",
+      "expected": "Dashboard con datos de Django",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2598
+    },
+    {
+      "id": "UI-35",
+      "story": "UI",
+      "name": "Pantallas publicas y formulario en movil",
+      "expected": "Sin desbordamiento horizontal a 360px",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 14846
+    },
+    {
+      "id": "UI-36",
+      "story": "UI",
+      "name": "Errores JavaScript no controlados",
+      "expected": "Sin pageerror durante los flujos",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 1
+    },
+    {
+      "id": "UI-37",
+      "story": "H6/H7",
+      "name": "Busqueda desde Inicio con ubicacion",
+      "expected": "Texto, categoria y ubicacion llegan a la URL y filtran correctamente",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 2070
+    },
+    {
+      "id": "UI-38",
+      "story": "H6/H7",
+      "name": "Respuesta de filtro anterior lenta",
+      "expected": "El filtro nuevo no es reemplazado por la respuesta vieja",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 4676
+    },
+    {
+      "id": "UI-39",
+      "story": "H4",
+      "name": "Fecha pasada desde el formulario",
+      "expected": "Publicacion real con fecha pasada guardada",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3879
+    },
+    {
+      "id": "UI-40",
+      "story": "H11",
+      "name": "Reenvio correcto y verificacion desde la interfaz",
+      "expected": "Correo nuevo recibido, cuenta verificada y sesion activa",
+      "status": "PASS",
+      "observation": "Resultado esperado comprobado",
+      "durationMs": 3008
+    }
+  ]
+}

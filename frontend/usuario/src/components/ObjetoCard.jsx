@@ -11,7 +11,7 @@ function fechaCorta(valor) {
   return `${dia}/${mes}`;
 }
 
-export default function ObjetoCard({ objeto }) {
+export default function ObjetoCard({ objeto, distancia = null }) {
 
   return (
     <Link to={`/objeto/${objeto.id}`} className="objeto-card">
@@ -23,6 +23,7 @@ export default function ObjetoCard({ objeto }) {
       </div>
       <div className="objeto-card-cuerpo">
         <h3 className="objeto-card-titulo">{objeto.nombre}</h3>
+        {distancia !== null && <p className="objeto-card-linea">A {distancia.toLocaleString('es-PE', { maximumFractionDigits: 2 })} km de tu ubicación</p>}
         {objeto.estado === 'RECUPERADO' && <span className="estado-recuperado">Recuperado · caso cerrado</span>}
         <p className="objeto-card-linea">
           <Icono nombre="ubicacion" tamano={14} /> {objeto.ubicacion || 'Sin ubicación'}

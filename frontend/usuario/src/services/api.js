@@ -101,12 +101,45 @@ export const crearObjeto = async (payload) => {
   return data;
 };
 
+// H2: onProgreso(0..100) informa el avance real de la subida para la barra de progreso.
+export const subirFotoObjeto = async (id, archivo, onProgreso) => {
+  const formulario = new FormData();
+  formulario.append('archivo', archivo);
+  const { data } = await api.post(`/api/objetos/${id}/fotos`, formulario, {
+    onUploadProgress: (e) => {
+      if (onProgreso && e.total) onProgreso(Math.round((e.loaded / e.total) * 100));
+    },
+  });
+  return data;
+};
+
+export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
+  const { data } = await api.post('/api/contactos', { objetoPerdidoId, objetoEncontradoId });
+  return data;
+};
+
+export const reclamarObjeto = async (id) => {
+  const { data } = await api.post(`/api/objetos/${id}/reclamos`);
+  return data;
+};
+
+// H5/H14: solo el autor puede editar; la API valida igual que al publicar.
+export const actualizarObjeto = async (id, payload) => {
+  const { data } = await api.put(`/api/objetos/${id}`, payload);
+  return data;
+};
+
 export const eliminarObjeto = async (id) => {
   await api.delete(`/api/objetos/${id}`);
 };
 
 export const getCoincidencias = async (id) => {
   const { data } = await api.get(`/api/objetos/${id}/coincidencias`);
+  return data;
+};
+
+export const getDetalleCoincidencia = async (id, { signal } = {}) => {
+  const { data } = await api.get(`/api/coincidencias/${encodeURIComponent(id)}`, { signal });
   return data;
 };
 
