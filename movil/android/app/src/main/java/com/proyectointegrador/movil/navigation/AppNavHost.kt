@@ -3,6 +3,8 @@ package com.proyectointegrador.movil.navigation
 import android.net.Uri
 import android.app.Activity
 import android.content.ContextWrapper
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsControllerCompat
@@ -57,17 +59,18 @@ import com.proyectointegrador.movil.ui.sprint.*
         val volver:()->Unit={nav.popBackStack();Unit}
         LaunchedEffect(evento){evento?.let {experiencia.consumirEvento();nav.navigate(it){popUpTo(nav.graph.startDestinationId){inclusive=true};launchSingleTop=true}}}
         LaunchedEffect(ruta,sesion.revision){if(ruta=="inicio"||ruta=="avisos")comunidad.recargar()}
+        val etiquetasCompactas=LocalConfiguration.current.screenWidthDp<360&&LocalDensity.current.fontScale>1.1f
         val pestanas=listOf("inicio" to "Inicio","buscar" to "Buscar","publicar" to "Publicar","avisos" to "Avisos","perfil" to "Perfil")
         val principal=ruta in listOf("inicio","buscar","publicar?tipo={tipo}","avisos","perfil")
         Scaffold(contentWindowInsets=WindowInsets(0),bottomBar={if(principal) Surface(shadowElevation=12.dp,color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)) {
             NavigationBar(containerColor=androidx.compose.ui.graphics.Color.Transparent,tonalElevation=0.dp) {
                 pestanas.forEachIndexed {indice,(destino,texto)->
                     val iconos=listOf(Simbolos.Inicio,Simbolos.Buscar,Simbolos.Publicar,Simbolos.Avisos,Simbolos.Perfil)
-                    NavigationBarItem(selected=if(destino=="publicar")ruta?.startsWith("publicar")==true else ruta==destino,
+                    NavigationBarItem(alwaysShowLabel=!etiquetasCompactas,selected=if(destino=="publicar")ruta?.startsWith("publicar")==true else ruta==destino,
                         onClick={nav.navigate(if(destino=="publicar")"publicar?tipo=PERDIDO" else destino){popUpTo(nav.graph.startDestinationId){saveState=true};restoreState=true;launchSingleTop=true}},
-                        icon={if(destino=="publicar") Surface(color=MaterialTheme.colorScheme.primary,shape=RoundedCornerShape(13.dp)){Icon(iconos[indice],null,Modifier.padding(9.dp).size(23.dp),tint=MaterialTheme.colorScheme.onPrimary)}
-                            else if(destino=="avisos"&&actividad.sinLeer>0) BadgedBox(badge={Badge{Text(actividad.sinLeer.toString())}}){Icon(iconos[indice],null,Modifier.size(23.dp))}
-                            else Icon(iconos[indice],null,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=1,softWrap=false,modifier=Modifier.wrapContentWidth(unbounded=true))})
+                        icon={if(destino=="publicar") Surface(color=MaterialTheme.colorScheme.primary,shape=RoundedCornerShape(13.dp)){Icon(iconos[indice],texto,Modifier.padding(9.dp).size(23.dp),tint=MaterialTheme.colorScheme.onPrimary)}
+                            else if(destino=="avisos"&&actividad.sinLeer>0) BadgedBox(badge={Badge{Text(actividad.sinLeer.toString())}}){Icon(iconos[indice],texto,Modifier.size(23.dp))}
+                            else Icon(iconos[indice],texto,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=1,softWrap=false,modifier=Modifier.wrapContentWidth(unbounded=true))})
                 }
             }
         }}) { padding ->
