@@ -10,6 +10,7 @@ import com.proyectointegrador.movil.ui.theme.FoundIATheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.proyectointegrador.movil.network.Sesion.iniciar(applicationContext)
         enableEdgeToEdge()
         setContent {
             FoundIATheme {

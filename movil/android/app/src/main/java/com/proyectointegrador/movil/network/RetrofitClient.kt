@@ -8,10 +8,19 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
     /** En el emulador, el host de la maquina es 10.0.2.2. */
-    const val BASE_URL = "http://10.0.2.2:8081/"
+    val BASE_URL: String = com.proyectointegrador.movil.BuildConfig.API_URL
 
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor { cadena ->
+                val solicitud=cadena.request()
+                val token=Sesion.actual.takeUnless { solicitud.url.encodedPath.startsWith("/api/auth/") || solicitud.url.encodedPath.startsWith("/api/legal/") }
+                val respuesta=cadena.proceed(solicitud.newBuilder().apply {
+                    if(token != null) header("Authorization","Bearer $token")
+                }.build())
+                if(respuesta.code == 401 && token != null) Sesion.cerrar(token)
+                respuesta
+            }
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
