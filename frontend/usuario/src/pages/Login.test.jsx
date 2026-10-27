@@ -62,3 +62,14 @@ describe('H12 - Bloqueo del inicio de sesión', () => {
     expect(screen.getByRole('alert').textContent).toContain('No hay conexión con el servidor');
   });
 });
+
+describe('H35 - Enlace para recuperar la contraseña', () => {
+  it('lleva a la recuperación con el correo ya escrito', () => {
+    renderizar();
+    const enlace = screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' });
+    expect(enlace.getAttribute('href')).toBe('/recuperar-password');
+
+    fireEvent.change(screen.getByLabelText(/^Correo/), { target: { value: ' Ana@Tecsup.edu.pe ' } });
+    expect(enlace.getAttribute('href')).toBe('/recuperar-password?correo=ana%40tecsup.edu.pe');
+  });
+});

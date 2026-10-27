@@ -76,9 +76,12 @@ export const loginAdmin = async (correo, password) => {
   return data;
 };
 
-// Dashboard
-export const getDashboard = async () => {
-  const { data } = await api.get('/api/admin/dashboard/');
+// Dashboard (H29: rango opcional desde/hasta AAAA-MM-DD; H30/H31 vienen en la misma respuesta)
+export const getDashboard = async ({ desde, hasta } = {}, { signal } = {}) => {
+  const params = {};
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  const { data } = await api.get('/api/admin/dashboard/', { params, signal });
   return data;
 };
 

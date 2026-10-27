@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
@@ -19,6 +19,9 @@ function minutosDeBloqueo(mensaje) {
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  // H35: aviso al volver de restablecer la contraseña
+  const aviso = typeof state?.aviso === 'string' ? state.aviso : '';
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
@@ -99,6 +102,12 @@ export default function Login() {
         <h1>Iniciar sesión</h1>
         <p className="auth-subtitulo">Bienvenido de vuelta. Ingresa con tu cuenta para continuar.</p>
 
+        {aviso && !error && (
+          <div className="banner-exito" role="status">
+            <Icono nombre="check" tamano={18} /> {aviso}
+          </div>
+        )}
+
         {error && (
           <div className="banner-error" role="alert">
             <Icono nombre={bloqueado ? 'candado' : 'alerta'} tamano={18} /> {error}
@@ -138,6 +147,12 @@ export default function Login() {
             autoComplete="current-password"
           />
         </label>
+
+        <p className="auth-olvido">
+          <Link to={correo.trim() ? `/recuperar-password?correo=${encodeURIComponent(correo.trim().toLowerCase())}` : '/recuperar-password'}>
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || bloqueado}>
           {enviando ? 'Entrando...' : 'Entrar'}

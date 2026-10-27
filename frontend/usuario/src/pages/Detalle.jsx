@@ -2,6 +2,7 @@ import ImagenObjeto from '../components/ImagenObjeto';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
+import CompartirPublicacion from '../components/CompartirPublicacion';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
@@ -216,6 +217,8 @@ export default function Detalle() {
             </p>
           )}
 
+          {/* H39: compartir la URL pública */}
+          <CompartirPublicacion objeto={objeto} />
         </div>
       </div>
 

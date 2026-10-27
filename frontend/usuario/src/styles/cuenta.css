@@ -1,0 +1,52 @@
+/* =====================================================================
+   FoundIA · Pantallas de cuenta del Sprint 2 (Yajaira)
+   H33: términos y privacidad en el registro web.
+   H35: recuperar y restablecer la contraseña.
+   H39: compartir publicaciones.
+   Usa los tokens de index.css para respetar el modo claro y oscuro.
+   ===================================================================== */
+
+.legal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radio);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.legal-titulo { margin: 0; font-size: 15px; font-weight: 800; color: var(--text); }
+.legal-estado, .legal-version { margin: 0; font-size: 13px; color: var(--text-soft); }
+.legal-version strong { color: var(--text-muted); }
+
+.legal-doc { border: 1px solid var(--border); border-radius: var(--radio-sm); background: var(--surface); }
+.legal-doc summary { cursor: pointer; padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--primary); }
+.legal-doc[open] summary { border-bottom: 1px solid var(--border); }
+
+.legal-texto {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.legal-texto h3 { margin: 4px 0 6px; font-size: 15px; color: var(--text); }
+.legal-texto h4 { margin: 10px 0 4px; font-size: 13.5px; color: var(--text); }
+.legal-texto p { margin: 0 0 6px; }
+
+.legal-casilla { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--text); cursor: pointer; }
+.legal-casilla input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--primary); }
+.legal .campo-error { display: block; }
+
+/* H35 - Enlace "¿Olvidaste tu contraseña?" y avisos de recuperación */
+.auth-olvido { margin: -6px 0 0; text-align: right; font-size: 13px; }
+.auth-olvido a { font-weight: 600; color: var(--primary); }
+.auth-olvido a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.banner-error .btn-enlace { display: inline-block; margin-left: 6px; }
+
+/* H39 - Compartir la URL pública de una publicación */
+.compartir-objeto { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.compartir-objeto .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.compartir-objeto .nota-suave { margin: 0; }
