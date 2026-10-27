@@ -80,6 +80,17 @@ export const reenviarCodigo = async (correo) => {
   return data;
 };
 
+// H35: recuperar contraseña (respuesta igual exista o no el correo)
+export const solicitarRecuperacion = async (correo) => {
+  const { data } = await api.post('/api/auth/recuperar-password', { correo });
+  return data;
+};
+
+export const restablecerPassword = async (token, password) => {
+  const { data } = await api.post('/api/auth/restablecer-password', { token, password });
+  return data;
+};
+
 // Categorías
 export const listarCategorias = async ({ signal } = {}) => {
   const { data } = await api.get('/api/categorias', { signal });

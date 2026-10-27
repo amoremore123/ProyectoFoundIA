@@ -84,3 +84,22 @@ export function validarPerfil({ nombre, apellido, password, confirmar, passwordA
 
   return errores;
 }
+
+// H35 - Formato del enlace de recuperación (el mismo que acepta la API)
+export const TOKEN_RECUPERACION = /^[A-Za-z0-9_-]{16,2048}$/;
+
+export function correoEsValido(correo) {
+  return CORREO.test(correo.trim());
+}
+
+/** H35 - Nueva contraseña al restablecer: mismas reglas que el registro. */
+export function validarNuevaPassword({ password, confirmar }) {
+  const errores = {};
+  if (!password) errores.password = 'Escribe la nueva contraseña.';
+  else if (bytesUtf8(password) > 72) errores.password = 'La contraseña no debe superar los 72 bytes en UTF-8.';
+  else if (!passwordEsSegura(password)) errores.password = 'La contraseña no cumple todos los requisitos.';
+
+  if (!confirmar) errores.confirmar = 'Confirma la nueva contraseña.';
+  else if (confirmar !== password) errores.confirmar = 'Las contraseñas no coinciden.';
+  return errores;
+}

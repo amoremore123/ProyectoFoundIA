@@ -1,6 +1,7 @@
 /* =====================================================================
    FoundIA · Pantallas de cuenta del Sprint 2 (Yajaira)
    H33: términos y privacidad en el registro web.
+   H35: recuperar y restablecer la contraseña.
    Usa los tokens de index.css para respetar el modo claro y oscuro.
    ===================================================================== */
 
@@ -37,3 +38,9 @@
 .legal-casilla { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--text); cursor: pointer; }
 .legal-casilla input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--primary); }
 .legal .campo-error { display: block; }
+
+/* H35 - Enlace "¿Olvidaste tu contraseña?" y avisos de recuperación */
+.auth-olvido { margin: -6px 0 0; text-align: right; font-size: 13px; }
+.auth-olvido a { font-weight: 600; color: var(--primary); }
+.auth-olvido a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.banner-error .btn-enlace { display: inline-block; margin-left: 6px; }
