@@ -64,6 +64,12 @@ export const register = async (datos) => {
 };
 
 // H11: verificación de correo
+// H33: términos y política de privacidad vigentes (público, sin sesión)
+export const getDocumentosLegales = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/legal/documentos', { signal });
+  return data;
+};
+
 export const verificarCuenta = async (correo, codigo) => {
   const { data } = await api.post('/api/auth/verificar', { correo, codigo });
   return data;
