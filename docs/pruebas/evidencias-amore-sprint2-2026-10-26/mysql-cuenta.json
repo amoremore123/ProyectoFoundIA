@@ -1,0 +1,41 @@
+{
+  "entorno": "MySQL 8 QA aislado :13369, sin modificar BD del equipo",
+  "comprobaciones": [
+    {
+      "comprobacion": "H33/H34: migraciones reejecutables sobre esquema anterior sin perder la fila previa",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: migración no crea solicitudes anteriores",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H33: rechazo o versión incorrecta no crean cuenta",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H33: versión, huella y fecha de aceptación del APK persistidas en MySQL",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: no acepta identidad enviada por el cliente",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: solicitudes simultáneas conservan el mismo trámite y fecha",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: otra cuenta conserva su propio estado",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: solicitar no borra perfil ni publicaciones",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: token inválido rechazado",
+      "resultado": "correcto"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "fechaCierre": "2026-10-27",
+  "java": {
+    "pruebas": 403,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "javaRevisionDocumentos": {
+    "pruebas": 8,
+    "fallos": 0,
+    "nota": "Repetidas tras normalizar los finales de línea; incluidas en el total de regresión."
+  },
+  "androidUnitarias": {
+    "pruebas": 8,
+    "fallos": 0
+  },
+  "androidEmuladorConApiReal": {
+    "comprobaciones": 29,
+    "fallos": 0
+  },
+  "mysqlQa": {
+    "comprobaciones": 9,
+    "fallos": 0
+  },
+  "baseEquipoModificada": false,
+  "pendientes": [
+    "Integración web asignada a Yajaira, incluido el nuevo consentimiento obligatorio del registro.",
+    "H35: API de recuperación pendiente de Yajaira; contrato Android propuesto, sin afirmar prueba integral de correo o token de un uso.",
+    "Revisión institucional de los textos del proyecto y definición de responsable, canal y conservación.",
+    "TalkBack hablado y prueba en teléfono físico no acreditados; semántica de aceptación y controles revisada en emulador."
+  ],
+  "lintAndroid": {
+    "resultado": "correcto",
+    "errores": 0,
+    "advertencias": 13,
+    "informeLocal": "movil/android/app/build/reports/lint-results-debug.html"
+  },
+  "artefactos": {
+    "apkEntrega": {
+      "rutaLocal": "output/android/FoundIA-Sprint2-Amore.apk",
+      "sha256": "dd1a89ab27cedf2baaa5107fc69f75d88859211decf372fd60d9d2c12d13ebe4",
+      "bytes": 11271076
+    },
+    "apkQaFinal": {
+      "rutaLocal": "tmp/FoundIA-Sprint2-Amore-QA.apk",
+      "sha256": "a4a1c3c1d69aef7711887b76f4031c81e1da7a149331f095b03dae4280f05896",
+      "bytes": 11271070
+    },
+    "apiFinal": {
+      "rutaLocal": "backend/springboot/target/backend-1.0.0.jar",
+      "sha256": "216708a06f2418cbee189a69ec95734308f3d7fc0971bb458af1e0228dc31947",
+      "bytes": 60537973
+    }
+  }
+}

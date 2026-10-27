@@ -1,0 +1,121 @@
+{
+  "entorno": "API :18082 + MySQL QA :13369 + emulador Android",
+  "comprobaciones": [
+    {
+      "comprobacion": "H33: registro deshabilitado sin aceptación",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H33: aceptación inicialmente desmarcada y etiquetada",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H33: código incorrecto mantiene la cuenta sin activar",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H33: registro y verificación reales desde Android",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: sesión cifrada persistida tras cerrar y reabrir",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H24: cambio Android guardado en la API",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H24: recarga conserva preferencia",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: cancelar no crea solicitud",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H34: solicitud persistida y repetición con misma fecha",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: cancelar conserva la pareja",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: descarte Android persistido",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H22: cancelar conserva el perdido activo",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H22: recuperación real sin cambiar el hallazgo",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H27: cancelar conserva el formulario sin mostrar éxito",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H27: denuncia Android confirmada por el servidor",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H39: cancelar selector no afirma un envío",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H23: bandeja propia disponible desde Android",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H23: lectura Android persistida",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: cerrar sesión retira los datos privados",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H35: enlace inválido rechazado sin cambiar contraseña",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H39: URL compartida abre el objeto real en Chrome sin sesión FoundIA",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H39: el mismo enlace no expone una publicación retirada",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: credenciales incorrectas muestran error sin abrir la cuenta",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: nuevo acceso real funciona tras corregir la contraseña",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H23: abrir aviso consulta la pareja o informa que fue retirada",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H24: caída real de API muestra error y permite reintentar",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H24: reintento recupera la consulta tras volver la API",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: JWT vence naturalmente y retira los datos privados del APK",
+      "resultado": "correcto"
+    },
+    {
+      "comprobacion": "H21: bloqueo real 423 impide iniciar sesión aunque la clave sea correcta",
+      "resultado": "correcto"
+    }
+  ]
+}

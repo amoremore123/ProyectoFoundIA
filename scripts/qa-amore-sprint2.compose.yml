@@ -1,0 +1,19 @@
+name: foundia-amore-s2-qa-20261026
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: qa-amore-s2
+      MYSQL_DATABASE: objetos_perdidos_db
+    ports: ["127.0.0.1:13369:3306"]
+    volumes:
+      - ../database/script.sql:/docker-entrypoint-initdb.d/01-script.sql:ro
+      - ../database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pqa-amore-s2"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:11369:1025", "127.0.0.1:18369:8025"]
