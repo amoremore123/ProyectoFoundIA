@@ -16,7 +16,9 @@ import kotlinx.coroutines.delay
 @Composable fun AccesoScreen(registro:()->Unit,verificar:(String)->Unit,recuperar:()->Unit) {
     var correo by remember {mutableStateOf("")};var clave by remember {mutableStateOf("")}
     val accion=recordarAccion()
+    val aviso by Sesion.aviso.collectAsState()
     Pagina("Tu cuenta") {
+        aviso?.let {Text(it)}
         Text("Inicia sesión para administrar tus publicaciones y avisos.")
         Campo("Correo",correo,{correo=it});Campo("Contraseña",clave,{clave=it},secreto=true)
         EstadoAccion(accion)

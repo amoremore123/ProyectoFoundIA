@@ -18,6 +18,8 @@ object Sesion {
     private lateinit var preferencias: android.content.SharedPreferences
     private val _token = MutableStateFlow<String?>(null)
     val token = _token.asStateFlow()
+    private val _aviso = MutableStateFlow<String?>(null)
+    val aviso = _aviso.asStateFlow()
     val actual: String? get() = _token.value
 
     @Synchronized fun iniciar(contexto: Context) {
@@ -37,11 +39,12 @@ object Sesion {
         val valor=Base64.encodeToString(cifrador.iv,Base64.NO_WRAP)+":"+
             Base64.encodeToString(cifrador.doFinal(token.toByteArray(Charsets.UTF_8)),Base64.NO_WRAP)
         check(preferencias.edit().putString("acceso",valor).commit()) { "No se pudo guardar la sesión" }
+        _aviso.value=null
         _token.value=token
     }
-    @Synchronized fun cerrar(esperado: String? = actual) {
+    @Synchronized fun cerrar(esperado: String? = actual, aviso: String? = null) {
         if (actual != esperado) return
-        preferencias.edit().clear().commit();_token.value=null
+        preferencias.edit().clear().commit();_aviso.value=aviso;_token.value=null
     }
     private fun llave(): SecretKey {
         val almacen=KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
