@@ -291,3 +291,8 @@ CREATE TABLE reportes (
 CREATE INDEX idx_reportes_usuario ON reportes (usuario_id);
 CREATE INDEX idx_reportes_objeto  ON reportes (objeto_id);
 CREATE INDEX idx_reportes_estado  ON reportes (estado);
+
+-- H33/H34: esquema de instalaciones nuevas. En bases existentes usar las dos migraciones incrementales.
+ALTER TABLE usuarios ADD COLUMN version_legal VARCHAR(80) NULL,
+ ADD COLUMN aceptacion_legal_fecha DATETIME NULL,
+ ADD COLUMN documentos_legales_hash CHAR(64) NULL;

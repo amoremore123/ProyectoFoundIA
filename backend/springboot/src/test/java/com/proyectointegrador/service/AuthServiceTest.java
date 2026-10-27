@@ -91,7 +91,7 @@ class AuthServiceTest {
     class Registro {
 
         private final RegisterRequest request =
-                new RegisterRequest(" Ana ", "Pérez", "  Ana@FoundIA.dev ", PASSWORD);
+                new RegisterRequest(" Ana ", "Pérez", "  Ana@FoundIA.dev ", PASSWORD, true, "proyecto-2026-10-26-v1");
 
         @Test
         @DisplayName("Registro válido: guarda hash BCrypt, queda sin verificar y envía código")

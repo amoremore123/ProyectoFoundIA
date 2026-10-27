@@ -37,7 +37,7 @@ class AuthControllerTest {
     private MockMvc mockMvc;
 
     private static final String REGISTRO_VALIDO = """
-            {"nombre":"Ana","apellido":"Pérez","correo":"ana@foundia.dev","password":"Segura123!"}""";
+            {"nombre":"Ana","apellido":"Pérez","correo":"ana@foundia.dev","password":"Segura123!","aceptaTerminos":true,"versionLegal":"proyecto-2026-10-26-v1"}""";
     private static final String LOGIN = """
             {"correo":"ana@foundia.dev","password":"Segura123!"}""";
 
@@ -72,7 +72,7 @@ class AuthControllerTest {
     @DisplayName("POST /register con contraseña débil -> 400 y no llama al servicio")
     void registroPasswordDebil() throws Exception {
         String body = """
-                {"nombre":"Ana","apellido":"Pérez","correo":"ana@foundia.dev","password":"123456"}""";
+                {"nombre":"Ana","apellido":"Pérez","correo":"ana@foundia.dev","password":"123456","aceptaTerminos":true,"versionLegal":"proyecto-2026-10-26-v1"}""";
 
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())

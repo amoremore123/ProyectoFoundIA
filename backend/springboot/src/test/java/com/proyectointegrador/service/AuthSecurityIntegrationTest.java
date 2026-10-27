@@ -76,7 +76,7 @@ class AuthSecurityIntegrationTest {
     @DisplayName("H11 - Dos registros simultáneos conservan una sola cuenta y responden 201 y 409")
     void registrosSimultaneosMismoCorreo() throws Exception {
         String body = """
-                {"nombre":"Amore","apellido":"Prueba","correo":"duplicado@prueba.invalid","password":"Segura123!"}
+                {"nombre":"Amore","apellido":"Prueba","correo":"duplicado@prueba.invalid","password":"Segura123!","aceptaTerminos":true,"versionLegal":"proyecto-2026-10-26-v1"}
                 """;
         CyclicBarrier inicio = new CyclicBarrier(2);
         ExecutorService ejecutor = Executors.newFixedThreadPool(2);

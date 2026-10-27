@@ -32,6 +32,13 @@ public record RegisterRequest(
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
                 message = "debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo")
-        String password
+        String password,
+
+        @jakarta.validation.constraints.NotNull(message = "debes aceptar los documentos presentados")
+        @jakarta.validation.constraints.AssertTrue(message = "debes aceptar los documentos presentados")
+        Boolean aceptaTerminos,
+
+        @NotBlank(message = "es obligatoria")
+        String versionLegal
 ) {
 }

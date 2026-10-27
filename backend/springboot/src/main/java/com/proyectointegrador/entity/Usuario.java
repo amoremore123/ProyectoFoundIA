@@ -48,6 +48,16 @@ public class Usuario {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoUsuario estado = EstadoUsuario.ACTIVO;
 
+    /** H33: nulos en cuentas anteriores; nunca se inventan aceptaciones históricas. */
+    @Column(name = "version_legal", length = 80)
+    private String versionLegal;
+
+    @Column(name = "aceptacion_legal_fecha")
+    private LocalDateTime aceptacionLegalFecha;
+
+    @Column(name = "documentos_legales_hash", length = 64)
+    private String documentosLegalesHash;
+
     /** H11: la cuenta solo puede iniciar sesión cuando el correo está verificado. */
     @Column(name = "verificado", nullable = false)
     private boolean verificado = false;

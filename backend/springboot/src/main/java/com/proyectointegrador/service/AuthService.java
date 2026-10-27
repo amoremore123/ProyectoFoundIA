@@ -78,6 +78,7 @@ public class AuthService {
 
     @Transactional
     public RegistroResponse register(RegisterRequest request) {
+        DocumentosLegales.validar(request);
         String correo = normalizarCorreo(request.correo());
         if (usuarioRepository.existsByCorreo(correo)) {
             throw new DuplicateResourceException("El correo ya está registrado");
@@ -91,6 +92,9 @@ public class AuthService {
         usuario.setRol(Rol.USUARIO);
         usuario.setEstado(EstadoUsuario.ACTIVO);
         usuario.setVerificado(false);
+        usuario.setVersionLegal(request.versionLegal());
+        usuario.setAceptacionLegalFecha(ahora());
+        usuario.setDocumentosLegalesHash(DocumentosLegales.documentos().sha256());
         asignarNuevoCodigo(usuario);
 
         usuarioRepository.save(usuario);

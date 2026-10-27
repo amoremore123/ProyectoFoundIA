@@ -42,30 +42,30 @@ class RegisterRequestValidationTest {
     @Test
     @DisplayName("Datos válidos no generan errores")
     void datosValidos() {
-        assertThat(validar(new RegisterRequest("María José", "Núñez", "maria@foundia.dev", "Segura123!"))).isEmpty();
+        assertThat(validar(new RegisterRequest("María José", "Núñez", "maria@foundia.dev", "Segura123!", true, "proyecto-2026-10-26-v1"))).isEmpty();
     }
 
     @ParameterizedTest(name = "Contraseña débil: \"{0}\"")
     @ValueSource(strings = {"Corta1!", "sinmayuscula1!", "SINMINUSCULA1!", "SinNumero!!", "SinSimbolo123", ""})
     void passwordDebil(String password) {
         Set<ConstraintViolation<RegisterRequest>> errores =
-                validar(new RegisterRequest("Ana", "Pérez", "ana@foundia.dev", password));
+                validar(new RegisterRequest("Ana", "Pérez", "ana@foundia.dev", password, true, "proyecto-2026-10-26-v1"));
         assertThat(errores).anyMatch(v -> v.getPropertyPath().toString().equals("password"));
     }
 
     @Test
     @DisplayName("Correo con formato inválido")
     void correoInvalido() {
-        assertThat(validar(new RegisterRequest("Ana", "Pérez", "ana-sin-arroba", "Segura123!")))
+        assertThat(validar(new RegisterRequest("Ana", "Pérez", "ana-sin-arroba", "Segura123!", true, "proyecto-2026-10-26-v1")))
                 .anyMatch(v -> v.getPropertyPath().toString().equals("correo"));
     }
 
     @Test
     @DisplayName("Nombre y apellido obligatorios y solo letras")
     void nombreYApellido() {
-        assertThat(validar(new RegisterRequest("", "Pérez", "ana@foundia.dev", "Segura123!")))
+        assertThat(validar(new RegisterRequest("", "Pérez", "ana@foundia.dev", "Segura123!", true, "proyecto-2026-10-26-v1")))
                 .anyMatch(v -> v.getPropertyPath().toString().equals("nombre"));
-        assertThat(validar(new RegisterRequest("Ana", "P3rez", "ana@foundia.dev", "Segura123!")))
+        assertThat(validar(new RegisterRequest("Ana", "P3rez", "ana@foundia.dev", "Segura123!", true, "proyecto-2026-10-26-v1")))
                 .anyMatch(v -> v.getPropertyPath().toString().equals("apellido"));
     }
 
@@ -83,7 +83,7 @@ class RegisterRequestValidationTest {
     @MethodSource("passwordsUtf8")
     void limiteBcryptUtf8(String caso, String password, boolean permitido) {
         Set<ConstraintViolation<RegisterRequest>> errores =
-                validar(new RegisterRequest("Ana", "Prueba", "ana@prueba.invalid", password));
+                validar(new RegisterRequest("Ana", "Prueba", "ana@prueba.invalid", password, true, "proyecto-2026-10-26-v1"));
         if (permitido) {
             assertThat(errores).isEmpty();
         } else {
@@ -95,7 +95,7 @@ class RegisterRequestValidationTest {
     @Test
     @DisplayName("Contraseña ausente produce validación, no una excepción del validador UTF-8")
     void passwordAusente() {
-        assertThat(validar(new RegisterRequest("Ana", "Prueba", "ana@prueba.invalid", null)))
+        assertThat(validar(new RegisterRequest("Ana", "Prueba", "ana@prueba.invalid", null, true, "proyecto-2026-10-26-v1")))
                 .anyMatch(v -> v.getPropertyPath().toString().equals("password"));
     }
 }
