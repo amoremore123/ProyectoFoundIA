@@ -1,4 +1,4 @@
-"""Comprueba que esta entrega cambie solo la parte de Leonel de sus ocho historias."""
+"""Comprueba cambios propios de Leonel sobre la entrega integrada de Amore."""
 import json
 from pathlib import Path
 import re
@@ -6,7 +6,8 @@ import subprocess
 
 
 RAIZ = Path(__file__).resolve().parents[1]
-BASE = "191271096b3ac4f9e84c28a6cb8bf31a37188e1a"
+# Incluye main, las ocho historias de Leonel y la entrega de Amore sin alterarlos.
+BASE = "132128927b41da7107ce3bc3811b48967803a378"
 HISTORIAS = ("H21", "H22", "H23", "H24", "H26", "H27", "H28", "H29")
 
 
@@ -35,6 +36,9 @@ def main():
             errores.append(f"Archivo de otra historia: {ruta}")
         if Path(ruta).name in autenticacion_fuera_de_alcance:
             errores.append(f"Cambio de autenticación ajeno a estas ocho historias: {ruta}")
+        migracion = re.fullmatch(r"database/migracion_h(\d+)_[^/]+\.sql", ruta)
+        if migracion and int(migracion.group(1)) >= 21 and int(migracion.group(1)) not in (22, 23, 24, 28):
+            errores.append(f"Migración de otra historia: {Path(ruta).name}")
         archivo = RAIZ / ruta
         if not archivo.is_file() or not ruta.startswith(("backend/", "database/")):
             continue
@@ -51,14 +55,13 @@ def main():
     for archivo in (RAIZ / "database").glob("migracion_h*.sql"):
         codigo = int(re.match(r"migracion_h(\d+)", archivo.name).group(1))
         if codigo >= 21:
-            migraciones.append(archivo.name)
-            if codigo not in (22, 23, 24, 28):
-                errores.append(f"Migración de otra historia: {archivo.name}")
+            if codigo in (22, 23, 24, 28):
+                migraciones.append(archivo.name)
     if len(migraciones) != 5:
         errores.append("La entrega debe tener exactamente cinco migraciones incrementales.")
     if errores:
         raise SystemExit("\n".join(errores))
-    print(json.dumps({"alcance_correcto": True, "historias": HISTORIAS,
+    print(json.dumps({"alcance_correcto": True, "base_integrada": BASE, "historias": HISTORIAS,
                       "archivos_revisados": len(rutas), "migraciones": sorted(migraciones)}, ensure_ascii=False, indent=2))
 
 

@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 
 import bcrypt
 import jwt
-from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
@@ -123,12 +122,9 @@ class DashboardView(APIView):
             **metricas_dashboard(request.query_params),
             "usuarios": Usuario.objects.count(),
             "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+            "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
+            "categorias": Categoria.objects.count(),
         }
-        if settings.HABILITAR_EXTRAS:
-            datos.update({
-                "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
-                "categorias": Categoria.objects.count(),
-            })
         return Response(datos)
 
 
