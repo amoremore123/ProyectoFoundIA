@@ -1,169 +1,34 @@
 package com.proyectointegrador.movil.ui.screens
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.proyectointegrador.movil.di.fabrica
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.proyectointegrador.movil.ui.components.ObjetoCard
-import com.proyectointegrador.movil.ui.theme.Background
-import com.proyectointegrador.movil.ui.theme.Danger
-import com.proyectointegrador.movil.ui.theme.Primary
-import com.proyectointegrador.movil.ui.theme.Primary50
+import com.proyectointegrador.movil.di.fabrica
+import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
 
-private val FILTROS = listOf(
-    "TODO" to null,
-    "PERDIDO" to "PERDIDO",
-    "ENCONTRADO" to "ENCONTRADO"
-)
-
-@Composable
-fun BuscarScreen(
-    onObjetoClick: (Long) -> Unit,
-    viewModel: ObjetosViewModel = viewModel(factory=fabrica())
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
-    val texto=busqueda.texto;val tipo=busqueda.tipo
-    LaunchedEffect(Unit) {viewModel.buscarActual()}
-
-    Scaffold(containerColor = Background) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "Buscar",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-
-            OutlinedTextField(
-                value = texto,
-                onValueChange = viewModel::editarBusqueda,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text("🔍 Buscar objeto...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                shape = RoundedCornerShape(10.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            Row(
-                modifier = Modifier.padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FILTROS.forEach { (etiqueta, valor) ->
-                    FiltroChip(
-                        etiqueta = etiqueta,
-                        seleccionado = tipo == valor,
-                        onClick = { viewModel.elegirTipo(valor) }
-                    )
-                }
-            }
-
-            state.aviso?.let {Text(it)}
-            if(state.error!=null || state.aviso!=null) androidx.compose.material3.Button(onClick=viewModel::buscarActual){Text("Reintentar")}
-            when {
-                state.cargando -> Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(48.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                }
-
-                state.error != null -> Text(
-                    text = "⚠️ ${state.error.orEmpty()}",
-                    color = Danger,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp)
-                )
-
-                state.objetos.isEmpty() -> Text(
-                    text = "Sin resultados.\nPrueba con otra palabra o filtro.",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 40.dp)
-                )
-
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.objetos, key = { it.id }) { objeto ->
-                        ObjetoCard(objeto = objeto, onClick = { onObjetoClick(objeto.id) })
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FiltroChip(
-    etiqueta: String,
-    seleccionado: Boolean,
-    onClick: () -> Unit
-) {
-    val colorBorde = if (seleccionado) Primary else MaterialTheme.colorScheme.outline
-    Text(
-        text = etiqueta,
-        style = MaterialTheme.typography.labelLarge,
-        color = if (seleccionado) Primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .background(
-                color = if (seleccionado) Primary50 else MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(20.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = colorBorde,
-                shape = RoundedCornerShape(20.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
-    )
+@Composable fun BuscarScreen(onObjetoClick:(Long)->Unit,viewModel:ObjetosViewModel=viewModel(factory=fabrica())) {
+ val state by viewModel.state.collectAsStateWithLifecycle();val f by viewModel.busqueda.collectAsStateWithLifecycle();val categorias by viewModel.categorias.collectAsStateWithLifecycle()
+ LaunchedEffect(Unit){viewModel.buscarActual();viewModel.cargarCategorias()}
+ Surface(color=MaterialTheme.colorScheme.background,modifier=Modifier.fillMaxSize()) {
+  LazyColumn(Modifier.statusBarsPadding().imePadding(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
+   item{Cabecera("Encuentra eso\nque importa","Busca entre las publicaciones de tu comunidad.")}
+   item{OutlinedTextField(value=f.texto,onValueChange=viewModel::editarBusqueda,placeholder={Text("¿Qué estás buscando?")},leadingIcon={Icon(Simbolos.Buscar,null)},singleLine=true,shape=MaterialTheme.shapes.large,modifier=Modifier.fillMaxWidth())}
+   item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.horizontalScroll(rememberScrollState())){listOf(null to "Todos","PERDIDO" to "Perdidos","ENCONTRADO" to "Encontrados").forEach {(v,t)->FilterChip(selected=f.tipo==v,onClick={viewModel.elegirTipo(v)},label={Text(t)})}}}
+   if(categorias.isNotEmpty())item{LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){item{FilterChip(f.categoriaId==null,{viewModel.elegirCategoria(null)},{Text("Todas las categorías")})};items(categorias,key={it.id}){c->FilterChip(f.categoriaId==c.id,{viewModel.elegirCategoria(c.id)},{Text(c.nombre?:"Categoría")})}}}
+   if(f.tipo!=null||f.categoriaId!=null)item{TextButton(onClick={viewModel.elegirTipo(null);viewModel.elegirCategoria(null)}){Text("Limpiar filtros")}}
+   state.aviso?.let {item{AvisoEstado(it);TextButton(onClick=viewModel::buscarActual){Text("Actualizar resultados")}}}
+   when {
+    state.cargando->item{Esqueleto()}
+    state.error!=null->item{AvisoEstado(state.error!!,true);BotonPrincipal("Reintentar",viewModel::buscarActual)}
+    state.objetos.isEmpty()->item{Vacio("Todavía no lo encontramos","Prueba otra palabra o amplía los filtros. Tu próxima búsqueda puede estar más cerca.")}
+    else->{item{Text("${state.objetos.size} publicaciones",style=MaterialTheme.typography.titleMedium)};items(state.objetos,key={it.id}){o->ObjetoCard(o,{onObjetoClick(o.id)},compacto=true)}}
+   }
+  }
+ }
 }

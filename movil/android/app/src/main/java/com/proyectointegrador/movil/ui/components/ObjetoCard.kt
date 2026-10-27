@@ -1,126 +1,48 @@
 package com.proyectointegrador.movil.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.proyectointegrador.movil.model.Objeto
 import com.proyectointegrador.movil.domain.urlImagen
-import com.proyectointegrador.movil.ui.theme.Border
-import com.proyectointegrador.movil.ui.theme.ChipEncontradoBg
-import com.proyectointegrador.movil.ui.theme.ChipPerdidoBg
-import com.proyectointegrador.movil.ui.theme.Success
-import com.proyectointegrador.movil.ui.theme.Danger
 
-@Composable
-fun TipoChip(tipo: String, modifier: Modifier = Modifier) {
-    val esPerdido = tipo == "PERDIDO"
-    val fondo = if (esPerdido) ChipPerdidoBg else ChipEncontradoBg
-    val texto = if (esPerdido) Danger else Success
-    val etiqueta = if (esPerdido) "PERDIDO" else "ENCONTRADO"
-
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(fondo)
-            .padding(horizontal = 8.dp, vertical = 3.dp)
-    ) {
-        Text(
-            text = etiqueta,
-            color = texto,
-            style = MaterialTheme.typography.labelSmall
-        )
-    }
+@Composable fun TipoChip(tipo:String,modifier:Modifier=Modifier) {
+ val perdido=tipo=="PERDIDO"
+ Surface(color=if(perdido)MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,shape=RoundedCornerShape(8.dp),modifier=modifier) {
+  Text(if(perdido)"Perdido" else "Encontrado",Modifier.padding(horizontal=10.dp,vertical=5.dp),color=if(perdido)MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,style=MaterialTheme.typography.labelSmall)
+ }
 }
-
-@Composable
-fun ObjetoCard(
-    objeto: Objeto,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val fotoUrl = urlImagen(objeto.fotosSeguras.firstOrNull()?.url)
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Border),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .background(Color(0xFFE2E8F0))
-            ) {
-                if (fotoUrl != null) {
-                    AsyncImage(
-                        model = fotoUrl,
-                        contentDescription = objeto.nombre,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "📦", style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            text = "Sin foto",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                TipoChip(tipo = objeto.tipoSeguro)
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = objeto.nombre,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.size(6.dp))
-                Text(
-                    text = "📍 ${objeto.ubicacion ?: "Sin ubicación"}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "📅 ${objeto.fechaObjeto ?: "—"}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
+@Composable fun FotoObjeto(objeto:Objeto,modifier:Modifier=Modifier) {
+ val url=urlImagen(objeto.fotosSeguras.firstOrNull()?.url)
+ Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center) {
+  if(url!=null)SubcomposeAsyncImage(model=url,contentDescription="Foto de ${objeto.nombre}",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop,
+   loading={Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){CircularProgressIndicator(Modifier.size(24.dp),strokeWidth=2.dp)}},
+   error={SinFoto("Foto no disponible")})
+  else SinFoto("Sin fotografía")
+ }
+}
+@Composable private fun SinFoto(texto:String){Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center){Icon(Simbolos.Foto,null,Modifier.size(28.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant);Spacer(Modifier.height(6.dp));Text(texto,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
+@Composable fun ObjetoCard(objeto:Objeto,onClick:()->Unit,modifier:Modifier=Modifier,compacto:Boolean=false) {
+ Card(onClick=onClick,modifier=modifier.fillMaxWidth(),shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)) {
+  if(compacto)Row(Modifier.padding(10.dp),horizontalArrangement=Arrangement.spacedBy(14.dp),verticalAlignment=Alignment.CenterVertically){
+   FotoObjeto(objeto,Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)))
+   Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(6.dp)){TipoChip(objeto.tipoSeguro);Text(objeto.nombre,style=MaterialTheme.typography.titleMedium,maxLines=2,overflow=TextOverflow.Ellipsis);FilaDato(Simbolos.Lugar,objeto.ubicacion?:"Sin ubicación")}
+  } else Column {
+   Box {FotoObjeto(objeto,Modifier.fillMaxWidth().height(180.dp));TipoChip(objeto.tipoSeguro,Modifier.padding(12.dp))}
+   Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+    Row(verticalAlignment=Alignment.CenterVertically){Text(objeto.nombre,Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,maxLines=2,overflow=TextOverflow.Ellipsis);Icon(Simbolos.Flecha,"Ver detalles",Modifier.size(19.dp),tint=MaterialTheme.colorScheme.primary)}
+    FilaDato(Simbolos.Lugar,objeto.ubicacion?:"Sin ubicación")
+    FilaDato(Simbolos.Fecha,objeto.fechaObjeto?:"Sin fecha")
+   }
+  }
+ }
 }

@@ -3,6 +3,7 @@ package com.proyectointegrador.movil.ui.sprint
 import android.content.Intent
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.proyectointegrador.movil.ui.components.*
 import androidx.compose.ui.platform.LocalContext
 import com.proyectointegrador.movil.model.Objeto
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -23,7 +24,7 @@ import com.proyectointegrador.movil.ui.viewmodel.*
     else TextButton(onClick=entrar) {Text("Inicia sesión para reportar")}
     if(objeto.esPerdido) {
         Button(enabled=!accion.ocupada,onClick=vm::compartir) {Text("Compartir publicación")}
-        Text("Se abrirá el selector del sistema. Puedes elegir una aplicación o cancelar; FoundIA no confirma el envío.")
+        Text("Elige dónde compartir o cancela desde el selector del sistema.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
     EstadoAccion(accion)
 }

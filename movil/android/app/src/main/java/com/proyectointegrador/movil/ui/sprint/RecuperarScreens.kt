@@ -2,6 +2,7 @@ package com.proyectointegrador.movil.ui.sprint
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.proyectointegrador.movil.ui.components.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.di.fabrica
@@ -10,9 +11,11 @@ import com.proyectointegrador.movil.ui.viewmodel.*
 @Composable fun RecuperarScreen(volver:()->Unit,vm:RecuperarViewModel=viewModel(factory=fabrica())) {
     val correo by vm.correo.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
     Pagina("Recuperar contraseña",volver) {
+        Panel("Volvamos a conectar") {
         Text("Solicita el enlace de recuperación y ábrelo desde tu correo.")
         Campo("Correo",correo,vm::editar,habilitado=!accion.ocupada);EstadoAccion(accion)
-        Button(enabled=!accion.ocupada,onClick=vm::solicitar) {Text("Solicitar enlace")}
+        BotonPrincipal("Solicitar enlace",vm::solicitar,!accion.ocupada)
+        }
     }
 }
 @Composable fun NuevaClaveScreen(token:String?,volver:()->Unit,entrar:()->Unit,
