@@ -99,12 +99,15 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated, EsAdmin]
 
     def get(self, request):
+        from .metricas import metricas_dashboard
+        metricas = metricas_dashboard(request.query_params)
         return Response(
             {
                 "usuarios": Usuario.objects.count(),
                 "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
                 "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
                 "categorias": Categoria.objects.count(),
+                **metricas,
             }
         )
 
