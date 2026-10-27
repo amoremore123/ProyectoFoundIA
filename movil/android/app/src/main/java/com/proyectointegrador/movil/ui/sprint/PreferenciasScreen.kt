@@ -11,6 +11,7 @@ import com.proyectointegrador.movil.network.*
     val token by Sesion.token.collectAsState()
     Pagina("Preferencias de avisos",volver) {
         Consulta(token,{RetrofitClient.api.preferencias()}) { actuales,recargar ->
+            var guardadas by remember(actuales) {mutableStateOf(actuales)}
             var preferencias by remember(actuales) {mutableStateOf(actuales)}
             val accion=recordarAccion()
             Text("Los cambios afectan a los avisos nuevos; el historial se conserva.")
@@ -25,10 +26,10 @@ import com.proyectointegrador.movil.network.*
             }
             EstadoAccion(accion)
             Button(enabled=!accion.ocupada,onClick={accion.ejecutar {
-                preferencias=RetrofitClient.api.guardarPreferencias(preferencias);accion.mensaje="Preferencias guardadas."
+                preferencias=RetrofitClient.api.guardarPreferencias(preferencias);guardadas=preferencias;accion.mensaje="Preferencias guardadas."
             }}) {Text("Guardar preferencias")}
             OutlinedButton(onClick=recargar,enabled=!accion.ocupada) {Text("Recargar preferencias del servidor")}
-            TextButton(onClick={preferencias=actuales},enabled=!accion.ocupada) {Text("Cancelar cambios")}
+            TextButton(onClick={preferencias=guardadas},enabled=!accion.ocupada) {Text("Cancelar cambios")}
         }
     }
 }
