@@ -54,6 +54,7 @@ class VerificacionViewModel(private val repo:CuentaRepository,private val reloj:
     fun codigo(valor:String){_form.value=_form.value.copy(codigo=valor.filter(Char::isDigit).take(6))}
     private fun esperar(segundos:Int) {
         contador?.cancel();val limite=reloj()+segundos*1000L
+        _form.value=_form.value.copy(espera=segundos.coerceAtLeast(0))
         contador=viewModelScope.launch {
             while(true){val restantes=((limite-reloj()+999)/1000).toInt().coerceAtLeast(0)
                 _form.value=_form.value.copy(espera=restantes)

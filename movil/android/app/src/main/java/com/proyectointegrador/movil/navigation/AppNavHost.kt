@@ -2,6 +2,7 @@ package com.proyectointegrador.movil.navigation
 
 import android.net.Uri
 import android.app.Activity
+import android.content.ContextWrapper
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsControllerCompat
@@ -42,7 +43,7 @@ import com.proyectointegrador.movil.ui.sprint.*
         val ruta=entrada?.destination?.route
         val contexto=LocalContext.current
         val fondoOscuro=MaterialTheme.colorScheme.background.luminance()<.25f
-        SideEffect { (contexto as? Activity)?.let {activity->
+        SideEffect { generateSequence(contexto){(it as? ContextWrapper)?.baseContext}.filterIsInstance<Activity>().firstOrNull()?.let {activity->
             val controlador=WindowInsetsControllerCompat(activity.window,activity.window.decorView)
             controlador.isAppearanceLightStatusBars=!(fondoOscuro||ruta=="bienvenida"||(!sesion.autenticado&&ruta in listOf("perfil","avisos","publicar?tipo={tipo}")))
             controlador.isAppearanceLightNavigationBars=!fondoOscuro

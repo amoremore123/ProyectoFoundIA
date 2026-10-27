@@ -25,7 +25,7 @@ import com.proyectointegrador.movil.ui.components.*
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){LogoFoundia(true);IconButton(onClick={experiencia.tema(if(ajustes.tema=="oscuro")"claro" else "oscuro")}){Icon(Simbolos.Luna,"Cambiar tema",tint=Color.White)}};Spacer(Modifier.height(6.dp))
    Row(verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("¡Qué bueno\nverte de nuevo!",style=MaterialTheme.typography.headlineLarge,color=Color.White);Spacer(Modifier.height(10.dp));Text("Tu comunidad te ayuda a encontrar.",color=Color(0xFFD0E1FF),style=MaterialTheme.typography.bodyMedium)};IlustracionEncuentro(2,Modifier.width(105.dp))}
   }
-  Surface(shape=RoundedCornerShape(topStart=34.dp,topEnd=34.dp),color=MaterialTheme.colorScheme.surface,modifier=Modifier.fillMaxWidth().weight(1f,fill=false)) {
+  Surface(shape=RoundedCornerShape(topStart=34.dp,topEnd=34.dp),color=MaterialTheme.colorScheme.surface,modifier=Modifier.fillMaxWidth()) {
    Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
     Text("Inicia sesión",style=MaterialTheme.typography.headlineSmall)
     Text("Vuelve a conectar con lo que importa.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -41,33 +41,36 @@ import com.proyectointegrador.movil.ui.components.*
  }
 }
 @Composable fun RegistroScreen(volver:()->Unit,verificar:(String)->Unit,vm:RegistroViewModel=viewModel(factory=fabrica())) {
-    val estado by vm.estado.collectAsStateWithLifecycle();val f by vm.form.collectAsStateWithLifecycle()
-    val accion by vm.accion.collectAsStateWithLifecycle();val evento by vm.evento.collectAsStateWithLifecycle()
-    LaunchedEffect(evento){evento?.let {vm.consumirEvento();verificar(it)}}
-    Pagina("Crear cuenta",volver) {
-        Text("Un lugar para volver a encontrar.",style=MaterialTheme.typography.titleMedium)
-        Consulta(estado,vm::recargarDocumentos) { docs,_ ->
-            var leer by remember {mutableStateOf<String?>(null)}
-            Text("Términos y privacidad del proyecto. Pendientes de revisión institucional.")
-            Text("Versión: ${docs.version}")
-            TextButton(onClick={leer=docs.terminos}) {Text("Leer términos de uso")}
-            TextButton(onClick={leer=docs.privacidad}) {Text("Leer política de privacidad")}
-            leer?.let { texto -> AlertDialog(onDismissRequest={leer=null},title={Text("Documento presentado")},
-                text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())) {Text(texto)}},
-                confirmButton={TextButton(onClick={leer=null}) {Text("Cerrar documento")}}) }
-            Campo("Nombre",f.nombre,{vm.editar("nombre",it)});Campo("Apellido",f.apellido,{vm.editar("apellido",it)})
-            Campo("Correo",f.correo,{vm.editar("correo",it)})
-            Text("Contraseña: 8 caracteres como mínimo, mayúscula, minúscula, número y símbolo; hasta 72 bytes.")
-            Campo("Contraseña",f.password,{vm.editar("password",it)},secreto=true)
-            Campo("Confirmar contraseña",f.confirmar,{vm.editar("confirmar",it)},secreto=true)
-            Row(Modifier.toggleable(value=f.acepta,role=Role.Checkbox,enabled=!accion.ocupada,onValueChange=vm::aceptar)) {
-                Checkbox(checked=f.acepta,onCheckedChange=null,enabled=!accion.ocupada)
-                Text("Acepto los términos y la política de privacidad de la versión presentada",Modifier.weight(1f))}
-            EstadoAccion(accion)
-            Button(enabled=f.acepta && !accion.ocupada,onClick=vm::registrar) {Text("Registrarme y recibir código")}
-            TextButton(onClick=vm::recargarDocumentos,enabled=!accion.ocupada) {Text("Volver a cargar documentos")}
-        }
+ val estado by vm.estado.collectAsStateWithLifecycle();val f by vm.form.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val evento by vm.evento.collectAsStateWithLifecycle()
+ LaunchedEffect(evento){evento?.let {vm.consumirEvento();verificar(it)}}
+ Pagina("Sé parte del encuentro",volver) {
+  Text("Una comunidad. Muchas historias por reencontrar.",style=MaterialTheme.typography.bodyLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
+  Consulta(estado,vm::recargarDocumentos){docs,_->
+   var leer by remember {mutableStateOf<String?>(null)}
+   Panel("01 · Así te conoceremos") {
+    Campo("Nombre",f.nombre,{vm.editar("nombre",it)},habilitado=!accion.ocupada)
+    Campo("Apellido",f.apellido,{vm.editar("apellido",it)},habilitado=!accion.ocupada)
+   }
+   Panel("02 · Tu acceso seguro") {
+    Campo("Correo",f.correo,{vm.editar("correo",it)},habilitado=!accion.ocupada)
+    Campo("Contraseña",f.password,{vm.editar("password",it)},secreto=true,habilitado=!accion.ocupada)
+    Text("Al menos 8 caracteres, mayúscula, minúscula, número y símbolo; hasta 72 bytes.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+    Campo("Confirmar contraseña",f.confirmar,{vm.editar("confirmar",it)},secreto=true,habilitado=!accion.ocupada)
+   }
+   Panel("03 · Tú decides") {
+    AvisoEstado("Documentos del proyecto pendientes de revisión institucional. Versión ${docs.version}.")
+    TextButton(onClick={leer=docs.terminos}){Text("Leer términos de uso")}
+    TextButton(onClick={leer=docs.privacidad}){Text("Leer política de privacidad")}
+    Row(Modifier.toggleable(value=f.acepta,role=Role.Checkbox,enabled=!accion.ocupada,onValueChange=vm::aceptar),verticalAlignment=Alignment.CenterVertically) {
+     Checkbox(f.acepta,onCheckedChange=null,enabled=!accion.ocupada)
+     Text("Acepto los términos y la política de privacidad de esta versión",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
     }
+   }
+   EstadoAccion(accion);BotonPrincipal("Registrarme y recibir código",vm::registrar,f.acepta&&!accion.ocupada)
+   TextButton(onClick=vm::recargarDocumentos,enabled=!accion.ocupada){Text("Actualizar documentos")}
+   leer?.let {texto->AlertDialog(onDismissRequest={leer=null},title={Text("Documento presentado")},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){Text(texto)}},confirmButton={TextButton(onClick={leer=null}){Text("Cerrar documento")}})}
+  }
+ }
 }
 @Composable fun VerificarScreen(correoInicial:String,volver:()->Unit,vm:VerificacionViewModel=viewModel(factory=fabrica())) {
     val f by vm.form.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
@@ -82,6 +85,7 @@ import com.proyectointegrador.movil.ui.components.*
 }
 @Composable fun CuentaScreen(abrir:(String)->Unit,vm:PerfilViewModel=viewModel(factory=fabrica())) {
  val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
+ LaunchedEffect(Unit){vm.recargar()}
  Pagina("Mi perfil") {
   Consulta(estado,vm::recargar) {usuario,_->
    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(DegradadoMarca)) {

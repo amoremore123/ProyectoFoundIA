@@ -35,7 +35,7 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
 class AvisosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Aviso>>({repo.avisos()}) {
     fun abrir(id:Long){val aviso=estado.value.datos?.find {it.id==id}?:return
         val par=parejaDeEnlace(aviso.enlace)?:return
-        ejecutar {if(!aviso.leida)repo.leer(id);emitirEvento(par)}
+        ejecutar {if(!aviso.leida){val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})};emitirEvento(par)}
     }
     fun leer(id:Long){if(estado.value.datos?.any {it.id==id}!=true)return
         ejecutar {val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})}

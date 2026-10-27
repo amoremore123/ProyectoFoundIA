@@ -14,8 +14,8 @@ android {
         minSdk = 24
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
         buildConfigField("String", "API_URL", "\"${providers.gradleProperty("foundiaApiUrl").getOrElse("http://10.0.2.2:8081/")}\"")
         buildConfigField("String", "WEB_URL", "\"${providers.gradleProperty("foundiaWebUrl").getOrElse("http://10.0.2.2:5173/")}\"")
     }

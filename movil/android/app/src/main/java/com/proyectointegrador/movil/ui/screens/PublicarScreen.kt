@@ -24,7 +24,7 @@ import java.util.*
 @Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
  val estado by viewModel.estado.collectAsStateWithLifecycle();val f by viewModel.form.collectAsStateWithLifecycle();val accion by viewModel.accion.collectAsStateWithLifecycle();val evento by viewModel.evento.collectAsStateWithLifecycle()
  LaunchedEffect(Unit){if(f.nombre.isBlank()&&tipoInicial in listOf("PERDIDO","ENCONTRADO"))viewModel.editar("tipo",tipoInicial)}
- val selector=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->viewModel.foto(uri?.toString())}
+ val selector=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let {viewModel.foto(it.toString())}}
  var calendario by remember {mutableStateOf(false)}
  val fechaPicker=rememberDatePickerState(selectableDates=object:SelectableDates{override fun isSelectableDate(utcTimeMillis:Long)=utcTimeMillis<=System.currentTimeMillis()})
  val titulos=listOf("Tipo de publicación","Información del objeto","Fotografía","Ubicación","Fecha","Revisa y publica")
@@ -72,7 +72,7 @@ import java.util.*
    }
   }
   EstadoAccion(accion)
-  if(f.paso<5)BotonPrincipal("Siguiente",{viewModel.paso(f.paso+1)},!accion.ocupada)
+  if(f.paso<5)BotonPrincipal("Siguiente",viewModel::siguiente,!accion.ocupada)
   else BotonPrincipal(if(f.publicadoId==null)"Publicar objeto" else "Reintentar fotografía",viewModel::publicar,!accion.ocupada&&!estado.cargando&&estado.error==null)
   if(f.publicadoId!=null)TextButton(onClick=viewModel::terminarSinFoto,enabled=!accion.ocupada){Text("Ver publicación sin la fotografía pendiente")}
   else if(f.paso>0)TextButton(onClick={viewModel.paso(f.paso-1)},enabled=!accion.ocupada){Text("Paso anterior")}

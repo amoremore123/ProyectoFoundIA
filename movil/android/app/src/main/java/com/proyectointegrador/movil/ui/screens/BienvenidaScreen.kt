@@ -29,9 +29,9 @@ import com.proyectointegrador.movil.ui.sprint.EstadoAccion
   if(paso>=0) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){TextButton(onClick={vm.completar()},enabled=!accion.ocupada){Text("Omitir",color=Color.White)}}
   AnimatedContent(targetState=paso,label="Introducción") { actual ->
    Column(verticalArrangement=Arrangement.spacedBy(18.dp)) {
-    IlustracionEncuentro(actual.coerceAtLeast(0),Modifier.fillMaxWidth().heightIn(max=300.dp))
+    IlustracionEncuentro(actual.coerceAtLeast(0),Modifier.fillMaxWidth().heightIn(max=240.dp))
     Text(if(actual<0)"ENCUENTRA LO QUE TE CONECTA" else listOf("01 / ENCUENTRA","02 / PUBLICA","03 / CONECTA")[actual],color=Cielo,style=MaterialTheme.typography.labelMedium)
-    Text(if(actual<0)"Lo que perdiste puede estar más cerca de lo que imaginas." else listOf("¿Perdiste algo? Estamos aquí para ayudarte.","Publica lo que encontraste o perdiste en pocos pasos.","Descubre coincidencias y recupera lo que es tuyo.")[actual],color=Color.White,style=MaterialTheme.typography.headlineLarge)
+    Text(if(actual<0)"Lo que perdiste puede estar más cerca de lo que imaginas." else listOf("¿Perdiste algo? Estamos aquí para ayudarte.","Publica lo que encontraste o perdiste en pocos pasos.","Descubre coincidencias y recupera lo que es tuyo.")[actual],color=Color.White,style=MaterialTheme.typography.headlineMedium)
     Text(if(actual<0)"Encuentra, publica y recupera objetos dentro de la comunidad Tecsup." else listOf("Explora las publicaciones de tu comunidad y vuelve a encontrar eso que importa.","Una foto, los detalles y el lugar: ayuda a que cada objeto encuentre a su dueño.","Compara las sugerencias reales y confirma la recuperación de tu objeto.")[actual],color=Color(0xFFCCDCF7),style=MaterialTheme.typography.bodyLarge)
    }
   }

@@ -33,6 +33,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 /** Datos privados solo en memoria: no se escriben en Room. */
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
                        private val sesion:AlmacenSesion = SesionCifrada) {
+    private val noLeidos=mutableSetOf<Long>()
+    private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
     val estadoSesion get()=EstadoSesion(sesion.autenticado,sesion.aviso,sesion.revision)
     private suspend fun <T> privada(bloque:suspend()->T):T = withContext(Dispatchers.IO) {
@@ -48,6 +50,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         publicaciones.invalidar()
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
+        synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null}
         sesion.guardar(respuesta.token)
     }
     suspend fun login(correo:String,password:String)=acceso {api.login(Login(correo.trim(),password))}
@@ -77,8 +80,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
     suspend fun descartar(id:String)=privada {val respuesta=api.descartar(id);publicaciones.invalidar();respuesta}
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
-    suspend fun avisos()=privada {api.avisos()}
-    suspend fun leer(id:Long)=privada {api.leer(id)}
+    suspend fun avisos()=privada {api.avisos()}.also {avisos->synchronized(noLeidos){noLeidos.clear();noLeidos.addAll(avisos.filter {!it.leida}.map {it.id});_sinLeer.value=noLeidos.size}}
+    suspend fun leer(id:Long)=privada {api.leer(id)}.also {aviso->synchronized(noLeidos){if(aviso.leida)noLeidos.remove(id) else noLeidos.add(id);_sinLeer.value=noLeidos.size}}
     suspend fun preferencias()=privada {api.preferencias()}
     suspend fun guardarPreferencias(datos:Preferencias)=privada {api.guardarPreferencias(datos)}
     suspend fun eliminacion()=privada {api.eliminacion()}
@@ -90,6 +93,6 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         api.restablecer(Restablecer(token,password));cerrarSesion()
     }
     suspend fun cerrarSesion() = withContext(Dispatchers.IO) {
-        try {publicaciones.invalidar()} finally {sesion.cerrar()}
+        try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};sesion.cerrar()}
     }
 }

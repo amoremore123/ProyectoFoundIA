@@ -18,8 +18,8 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         "tipo"->_form.value.copy(tipo=valor);"nombre"->_form.value.copy(nombre=valor);"descripcion"->_form.value.copy(descripcion=valor)
         "ubicacion"->_form.value.copy(ubicacion=valor);"fecha"->_form.value.copy(fecha=valor);else->_form.value
     }.copy(errores=emptyMap())}
-    fun categoria(id:Long){_form.value=_form.value.copy(categoriaId=id,errores=emptyMap())}
-    fun publicar(){val f=_form.value;val errores=mutableMapOf<String,String>()
+    fun categoria(id:Long){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(categoriaId=id,errores=emptyMap())}
+    private fun validar(f:FormPublicacion):Map<String,String>{val errores=mutableMapOf<String,String>()
         if(f.nombre.isBlank() || f.nombre.length>150)errores["nombre"]="Ingresa un nombre de hasta 150 caracteres."
         if(f.descripcion.isBlank() || f.descripcion.length>16000)errores["descripcion"]="Ingresa una descripción válida."
         if(f.categoriaId==null || estado.value.datos?.datos?.none {it.id==f.categoriaId && it.estado}!=false)errores["categoria"]="Selecciona una categoría disponible."
@@ -29,6 +29,14 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         val hoy=formato.parse(formato.format(Date()))!!
         if(fecha==null || fecha.after(hoy))errores["fecha"]="Ingresa una fecha válida que no sea futura."
         if(f.tipo !in listOf("PERDIDO","ENCONTRADO"))errores["tipo"]="Selecciona el tipo de objeto."
+        return errores
+    }
+    fun siguiente(){val f=_form.value
+        val campos=when(f.paso){0->setOf("tipo");1->setOf("nombre","descripcion","categoria");3->setOf("ubicacion");4->setOf("fecha");else->emptySet()}
+        val errores=validar(f).filterKeys {it in campos}
+        _form.value=f.copy(errores=errores,paso=if(errores.isEmpty())(f.paso+1).coerceAtMost(5) else f.paso)
+    }
+    fun publicar(){val f=_form.value;val errores=validar(f)
         _form.value=f.copy(errores=errores)
         if(errores.isNotEmpty()){rechazar("Revisa los campos señalados.");return}
         ejecutar {
