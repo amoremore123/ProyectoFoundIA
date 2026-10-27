@@ -87,6 +87,8 @@ public class ObjetoService {
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id " + request.categoriaId()));
 
+        exigirCategoriaActiva(categoria);
+
         Objeto objeto = new Objeto();
         objeto.setUsuario(usuario);
         objeto.setCategoria(categoria);
@@ -115,6 +117,9 @@ public class ObjetoService {
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id " + request.categoriaId()));
 
+        if (!categoria.getId().equals(objeto.getCategoria().getId())) {
+            exigirCategoriaActiva(categoria);
+        }
         objeto.setCategoria(categoria);
         objeto.setNombre(request.nombre());
         objeto.setDescripcion(request.descripcion());
@@ -184,6 +189,13 @@ public class ObjetoService {
         // Una categoría desactivada sigue sirviendo para consultar publicaciones anteriores.
         if (categoriaId != null && !categoriaRepository.existsById(categoriaId)) {
             throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
+        }
+    }
+
+    private void exigirCategoriaActiva(Categoria categoria) {
+        if (!Boolean.TRUE.equals(categoria.getEstado())) {
+            throw new com.proyectointegrador.exception.SolicitudInvalidaException(
+                    "No se puede asignar una categoría desactivada");
         }
     }
 

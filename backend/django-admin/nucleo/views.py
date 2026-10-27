@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 
 import bcrypt
 import jwt
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -149,6 +150,27 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all().order_by("id")
     serializer_class = CategoriaSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response({"nombre": ["Ya existe una categoría con ese nombre."]}, status=400)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                return super().update(request, *args, **kwargs)
+        except IntegrityError:
+            return Response({"nombre": ["Ya existe una categoría con ese nombre."]}, status=400)
+
+    def destroy(self, request, *args, **kwargs):
+        # Desactivar nunca rompe los objetos y filtros asociados al mismo ID.
+        categoria = self.get_object()
+        categoria.estado = False
+        categoria.save(update_fields=["estado"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ObjetoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
