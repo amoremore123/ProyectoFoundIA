@@ -1,6 +1,8 @@
 package com.proyectointegrador.movil.ui.sprint
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -45,7 +47,7 @@ import kotlinx.coroutines.delay
             Campo("Nombre",nombre,{nombre=it});Campo("Apellido",apellido,{apellido=it});Campo("Correo",correo,{correo=it})
             Text("Contraseña: 8 caracteres como mínimo, mayúscula, minúscula, número y símbolo; hasta 72 bytes.")
             Campo("Contraseña",clave,{clave=it},secreto=true);Campo("Confirmar contraseña",confirmar,{confirmar=it},secreto=true)
-            Row {Checkbox(checked=acepta,onCheckedChange={acepta=it},enabled=!accion.ocupada);Text("Acepto los términos y la política de privacidad de la versión presentada",Modifier.weight(1f))}
+            Row(Modifier.toggleable(value=acepta,role=Role.Checkbox,enabled=!accion.ocupada,onValueChange={acepta=it})) {Checkbox(checked=acepta,onCheckedChange=null,enabled=!accion.ocupada);Text("Acepto los términos y la política de privacidad de la versión presentada",Modifier.weight(1f))}
             EstadoAccion(accion)
             Button(enabled=acepta && !accion.ocupada && nombre.isNotBlank() && apellido.isNotBlank() && correo.isNotBlank() && clave==confirmar && clave.isNotBlank(),onClick={accion.ejecutar {
                 RetrofitClient.api.registrar(Registro(nombre.trim(),apellido.trim(),correo.trim(),clave,true,docs.version))
@@ -68,7 +70,12 @@ import kotlinx.coroutines.delay
             val respuesta=RetrofitClient.api.verificar(Verificacion(correo.trim(),codigo));Sesion.guardar(respuesta.token)
         }}) {Text("Verificar y entrar")}
         TextButton(enabled=!accion.ocupada && espera==0 && correo.isNotBlank(),onClick={accion.ejecutar {
-            val respuesta=RetrofitClient.api.reenviar(Correo(correo.trim()));espera=60;accion.mensaje=respuesta.mensaje
+            try {
+                val respuesta=RetrofitClient.api.reenviar(Correo(correo.trim()));espera=60;accion.mensaje=respuesta.mensaje
+            } catch(e:retrofit2.HttpException) {
+                if(e.code()==429) espera=e.response()?.headers()?.get("Retry-After")?.toIntOrNull()?.coerceIn(1,3600) ?: 60
+                throw e
+            }
         }}) {Text(if(espera>0) "Reenviar en $espera s" else "Reenviar código")}
     }
 }
