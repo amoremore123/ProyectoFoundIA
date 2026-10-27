@@ -1,0 +1,11 @@
+{
+  "vistasRevisadas": 22,
+  "llamadasDirectasDeApiODaoEnVistas": 0,
+  "consultasEnHiloPrincipal": false,
+  "migracionDestructiva": false,
+  "esquemasRoom": [
+    1,
+    2
+  ],
+  "cambiosSoloAndroid": true
+}

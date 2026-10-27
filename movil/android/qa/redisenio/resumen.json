@@ -1,0 +1,115 @@
+{
+  "fecha": "2026-10-27",
+  "rama": "mobile/android",
+  "version": "1.2",
+  "versionCode": 3,
+  "pruebasUnitarias": [
+    {
+      "name": "com.proyectointegrador.movil.ContratoApiTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.EnlacesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.ExperienciaTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.RedisenioViewModelsTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.RepositoriosMvvmTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.ViewModelsMvvmTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "pruebasAndroid": {
+    "total": 6,
+    "fallos": 0,
+    "clases": [
+      "RoomPersistenciaTest",
+      "BackendRoomTest",
+      "RedisenioApiTest"
+    ],
+    "apiReal": true,
+    "mysqlQa": 13370
+  },
+  "recorridoVisual": [
+    "Bienvenida y tres pantallas introductorias",
+    "La introducción completa no vuelve a aparecer al reabrir",
+    "Login JWT real y saludo de la API",
+    "El tema oscuro y la sesión persisten tras detener y reabrir",
+    "Búsqueda, fotografías y comparación con criterios reales",
+    "Notificaciones consultadas en la API real"
+  ],
+  "pantallaPequena": [
+    "Cinco destinos accesibles a 320dp y fuente 130%",
+    "La publicación no avanza sin información obligatoria",
+    "Formulario desplazable con teclado y fuente ampliada"
+  ],
+  "capturas": [
+    "01-bienvenida.png",
+    "02-onboarding-1.png",
+    "02-onboarding-2.png",
+    "02-onboarding-3.png",
+    "03-inicio-publico.png",
+    "04-acceso-claro.png",
+    "05-inicio-con-sesion.png",
+    "06-perfil-claro.png",
+    "07-apariencia-oscura.png",
+    "08-inicio-oscuro.png",
+    "09-busqueda-oscura.png",
+    "10-resultados-reales.png",
+    "11-detalle-con-foto.png",
+    "12-comparacion-real.png",
+    "13-avisos-reales.png",
+    "14-inicio-320dp-fuente-grande.png",
+    "15-publicar-320dp.png",
+    "16-validacion-por-paso.png",
+    "17-formulario-con-teclado.png"
+  ],
+  "lint": "0 errors, 22 warnings",
+  "apk": {
+    "archivo": "output\\FoundIA-Redisenio-1.2.apk",
+    "bytes": 12141017,
+    "sha256": "e8de2b331500ff379fe0c3b33449178221452334137f92be170a5b79539e78e8",
+    "api": "http://10.0.2.2:8081/",
+    "web": "http://10.0.2.2:5173/"
+  },
+  "cambiosSoloAndroid": true,
+  "pushRealizado": false,
+  "mergeRealizado": false,
+  "commits": [
+    "f50efa6 Adaptar las etiquetas de navegación a pantallas estrechas con letra grande",
+    "f563d51 Mantener legible la navegación y mostrar los errores al avanzar",
+    "7d31105 Probar bienvenida, formularios, avisos y acciones reales del rediseño",
+    "5ac51a1 Ajustar formularios, avisos y presentación en pantallas pequeñas",
+    "0d207e2 Rediseñar la bienvenida, navegación y pantallas de FoundIA Android",
+    "59c3d3b Conectar fotografías, perfil, contacto y actividad real con los ViewModels",
+    "f93d7ff Crear la identidad visual móvil y las preferencias de bienvenida y tema"
+  ]
+}
