@@ -10,10 +10,12 @@ import com.proyectointegrador.repository.CategoriaRepository;
 import com.proyectointegrador.repository.FotoRepository;
 import com.proyectointegrador.repository.ObjetoRepository;
 import com.proyectointegrador.repository.UsuarioRepository;
+import com.proyectointegrador.repository.EventoCoincidenciaRepository;
 import com.proyectointegrador.security.JwtService;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,8 @@ class PublicacionesPropiasIntegrationTest {
     @Autowired private ObjetoRepository objetoRepository;
     @Autowired private FotoRepository fotoRepository;
     @Autowired private JwtService jwtService;
+    @Autowired private EventoCoincidenciaRepository eventos;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("avisosCoincidenciaExecutor") private java.util.concurrent.Executor avisosExecutor;
     @MockitoBean private EmailService emailService;
 
     private Categoria categoria;
@@ -69,6 +73,8 @@ class PublicacionesPropiasIntegrationTest {
 
     @BeforeEach
     void preparar() {
+        esperarAvisos();
+        eventos.deleteAllInBatch();
         fotoRepository.deleteAll();
         objetoRepository.deleteAll();
         usuarioRepository.deleteAll();
@@ -95,6 +101,8 @@ class PublicacionesPropiasIntegrationTest {
         foto.setNombreArchivo("mochila-ana.png");
         fotoRepository.saveAndFlush(foto);
     }
+
+    @AfterEach void esperarAvisos(){Sprint2Fixtures.esperarAvisos(avisosExecutor);}
 
     private Usuario usuario(String nombre, String correo) {
         Usuario u = new Usuario();

@@ -9,8 +9,10 @@ import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.GestionCoincidenciaService;
 import com.proyectointegrador.service.ObjetoService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -56,6 +58,9 @@ class ConfirmarRecuperacionIntegrationTest {
     @Autowired CoincidenciaRepository coincidencias;
     @Autowired ContactoRepository contactos;
     @Autowired NotificacionRepository notificaciones;
+    @Autowired AvisoCoincidenciaRepository avisos;
+    @Autowired EventoCoincidenciaRepository eventos;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("avisosCoincidenciaExecutor") java.util.concurrent.Executor avisosExecutor;
     @Autowired GestionCoincidenciaService gestion;
     @Autowired ObjetoService publicaciones;
     @Autowired JdbcTemplate jdbc;
@@ -66,6 +71,9 @@ class ConfirmarRecuperacionIntegrationTest {
 
     @BeforeEach
     void preparar() {
+        esperarAvisos();
+        eventos.deleteAllInBatch();
+        avisos.deleteAllInBatch();
         contactos.deleteAllInBatch(); notificaciones.deleteAllInBatch(); coincidencias.deleteAllInBatch();
         objetos.deleteAllInBatch(); categorias.deleteAllInBatch(); usuarios.deleteAllInBatch();
         ana = usuario("Ana"); luis = usuario("Luis"); tercero = usuario("Carla");
@@ -73,6 +81,8 @@ class ConfirmarRecuperacionIntegrationTest {
         categoria = categorias.saveAndFlush(categoria);
         encontrado = objeto(luis, TipoObjeto.ENCONTRADO); perdido = objeto(ana, TipoObjeto.PERDIDO);
     }
+
+    @AfterEach void esperarAvisos(){Sprint2Fixtures.esperarAvisos(avisosExecutor);}
 
     private Usuario usuario(String nombre) {
         Usuario u = new Usuario(); u.setNombre(nombre); u.setApellido("Apellido reservado");
@@ -273,7 +283,7 @@ class ConfirmarRecuperacionIntegrationTest {
         assertThat(o.getFechaRecuperacion() != null).isEqualTo(c.getEstado() == EstadoCoincidencia.ACEPTADA);
     }
 
-    @Test
+    @RepeatedTest(10)
     void edicionConcurrenteNoSobrescribeRecuperacionNiFecha() throws Exception {
         ObjetoRequest cambio = new ObjetoRequest(categoria.getId(), perdido.getNombre(), "Descripción editada",
                 perdido.getFechaObjeto(), TipoObjeto.PERDIDO, perdido.getUbicacion(), null, null);

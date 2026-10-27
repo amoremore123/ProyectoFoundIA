@@ -10,12 +10,15 @@ import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.entity.Usuario;
+import com.proyectointegrador.entity.EventoCoincidencia;
 import com.proyectointegrador.exception.ResourceNotFoundException;
 import com.proyectointegrador.repository.CategoriaRepository;
 import com.proyectointegrador.repository.ObjetoRepository;
 import com.proyectointegrador.repository.UsuarioRepository;
+import com.proyectointegrador.repository.EventoCoincidenciaRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -34,13 +37,17 @@ public class ObjetoService {
     private final ObjetoRepository objetoRepository;
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ApplicationEventPublisher eventos;
+    private final EventoCoincidenciaRepository eventosPendientes;
 
     public ObjetoService(ObjetoRepository objetoRepository,
                          CategoriaRepository categoriaRepository,
-                         UsuarioRepository usuarioRepository) {
+                         UsuarioRepository usuarioRepository, ApplicationEventPublisher eventos, EventoCoincidenciaRepository eventosPendientes) {
         this.objetoRepository = objetoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.eventos = eventos;
+        this.eventosPendientes = eventosPendientes;
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +100,7 @@ public class ObjetoService {
         objeto.setEstado(EstadoObjeto.ACTIVO);
 
         objetoRepository.save(objeto);
+        registrarEvento(objeto);
         return toResponse(objeto);
     }
 
@@ -117,6 +125,7 @@ public class ObjetoService {
         objeto.setLongitud(request.longitud());
 
         objetoRepository.save(objeto);
+        registrarEvento(objeto);
         return toResponse(objeto);
     }
 
@@ -195,6 +204,12 @@ public class ObjetoService {
         if (!objeto.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("Solo el autor puede administrar esta publicación");
         }
+    }
+
+    private void registrarEvento(Objeto objeto) {
+        var pendiente=new EventoCoincidencia();pendiente.setObjeto(objeto);
+        eventosPendientes.saveAndFlush(pendiente);
+        eventos.publishEvent(new ObjetoGuardado(objeto.getId()));
     }
 
     private Objeto buscarParaActualizar(Long id) {

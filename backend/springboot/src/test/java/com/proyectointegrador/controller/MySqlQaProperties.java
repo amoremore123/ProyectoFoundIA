@@ -14,6 +14,7 @@ final class MySqlQaProperties {
         String base = requerida("FOUNDIA_QA_MYSQL_DATABASE");
         String password = requerida("FOUNDIA_QA_MYSQL_PASSWORD");
         String token = requerida("FOUNDIA_QA_MYSQL_TOKEN");
+        String usuario = System.getenv().getOrDefault("FOUNDIA_QA_MYSQL_USER", "foundia_qa");
         int numeroPuerto = Integer.parseInt(puerto);
         if (numeroPuerto <= 1024 || numeroPuerto > 65535 || numeroPuerto == 3306
                 || !base.matches("foundia_s2_qa_[a-f0-9]{12}")) {
@@ -21,7 +22,7 @@ final class MySqlQaProperties {
         }
         String url = "jdbc:mysql://127.0.0.1:" + puerto + "/" + base
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8";
-        try (var conexion = DriverManager.getConnection(url, "foundia_qa", password);
+        try (var conexion = DriverManager.getConnection(url, usuario, password);
              var sentencia = conexion.createStatement();
              var resultado = sentencia.executeQuery("select token from foundia_qa_guard")) {
             if (!resultado.next() || !token.equals(resultado.getString(1)) || resultado.next()) {
@@ -32,10 +33,13 @@ final class MySqlQaProperties {
         }
         properties.add("spring.datasource.url", () -> url);
         properties.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-        properties.add("spring.datasource.username", () -> "foundia_qa");
+        properties.add("spring.datasource.username", () -> usuario);
         properties.add("spring.datasource.password", () -> password);
         properties.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         properties.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
+        // Las variantes comparten la base QA: el reintento se ejercita explícitamente,
+        // sin programadores de contextos anteriores compitiendo con la limpieza de fixtures.
+        properties.add("app.coincidencias.reintentos-habilitados", () -> "false");
     }
 
     private static String requerida(String nombre) {

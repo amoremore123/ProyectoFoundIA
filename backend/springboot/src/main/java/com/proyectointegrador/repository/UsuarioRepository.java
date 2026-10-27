@@ -17,5 +17,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("select usuario from Usuario usuario where usuario.correo = :correo")
     Optional<Usuario> findByCorreoForUpdate(@Param("correo") String correo);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.id = :id")
+    Optional<Usuario> findByIdForUpdate(@Param("id") Long id);
+
     boolean existsByCorreo(String correo);
 }

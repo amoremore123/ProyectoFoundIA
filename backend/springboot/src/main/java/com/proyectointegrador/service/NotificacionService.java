@@ -58,4 +58,15 @@ public class NotificacionService {
         notificacion.setLeida(Boolean.FALSE);
         notificacionRepository.save(notificacion);
     }
+
+    @Transactional
+    public Notificacion notificarCoincidencia(Usuario destinatario, Long perdidoId, Long encontradoId) {
+        Notificacion aviso = new Notificacion();
+        aviso.setUsuario(destinatario);
+        aviso.setTitulo("Nueva coincidencia");
+        aviso.setMensaje("Hay una nueva coincidencia para tu publicación perdida #" + perdidoId + ".");
+        aviso.setTipo("COINCIDENCIA_NUEVA");
+        aviso.setEnlace("/coincidencias/" + perdidoId + "-" + encontradoId);
+        return notificacionRepository.save(aviso);
+    }
 }

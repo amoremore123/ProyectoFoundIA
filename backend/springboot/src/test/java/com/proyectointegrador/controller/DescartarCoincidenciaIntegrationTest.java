@@ -8,6 +8,7 @@ import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.ContactoService;
 import com.proyectointegrador.service.GestionCoincidenciaService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,6 +51,9 @@ class DescartarCoincidenciaIntegrationTest {
     @Autowired CoincidenciaRepository coincidencias;
     @Autowired ContactoRepository contactos;
     @Autowired NotificacionRepository notificaciones;
+    @Autowired AvisoCoincidenciaRepository avisos;
+    @Autowired EventoCoincidenciaRepository eventos;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("avisosCoincidenciaExecutor") java.util.concurrent.Executor avisosExecutor;
     @Autowired GestionCoincidenciaService gestion;
     @Autowired ContactoService contacto;
     Usuario ana, luis, tercero;
@@ -58,6 +62,9 @@ class DescartarCoincidenciaIntegrationTest {
 
     @BeforeEach
     void preparar() {
+        esperarAvisos();
+        eventos.deleteAllInBatch();
+        avisos.deleteAllInBatch();
         contactos.deleteAllInBatch();
         notificaciones.deleteAllInBatch();
         coincidencias.deleteAllInBatch();
@@ -77,6 +84,8 @@ class DescartarCoincidenciaIntegrationTest {
         u.setCorreo(UUID.randomUUID() + "@prueba.invalid"); u.setPassword("no-se-usa"); u.setVerificado(true);
         return usuarios.saveAndFlush(u);
     }
+
+    @AfterEach void esperarAvisos(){Sprint2Fixtures.esperarAvisos(avisosExecutor);}
 
     private Objeto objeto(Usuario autor, TipoObjeto tipo) {
         Objeto o = new Objeto(); o.setUsuario(autor); o.setCategoria(categoria);

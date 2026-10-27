@@ -11,6 +11,7 @@ import com.proyectointegrador.exception.ResourceNotFoundException;
 import com.proyectointegrador.repository.CategoriaRepository;
 import com.proyectointegrador.repository.ObjetoRepository;
 import com.proyectointegrador.repository.UsuarioRepository;
+import com.proyectointegrador.repository.EventoCoincidenciaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -46,6 +48,12 @@ class ObjetoServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventos;
+
+    @Mock
+    private EventoCoincidenciaRepository eventosPendientes;
 
     @InjectMocks
     private ObjetoService objetoService;

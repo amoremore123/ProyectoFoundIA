@@ -21,6 +21,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public class Objeto {
 
     @PrePersist
     void prePersist() {
-        LocalDateTime ahora = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime ahora = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         if (fechaPublicacion == null) {
             fechaPublicacion = ahora;
         }
@@ -94,6 +95,6 @@ public class Objeto {
 
     @PreUpdate
     void preUpdate() {
-        fechaActualizacion = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        fechaActualizacion = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     }
 }
