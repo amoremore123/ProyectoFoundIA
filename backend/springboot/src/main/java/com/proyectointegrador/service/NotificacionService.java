@@ -14,9 +14,11 @@ import java.util.List;
 public class NotificacionService {
 
     private final NotificacionRepository notificacionRepository;
+    private final PreferenciaNotificacionService preferencias;
 
-    public NotificacionService(NotificacionRepository notificacionRepository) {
+    public NotificacionService(NotificacionRepository notificacionRepository, PreferenciaNotificacionService preferencias) {
         this.notificacionRepository = notificacionRepository;
+        this.preferencias = preferencias;
     }
 
     @Transactional(readOnly = true)
@@ -37,6 +39,7 @@ public class NotificacionService {
 
     @Transactional
     public void notificarSolicitudContacto(Usuario destinatario, Long objetoEncontradoId) {
+        if (!preferencias.permite(destinatario.getId(), "CONTACTO_RECIBIDO")) return;
         Notificacion notificacion = new Notificacion();
         notificacion.setUsuario(destinatario);
         notificacion.setTitulo("Nueva solicitud de contacto");
@@ -49,6 +52,7 @@ public class NotificacionService {
 
     @Transactional
     public void notificarReclamo(Usuario destinatario, Long objetoId) {
+        if (!preferencias.permite(destinatario.getId(), "RECLAMO_RECIBIDO")) return;
         Notificacion notificacion = new Notificacion();
         notificacion.setUsuario(destinatario);
         notificacion.setTitulo("Nuevo reclamo de objeto");
@@ -57,5 +61,17 @@ public class NotificacionService {
         notificacion.setTipo("RECLAMO_RECIBIDO");
         notificacion.setLeida(Boolean.FALSE);
         notificacionRepository.save(notificacion);
+    }
+
+    @Transactional
+    public Notificacion notificarCoincidencia(Usuario destinatario, Long perdidoId, Long encontradoId) {
+        if (!preferencias.permite(destinatario.getId(), "COINCIDENCIA_NUEVA")) return null;
+        Notificacion aviso = new Notificacion();
+        aviso.setUsuario(destinatario);
+        aviso.setTitulo("Nueva coincidencia");
+        aviso.setMensaje("Hay una nueva coincidencia para tu publicación perdida #" + perdidoId + ".");
+        aviso.setTipo("COINCIDENCIA_NUEVA");
+        aviso.setEnlace("/coincidencias/" + perdidoId + "-" + encontradoId);
+        return notificacionRepository.save(aviso);
     }
 }

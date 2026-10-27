@@ -19,6 +19,8 @@ USE objetos_perdidos_db;
 -- 1. USUARIOS
 -- =====================================================================
 DROP TABLE IF EXISTS reportes;
+DROP TABLE IF EXISTS preferencias_notificacion;
+DROP TABLE IF EXISTS avisos_coincidencia;
 DROP TABLE IF EXISTS reclamos;
 DROP TABLE IF EXISTS notificaciones;
 DROP TABLE IF EXISTS contactos;
@@ -85,7 +87,8 @@ CREATE TABLE objetos (
     estado            VARCHAR(20)   NOT NULL DEFAULT 'ACTIVO',
     fecha_publicacion DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                  ON UPDATE CURRENT_TIMESTAMP,
+                                   ON UPDATE CURRENT_TIMESTAMP,
+    fecha_recuperacion DATETIME     NULL COMMENT 'Confirmación de recuperación en UTC; sin fecha histórica inventada',
     PRIMARY KEY (id),
     CONSTRAINT fk_objetos_usuario FOREIGN KEY (usuario_id)
         REFERENCES usuarios (id)
@@ -220,6 +223,7 @@ CREATE TABLE notificaciones (
     titulo        VARCHAR(150) NOT NULL,
     mensaje       TEXT         NOT NULL,
     tipo          VARCHAR(50)  NULL,
+    enlace        VARCHAR(500) NULL,
     leida         BOOLEAN      NOT NULL DEFAULT FALSE,
     fecha_creacion DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
@@ -229,6 +233,33 @@ CREATE TABLE notificaciones (
 ) ENGINE = InnoDB;
 
 CREATE INDEX idx_notificaciones_usuario ON notificaciones (usuario_id);
+
+-- H23: evento durable, procesado después de confirmar publicación/edición.
+CREATE TABLE eventos_coincidencia (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, objeto_id BIGINT NOT NULL,
+ estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE', intentos INT NOT NULL DEFAULT 0,
+ detalle VARCHAR(100) NULL, fecha_creacion DATETIME NOT NULL,
+ KEY idx_evento_estado_id(estado,id),
+ CONSTRAINT fk_evento_objeto FOREIGN KEY(objeto_id) REFERENCES objetos(id)
+) ENGINE=InnoDB;
+
+-- H24: preferencias propias, aplicadas a eventos futuros.
+CREATE TABLE preferencias_notificacion (
+ usuario_id BIGINT NOT NULL PRIMARY KEY,
+ coincidencias BOOLEAN NOT NULL DEFAULT TRUE, contactos BOOLEAN NOT NULL DEFAULT TRUE,
+ reclamos BOOLEAN NOT NULL DEFAULT TRUE, fecha_actualizacion DATETIME NOT NULL,
+ CONSTRAINT fk_preferencia_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+) ENGINE=InnoDB;
+
+-- H23: una pareja nueva avisa una sola vez, sin escrituras en los GET.
+CREATE TABLE avisos_coincidencia (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ objeto_perdido_id BIGINT NOT NULL, objeto_encontrado_id BIGINT NOT NULL, notificacion_id BIGINT NULL,
+ CONSTRAINT uq_aviso_pareja UNIQUE (objeto_perdido_id, objeto_encontrado_id),
+ CONSTRAINT fk_aviso_perdido FOREIGN KEY (objeto_perdido_id) REFERENCES objetos(id),
+ CONSTRAINT fk_aviso_encontrado FOREIGN KEY (objeto_encontrado_id) REFERENCES objetos(id),
+ CONSTRAINT fk_aviso_notificacion FOREIGN KEY (notificacion_id) REFERENCES notificaciones(id)
+) ENGINE=InnoDB;
 
 -- =====================================================================
 -- 9. REPORTES
@@ -242,13 +273,17 @@ CREATE TABLE reportes (
     estado            VARCHAR(20)  NOT NULL DEFAULT 'PENDIENTE',
     fecha_reporte     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_resolucion  DATETIME     NULL,
+    resolucion        VARCHAR(1000) NULL,
+    resuelto_por_id   BIGINT        NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_reportes_usuario FOREIGN KEY (usuario_id)
         REFERENCES usuarios (id)
-        ON DELETE RESTRICT,
+         ON DELETE RESTRICT,
     CONSTRAINT fk_reportes_objeto FOREIGN KEY (objeto_id)
         REFERENCES objetos (id)
         ON DELETE CASCADE,
+    CONSTRAINT fk_reportes_resuelto_por FOREIGN KEY (resuelto_por_id)
+        REFERENCES usuarios (id) ON DELETE RESTRICT,
     CONSTRAINT chk_reportes_estado
         CHECK (estado IN ('PENDIENTE', 'REVISADO', 'RESUELTO', 'RECHAZADO'))
 ) ENGINE = InnoDB;

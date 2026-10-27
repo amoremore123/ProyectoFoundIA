@@ -8,7 +8,7 @@ import com.proyectointegrador.entity.EstadoCoincidencia;
 import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.NivelCoincidencia;
 import com.proyectointegrador.entity.TipoObjeto;
-import com.proyectointegrador.exception.ResourceNotFoundException;
+import com.proyectointegrador.exception.EstadoCoincidenciaInvalidoException;
 import com.proyectointegrador.exception.SolicitudContactoInvalidaException;
 import com.proyectointegrador.repository.CoincidenciaRepository;
 import com.proyectointegrador.repository.ContactoRepository;
@@ -26,23 +26,22 @@ public class ContactoService {
     private final CoincidenciaRepository coincidenciaRepository;
     private final ContactoRepository contactoRepository;
     private final NotificacionService notificacionService;
-    private final CoincidenciaService motorCoincidencias;
+    private final CoincidenciaService motor;
 
     public ContactoService(ObjetoRepository objetoRepository, CoincidenciaRepository coincidenciaRepository,
-                          ContactoRepository contactoRepository, NotificacionService notificacionService,
-                          CoincidenciaService motorCoincidencias) {
+                           ContactoRepository contactoRepository, NotificacionService notificacionService,
+                           CoincidenciaService motor) {
         this.objetoRepository = objetoRepository;
         this.coincidenciaRepository = coincidenciaRepository;
         this.contactoRepository = contactoRepository;
         this.notificacionService = notificacionService;
-        this.motorCoincidencias = motorCoincidencias;
+        this.motor = motor;
     }
 
     @Transactional
     public ContactoResponse iniciar(ContactoRequest request, Long usuarioId) {
-        var perdido = objetoRepository.findByIdForUpdate(request.objetoPerdidoId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Objeto perdido no encontrado con id " + request.objetoPerdidoId()));
+        var pareja = BloqueoPareja.obtener(objetoRepository, request.objetoPerdidoId(), request.objetoEncontradoId());
+        var perdido = pareja.perdido();
         if (!perdido.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("Solo el autor del objeto perdido puede iniciar el contacto");
         }
@@ -50,9 +49,7 @@ public class ContactoService {
             throw new SolicitudContactoInvalidaException("El objeto de origen debe ser una publicación perdida activa");
         }
 
-        var encontrado = objetoRepository.findById(request.objetoEncontradoId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Objeto encontrado no encontrado con id " + request.objetoEncontradoId()));
+        var encontrado = pareja.encontrado();
         if (encontrado.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("No puedes iniciar contacto con tu propia publicación");
         }
@@ -62,14 +59,16 @@ public class ContactoService {
         if (!perdido.getCategoria().getId().equals(encontrado.getCategoria().getId())) {
             throw new SolicitudContactoInvalidaException("Los objetos deben pertenecer a la misma categoría");
         }
-
-        if (motorCoincidencias.puntuar(perdido, encontrado) < CoincidenciaService.UMBRAL_SIMILITUD) {
-            throw new SolicitudContactoInvalidaException("Los objetos no alcanzan la similitud mínima para iniciar contacto");
+        if (motor.puntuar(perdido, encontrado) < CoincidenciaService.UMBRAL_SIMILITUD) {
+            throw new SolicitudContactoInvalidaException("Los objetos no alcanzan la similitud mínima para contactar");
         }
 
         Coincidencia coincidencia = coincidenciaRepository
-                .findByObjetoPerdidoIdAndObjetoEncontradoId(perdido.getId(), encontrado.getId())
+                .buscarParejaParaActualizar(perdido.getId(), encontrado.getId())
                 .orElseGet(() -> crearCoincidencia(perdido, encontrado));
+        if (coincidencia.getEstado() == EstadoCoincidencia.DESCARTADA) {
+            throw new EstadoCoincidenciaInvalidoException("No se puede contactar por una coincidencia descartada");
+        }
         var anterior = contactoRepository.findFirstByCoincidenciaIdAndUsuarioEmisorIdOrderByIdAsc(
                 coincidencia.getId(), usuarioId);
         if (anterior.isPresent()) {
@@ -89,12 +88,12 @@ public class ContactoService {
 
     private Coincidencia crearCoincidencia(com.proyectointegrador.entity.Objeto perdido,
                                            com.proyectointegrador.entity.Objeto encontrado) {
-        int puntos = motorCoincidencias.puntuar(perdido, encontrado);
+        int puntos = motor.puntuar(perdido, encontrado);
         Coincidencia coincidencia = new Coincidencia();
         coincidencia.setObjetoPerdido(perdido);
         coincidencia.setObjetoEncontrado(encontrado);
         coincidencia.setPorcentaje(BigDecimal.valueOf(puntos));
-        coincidencia.setNivel(NivelCoincidencia.valueOf(motorCoincidencias.nivel(puntos)));
+        coincidencia.setNivel(NivelCoincidencia.valueOf(motor.nivel(puntos)));
         coincidencia.setEstado(EstadoCoincidencia.PENDIENTE);
         return coincidenciaRepository.saveAndFlush(coincidencia);
     }

@@ -1,0 +1,116 @@
+{
+  "fecha": "2026-10-26",
+  "rama": "dev/leonel",
+  "base_github": "191271096b3ac4f9e84c28a6cb8bf31a37188e1a",
+  "revision_codigo_validado": "ffbaa61b4e60723d1688fcea3c1b625c50b48f42",
+  "arboles_git_validados": {
+    "backend": "1f855f2840a7d0c2c6bd042ceebfafdfa164e15b",
+    "database": "5fb4ad7f81a17d544ee9f0ca229a784589e109fa",
+    "scripts": "e40f15b0f2e7a24aa28eac1b3b8b83441ba818ce"
+  },
+  "responsable": "Leonel",
+  "alcance": "API/datos y pruebas de sus ocho historias; no se adelantan historias ajenas",
+  "historias": ["H21", "H22", "H23", "H24", "H26", "H27", "H28", "H29"],
+  "historial_ordenado": [
+    {"orden": 1, "commit": "5f183d83953604900458ce19a1819e4b7b0c2514", "historia": "H21", "tema": "descarte con permisos, persistencia y puntuacion coherente"},
+    {"orden": 2, "commit": "7876490596e00f6ccaee2d342fe8958ba40cd1a0", "historia": "H22", "tema": "recuperacion atomica del perdido propio"},
+    {"orden": 3, "commit": "d8b66907ba950c2aca142b21b1f51e6bab6798f7", "historia": "H23", "tema": "avisos de parejas nuevas con eventos durables y reintentos"},
+    {"orden": 4, "commit": "eddc0c846bc9400a2c2dd60e1a0c695f1b4ead4f", "historia": "H24", "tema": "preferencias de coincidencias, contactos y reclamos"},
+    {"orden": 5, "commit": "1ff4e8fd925bce957d3aafd7c03ea11568881af1", "historia": "H26", "tema": "categorias validadas y desactivacion conservando asociaciones"},
+    {"orden": 6, "commit": "c9a01e23f2a038ab98f4eb5c4a9b577ea97d53ec", "historia": "H27", "tema": "denuncias con identidad real y control de duplicados"},
+    {"orden": 7, "commit": "8a0199f3fe0732f7c0d8a4176bf58999ebfd3c5d", "historia": "H28", "tema": "resolucion de reportes con auditoria y repeticion segura"},
+    {"orden": 8, "commit": "7d042f99519d309153f89aacb63e1959284ca668", "historia": "H29", "tema": "conteos administrativos con rango y estados coherentes"},
+    {"orden": 9, "commit": "ffbaa61b4e60723d1688fcea3c1b625c50b48f42", "historia": "Pruebas", "tema": "pruebas de las ocho historias y guarda de alcance"}
+  ],
+  "spring_h2": {
+    "comando": "mvn -B -ntp clean verify",
+    "tests": 391,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "build_success": true,
+    "jar_sha256": "343c62c258985fc594f11d94af3e8725f8cdec203977e65eba45df480fa6a8c3"
+  },
+  "django_sqlite": {"tests": 27, "failures": 0, "errors": 0, "skipped": 0, "ok": true},
+  "mysql_qa": {
+    "version": "8.4.6",
+    "aislamiento_predeterminado_servidor": "REPEATABLE-READ",
+    "servidor_nuevo_puerto_local_aislado": true,
+    "servidor_detenido_al_final": true,
+    "spring": {"tests": 82, "failures": 0, "errors": 0, "skipped": 0},
+    "django": {"tests": 27, "ok": true},
+    "migraciones": {
+      "archivos": 5,
+      "pasadas": 2,
+      "antecedentes_conservados": true,
+      "esquema_migrado_equivalente_al_nuevo": true
+    }
+  },
+  "base_datos_compartida": {
+    "fecha_aplicacion": "2026-10-26",
+    "servidor": "MySQL 8.0.46",
+    "base": "objetos_perdidos_db",
+    "volumen": "proyectofoundia_mysql_data",
+    "respaldo_fisico": {
+      "sha256": "3e62657c342709755630e06a6bf3dcee8c4fdfb984a7a0b94a0893c5aeceffd0",
+      "bytes": 6034380,
+      "verificado": true
+    },
+    "respaldo_logico": {
+      "sha256": "403d9e16e5563bc3c0ee0f0ed0bda7795285bb731348686028039c9ebb7c3190",
+      "bytes": 4809,
+      "verificado": true
+    },
+    "tablas_previas_conservadas": 18,
+    "tablas_requeridas_presentes_antes": true,
+    "columnas_requeridas_presentes_antes": true,
+    "tablas_nuevas": [],
+    "columnas_nuevas": {},
+    "cambios_de_esquema": 0,
+    "migraciones_idempotentes_sin_cambios": true,
+    "evidencia_esquema_fuera_de_git": {
+      "archivo": "esquema-antes-despues.json",
+      "sha256": "0bf2dd995f42a83c98b71fb1e50b898fc591e1e486ce10c54376cf238f6c2fe0",
+      "bytes": 825
+    },
+    "filas_previas_intactas": true,
+    "usuarios": 5,
+    "objetos": 7,
+    "migraciones_aplicadas": [
+      "migracion_h22_fecha_recuperacion.sql",
+      "migracion_h23_avisos_coincidencias.sql",
+      "migracion_h23_eventos_pendientes.sql",
+      "migracion_h24_preferencias.sql",
+      "migracion_h28_auditoria_reportes.sql"
+    ],
+    "script_seed_reimportados": false,
+    "down_v_usado": false,
+    "backend": {
+      "spring": "http://localhost:8081",
+      "django": "http://localhost:8000",
+      "mailpit": "http://localhost:8025",
+      "ddl_auto": "validate",
+      "solo_localhost": true
+    },
+    "pruebas_http": 22,
+    "todas_correctas": true,
+    "login_usuario_y_admin": true,
+    "escritura_h24_verificada": true,
+    "fila_h24_restaurada": true,
+    "columnas_previas_h24_conservadas": true,
+    "jar_sha256": "343c62c258985fc594f11d94af3e8725f8cdec203977e65eba45df480fa6a8c3",
+    "nota_fotos": "Tres referencias de ejemplo del seed no tienen archivos en los volumenes existentes; situacion previa, sin modificar URLs ni inventar fotos.",
+    "evidencia_local_fuera_de_git": "foundia-entrega-bd-orden-689yarrz"
+  },
+  "guarda_de_alcance": {
+    "entrega_actual_aceptada": true,
+    "escenarios_ajenos_rechazados_sin_modificar_archivos": 3
+  },
+  "sin_modificaciones": ["main", "otras ramas", "frontend", "Android", "PDF", "Word", "filas y valores previos de la BD compartida"],
+  "pendiente_de_integracion": [
+    "Amore: historias propias H33 y H34 y capa movil de H21-H24, H27, H35 y H39",
+    "Yajaira: historias propias H30, H31, H35 y H39 y apoyo web de H21-H24, H26-H29, H33 y H34",
+    "Revision de Leonel y cierre final del sprint integrado en main"
+  ],
+  "evidencia_local_fuera_de_git": "foundia-leonel-ocho-vwhmvs16"
+}

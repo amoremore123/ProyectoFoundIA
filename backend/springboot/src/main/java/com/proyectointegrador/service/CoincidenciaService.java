@@ -3,6 +3,7 @@ package com.proyectointegrador.service;
 import com.proyectointegrador.dto.CoincidenciaDetalleResponse;
 import com.proyectointegrador.dto.CoincidenciaSugeridaResponse;
 import com.proyectointegrador.entity.EstadoObjeto;
+import com.proyectointegrador.entity.EstadoCoincidencia;
 import com.proyectointegrador.entity.Objeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.exception.ResourceNotFoundException;
@@ -45,10 +46,14 @@ public class CoincidenciaService {
             return List.of();
         }
         TipoObjeto opuesto = base.getTipo() == TipoObjeto.PERDIDO ? TipoObjeto.ENCONTRADO : TipoObjeto.PERDIDO;
+        Set<Long> descartados = new HashSet<>(base.getTipo() == TipoObjeto.PERDIDO
+                ? coincidenciaRepository.encontrarDestinosPorEstado(id, EstadoCoincidencia.DESCARTADA)
+                : coincidenciaRepository.encontrarOrigenesPorEstado(id, EstadoCoincidencia.DESCARTADA));
         // Consulta acotada por tipo/categoría/estado, sin cargar todo el catálogo.
         return objetoRepository.findByTipoAndCategoriaIdAndEstado(opuesto, base.getCategoria().getId(), EstadoObjeto.ACTIVO)
                 .stream()
                 .filter(objeto -> !objeto.getUsuario().getId().equals(base.getUsuario().getId()))
+                .filter(objeto -> !descartados.contains(objeto.getId()))
                 .map(objeto -> sugerencia(base, objeto))
                 .filter(sugerencia -> sugerencia.porcentaje().intValue() >= UMBRAL_SIMILITUD)
                 .sorted(Comparator.comparing(CoincidenciaSugeridaResponse::porcentaje).reversed()
@@ -77,6 +82,10 @@ public class CoincidenciaService {
                 || perdido.getUsuario().getId().equals(encontrado.getUsuario().getId())) {
             throw noDisponible();
         }
+        if (coincidenciaRepository.existsByObjetoPerdidoIdAndObjetoEncontradoIdAndEstado(
+                perdido.getId(), encontrado.getId(), EstadoCoincidencia.DESCARTADA)) {
+            throw noDisponible();
+        }
         Map<String, Integer> puntos = criterios(perdido, encontrado);
         int total = puntos.values().stream().mapToInt(Integer::intValue).sum();
         if (total < UMBRAL_SIMILITUD) {
@@ -87,7 +96,7 @@ public class CoincidenciaService {
                 BigDecimal.valueOf(total), nivel(total), puntos);
     }
 
-    private long[] identificar(String id) {
+    long[] identificar(String id) {
         try {
             if (id.matches("[1-9][0-9]*-[1-9][0-9]*")) {
                 String[] partes = id.split("-");
@@ -97,8 +106,8 @@ public class CoincidenciaService {
                 throw noDisponible();
             }
             // Compatibilidad con coincidencias ya persistidas en el esquema compartido.
-            var coincidencia = coincidenciaRepository.findById(Long.parseLong(id)).orElseThrow(this::noDisponible);
-            return new long[]{coincidencia.getObjetoPerdido().getId(), coincidencia.getObjetoEncontrado().getId()};
+            var pareja = coincidenciaRepository.identificarPareja(Long.parseLong(id)).orElseThrow(this::noDisponible);
+            return new long[]{pareja.getPerdidoId(), pareja.getEncontradoId()};
         } catch (NumberFormatException ex) {
             throw noDisponible();
         }

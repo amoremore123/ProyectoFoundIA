@@ -21,6 +21,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,12 +77,16 @@ public class Objeto {
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
+    // UTC. Nula en publicaciones previas: no se inventa una fecha histórica.
+    @Column(name = "fecha_recuperacion")
+    private LocalDateTime fechaRecuperacion;
+
     @OneToMany(mappedBy = "objeto", fetch = FetchType.LAZY)
     private List<Foto> fotos = new ArrayList<>();
 
     @PrePersist
     void prePersist() {
-        LocalDateTime ahora = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime ahora = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         if (fechaPublicacion == null) {
             fechaPublicacion = ahora;
         }
@@ -90,6 +95,6 @@ public class Objeto {
 
     @PreUpdate
     void preUpdate() {
-        fechaActualizacion = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        fechaActualizacion = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
     }
 }

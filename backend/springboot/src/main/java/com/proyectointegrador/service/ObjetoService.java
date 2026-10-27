@@ -10,12 +10,15 @@ import com.proyectointegrador.entity.EstadoObjeto;
 import com.proyectointegrador.entity.Objeto;
 import com.proyectointegrador.entity.TipoObjeto;
 import com.proyectointegrador.entity.Usuario;
+import com.proyectointegrador.entity.EventoCoincidencia;
 import com.proyectointegrador.exception.ResourceNotFoundException;
 import com.proyectointegrador.repository.CategoriaRepository;
 import com.proyectointegrador.repository.ObjetoRepository;
 import com.proyectointegrador.repository.UsuarioRepository;
+import com.proyectointegrador.repository.EventoCoincidenciaRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.ZoneOffset;
 
 @Service
 public class ObjetoService {
@@ -33,13 +37,17 @@ public class ObjetoService {
     private final ObjetoRepository objetoRepository;
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ApplicationEventPublisher eventos;
+    private final EventoCoincidenciaRepository eventosPendientes;
 
     public ObjetoService(ObjetoRepository objetoRepository,
                          CategoriaRepository categoriaRepository,
-                         UsuarioRepository usuarioRepository) {
+                         UsuarioRepository usuarioRepository, ApplicationEventPublisher eventos, EventoCoincidenciaRepository eventosPendientes) {
         this.objetoRepository = objetoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.eventos = eventos;
+        this.eventosPendientes = eventosPendientes;
     }
 
     @Transactional(readOnly = true)
@@ -79,6 +87,8 @@ public class ObjetoService {
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id " + request.categoriaId()));
 
+        exigirCategoriaActiva(categoria);
+
         Objeto objeto = new Objeto();
         objeto.setUsuario(usuario);
         objeto.setCategoria(categoria);
@@ -92,12 +102,13 @@ public class ObjetoService {
         objeto.setEstado(EstadoObjeto.ACTIVO);
 
         objetoRepository.save(objeto);
+        registrarEvento(objeto);
         return toResponse(objeto);
     }
 
     @Transactional
     public ObjetoResponse actualizar(Long id, ObjetoRequest request, Long usuarioId) {
-        Objeto objeto = buscarEntidad(id);
+        Objeto objeto = buscarParaActualizar(id);
         verificarAutor(objeto, usuarioId);
         if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
             throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
@@ -106,6 +117,9 @@ public class ObjetoService {
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id " + request.categoriaId()));
 
+        if (!categoria.getId().equals(objeto.getCategoria().getId())) {
+            exigirCategoriaActiva(categoria);
+        }
         objeto.setCategoria(categoria);
         objeto.setNombre(request.nombre());
         objeto.setDescripcion(request.descripcion());
@@ -116,12 +130,13 @@ public class ObjetoService {
         objeto.setLongitud(request.longitud());
 
         objetoRepository.save(objeto);
+        registrarEvento(objeto);
         return toResponse(objeto);
     }
 
     @Transactional
     public void eliminar(Long id, Long usuarioId) {
-        Objeto objeto = buscarEntidad(id);
+        Objeto objeto = buscarParaActualizar(id);
         verificarAutor(objeto, usuarioId);
         if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
             throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
@@ -166,13 +181,21 @@ public class ObjetoService {
                 UsuarioResumen.publico(objeto.getUsuario()),
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
-                        .toList());
+                        .toList(),
+                objeto.getFechaRecuperacion() == null ? null : objeto.getFechaRecuperacion().toInstant(ZoneOffset.UTC));
     }
 
     private void validarCategoria(Long categoriaId) {
         // Una categoría desactivada sigue sirviendo para consultar publicaciones anteriores.
         if (categoriaId != null && !categoriaRepository.existsById(categoriaId)) {
             throw new ResourceNotFoundException("Categoría no encontrada con id " + categoriaId);
+        }
+    }
+
+    private void exigirCategoriaActiva(Categoria categoria) {
+        if (!Boolean.TRUE.equals(categoria.getEstado())) {
+            throw new com.proyectointegrador.exception.SolicitudInvalidaException(
+                    "No se puede asignar una categoría desactivada");
         }
     }
 
@@ -193,5 +216,16 @@ public class ObjetoService {
         if (!objeto.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("Solo el autor puede administrar esta publicación");
         }
+    }
+
+    private void registrarEvento(Objeto objeto) {
+        var pendiente=new EventoCoincidencia();pendiente.setObjeto(objeto);
+        eventosPendientes.saveAndFlush(pendiente);
+        eventos.publishEvent(new ObjetoGuardado(objeto.getId()));
+    }
+
+    private Objeto buscarParaActualizar(Long id) {
+        return objetoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Objeto no encontrado con id " + id));
     }
 }

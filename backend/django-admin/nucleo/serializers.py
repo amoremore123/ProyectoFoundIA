@@ -17,6 +17,22 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class CategoriaSerializer(serializers.ModelSerializer):
+    def validate_nombre(self, value):
+        nombre = value.strip()
+        if not nombre:
+            raise serializers.ValidationError("El nombre no puede quedar vacío.")
+        duplicadas = Categoria.objects.filter(nombre__iexact=nombre)
+        if self.instance:
+            duplicadas = duplicadas.exclude(pk=self.instance.pk)
+        if duplicadas.exists():
+            raise serializers.ValidationError("Ya existe una categoría con ese nombre.")
+        return nombre
+
+    def validate(self, attrs):
+        if set(self.initial_data) - {"nombre", "descripcion", "estado"}:
+            raise serializers.ValidationError("Solo se admiten nombre, descripción y estado.")
+        return attrs
+
     class Meta:
         model = Categoria
         fields = ["id", "nombre", "descripcion", "estado", "fecha_creacion"]
@@ -75,8 +91,10 @@ class ReporteSerializer(serializers.ModelSerializer):
             "estado",
             "fecha_reporte",
             "fecha_resolucion",
+            "resolucion",
+            "resuelto_por",
         ]
-        read_only_fields = ["id", "fecha_reporte"]
+        read_only_fields = fields
 
 
 class NotificacionSerializer(serializers.ModelSerializer):

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 @Entity
@@ -40,6 +41,9 @@ public class Notificacion {
     @Column(name = "tipo", length = 50)
     private String tipo;
 
+    @Column(name = "enlace", length = 500)
+    private String enlace;
+
     @Column(name = "leida", nullable = false)
     private Boolean leida = Boolean.FALSE;
 
@@ -49,7 +53,7 @@ public class Notificacion {
     @PrePersist
     void prePersist() {
         if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaCreacion = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }

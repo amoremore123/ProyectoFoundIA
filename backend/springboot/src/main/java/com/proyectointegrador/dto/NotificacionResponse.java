@@ -10,7 +10,8 @@ public record NotificacionResponse(
         String mensaje,
         String tipo,
         Boolean leida,
-        LocalDateTime fechaCreacion
+        LocalDateTime fechaCreacion,
+        String enlace
 ) {
 
     public static NotificacionResponse from(Notificacion notificacion) {
@@ -20,7 +21,8 @@ public record NotificacionResponse(
                 notificacion.getMensaje(),
                 notificacion.getTipo(),
                 notificacion.getLeida(),
-                notificacion.getFechaCreacion()
+                notificacion.getFechaCreacion(),
+                notificacion.getEnlace()
         );
     }
 }

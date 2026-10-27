@@ -5,6 +5,10 @@
 > están deshabilitados por defecto. Se reactivan con `HABILITAR_EXTRAS=true`.
 > El catálogo público de Spring `/api/categorias` sigue habilitado.
 > Estado integrado y pruebas: [integración del 20 de octubre](../pruebas/integracion-sprint1-amore-2026-10-20.md).
+>
+> API/datos del Sprint 2 integrados desde `dev/leonel` en `dev/amore`: H21/H22 añaden API/datos de descarte y
+> recuperación. No equivalen a historias completas ni a entrega integrada en `main`.
+
 
 Contrato único de la plataforma. **Spring Boot** (`http://localhost:8081`) expone
 la API pública (usuario + móvil) y **Django** (`http://localhost:8000`) expone la
@@ -177,7 +181,8 @@ Casos de prueba: [H6 — Buscar objetos](../pruebas/casos-prueba-h6.md) y
   "fechaPublicacion": "2026-10-02T12:30:00",
   "categoria": { "id": 3, "nombre": "Mochila" },
   "publicadoPor": { "id": 1, "nombre": "Ana", "apellido": "P." },
-  "fotos": [ { "id": 1, "url": "/uploads/objetos/mochila-negra.jpg" } ]
+  "fotos": [ { "id": 1, "url": "/uploads/objetos/mochila-negra.jpg" } ],
+  "fechaRecuperacion": null
 }
 ```
 
@@ -261,6 +266,10 @@ puede usar esta ruta (la moderación se define aparte en H15). **Response** `200
 · `400` validación · `401` sin sesión · `403` no es el autor · `404` no existe o
 ya fue eliminado.
 
+Las ediciones y eliminaciones se bloquean frente a la confirmación H22 para no
+sobrescribir una recuperación concurrente. `fechaRecuperacion` no se acepta del
+cuerpo: se conserva la fecha registrada por el servidor, incluso al editar.
+
 ### DELETE `/api/objetos/{id}`  _(H5, JWT — autor)_
 
 Borrado lógico: pasa a `estado = ELIMINADO`; no elimina físicamente el objeto ni
@@ -292,6 +301,9 @@ idempotente): `{ "id": 8, "coincidenciaId": 4, "estado": "PENDIENTE",
 solicitante no es autor del objeto perdido o intenta contactarse a sí mismo ·
 `404` objeto inexistente/no activo. Las repeticiones del mismo autor y pareja
 devuelven el mismo contacto y no vuelven a notificar.
+
+Desde H21, una pareja `DESCARTADA` devuelve `409` al intentar iniciar contacto,
+incluso si ya existía un contacto anterior. No se crea otro contacto ni aviso.
 
 ### GET `/api/objetos/buscar`  _(público)_
 
@@ -351,6 +363,98 @@ coincide también la ubicación, `MEDIA` si no. No se persisten.
   }
 ]
 ```
+
+---
+
+### POST `/api/coincidencias/{id}/descartar`  _(H21, JWT del titular del perdido)_
+
+Descarta una pareja sin cambiar los objetos ni las demás coincidencias. `id`
+admite la clave **`perdidoId-encontradoId`** devuelta por H16/H17 o el ID numérico
+de una coincidencia ya persistida; un número no se interpreta como ID de objeto.
+
+**Request**: sin body. El actor se obtiene de la sesión; enviar `usuarioId` no
+permite actuar por otra cuenta. Ni el autor del hallazgo ni un ADMIN ajeno pueden
+descartar el perdido de otra persona.
+
+Ambos objetos deben seguir activos, ser de tipos opuestos, de la misma categoría,
+de autores distintos y alcanzar el umbral H16. Se crea la fila solo si no existe;
+`PENDIENTE`/`REVISADA` pasan a `DESCARTADA`. Repetir no duplica ni modifica la
+fecha de creación o la puntuación histórica. `ACEPTADA` no se puede descartar.
+
+**Response** `200 OK`:
+
+```json
+{ "id": "15-27", "estado": "DESCARTADA", "repetido": false }
+```
+
+Una repetición válida devuelve `repetido: true`. No incluye datos personales.
+La pareja deja de aparecer al recalcular desde cualquiera de los dos objetos y
+su detalle público devuelve `404`, tanto por clave como por ID persistido. Los
+GET siguen sin escribir datos. Un contacto previo se conserva como antecedente.
+
+**Errores**: `401` sin sesión · `403` actor ajeno · `404` clave/pareja inválida,
+objeto inexistente, oculto o eliminado · `409` pareja aceptada u objetos ya no activos.
+
+Los descartes y contactos concurrentes bloquean los objetos por ID ascendente y
+leen la coincidencia para actualización; no duplican filas ni reviven descartes.
+Pruebas y alcance: [H21 — API/datos](../pruebas/casos-prueba-h21.md).
+
+### POST `/api/coincidencias/{id}/confirmar`  _(H22, JWT del titular del perdido)_
+
+Registra la confirmación informada de que el titular recuperó **su objeto perdido**.
+No es un contacto ni un reclamo, ni certifica propiedad sobre una publicación ajena.
+`id` usa las mismas reglas de clave e ID persistido que H21.
+
+**Request** obligatorio:
+
+```json
+{ "confirmarRecuperacion": true }
+```
+
+Omitir el cuerpo/campo, enviar `null` o `false` devuelve `400`, sin cambios. El
+cliente debe explicar la acción y permitir cancelar antes de enviar la petición.
+El usuario y los objetos se resuelven en el servidor, no desde campos del cuerpo.
+
+**Response** `200 OK`:
+
+```json
+{
+  "id": "15-27",
+  "estado": "ACEPTADA",
+  "objetoPerdidoId": 15,
+  "estadoObjetoPerdido": "RECUPERADO",
+  "fechaRecuperacion": "2026-10-25T22:00:00Z",
+  "repetido": false
+}
+```
+
+- Pareja nueva válida, `PENDIENTE` o `REVISADA`: guarda `ACEPTADA`, cambia solo el
+  perdido propio a `RECUPERADO` y registra fecha UTC, **en una transacción**.
+- El hallazgo ajeno conserva estado, fechas y contenido. No genera contacto,
+  reclamo ni aviso adicional. Las puntuaciones y fechas de creación existentes
+  no se recalculan ni sobrescriben.
+- Repetir la misma aceptación coherente devuelve la misma fecha y
+  `repetido: true`, incluso si el texto/puntuación de la sugerencia cambió después.
+  No se admite confirmar otra pareja para ese perdido. Una aceptación histórica
+  sin fecha o con estados incoherentes devuelve `409`; no inventa fechas.
+- Dos confirmaciones concurrentes de la misma pareja no duplican; dos parejas
+  competidoras producen una aceptación y un `409`. Se conservan los descartes.
+- El perdido recuperado sale de las sugerencias en ambos sentidos; el detalle
+  público de la pareja devuelve `404`. La fecha sigue disponible en
+  `ObjetoResponse` (detalle/listados/perfil) como ISO UTC, o `null` en antecedentes
+  sin fecha. Solo se muestra éxito tras recibir una respuesta correcta del servidor.
+
+**Errores**: `400` confirmación ausente/inválida · `401` sin sesión · `403` no es
+el titular del perdido · `404` clave/pareja inválida, retirada o sin similitud
+suficiente · `409` descarte, recuperación previa u otro estado incompatible ·
+`500` fallo inesperado de persistencia, sin cambios parciales ni detalles SQL.
+
+`database/migracion_h22_fecha_recuperacion.sql` se verificó y reejecutó en la
+base compartida el 2026-10-26 con respaldo previo; la base ya contenía la columna
+y los datos quedaron intactos. Para otra base, revisar y aplicar **solo con
+autorización sobre la base destino y respaldo**. No ejecutar `script.sql` sobre
+bases existentes.
+Pruebas y alcance: [H22 — API/datos](../pruebas/casos-prueba-h22.md).
 
 ---
 
@@ -521,5 +625,5 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 | 401    | Sin token o token inválido      |
 | 403    | No tiene permiso (dueño / rol)  |
 | 404    | Recurso no encontrado           |
-| 409    | Correo duplicado (register)     |
+| 409    | Correo duplicado o estado incompatible de coincidencia |
 | 500    | Error interno                   |

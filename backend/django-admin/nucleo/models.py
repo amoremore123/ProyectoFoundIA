@@ -266,6 +266,11 @@ class Reporte(models.Model):
     )
     fecha_reporte = models.DateTimeField(default=timezone.now, blank=True)
     fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    resolucion = models.CharField(max_length=1000, null=True, blank=True)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id",
+        related_name="reportes_resueltos", null=True, blank=True,
+    )
 
     class Meta:
         managed = False
