@@ -8,6 +8,8 @@ import { actualizarPerfil, getPerfil } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(), getPerfil: vi.fn(), actualizarPerfil: vi.fn(),
+  // H34: el perfil también consulta la solicitud de eliminación
+  getSolicitudEliminacion: vi.fn(async () => ({ id: null, estado: 'SIN_SOLICITUD', fechaSolicitud: null, repetido: false, informacion: '' })),
 }));
 
 const PERFIL = { id: 1, nombre: 'Ana', apellido: 'Pérez', correo: 'ana@prueba.test', rol: 'USUARIO' };

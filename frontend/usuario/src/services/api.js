@@ -173,6 +173,17 @@ export const getPerfil = async () => {
   return data;
 };
 
+// H34: solicitud de eliminación de la cuenta (no ejecuta un borrado)
+export const getSolicitudEliminacion = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/perfil/solicitud-eliminacion', { signal });
+  return data;
+};
+
+export const solicitarEliminacion = async () => {
+  const { data } = await api.post('/api/perfil/solicitud-eliminacion', { confirmar: true });
+  return data;
+};
+
 export const actualizarPerfil = async (payload) => {
   const { data } = await api.put('/api/perfil', payload);
   return data;

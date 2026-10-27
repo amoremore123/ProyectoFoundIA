@@ -3,6 +3,7 @@
    H33: términos y privacidad en el registro web.
    H35: recuperar y restablecer la contraseña.
    H39: compartir publicaciones.
+   H34: solicitud de eliminación de la cuenta (Perfil).
    Usa los tokens de index.css para respetar el modo claro y oscuro.
    ===================================================================== */
 
@@ -50,3 +51,21 @@
 .compartir-objeto { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .compartir-objeto .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .compartir-objeto .nota-suave { margin: 0; }
+
+/* H34 - Solicitud de eliminación de la cuenta */
+.eliminacion { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.eliminacion-titulo { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; color: var(--text); }
+.eliminacion-texto { margin: 0; color: var(--text-muted); }
+.eliminacion-estado { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.eliminacion-estado .nota-suave, .eliminacion .nota-suave { margin: 0; }
+.eliminacion-chip {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b54708;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+html[data-tema='oscuro'] .eliminacion-chip { color: #fdb022; background: rgba(253, 176, 34, 0.12); border-color: rgba(253, 176, 34, 0.35); }
