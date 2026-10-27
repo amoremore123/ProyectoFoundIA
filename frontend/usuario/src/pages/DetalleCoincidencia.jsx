@@ -5,6 +5,7 @@ import { getDetalleCoincidencia, iniciarContacto, mensajeError, statusDe } from 
 import ImagenObjeto from '../components/ImagenObjeto';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
+import DecisionCoincidencia from '../components/DecisionCoincidencia';
 
 function ObjetoComparado({ objeto, titulo }) {
   const [indice, setIndice] = useState(0);
@@ -38,6 +39,7 @@ export default function DetalleCoincidencia() {
   const [errorContacto, setErrorContacto] = useState('');
   const [resultado, setResultado] = useState('');
   const accionActual = useRef(0);
+  const [resuelta, setResuelta] = useState('');
 
   useEffect(() => {
     const controlador = new AbortController();
@@ -54,7 +56,7 @@ export default function DetalleCoincidencia() {
 
   useEffect(() => {
     accionActual.current += 1;
-    setResultado(''); setErrorContacto(''); setEnviando(false);
+    setResultado(''); setErrorContacto(''); setEnviando(false); setResuelta('');
     return () => { accionActual.current += 1; };
   }, [id, token, user?.id]);
 
@@ -87,7 +89,9 @@ export default function DetalleCoincidencia() {
       <ObjetoComparado key={`perdido-${datos.perdido.id}`} objeto={datos.perdido} titulo="Objeto perdido" />
       <ObjetoComparado key={`encontrado-${datos.encontrado.id}`} objeto={datos.encontrado} titulo="Objeto encontrado" />
     </div>
-    {puedeContactar && <section aria-label="Solicitar contacto">
+    {/* H21/H22: decidir sobre la coincidencia (solo el titular del perdido) */}
+    {puedeContactar && <DecisionCoincidencia key={datos.id || id} coincidenciaId={datos.id || id} perdidoId={datos.perdido.id} onResuelta={setResuelta} />}
+    {puedeContactar && !resuelta && <section aria-label="Solicitar contacto">
       <p>Solicita contactar a quien lo encontró. Recibirá una notificación; tu correo permanece privado. Contactar no envía un reclamo.</p>
       {resultado ? <p role="status" className="aviso-accion aviso-ok">{resultado}</p> : <>
         <MensajeError mensaje={errorContacto} />

@@ -3,6 +3,9 @@
    H33: términos y privacidad en el registro web.
    H35: recuperar y restablecer la contraseña.
    H39: compartir publicaciones.
+   H34: solicitud de eliminación de la cuenta (Perfil).
+   H21-H24: decidir sobre una coincidencia, avisos de coincidencias y preferencias.
+   H27: reportar una publicación.
    Usa los tokens de index.css para respetar el modo claro y oscuro.
    ===================================================================== */
 
@@ -50,3 +53,71 @@
 .compartir-objeto { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .compartir-objeto .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .compartir-objeto .nota-suave { margin: 0; }
+
+/* H34 - Solicitud de eliminación de la cuenta */
+.eliminacion { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.eliminacion-titulo { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; color: var(--text); }
+.eliminacion-texto { margin: 0; color: var(--text-muted); }
+.eliminacion-estado { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.eliminacion-estado .nota-suave, .eliminacion .nota-suave { margin: 0; }
+.eliminacion-chip {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b54708;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+html[data-tema='oscuro'] .eliminacion-chip { color: #fdb022; background: rgba(253, 176, 34, 0.12); border-color: rgba(253, 176, 34, 0.35); }
+
+/* H21/H22 - Decidir sobre una coincidencia */
+.decision-coincidencia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radio);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.decision-titulo { margin: 0; font-size: 16px; color: var(--text); }
+.decision-coincidencia .nota-suave { margin: 0; }
+.decision-botones { display: flex; flex-wrap: wrap; gap: 8px; }
+.decision-coincidencia > .btn { align-self: flex-start; }
+
+/* H23 - Aviso de posible coincidencia */
+.notificacion-tipo.tipo-coincidencia { background: var(--primary-50, #eef3fb); color: var(--primary); }
+
+/* H24 - Preferencias de avisos */
+.preferencias { padding: 14px 16px; }
+.preferencias-resumen { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: var(--text); }
+.preferencias-form { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.preferencias-form .nota-suave { margin: 0; }
+.preferencia { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.preferencia input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--primary); flex: none; }
+.preferencia-etiqueta { display: block; font-weight: 600; color: var(--text); }
+.preferencia-ayuda { display: block; font-size: 13px; color: var(--text-soft); }
+.preferencias-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* H27 - Reportar una publicación */
+.reportar-abrir { align-self: flex-start; font-size: 13px; color: var(--text-muted); }
+.reportar-sin-sesion { margin: 0; }
+.reportar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radio);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.reportar-titulo { margin: 0; font-size: 15px; color: var(--text); }
+.reportar .nota-suave { margin: 0; }
+.reportar-motivos { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; }
+.reportar-motivos legend { margin-bottom: 4px; }
+.reportar-motivo { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+.reportar-motivo input { accent-color: var(--primary); }
+.reportar textarea { min-height: 80px; resize: vertical; font: inherit; }
+.reportar-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
+import SolicitudEliminacion from '../components/SolicitudEliminacion';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { actualizarPerfil, getPerfil, mensajeError, statusDe } from '../services/api';
@@ -192,6 +193,9 @@ export default function Perfil() {
           <Icono nombre="salir" tamano={16} /> Cerrar sesión
         </button>
       </div>
+
+      {/* H34: solicitud de eliminación de la cuenta */}
+      <SolicitudEliminacion />
     </div>
   );
 }

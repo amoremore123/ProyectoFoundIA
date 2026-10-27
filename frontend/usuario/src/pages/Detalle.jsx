@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
 import CompartirPublicacion from '../components/CompartirPublicacion';
+import ReportarPublicacion from '../components/ReportarPublicacion';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
@@ -219,6 +220,14 @@ export default function Detalle() {
 
           {/* H39: compartir la URL pública */}
           <CompartirPublicacion objeto={objeto} />
+
+          {/* H27: reportar contenido inapropiado */}
+          <ReportarPublicacion
+            key={objeto.id}
+            objetoId={objeto.id}
+            conSesion={Boolean(token && user)}
+            esPropia={Boolean(user && String(user.id) === String(objeto.publicadoPor?.id))}
+          />
         </div>
       </div>
 
