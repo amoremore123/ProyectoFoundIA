@@ -1,11 +1,12 @@
 package com.proyectointegrador.movil.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /** Únicamente DTO públicos ya consultados; nunca perfiles, JWT, claves o bandejas. */
 @Entity(tableName = "publicaciones_cache")
-data class PublicacionCache(@PrimaryKey val id: Long, val contenido: String, val actualizadoEn: Long)
+data class PublicacionCache(@PrimaryKey val id: Long, val contenido: String, val actualizadoEn: Long, @ColumnInfo(defaultValue = "0") val venceEn: Long = 0)
 
 /** Conserva pertenencia y orden de cada consulta exacta; no inventa resultados offline. */
 @Entity(tableName = "consultas_cache")

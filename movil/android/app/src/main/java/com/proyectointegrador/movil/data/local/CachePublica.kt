@@ -31,22 +31,22 @@ class RoomCachePublica(private val db: FoundIADatabase, private val reloj: () ->
         val fila=dao.consulta(clave)?.takeIf {vigente(it.actualizadoEn)} ?: return null
         val ids:List<Long> = gson.fromJson(fila.idsJson,object:TypeToken<List<Long>>(){}.type)
         val filas=dao.publicaciones(ids).associateBy {it.id}
-        if(ids.any {filas[it]==null || !vigente(filas.getValue(it).actualizadoEn)}) return null
+        if(ids.any {filas[it]==null || !vigente(filas.getValue(it).actualizadoEn) || filas.getValue(it).venceEn<reloj()}) return null
         return Lectura(ids.map {gson.fromJson(filas.getValue(it).contenido,Objeto::class.java)},true,fila.actualizadoEn)
     }
     override suspend fun guardarLista(clave: String, datos: List<Objeto>) = db.withTransaction {
         // No presentar una lista truncada como si fuera la respuesta completa de una búsqueda.
         if(datos.size>200) {dao.borrarConsultas();return@withTransaction}
         val ahora=reloj()
-        dao.guardarPublicaciones(datos.distinctBy {it.id}.map {PublicacionCache(it.id,gson.toJson(it),ahora)})
+        dao.guardarPublicaciones(datos.distinctBy {it.id}.map {PublicacionCache(it.id,gson.toJson(it),ahora,ahora+duracion)})
         dao.guardarConsulta(ConsultaCache(clave,gson.toJson(datos.map {it.id}.distinct()),ahora))
         dao.limitarPublicaciones();dao.limitarConsultas()
     }
-    override suspend fun detalle(id: Long): Lectura<Objeto>? = dao.publicacion(id)?.takeIf {vigente(it.actualizadoEn)}?.let {
+    override suspend fun detalle(id: Long): Lectura<Objeto>? = dao.publicacion(id)?.takeIf {vigente(it.actualizadoEn) && it.venceEn>=reloj()}?.let {
         Lectura(gson.fromJson(it.contenido,Objeto::class.java),true,it.actualizadoEn)
     }
     override suspend fun guardarDetalle(dato: Objeto) = db.withTransaction {
-        dao.guardarPublicaciones(listOf(PublicacionCache(dato.id,gson.toJson(dato),reloj())))
+        dao.guardarPublicaciones(listOf(PublicacionCache(dato.id,gson.toJson(dato),reloj(),reloj()+duracion)))
         dao.limitarPublicaciones()
     }
     override suspend fun categorias(): Lectura<List<Categoria>>? {

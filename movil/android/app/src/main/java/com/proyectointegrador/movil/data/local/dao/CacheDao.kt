@@ -13,7 +13,7 @@ interface CacheDao {
     @Upsert suspend fun guardarConsulta(fila: ConsultaCache)
     @Query("DELETE FROM publicaciones_cache WHERE id = :id") suspend fun eliminarPublicacion(id: Long)
     @Query("DELETE FROM publicaciones_cache") suspend fun borrarPublicaciones()
-    @Query("DELETE FROM consultas_cache") suspend fun borrarConsultas()
+    @Query("DELETE FROM consultas_cache WHERE clave != 'categorias'") suspend fun borrarConsultas()
     @Query("DELETE FROM publicaciones_cache WHERE id NOT IN (SELECT id FROM publicaciones_cache ORDER BY actualizadoEn DESC, id DESC LIMIT 200)") suspend fun limitarPublicaciones()
     @Query("DELETE FROM consultas_cache WHERE clave NOT IN (SELECT clave FROM consultas_cache ORDER BY actualizadoEn DESC, clave LIMIT 20)") suspend fun limitarConsultas()
     @Query("SELECT * FROM categorias_cache ORDER BY orden, id") fun observarCategorias(): Flow<List<CategoriaCache>>
