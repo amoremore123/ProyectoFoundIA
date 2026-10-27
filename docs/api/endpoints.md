@@ -627,3 +627,8 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 | 404    | Recurso no encontrado           |
 | 409    | Correo duplicado o estado incompatible de coincidencia |
 | 500    | Error interno                   |
+
+## H33 y H34: términos, privacidad y solicitud de eliminación
+
+Contrato, migraciones e integración web/móvil: [cuenta de Amore en Sprint 2](cuenta-amore-sprint2.md).
+El registro ahora requiere aceptación expresa y versión vigente de los documentos.
