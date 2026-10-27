@@ -194,9 +194,32 @@ export const getMisObjetos = async () => {
   return data;
 };
 
+// H21: descartar una coincidencia propia (no cambia los objetos)
+export const descartarCoincidencia = async (id) => {
+  const { data } = await api.post(`/api/coincidencias/${encodeURIComponent(id)}/descartar`);
+  return data;
+};
+
+// H22: confirmar que recuperaste tu objeto perdido con esta coincidencia
+export const confirmarRecuperacion = async (id) => {
+  const { data } = await api.post(`/api/coincidencias/${encodeURIComponent(id)}/confirmar`, { confirmarRecuperacion: true });
+  return data;
+};
+
 // Notificaciones
 export const getNotificaciones = async () => {
   const { data } = await api.get('/api/notificaciones');
+  return data;
+};
+
+// H24: preferencias de avisos de la cuenta del token
+export const getPreferenciasNotificaciones = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/notificaciones/preferencias', { signal });
+  return data;
+};
+
+export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos }) => {
+  const { data } = await api.put('/api/notificaciones/preferencias', { coincidencias, contactos, reclamos });
   return data;
 };
 
