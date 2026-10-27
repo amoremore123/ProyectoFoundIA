@@ -1,11 +1,11 @@
 # Leonel — API/datos de sus ocho historias
 
-Alcance exclusivo: **H21, H22, H23, H24, H26, H27, H28 y H29**.
-Se implementan API/datos y pruebas que el PDF asigna a Leonel. No se adelantan
-historias de otras personas. Amore continúa con sus historias **H33/H34** y la
-capa móvil de **H21-H24, H27, H35 y H39**; Yajaira con sus historias **H30, H31,
-H35 y H39** y el apoyo web. No se modifica main: Leonel revisará el sprint
-integrado al final.
+Alcance de los cambios propios: **H21, H22, H23, H24, H26, H27, H28 y H29**.
+`dev/leonel` parte ahora de `dev/amore` en `1321289`, con main y la entrega de
+Amore ya incluidos. Se conservan sus historias **H33/H34** y su capa móvil;
+no se reimplementan ni se modifican aquí. Yajaira continúa con **H30, H31, H35
+y H39** y el apoyo web. No se modifica main: Leonel revisará el sprint integrado
+al final. Ver [corrección de integración](../integracion/correccion-integracion-leonel-sprint2.md).
 
 ## Contratos
 
@@ -34,6 +34,11 @@ Django `:8000`, solo ADMIN activo:
 - H26: [gestión y desactivación lógica de categorías](categorias-sprint2.md).
 - H28: [consulta y resolución auditada de reportes](resolucion-reportes-sprint2.md).
 - H29: [conteos del tablero con rango de fechas](metricas-sprint2.md).
+
+Estas tres API están habilitadas también con `HABILITAR_EXTRAS=false` y mantienen
+los permisos ADMIN. La bandera solo controla `/admin/` de Django, no las API del
+Sprint 2. El tablero devuelve siempre sus cuatro totales históricos además de
+los conteos filtrados de `objetos`; no se habilitan pantallas web de otros sprints.
 
 La identidad se obtiene del JWT, no de IDs enviados en el cuerpo. Los clientes
 deben permitir cancelar antes de enviar y confirmar éxito solo tras la respuesta

@@ -1,0 +1,65 @@
+{
+  "fecha": "2026-10-27",
+  "rama": "dev/leonel",
+  "responsable": "Leonel",
+  "base_integrada": "132128927b41da7107ce3bc3811b48967803a378",
+  "entrega_original_preservada": "9d210a33cded48d712019830333d34d964405c7c",
+  "historias_corregidas": ["H26", "H28", "H29"],
+  "antes": {
+    "django_tests": 31,
+    "failures": 9,
+    "configuracion": "HABILITAR_EXTRAS=false por defecto"
+  },
+  "despues": {
+    "django_sqlite_predeterminado": {
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "django_sqlite_extras_true": {
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "ok": true,
+      "nota": "Los mismos casos con otra configuracion, no casos adicionales."
+    },
+    "http_interno": {
+      "peticiones": 8,
+      "sin_sesion_devuelve_401_no_404": true,
+      "panel_nativo_sigue_opcional": true,
+      "base_real_utilizada": false
+    },
+    "guarda_de_alcance": {
+      "base": "132128927b41da7107ce3bc3811b48967803a378",
+      "cambios_propios_aceptados": true,
+      "cambios_ajenos_simulados_rechazados": 5,
+      "archivos_escritos_por_las_simulaciones": false
+    }
+  },
+  "comportamiento": {
+    "categorias_y_reportes_sin_flag": true,
+    "requieren_admin_activo": true,
+    "tablero_conserva_cuatro_totales_y_objetos_filtrados": true,
+    "panel_nativo_habilitado_por_defecto": false,
+    "bandera_general_frontend_modificada": false
+  },
+  "contenido_heredado_sin_modificaciones": [
+    "backend/springboot", "database", "frontend", "movil", "docker-compose.yml"
+  ],
+  "regresion_previa_sobre_contenido_heredado_identico_no_reejecutada": {
+    "revision": "132128927b41da7107ce3bc3811b48967803a378",
+    "spring_h2": 403,
+    "android_unitarias": 8,
+    "web_unitarias": 157,
+    "evidencia_local": "foundia-auditoria-contenido-20261027-42maii4d"
+  },
+  "sin_modificaciones": [
+    "main", "dev/amore", "otras ramas", "BD del equipo", "PDF", "Word"
+  ],
+  "mysql_no_reejecutado": true,
+  "pruebas_y_cambios_pendientes_de_yajaira_no_acreditados": true,
+  "evidencia_local_fuera_de_git": "foundia-corregir-integracion-leonel-20261027-y02t2qr0"
+}

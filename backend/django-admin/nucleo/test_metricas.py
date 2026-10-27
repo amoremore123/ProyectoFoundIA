@@ -1,6 +1,7 @@
-"""H29-H31: indicadores verificados contra datos conocidos en SQLite temporal."""
+"""H29: indicadores verificados contra datos conocidos en SQLite temporal."""
 from datetime import date, datetime, timezone
 
+from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from .models import Categoria, Objeto, Usuario
@@ -52,6 +53,19 @@ class MetricasSprint2Tests(APITestCase):
         for campo in ("usuarios", "objetosActivos", "reportesPendientes", "categorias"):
             self.assertIn(campo, r.data)
         self.assertNotIn(self.usuario.correo, str(r.data))
+
+    def test_tablero_no_depende_del_interruptor_del_panel_nativo(self):
+        for habilitado in (False, True):
+            with self.subTest(HABILITAR_EXTRAS=habilitado), override_settings(HABILITAR_EXTRAS=habilitado):
+                r = self.consultar(desde="2026-10-05", hasta="2026-10-07")
+                self.assertEqual(r.status_code, 200)
+                self.assertEqual(r.data["objetos"], {
+                    "perdidos": 2, "encontrados": 1, "recuperados": 1, "activos": 2,
+                })
+                self.assertEqual(r.data["usuarios"], 2)
+                self.assertEqual(r.data["objetosActivos"], 3)
+                self.assertEqual(r.data["reportesPendientes"], 0)
+                self.assertEqual(r.data["categorias"], 1)
 
     def test_limites_inclusivos_y_rango_vacio(self):
         self.assertEqual(self.consultar(desde="2026-10-05", hasta="2026-10-05").data["objetos"]["perdidos"], 1)

@@ -21,7 +21,7 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "on")
 
-# Sprint 1: solo gestión de usuarios y publicaciones (H15).
+# Solo controla el panel nativo /admin/. Las API H26/H28/H29 no son extras.
 HABILITAR_EXTRAS = os.environ.get("HABILITAR_EXTRAS", "false").lower() == "true"
 
 ALLOWED_HOSTS = ["*"] if DEBUG else [

@@ -1,10 +1,10 @@
 # API — Endpoints
 
-> Entrega Sprint 1 (H1–H20): las rutas Django de reportes y gestión de
-> categorías, y el admin general `/admin/`, se conservan documentados pero
-> están deshabilitados por defecto. Se reactivan con `HABILITAR_EXTRAS=true`.
-> El catálogo público de Spring `/api/categorias` sigue habilitado.
-> Estado integrado y pruebas: [integración del 20 de octubre](../pruebas/integracion-sprint1-amore-2026-10-20.md).
+> Sprint 2: las API Django de categorías (H26), reportes (H28) y tablero (H29)
+> están habilitadas sin activar `HABILITAR_EXTRAS`; siguen exigiendo sesión ADMIN.
+> Esa variable solo controla el panel nativo `/admin/`, deshabilitado por defecto.
+> El catálogo público de Spring `/api/categorias` sigue habilitado. Esto no activa
+> pantallas web pendientes ni funciones de otros sprints.
 >
 > API/datos del Sprint 2 integrados desde `dev/leonel` en `dev/amore`: H21/H22 añaden API/datos de descarte y
 > recuperación. No equivalen a historias completas ni a entrega integrada en `main`.

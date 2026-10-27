@@ -1,5 +1,13 @@
 # Entrega de Leonel a Amore — sus ocho historias
 
+> **Actualización del 27/10/2026:** `dev/leonel` ahora parte de la entrega integrada
+> de Amore, `1321289`, que conserva main y las dos entregas. La corrección actual
+> de H26/H28/H29 y sus pruebas está en
+> [corrección de integración](correccion-integracion-leonel-sprint2.md).
+> El resto de este documento conserva el cierre original `9d210a3`: sus cifras,
+> servicios y órdenes de reproducción describen aquella revisión, no el estado
+> actual de la BD ni una nueva ejecución de sus pruebas MySQL.
+
 ## Qué se entrega
 
 La parte de **API/datos y pruebas de Leonel** para **H21, H22, H23, H24, H26,

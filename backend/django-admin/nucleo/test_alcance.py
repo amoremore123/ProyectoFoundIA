@@ -1,4 +1,4 @@
-"""Regresión de alcance: resolver URLs no necesita la base del equipo."""
+"""H26/H28 siempre disponibles; /admin/ sigue siendo opcional, sin usar la BD."""
 import importlib
 
 from django.test import SimpleTestCase, override_settings
@@ -8,7 +8,7 @@ from config import urls as config_urls
 from nucleo import urls as nucleo_urls
 
 
-class AlcanceSprint1Tests(SimpleTestCase):
+class AlcanceSprint2Tests(SimpleTestCase):
     def recargar_rutas(self):
         importlib.reload(nucleo_urls)
         importlib.reload(config_urls)
@@ -18,18 +18,20 @@ class AlcanceSprint1Tests(SimpleTestCase):
         self.recargar_rutas()
 
     @override_settings(HABILITAR_EXTRAS=False)
-    def test_sprint_conserva_gestion_y_oculta_urls_directas_de_extras(self):
+    def test_sprint2_publica_su_api_sin_habilitar_el_panel_nativo(self):
         self.recargar_rutas()
         for ruta in ("/api/admin/usuarios/", "/api/admin/publicaciones/",
-                     "/api/admin/auth/login/", "/api/admin/dashboard/"):
+                     "/api/admin/auth/login/", "/api/admin/dashboard/",
+                     "/api/admin/categorias/", "/api/admin/categorias/1/",
+                     "/api/admin/reportes/", "/api/admin/reportes/1/",
+                     "/api/admin/reportes/1/resolver/"):
             self.assertIsNotNone(resolve(ruta))
-        for ruta in ("/api/admin/reportes/", "/api/admin/reportes/1/",
-                     "/api/admin/categorias/", "/api/admin/categorias/1/", "/admin/"):
-            with self.assertRaises(Resolver404):
-                resolve(ruta)
+        with self.assertRaises(Resolver404):
+            resolve("/admin/")
 
     @override_settings(HABILITAR_EXTRAS=True)
-    def test_extras_se_pueden_reactivar_sin_recuperar_codigo_eliminado(self):
+    def test_habilitar_panel_nativo_no_retira_rutas_del_sprint2(self):
         self.recargar_rutas()
-        for ruta in ("/api/admin/reportes/", "/api/admin/categorias/", "/admin/"):
+        for ruta in ("/api/admin/reportes/", "/api/admin/reportes/1/resolver/",
+                     "/api/admin/categorias/", "/api/admin/dashboard/", "/admin/"):
             self.assertIsNotNone(resolve(ruta))
