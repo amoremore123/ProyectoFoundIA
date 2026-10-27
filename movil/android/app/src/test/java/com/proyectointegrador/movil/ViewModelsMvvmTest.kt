@@ -21,10 +21,11 @@ class ViewModelsMvvmTest {
     private lateinit var servidor:MockWebServer
     private lateinit var repo:CuentaRepository
     private lateinit var publicaciones:ApiPublicacionesRepository
+    private lateinit var cache:CachePrueba
     @Before fun preparar(){Dispatchers.setMain(dispatcher)
         servidor=MockWebServer();servidor.start()
         val api=Retrofit.Builder().baseUrl(servidor.url("/")).addConverterFactory(GsonConverterFactory.create()).build().create(ApiService::class.java)
-        publicaciones=ApiPublicacionesRepository(api,CachePrueba());val sesion=SesionPrueba();sesion.guardar("sesion-de-prueba")
+        cache=CachePrueba();publicaciones=ApiPublicacionesRepository(api,cache);val sesion=SesionPrueba();sesion.guardar("sesion-de-prueba")
         repo=CuentaRepository(api,publicaciones,sesion)
     }
     @After fun cerrar(){servidor.shutdown();Dispatchers.resetMain()}
@@ -90,6 +91,13 @@ class ViewModelsMvvmTest {
         vm.publicar();assertTrue(vm.form.value.errores.containsKey("fecha"));assertEquals(1,servidor.requestCount)
         vm.editar("fecha","2026-10-20");responder(Objeto(id=45,nombre="Objeto QA"),201);vm.publicar()
         assertEquals("45",withTimeout(5000){vm.evento.filterNotNull().first()});assertEquals("",vm.form.value.nombre)
+    }
+    @Test fun categoriasDeCopiaLocalNoSePresentanComoActualizadas()=runBlocking {
+        cache.guardarCategorias(listOf(Categoria(1,"Mochilas")))
+        responder(mapOf("mensaje" to "Sin servicio"),503)
+        val vm=PublicarViewModel(repo,publicaciones);val lectura=cargado(vm)
+        assertTrue(lectura.desdeCache);assertNotNull(lectura.aviso)
+        assertEquals("Mochilas",lectura.datos.single().nombre)
     }
     @Test fun enlaceInvalidoNoIntentaCambiarLaClave() {
         val vm=NuevaClaveViewModel(repo,"corto");vm.password("Segura123!");vm.confirmar("Segura123!");vm.guardar()

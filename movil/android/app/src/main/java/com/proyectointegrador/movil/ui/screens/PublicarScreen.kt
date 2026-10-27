@@ -53,7 +53,7 @@ fun PublicarScreen(onPublicado:(Long)->Unit={},viewModel:PublicarViewModel=viewM
     val accion by viewModel.accion.collectAsStateWithLifecycle()
     val evento by viewModel.evento.collectAsStateWithLifecycle()
     LaunchedEffect(evento){evento?.toLongOrNull()?.let {viewModel.consumirEvento();onPublicado(it)}}
-    val categorias=estado.datos.orEmpty()
+    val categorias=estado.datos?.datos.orEmpty()
     val tipo=form.tipo;val nombre=form.nombre;val descripcion=form.descripcion
     val categoriaId=form.categoriaId;val ubicacion=form.ubicacion;val fecha=form.fecha;val errores=form.errores
 
@@ -117,6 +117,7 @@ fun PublicarScreen(onPublicado:(Long)->Unit={},viewModel:PublicarViewModel=viewM
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
             )
+            estado.datos?.aviso?.let {Text(it)}
             if (categorias.isEmpty()) {
                 Text(
                     text = "Cargando categorías…",
