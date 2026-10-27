@@ -287,6 +287,9 @@ solicitante no es autor del objeto perdido o intenta contactarse a sí mismo ·
 `404` objeto inexistente/no activo. Las repeticiones del mismo autor y pareja
 devuelven el mismo contacto y no vuelven a notificar.
 
+Desde H21, una pareja `DESCARTADA` devuelve `409` al intentar iniciar contacto,
+incluso si ya existía un contacto anterior. No se crea otro contacto ni aviso.
+
 ### GET `/api/objetos/buscar`  _(público)_
 
 Query params opcionales: `q`, `tipo` (`PERDIDO` o `ENCONTRADO`) y `categoriaId`.
@@ -345,6 +348,41 @@ coincide también la ubicación, `MEDIA` si no. No se persisten.
   }
 ]
 ```
+
+---
+
+### POST `/api/coincidencias/{id}/descartar`  _(H21, JWT del titular del perdido)_
+
+Descarta una pareja sin cambiar los objetos ni las demás coincidencias. `id`
+admite la clave **`perdidoId-encontradoId`** devuelta por H16/H17 o el ID numérico
+de una coincidencia ya persistida; un número no se interpreta como ID de objeto.
+
+**Request**: sin body. El actor se obtiene de la sesión; enviar `usuarioId` no
+permite actuar por otra cuenta. Ni el autor del hallazgo ni un ADMIN ajeno pueden
+descartar el perdido de otra persona.
+
+Ambos objetos deben seguir activos, ser de tipos opuestos, de la misma categoría,
+de autores distintos y alcanzar el umbral H16. Se crea la fila solo si no existe;
+`PENDIENTE`/`REVISADA` pasan a `DESCARTADA`. Repetir no duplica ni modifica la
+fecha de creación o la puntuación histórica. `ACEPTADA` no se puede descartar.
+
+**Response** `200 OK`:
+
+```json
+{ "id": "15-27", "estado": "DESCARTADA", "repetido": false }
+```
+
+Una repetición válida devuelve `repetido: true`. No incluye datos personales.
+La pareja deja de aparecer al recalcular desde cualquiera de los dos objetos y
+su detalle público devuelve `404`, tanto por clave como por ID persistido. Los
+GET siguen sin escribir datos. Un contacto previo se conserva como antecedente.
+
+**Errores**: `401` sin sesión · `403` actor ajeno · `404` clave/pareja inválida,
+objeto inexistente, oculto o eliminado · `409` pareja aceptada u objetos ya no activos.
+
+Los descartes y contactos concurrentes bloquean los objetos por ID ascendente y
+leen la coincidencia para actualización; no duplican filas ni reviven descartes.
+Pruebas y alcance: [H21 — API/datos](../pruebas/casos-prueba-h21.md).
 
 ---
 
@@ -515,5 +553,5 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 | 401    | Sin token o token inválido      |
 | 403    | No tiene permiso (dueño / rol)  |
 | 404    | Recurso no encontrado           |
-| 409    | Correo duplicado (register)     |
+| 409    | Correo duplicado o estado incompatible de coincidencia |
 | 500    | Error interno                   |

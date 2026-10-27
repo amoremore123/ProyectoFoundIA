@@ -53,6 +53,9 @@ class ContactoIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private com.proyectointegrador.service.CoincidenciaService motor;
+
     private Usuario autorPerdido;
     private Usuario autorEncontrado;
     private Usuario otroUsuario;
@@ -164,6 +167,30 @@ class ContactoIntegrationTest {
                 .isEqualTo(1L);
         assertThat(entityManager.createQuery("select count(n) from Notificacion n", Long.class).getSingleResult())
                 .isEqualTo(1L);
+    }
+
+    @Test
+    void puntuacionPersistidaCoincideConElMotorSinValoresInventados() throws Exception {
+        mockMvc.perform(post("/api/contactos").with(autenticar(autorPerdido))
+                        .contentType(MediaType.APPLICATION_JSON).content(body(perdido.getId(), encontrado.getId())))
+                .andExpect(status().isCreated());
+        var pareja = entityManager.createQuery("select c from Coincidencia c",
+                com.proyectointegrador.entity.Coincidencia.class).getSingleResult();
+        int puntos = motor.puntuar(perdido, encontrado);
+        assertThat(pareja.getPorcentaje()).isEqualByComparingTo(java.math.BigDecimal.valueOf(puntos));
+        assertThat(pareja.getNivel().name()).isEqualTo(motor.nivel(puntos));
+    }
+
+    @Test
+    void noSeContactaUnaParejaQueNoAlcanzaElUmbralDelMotor() throws Exception {
+        encontrado.setNombre("Plancha roja");
+        encontrado.setUbicacion("Edificio sur");
+        encontrado.setFechaObjeto(LocalDate.now().minusDays(80));
+        entityManager.flush();
+        mockMvc.perform(post("/api/contactos").with(autenticar(autorPerdido))
+                        .contentType(MediaType.APPLICATION_JSON).content(body(perdido.getId(), encontrado.getId())))
+                .andExpect(status().isBadRequest());
+        assertThat(entityManager.createQuery("select count(c) from Contacto c", Long.class).getSingleResult()).isZero();
     }
 
     @Test

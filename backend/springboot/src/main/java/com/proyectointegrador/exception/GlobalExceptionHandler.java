@@ -20,6 +20,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(EstadoCoincidenciaInvalidoException.class)
+    public ResponseEntity<ApiError> estadoCoincidenciaInvalido(EstadoCoincidenciaInvalidoException ex,
+                                                             HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(SolicitudInvalidaException.class)
     public ResponseEntity<ApiError> solicitudInvalida(SolicitudInvalidaException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
