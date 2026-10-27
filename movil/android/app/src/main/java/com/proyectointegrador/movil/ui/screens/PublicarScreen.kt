@@ -24,6 +24,8 @@ import java.util.*
 @Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
  val estado by viewModel.estado.collectAsStateWithLifecycle();val f by viewModel.form.collectAsStateWithLifecycle();val accion by viewModel.accion.collectAsStateWithLifecycle();val evento by viewModel.evento.collectAsStateWithLifecycle()
  LaunchedEffect(Unit){if(f.nombre.isBlank()&&tipoInicial in listOf("PERDIDO","ENCONTRADO"))viewModel.editar("tipo",tipoInicial)}
+ val desplazamiento=rememberScrollState()
+ LaunchedEffect(f.paso,f.errores){desplazamiento.animateScrollTo(0)}
  val selector=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let {viewModel.foto(it.toString())}}
  var calendario by remember {mutableStateOf(false)}
  val fechaPicker=rememberDatePickerState(selectableDates=object:SelectableDates{override fun isSelectableDate(utcTimeMillis:Long)=utcTimeMillis<=System.currentTimeMillis()})
@@ -35,7 +37,7 @@ import java.util.*
    BotonPrincipal("Ver publicación",{val id=evento?.toLongOrNull();viewModel.consumirEvento();if(id!=null)onPublicado(id)})
   };return
  }
- com.proyectointegrador.movil.ui.sprint.Pagina("Comparte y conecta") {
+ com.proyectointegrador.movil.ui.sprint.Pagina("Comparte y conecta",desplazamiento=desplazamiento) {
   Text("Ayuda a que cada objeto vuelva a su lugar.",color=MaterialTheme.colorScheme.onSurfaceVariant)
   Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){repeat(6){indice->Surface(color=if(indice<=f.paso)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,shape=RoundedCornerShape(5.dp),modifier=Modifier.weight(1f).height(5.dp)) {}}}
   Text("PASO ${f.paso+1} DE 6",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)

@@ -67,7 +67,7 @@ import com.proyectointegrador.movil.ui.sprint.*
                         onClick={nav.navigate(if(destino=="publicar")"publicar?tipo=PERDIDO" else destino){popUpTo(nav.graph.startDestinationId){saveState=true};restoreState=true;launchSingleTop=true}},
                         icon={if(destino=="publicar") Surface(color=MaterialTheme.colorScheme.primary,shape=RoundedCornerShape(13.dp)){Icon(iconos[indice],null,Modifier.padding(9.dp).size(23.dp),tint=MaterialTheme.colorScheme.onPrimary)}
                             else if(destino=="avisos"&&actividad.sinLeer>0) BadgedBox(badge={Badge{Text(actividad.sinLeer.toString())}}){Icon(iconos[indice],null,Modifier.size(23.dp))}
-                            else Icon(iconos[indice],null,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall)})
+                            else Icon(iconos[indice],null,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=1,softWrap=false,modifier=Modifier.wrapContentWidth(unbounded=true))})
                 }
             }
         }}) { padding ->

@@ -1,6 +1,7 @@
 package com.proyectointegrador.movil.ui.sprint
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -18,9 +19,9 @@ import com.proyectointegrador.movil.ui.components.*
  accion.error?.let {Box(Modifier.semantics {liveRegion=LiveRegionMode.Polite}){AvisoEstado(it,true)}}
  accion.mensaje?.let {Box(Modifier.semantics {liveRegion=LiveRegionMode.Polite}){AvisoEstado(it)}}
 }
-@Composable fun Pagina(titulo:String,volver:(()->Unit)?=null,contenido:@Composable ColumnScope.()->Unit) {
+@Composable fun Pagina(titulo:String,volver:(()->Unit)?=null,desplazamiento:ScrollState?=null,contenido:@Composable ColumnScope.()->Unit) {
  Surface(color=MaterialTheme.colorScheme.background,modifier=Modifier.fillMaxSize()) {
-  Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(horizontal=20.dp).padding(bottom=28.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
+  Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().verticalScroll(desplazamiento?:rememberScrollState()).padding(horizontal=20.dp).padding(bottom=28.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
    Cabecera(titulo,volver=volver);contenido()
   }
  }
