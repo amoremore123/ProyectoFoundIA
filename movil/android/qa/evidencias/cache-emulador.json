@@ -1,0 +1,18 @@
+{
+  "emulador": "QA dedicado 5560",
+  "apiQaDetenida": true,
+  "comprobaciones": [
+    {
+      "caso": "caché visible sin conexión",
+      "resultado": "correcto"
+    },
+    {
+      "caso": "caché persiste tras detener y reabrir el proceso",
+      "resultado": "correcto"
+    },
+    {
+      "caso": "el formulario identifica categorías de copia local sin afirmar un guardado remoto",
+      "resultado": "correcto"
+    }
+  ]
+}
