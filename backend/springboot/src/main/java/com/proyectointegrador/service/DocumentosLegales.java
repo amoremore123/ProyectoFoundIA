@@ -35,7 +35,7 @@ public final class DocumentosLegales {
 
     private static String leer(String nombre) throws java.io.IOException {
         try (var entrada = new ClassPathResource("legal/" + VERSION + "/" + nombre + ".md").getInputStream()) {
-            return new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
+            return new String(entrada.readAllBytes(), StandardCharsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n");
         }
     }
 }
