@@ -76,6 +76,10 @@ public class Objeto {
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
+    // UTC. Nula en publicaciones previas: no se inventa una fecha histórica.
+    @Column(name = "fecha_recuperacion")
+    private LocalDateTime fechaRecuperacion;
+
     @OneToMany(mappedBy = "objeto", fetch = FetchType.LAZY)
     private List<Foto> fotos = new ArrayList<>();
 

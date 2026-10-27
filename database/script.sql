@@ -85,7 +85,8 @@ CREATE TABLE objetos (
     estado            VARCHAR(20)   NOT NULL DEFAULT 'ACTIVO',
     fecha_publicacion DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                  ON UPDATE CURRENT_TIMESTAMP,
+                                   ON UPDATE CURRENT_TIMESTAMP,
+    fecha_recuperacion DATETIME     NULL COMMENT 'Confirmación de recuperación en UTC; sin fecha histórica inventada',
     PRIMARY KEY (id),
     CONSTRAINT fk_objetos_usuario FOREIGN KEY (usuario_id)
         REFERENCES usuarios (id)

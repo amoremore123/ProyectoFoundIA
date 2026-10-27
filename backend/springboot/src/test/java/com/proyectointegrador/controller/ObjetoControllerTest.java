@@ -85,7 +85,7 @@ class ObjetoControllerTest {
                 10L, "Mochila negra", "Mochila con libros de cálculo", "Comedor principal",
                 new BigDecimal("19.43261"), new BigDecimal("-99.1332"),
                 LocalDate.of(2026, 10, 2), "ENCONTRADO", "ACTIVO", LocalDateTime.of(2026, 10, 2, 12, 0),
-                new CategoriaResumen(3L, "Mochila"), new UsuarioResumen(1L, "Ana", "Pérez"), List.of());
+                new CategoriaResumen(3L, "Mochila"), new UsuarioResumen(1L, "Ana", "Pérez"), List.of(), null);
     }
 
     @Test

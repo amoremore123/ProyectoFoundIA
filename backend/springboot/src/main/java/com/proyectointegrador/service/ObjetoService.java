@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.ZoneOffset;
 
 @Service
 public class ObjetoService {
@@ -97,7 +98,7 @@ public class ObjetoService {
 
     @Transactional
     public ObjetoResponse actualizar(Long id, ObjetoRequest request, Long usuarioId) {
-        Objeto objeto = buscarEntidad(id);
+        Objeto objeto = buscarParaActualizar(id);
         verificarAutor(objeto, usuarioId);
         if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
             throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
@@ -121,7 +122,7 @@ public class ObjetoService {
 
     @Transactional
     public void eliminar(Long id, Long usuarioId) {
-        Objeto objeto = buscarEntidad(id);
+        Objeto objeto = buscarParaActualizar(id);
         verificarAutor(objeto, usuarioId);
         if (objeto.getEstado() == EstadoObjeto.ELIMINADO) {
             throw new ResourceNotFoundException("Objeto no encontrado con id " + id);
@@ -166,7 +167,8 @@ public class ObjetoService {
                 UsuarioResumen.publico(objeto.getUsuario()),
                 objeto.getFotos().stream()
                         .map(foto -> new FotoResponse(foto.getId(), foto.getUrl()))
-                        .toList());
+                        .toList(),
+                objeto.getFechaRecuperacion() == null ? null : objeto.getFechaRecuperacion().toInstant(ZoneOffset.UTC));
     }
 
     private void validarCategoria(Long categoriaId) {
@@ -193,5 +195,10 @@ public class ObjetoService {
         if (!objeto.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("Solo el autor puede administrar esta publicación");
         }
+    }
+
+    private Objeto buscarParaActualizar(Long id) {
+        return objetoRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Objeto no encontrado con id " + id));
     }
 }

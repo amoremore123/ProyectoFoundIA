@@ -1,6 +1,7 @@
 package com.proyectointegrador.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,7 @@ public record ObjetoResponse(
         LocalDateTime fechaPublicacion,
         CategoriaResumen categoria,
         UsuarioResumen publicadoPor,
-        List<FotoResponse> fotos
+        List<FotoResponse> fotos,
+        Instant fechaRecuperacion
 ) {
 }

@@ -1,6 +1,7 @@
 package com.proyectointegrador.service;
 
 import com.proyectointegrador.dto.CoincidenciaEstadoResponse;
+import com.proyectointegrador.dto.RecuperacionResponse;
 import com.proyectointegrador.entity.Coincidencia;
 import com.proyectointegrador.entity.EstadoCoincidencia;
 import com.proyectointegrador.entity.EstadoObjeto;
@@ -16,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class GestionCoincidenciaService {
@@ -36,6 +40,7 @@ public class GestionCoincidenciaService {
         Objeto perdido = pareja.perdido();
         Objeto encontrado = pareja.encontrado();
         validarActivos(perdido, encontrado);
+        validarSimilitud(perdido, encontrado);
         Coincidencia coincidencia = coincidencias
                 .buscarParejaParaActualizar(perdido.getId(), encontrado.getId())
                 .orElseGet(() -> nueva(perdido, encontrado));
@@ -50,6 +55,43 @@ public class GestionCoincidenciaService {
         return new CoincidenciaEstadoResponse(clave(perdido, encontrado), coincidencia.getEstado().name(), repetido);
     }
 
+    @Transactional
+    public RecuperacionResponse confirmar(String id, Long usuarioId) {
+        BloqueoPareja.Objetos pareja = parejaPropia(id, usuarioId);
+        Objeto perdido = pareja.perdido();
+        Objeto encontrado = pareja.encontrado();
+        Coincidencia coincidencia = coincidencias.buscarParejaParaActualizar(perdido.getId(), encontrado.getId())
+                .orElseGet(() -> nueva(perdido, encontrado));
+        if (coincidencia.getEstado() == EstadoCoincidencia.ACEPTADA) {
+            if (perdido.getEstado() != EstadoObjeto.RECUPERADO || perdido.getFechaRecuperacion() == null) {
+                throw new EstadoCoincidenciaInvalidoException("La recuperación anterior requiere revisión; no se modificaron datos");
+            }
+            return recuperacion(coincidencia, true);
+        }
+        if (coincidencia.getEstado() == EstadoCoincidencia.DESCARTADA) {
+            throw new EstadoCoincidenciaInvalidoException("Una coincidencia descartada no se puede confirmar");
+        }
+        validarActivos(perdido, encontrado);
+        validarSimilitud(perdido, encontrado);
+        if (perdido.getFechaRecuperacion() != null || !coincidencias.buscarAceptadasParaActualizar(perdido.getId()).isEmpty()) {
+            throw new EstadoCoincidenciaInvalidoException("El objeto perdido ya tiene una recuperación registrada");
+        }
+        perdido.setEstado(EstadoObjeto.RECUPERADO);
+        perdido.setFechaRecuperacion(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS));
+        // El flush permite comprobar rollback real si falla después la aceptación.
+        objetos.saveAndFlush(perdido);
+        coincidencia.setEstado(EstadoCoincidencia.ACEPTADA);
+        coincidencias.saveAndFlush(coincidencia);
+        return recuperacion(coincidencia, false);
+    }
+
+    private RecuperacionResponse recuperacion(Coincidencia coincidencia, boolean repetido) {
+        Objeto perdido = coincidencia.getObjetoPerdido();
+        return new RecuperacionResponse(clave(perdido, coincidencia.getObjetoEncontrado()),
+                coincidencia.getEstado().name(), perdido.getId(), perdido.getEstado().name(),
+                perdido.getFechaRecuperacion().toInstant(ZoneOffset.UTC), repetido);
+    }
+
     private BloqueoPareja.Objetos parejaPropia(String id, Long usuarioId) {
         long[] ids = motor.identificar(id);
         BloqueoPareja.Objetos pareja = BloqueoPareja.obtener(objetos, ids[0], ids[1]);
@@ -59,18 +101,21 @@ public class GestionCoincidenciaService {
             throw new AccessDeniedException("Solo el titular del objeto perdido puede gestionar la coincidencia");
         }
         if (perdido.getTipo() != TipoObjeto.PERDIDO || encontrado.getTipo() != TipoObjeto.ENCONTRADO
-                || perdido.getUsuario().getId().equals(encontrado.getUsuario().getId())
-                || !perdido.getCategoria().getId().equals(encontrado.getCategoria().getId())) {
+                || perdido.getUsuario().getId().equals(encontrado.getUsuario().getId())) {
             throw noDisponible();
         }
         if (perdido.getEstado() == EstadoObjeto.OCULTO || perdido.getEstado() == EstadoObjeto.ELIMINADO
                 || encontrado.getEstado() == EstadoObjeto.OCULTO || encontrado.getEstado() == EstadoObjeto.ELIMINADO) {
             throw noDisponible();
         }
-        if (motor.puntuar(perdido, encontrado) < CoincidenciaService.UMBRAL_SIMILITUD) {
+        return pareja;
+    }
+
+    private void validarSimilitud(Objeto perdido, Objeto encontrado) {
+        if (!perdido.getCategoria().getId().equals(encontrado.getCategoria().getId())
+                || motor.puntuar(perdido, encontrado) < CoincidenciaService.UMBRAL_SIMILITUD) {
             throw noDisponible();
         }
-        return pareja;
     }
 
     private void validarActivos(Objeto perdido, Objeto encontrado) {

@@ -64,8 +64,17 @@ Semillas: Celular, Laptop, Mochila, Documento, Ropa, Accesorio, Llaves, Otros.
 | estado             | VARCHAR(20)    | NOT NULL, CHECK `ACTIVO` \| `RECUPERADO` \| `OCULTO` \| `ELIMINADO` |
 | fecha_publicacion  | DATETIME       | NOT NULL — **fecha en que se creó la publicación** |
 | fecha_actualizacion| DATETIME       | NOT NULL, ON UPDATE CURRENT_TIMESTAMP |
+| fecha_recuperacion | DATETIME       | NULL; fecha UTC de confirmación H22 sobre el perdido propio |
 
 > `fecha_objeto` ≠ `fecha_publicacion`: una es el hecho, otra es la publicación.
+
+H22 agrega `fecha_recuperacion` de forma incremental y re-ejecutable mediante
+[`migracion_h22_fecha_recuperacion.sql`](../../database/migracion_h22_fecha_recuperacion.sql).
+No cambia estados ni rellena fechas históricas. El esquema inicial también la
+incluye para instalaciones nuevas; **no reimportar `script.sql` en una base existente**.
+La confirmación guarda pareja ACEPTADA y perdido propio RECUPERADO en una sola
+transacción; el hallazgo ajeno no se modifica. Aplicación en bases del equipo
+pendiente de autorización, respaldo y despliegue final.
 
 **Índices:** `idx_objetos_usuario`, `idx_objetos_categoria`, `idx_objetos_tipo`,
 `idx_objetos_estado`, `idx_objetos_fecha_objeto`.

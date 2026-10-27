@@ -23,6 +23,10 @@ public interface CoincidenciaRepository extends JpaRepository<Coincidencia, Long
     Optional<Coincidencia> buscarParejaParaActualizar(@Param("perdidoId") Long perdidoId,
                                                     @Param("encontradoId") Long encontradoId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Coincidencia c where c.objetoPerdido.id = :perdidoId and c.estado = 'ACEPTADA'")
+    List<Coincidencia> buscarAceptadasParaActualizar(@Param("perdidoId") Long perdidoId);
+
     List<Coincidencia> findByObjetoPerdidoId(Long objetoPerdidoId);
 
     List<Coincidencia> findByObjetoEncontradoId(Long objetoEncontradoId);
