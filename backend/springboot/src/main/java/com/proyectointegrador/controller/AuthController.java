@@ -3,11 +3,14 @@ package com.proyectointegrador.controller;
 import com.proyectointegrador.dto.AuthResponse;
 import com.proyectointegrador.dto.LoginRequest;
 import com.proyectointegrador.dto.MensajeResponse;
+import com.proyectointegrador.dto.RecuperarPasswordRequest;
 import com.proyectointegrador.dto.ReenviarCodigoRequest;
 import com.proyectointegrador.dto.RegisterRequest;
 import com.proyectointegrador.dto.RegistroResponse;
+import com.proyectointegrador.dto.RestablecerPasswordRequest;
 import com.proyectointegrador.dto.VerificarRequest;
 import com.proyectointegrador.service.AuthService;
+import com.proyectointegrador.service.RecuperacionPasswordService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RecuperacionPasswordService recuperacionPasswordService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService) {
         this.authService = authService;
+        this.recuperacionPasswordService = recuperacionPasswordService;
     }
 
     /** H11 - Crea la cuenta (sin verificar) y envía el código al correo. */
@@ -42,6 +47,18 @@ public class AuthController {
     @PostMapping("/reenviar-codigo")
     public ResponseEntity<MensajeResponse> reenviarCodigo(@Valid @RequestBody ReenviarCodigoRequest request) {
         return ResponseEntity.ok(authService.reenviarCodigo(request));
+    }
+
+    /** H35 - Envía un enlace de un solo uso; la respuesta es igual exista o no la cuenta. */
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<MensajeResponse> recuperarPassword(@Valid @RequestBody RecuperarPasswordRequest request) {
+        return ResponseEntity.ok(recuperacionPasswordService.solicitar(request));
+    }
+
+    /** H35 - Define la contraseña nueva con el token recibido e invalida el enlace. */
+    @PostMapping("/restablecer-password")
+    public ResponseEntity<MensajeResponse> restablecerPassword(@Valid @RequestBody RestablecerPasswordRequest request) {
+        return ResponseEntity.ok(recuperacionPasswordService.restablecer(request));
     }
 
     /** H12 - Login con JWT; bloquea la cuenta 15 min tras 5 intentos fallidos. */

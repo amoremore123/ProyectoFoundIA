@@ -76,6 +76,10 @@ public class Usuario {
     @Column(name = "codigo_enviado_en")
     private LocalDateTime codigoEnviadoEn;
 
+    /** H35: último cambio de contraseña por recuperación (UTC); invalida los JWT emitidos antes. */
+    @Column(name = "password_actualizado_en")
+    private LocalDateTime passwordActualizadoEn;
+
     /** H12: intentos fallidos consecutivos; al llegar a 5 se bloquea la cuenta. */
     @Column(name = "intentos_fallidos", nullable = false)
     private int intentosFallidos = 0;
