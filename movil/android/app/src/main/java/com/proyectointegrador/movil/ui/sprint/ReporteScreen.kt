@@ -1,6 +1,9 @@
 package com.proyectointegrador.movil.ui.sprint
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import com.proyectointegrador.movil.model.Denuncia
@@ -19,7 +22,7 @@ import com.proyectointegrador.movil.network.*
             val accion=recordarAccion()
             listOf("SPAM" to "Spam", "CONTENIDO_INAPROPIADO" to "Contenido inapropiado",
                 "INFORMACION_FALSA" to "Información falsa", "OTRO" to "Otro motivo").forEach { (clave,texto) ->
-                Row {RadioButton(selected=motivo==clave,onClick={motivo=clave},enabled=!accion.ocupada);Text(texto)}
+                Row(Modifier.selectable(selected=motivo==clave,enabled=!accion.ocupada,role=Role.RadioButton,onClick={motivo=clave})) {RadioButton(selected=motivo==clave,onClick=null,enabled=!accion.ocupada);Text(texto)}
             }
             OutlinedTextField(value=descripcion,onValueChange={descripcion=it.take(2000)},label={Text("Explicación (obligatoria para otro motivo)")},enabled=!accion.ocupada)
             EstadoAccion(accion)
