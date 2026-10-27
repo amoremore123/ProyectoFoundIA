@@ -15,6 +15,7 @@ import com.proyectointegrador.movil.ui.sprint.*
 
 @Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
     val token by Sesion.token.collectAsState()
+    val aviso by Sesion.aviso.collectAsState()
     // Cambiar de sesión destruye las pantallas y los datos de la cuenta anterior.
     key(token) {
         val nav=rememberNavController()
@@ -32,7 +33,7 @@ import com.proyectointegrador.movil.ui.sprint.*
                 NavigationBarItem(selected=ruta==destino,onClick={abrir(destino)},icon={Text(texto.take(1))},label={Text(texto)})
             }
         }}) { padding ->
-            NavHost(navController=nav,startDestination=if(token==null) "inicio" else "perfil",modifier=Modifier.padding(padding)) {
+            NavHost(navController=nav,startDestination=if(token==null && aviso==null) "inicio" else "perfil",modifier=Modifier.padding(padding)) {
                 composable("inicio") {InicioScreen(onObjetoClick={abrir("detalle/$it")})}
                 composable("buscar") {BuscarScreen(onObjetoClick={abrir("detalle/$it")})}
                 composable("perfil") {

@@ -74,7 +74,7 @@ import com.proyectointegrador.movil.network.*
             pareja.criterios.forEach { (criterio,puntos) ->Text("$criterio: $puntos puntos") }
             Text("Objeto perdido");ResumenObjeto(pareja.perdido)
             Text("Objeto encontrado");ResumenObjeto(pareja.encontrado)
-            if(usuario?.id == pareja.perdido.publicadoPor?.id && pareja.perdido.estado=="ACTIVO" && pareja.encontrado.estado=="ACTIVO") {
+            if(usuario != null && usuario.id == pareja.perdido.publicadoPor?.id && pareja.perdido.estado=="ACTIVO" && pareja.encontrado.estado=="ACTIVO") {
                 Button(onClick={confirmar="recuperar"},enabled=!accion.ocupada) {Text("Confirmar recuperación")}
                 OutlinedButton(onClick={confirmar="descartar"},enabled=!accion.ocupada) {Text("Descartar coincidencia")}
             } else Text("La gestión de esta coincidencia corresponde al titular del objeto perdido activo.")

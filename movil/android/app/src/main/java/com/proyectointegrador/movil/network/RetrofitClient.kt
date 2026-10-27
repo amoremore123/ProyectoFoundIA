@@ -18,7 +18,7 @@ object RetrofitClient {
                 val respuesta=cadena.proceed(solicitud.newBuilder().apply {
                     if(token != null) header("Authorization","Bearer $token")
                 }.build())
-                if(respuesta.code == 401 && token != null) Sesion.cerrar(token)
+                if(respuesta.code == 401 && token != null) Sesion.cerrar(token, "La sesión ya no es válida. Inicia sesión otra vez.")
                 respuesta
             }
             .connectTimeout(15, TimeUnit.SECONDS)
