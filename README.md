@@ -315,3 +315,10 @@ git push -u origin feature/publicaciones
    `target/`, `build/`, `.env`, `local.properties` (ya excluidos en
    `.gitignore`).
 4. Hacer pull de `develop` a menudo para detectar conflictos temprano.
+
+## Entrega de Amore — Sprint 2
+
+H33/H34 de API y la capa Android se integraron en `dev/amore` desde `mobile/android`.
+[Estado, pruebas, APK y pendientes para Yajaira](docs/integracion/entrega-amore-sprint2.md).
+El registro requiere ahora aceptación expresa y versión de términos/privacidad;
+la adaptación web y la API de recuperación H35 están pendientes de la siguiente entrega.
