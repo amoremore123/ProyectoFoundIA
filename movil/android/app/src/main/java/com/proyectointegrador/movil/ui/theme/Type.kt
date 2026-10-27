@@ -30,19 +30,16 @@ val FoundIATypography = Typography(
     // Cuerpo 15-16px
     bodyLarge = default.bodyLarge.copy(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 16.sp,
-        color = TextMuted
+        fontSize = 16.sp
     ),
     bodyMedium = default.bodyMedium.copy(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 15.sp,
-        color = TextMuted
+        fontSize = 15.sp
     ),
     // Secundario 13px
     bodySmall = default.bodySmall.copy(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 13.sp,
-        color = TextSoft
+        fontSize = 13.sp
     ),
     labelLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
