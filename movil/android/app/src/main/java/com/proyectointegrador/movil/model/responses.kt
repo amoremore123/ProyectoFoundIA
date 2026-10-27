@@ -17,5 +17,6 @@ data class CoincidenciaSugerida(
     val ubicacion: String? = null,
     val fechaObjeto: String? = null,
     val porcentaje: Double? = null,
-    val nivel: String? = null
+    val nivel: String? = null,
+    val coincidenciaId: String? = null
 )
