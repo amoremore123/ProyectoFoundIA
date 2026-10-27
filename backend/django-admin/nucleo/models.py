@@ -134,6 +134,8 @@ class Objeto(models.Model):
     )
     fecha_publicacion = models.DateTimeField(default=timezone.now, blank=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    # H22/H30: confirmación de la recuperación en UTC (nula en publicaciones antiguas)
+    fecha_recuperacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
