@@ -147,7 +147,7 @@ fun PublicarScreen(onPublicado:(Long)->Unit={},viewModel:PublicarViewModel=viewM
                                 )
                                 .clickable {
                                     viewModel.categoria(categoria.id)
-                                    
+
                                 }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         )

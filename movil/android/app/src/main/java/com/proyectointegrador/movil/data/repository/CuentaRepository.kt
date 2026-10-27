@@ -44,6 +44,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         val revision=sesion.revision
         val respuesta=llamadaApi(bloque)
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
+        publicaciones.invalidar()
+        if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         sesion.guardar(respuesta.token)
     }
     suspend fun login(correo:String,password:String)=acceso {api.login(Login(correo.trim(),password))}
