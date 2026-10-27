@@ -1,115 +1,69 @@
 package com.proyectointegrador.movil.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.proyectointegrador.movil.ui.screens.BuscarScreen
-import com.proyectointegrador.movil.ui.screens.DetalleScreen
-import com.proyectointegrador.movil.ui.screens.InicioScreen
-import com.proyectointegrador.movil.ui.screens.PerfilScreen
-import com.proyectointegrador.movil.ui.screens.PublicarScreen
-import com.proyectointegrador.movil.ui.theme.Background
-import com.proyectointegrador.movil.ui.theme.Primary
-import com.proyectointegrador.movil.ui.theme.SurfaceWhite
-import com.proyectointegrador.movil.ui.theme.TextSoft
+import com.proyectointegrador.movil.BuildConfig
+import com.proyectointegrador.movil.network.Sesion
+import com.proyectointegrador.movil.ui.screens.*
+import com.proyectointegrador.movil.ui.sprint.*
 
-private data class Destino(
-    val ruta: String,
-    val etiqueta: String,
-    val icono: ImageVector
-)
-
-private val DESTINOS = listOf(
-    Destino("inicio", "Inicio", Icons.Default.Home),
-    Destino("buscar", "Buscar", Icons.Default.Search),
-    Destino("publicar", "Publicar", Icons.Default.Add),
-    Destino("perfil", "Perfil", Icons.Default.Person)
-)
-
-@Composable
-fun AppNavHost() {
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val rutaActual = backStackEntry?.destination?.route
-    val esSuperior = DESTINOS.any { it.ruta == rutaActual }
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            if (esSuperior) {
-                NavigationBar(containerColor = SurfaceWhite) {
-                    DESTINOS.forEach { destino ->
-                        NavigationBarItem(
-                            selected = rutaActual == destino.ruta,
-                            onClick = {
-                                navController.navigate(destino.ruta) {
-                                    popUpTo("inicio") { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(destino.icono, contentDescription = destino.etiqueta) },
-                            label = { Text(destino.etiqueta) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Primary,
-                                selectedTextColor = Primary,
-                                unselectedIconColor = TextSoft,
-                                unselectedTextColor = TextSoft,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        )
+@Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
+    val token by Sesion.token.collectAsState()
+    // Cambiar de sesión destruye las pantallas y los datos de la cuenta anterior.
+    key(token) {
+        val nav=rememberNavController()
+        val entrada by nav.currentBackStackEntryAsState()
+        val ruta=entrada?.destination?.route
+        var recuperacion by remember {mutableStateOf<String?>(null)}
+        LaunchedEffect(enlace) { if(enlace!=null) {
+            recuperacion=tokenDeRecuperacion(enlace.toString(),BuildConfig.WEB_URL)
+            nav.navigate("nueva-clave") {launchSingleTop=true};consumirEnlace()
+        } }
+        fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
+        val volver:()->Unit={nav.popBackStack();Unit}
+        Scaffold(bottomBar={if(ruta in listOf("inicio","buscar","perfil")) NavigationBar {
+            listOf("inicio" to "Inicio","buscar" to "Buscar","perfil" to "Cuenta").forEach { (destino,texto) ->
+                NavigationBarItem(selected=ruta==destino,onClick={abrir(destino)},icon={Text(texto.take(1))},label={Text(texto)})
+            }
+        }}) { padding ->
+            NavHost(navController=nav,startDestination=if(token==null) "inicio" else "perfil",modifier=Modifier.padding(padding)) {
+                composable("inicio") {InicioScreen(onObjetoClick={abrir("detalle/$it")})}
+                composable("buscar") {BuscarScreen(onObjetoClick={abrir("detalle/$it")})}
+                composable("perfil") {
+                    if(token==null) AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
+                    else CuentaScreen {abrir(it)}
+                }
+                composable("registro") {RegistroScreen(volver) {abrir("verificar/${Uri.encode(it)}")}}
+                composable("verificar/{correo}",arguments=listOf(navArgument("correo"){type=NavType.StringType})) {
+                    VerificarScreen(it.arguments?.getString("correo").orEmpty().takeUnless {it=="_"}.orEmpty(),volver)
+                }
+                composable("recuperar") {RecuperarScreen(volver)}
+                composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver) {recuperacion=null;abrir("perfil")}}
+                composable("detalle/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                    DetalleScreen(objetoId=it.arguments!!.getLong("id"),onBack=volver,onObjetoClick={abrir("detalle/$it")},
+                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")})
+                }
+                composable("pareja/{id}") {ParejaScreen(it.arguments?.getString("id").orEmpty(),volver) {
+                    if(token!=null) abrir("propios") else abrir("perfil")
+                }}
+                if(token!=null) {
+                    composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")})}
+                    composable("sugerencias/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                        SugerenciasScreen(it.arguments!!.getLong("id"),volver) {abrir("pareja/$it")}
+                    }
+                    composable("avisos") {AvisosScreen(volver) {abrir("pareja/$it")}}
+                    composable("preferencias") {PreferenciasScreen(volver)}
+                    composable("eliminacion") {EliminacionScreen(volver)}
+                    composable("reportar/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                        ReporteScreen(it.arguments!!.getLong("id"),volver)
                     }
                 }
-            }
-        }
-    ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = "inicio",
-            modifier = Modifier.padding(padding)
-        ) {
-            composable("inicio") {
-                InicioScreen(onObjetoClick = { navController.navigate("detalle/$it") })
-            }
-            composable("buscar") {
-                BuscarScreen(onObjetoClick = { navController.navigate("detalle/$it") })
-            }
-            composable("publicar") {
-                PublicarScreen()
-            }
-            composable("perfil") {
-                PerfilScreen()
-            }
-            composable(
-                route = "detalle/{id}",
-                arguments = listOf(navArgument("id") { type = NavType.LongType })
-            ) { entry ->
-                val id = entry.arguments?.getLong("id") ?: return@composable
-                DetalleScreen(
-                    objetoId = id,
-                    onBack = { navController.popBackStack() },
-                    onObjetoClick = { nuevoId -> navController.navigate("detalle/$nuevoId") }
-                )
             }
         }
     }

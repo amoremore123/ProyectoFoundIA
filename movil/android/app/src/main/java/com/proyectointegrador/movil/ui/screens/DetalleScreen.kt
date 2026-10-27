@@ -55,6 +55,9 @@ fun DetalleScreen(
     objetoId: Long,
     onBack: () -> Unit,
     onObjetoClick: (Long) -> Unit,
+    onComparar: (String) -> Unit = {},
+    onReportar: (Long) -> Unit = {},
+    onAcceso: () -> Unit = {},
     viewModel: ObjetosViewModel = viewModel()
 ) {
     val detalle by viewModel.detalle.collectAsState()
@@ -116,6 +119,9 @@ fun DetalleScreen(
                 objeto = detalle!!,
                 coincidencias = coincidencias,
                 onObjetoClick = onObjetoClick,
+                onComparar = onComparar,
+                onReportar = onReportar,
+                onAcceso = onAcceso,
                 contentPadding = padding
             )
         }
@@ -127,6 +133,9 @@ private fun DetalleContenido(
     objeto: com.proyectointegrador.movil.model.Objeto,
     coincidencias: List<com.proyectointegrador.movil.model.CoincidenciaSugerida>,
     onObjetoClick: (Long) -> Unit,
+    onComparar: (String) -> Unit,
+    onReportar: (Long) -> Unit,
+    onAcceso: () -> Unit,
     contentPadding: PaddingValues
 ) {
     val fotoUrl = RetrofitClient.urlAbsoluta(objeto.fotosSeguras.firstOrNull()?.url)
@@ -198,6 +207,8 @@ private fun DetalleContenido(
             )
         }
 
+        item { com.proyectointegrador.movil.ui.sprint.DetalleAcciones(objeto,onReportar,onAcceso) }
+
         if (coincidencias.isNotEmpty()) {
             item {
                 Text(
@@ -213,7 +224,7 @@ private fun DetalleContenido(
                     border = androidx.compose.foundation.BorderStroke(1.dp, Border),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onObjetoClick(coincidencia.objetoId) }
+                        .clickable { onComparar(coincidencia.coincidenciaId ?: if(objeto.esPerdido) "${objeto.id}-${coincidencia.objetoId}" else "${coincidencia.objetoId}-${objeto.id}") }
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(

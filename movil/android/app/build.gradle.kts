@@ -14,6 +14,8 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "API_URL", "\"${providers.gradleProperty("foundiaApiUrl").getOrElse("http://10.0.2.2:8081/")}\"")
+        buildConfigField("String", "WEB_URL", "\"${providers.gradleProperty("foundiaWebUrl").getOrElse("http://10.0.2.2:5173/")}\"")
     }
 
     buildTypes {
@@ -33,6 +35,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -50,6 +53,9 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

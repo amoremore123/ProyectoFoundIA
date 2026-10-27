@@ -1,5 +1,6 @@
 package com.proyectointegrador.movil.ui.viewmodel
 
+import com.proyectointegrador.movil.ui.sprint.mensajeUsuario
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.proyectointegrador.movil.model.Categoria
@@ -102,6 +103,4 @@ class ObjetosViewModel : ViewModel() {
     }
 }
 
-private fun Throwable.mensaje(): String =
-    message?.takeIf { it.isNotBlank() }
-        ?: "No se pudo conectar con el servidor. Intenta de nuevo."
+private fun Throwable.mensaje(): String = mensajeUsuario()
