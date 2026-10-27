@@ -8,10 +8,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 data class FormPublicacion(val tipo:String="PERDIDO",val nombre:String="",val descripcion:String="",val categoriaId:Long?=null,
-    val ubicacion:String="",val fecha:String="",val errores:Map<String,String> = emptyMap())
-class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:PublicacionesRepository):CargaViewModel<Lectura<List<Categoria>>>({publicaciones.categorias()}) {
+    val ubicacion:String="",val fecha:String="",val foto:String?=null,val paso:Int=0,val publicadoId:Long?=null,val errores:Map<String,String> = emptyMap())
+class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:PublicacionesRepository,private val fotos:FotografiasRepository?=null):CargaViewModel<Lectura<List<Categoria>>>({publicaciones.categorias()}) {
     private val _form=MutableStateFlow(FormPublicacion());val form=_form.asStateFlow()
-    fun editar(campo:String,valor:String){_form.value=when(campo){
+    fun paso(valor:Int){if(!accion.value.ocupada)_form.value=_form.value.copy(paso=valor.coerceIn(0,5))}
+    fun foto(uri:String?){if(!accion.value.ocupada&&_form.value.publicadoId==null)_form.value=_form.value.copy(foto=uri)}
+    fun terminarSinFoto(){_form.value.publicadoId?.let {emitirEvento(it.toString())}}
+    fun editar(campo:String,valor:String){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=when(campo){
         "tipo"->_form.value.copy(tipo=valor);"nombre"->_form.value.copy(nombre=valor);"descripcion"->_form.value.copy(descripcion=valor)
         "ubicacion"->_form.value.copy(ubicacion=valor);"fecha"->_form.value.copy(fecha=valor);else->_form.value
     }.copy(errores=emptyMap())}
@@ -29,8 +32,12 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         _form.value=f.copy(errores=errores)
         if(errores.isNotEmpty()){rechazar("Revisa los campos señalados.");return}
         ejecutar {
-            val r=cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim()))
-            _form.value=FormPublicacion();informar("Publicación guardada en el servidor.");emitirEvento(r.id.toString())
+            // Validar y leer la imagen antes de crear evita publicaciones por un archivo inválido.
+            val foto=f.foto?.let {fotos?.preparar(it)?:throw com.proyectointegrador.movil.domain.ErrorDatos("No se pudo preparar la fotografía.")}
+            val id=f.publicadoId?:cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim())).id
+            _form.value=_form.value.copy(publicadoId=id)
+            if(foto!=null)try {cuenta.subirFoto(id,foto)}catch(e:kotlinx.coroutines.CancellationException){throw e}catch(e:Exception){throw com.proyectointegrador.movil.domain.ErrorDatos("La publicación $id ya está creada. No se pudo subir la foto. Reintenta la foto o continúa sin ella; no se creará otra publicación.")}
+            _form.value=FormPublicacion();informar("Publicación guardada en el servidor.");emitirEvento(id.toString())
         }
     }
 }

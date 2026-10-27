@@ -97,3 +97,15 @@ class NuevaClaveViewModel(private val repo:CuentaRepository,private val token:St
         ejecutar {repo.restablecer(token!!,f.password);_form.value=FormNuevaClave(terminado=true)}
     }
 }
+
+data class FormPerfil(val nombre:String?=null,val apellido:String?=null,val actual:String="",val password:String="",val confirmar:String="")
+class EditarPerfilViewModel(private val repo:CuentaRepository):CargaViewModel<Usuario>({repo.perfil()}) {
+ private val _form=MutableStateFlow(FormPerfil());val form=_form.asStateFlow()
+ fun editar(campo:String,valor:String){_form.value=when(campo){"nombre"->_form.value.copy(nombre=valor);"apellido"->_form.value.copy(apellido=valor);"actual"->_form.value.copy(actual=valor);"password"->_form.value.copy(password=valor);"confirmar"->_form.value.copy(confirmar=valor);else->_form.value}}
+ fun guardar(seguridad:Boolean){val usuario=estado.value.datos?:return;val f=_form.value
+  val nombre=if(seguridad)usuario.nombre else f.nombre?:usuario.nombre;val apellido=if(seguridad)usuario.apellido else f.apellido?:usuario.apellido
+  if(nombre.isBlank()||apellido.isBlank()||nombre.length>100||apellido.length>100){rechazar("Revisa tu nombre y apellido.");return}
+  if(seguridad&&(f.actual.isBlank()||!passwordValida(f.password)||f.password!=f.confirmar)){rechazar("Revisa tu contraseña actual y la nueva contraseña.");return}
+  ejecutar {val nuevo=repo.actualizarPerfil(PerfilRequest(nombre.trim(),apellido.trim(),if(seguridad)f.password else null,if(seguridad)f.actual else null));actualizar(nuevo);_form.value=FormPerfil();informar("Cambios guardados en tu cuenta.")}
+ }
+}

@@ -4,6 +4,8 @@ import com.proyectointegrador.movil.domain.*
 import com.proyectointegrador.movil.model.*
 import com.proyectointegrador.movil.network.ApiService
 import com.proyectointegrador.movil.network.Sesion
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -53,9 +55,11 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun registrar(datos:Registro)=llamadaApi {api.registrar(datos)}
     suspend fun documentos()=llamadaApi {api.documentos()}
     suspend fun reenviar(correo:String)=llamadaApi {api.reenviar(Correo(correo.trim()))}
+    suspend fun actualizarPerfil(datos:PerfilRequest)=privada {api.actualizarPerfil(datos)}
     suspend fun perfil()=privada {api.perfil()}
     suspend fun propios()=privada {api.propios()}
     suspend fun publicar(datos:PublicacionRequest)=privada {val respuesta=api.publicar(datos);publicaciones.invalidar();respuesta}
+    suspend fun subirFoto(id:Long,foto:FotoPreparada)=privada {val parte=okhttp3.MultipartBody.Part.createFormData("archivo",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()));val respuesta=api.subirFoto(id,parte);publicaciones.invalidar();respuesta}
     suspend fun editar(id:Long,datos:PublicacionRequest)=privada {val respuesta=api.editar(id,datos);publicaciones.invalidar();respuesta}
     suspend fun eliminar(id:Long)=privada {
         val respuesta=api.eliminar(id)
@@ -70,6 +74,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         ParejaDatos(pareja,usuario)
     }
+    suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
     suspend fun descartar(id:String)=privada {val respuesta=api.descartar(id);publicaciones.invalidar();respuesta}
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
     suspend fun avisos()=privada {api.avisos()}

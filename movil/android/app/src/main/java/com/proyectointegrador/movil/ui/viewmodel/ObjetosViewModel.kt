@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 data class ObjetosUiState(val objetos:List<Objeto> = emptyList(),val cargando:Boolean=false,val error:String?=null,val aviso:String?=null)
-data class FormBusqueda(val texto:String="",val tipo:String?=null)
+data class FormBusqueda(val texto:String="",val tipo:String?=null,val categoriaId:Long?=null)
 
 class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel() {
     private val _state=MutableStateFlow(ObjetosUiState());val state=_state.asStateFlow()
@@ -24,6 +24,7 @@ class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel
     fun cargarRecientes(){consultar(false)}
     fun editarBusqueda(texto:String){_busqueda.value=_busqueda.value.copy(texto=texto);consultar(true,300)}
     fun elegirTipo(tipo:String?){_busqueda.value=_busqueda.value.copy(tipo=tipo);consultar(true)}
+    fun elegirCategoria(id:Long?){_busqueda.value=_busqueda.value.copy(categoriaId=id);consultar(true)}
     fun buscarActual(){consultar(true)}
     private fun consultar(buscar:Boolean,espera:Long=0) {
         consulta?.cancel();_state.value=ObjetosUiState(cargando=true)
@@ -32,7 +33,7 @@ class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel
                 if(espera>0)delay(espera)
                 val f=_busqueda.value
                 val fuente=if(buscar)repository.buscar(f.texto.ifBlank {null},f.tipo) else repository.listar()
-                fuente.collect {_state.value=ObjetosUiState(objetos=it.datos,aviso=it.aviso)}
+                fuente.collect {_state.value=ObjetosUiState(objetos=it.datos.filter {o->f.categoriaId==null||o.categoria?.id==f.categoriaId},aviso=it.aviso)}
             } catch(e:CancellationException){throw e}
             catch(e:Exception){_state.value=ObjetosUiState(error=e.comoErrorDatos().mensaje)}
         }

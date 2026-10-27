@@ -41,6 +41,7 @@ interface ApiService {
     @GET("api/objetos/{id}/coincidencias")
     suspend fun coincidencias(@Path("id") id: Long): List<CoincidenciaSugerida>
 
+    @retrofit2.http.Multipart @POST("api/objetos/{id}/fotos") suspend fun subirFoto(@Path("id") id:Long,@retrofit2.http.Part foto:okhttp3.MultipartBody.Part):ObjetoFoto
     @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest):Objeto
     @PUT("api/objetos/{id}") suspend fun editar(@Path("id") id:Long,@Body datos:PublicacionRequest):Objeto
     @DELETE("api/objetos/{id}") suspend fun eliminar(@Path("id") id:Long):retrofit2.Response<Unit>
@@ -49,8 +50,10 @@ interface ApiService {
     @POST("api/auth/verificar") suspend fun verificar(@Body datos: Verificacion): Acceso
     @POST("api/auth/reenviar-codigo") suspend fun reenviar(@Body datos: Correo): Mensaje
     @GET("api/legal/documentos") suspend fun documentos(): Documentos
+    @PUT("api/perfil") suspend fun actualizarPerfil(@Body datos:PerfilRequest):Usuario
     @GET("api/perfil") suspend fun perfil(): Usuario
     @GET("api/perfil/objetos") suspend fun propios(): List<Objeto>
+    @POST("api/contactos") suspend fun contactar(@Body datos:ContactoRequest):ContactoResultado
     @GET("api/coincidencias/{id}") suspend fun pareja(@Path("id") id: String): Pareja
     @POST("api/coincidencias/{id}/descartar") suspend fun descartar(@Path("id") id: String): EstadoPareja
     @POST("api/coincidencias/{id}/confirmar") suspend fun recuperar(@Path("id") id: String, @Body datos: ConfirmarRecuperacion): Recuperacion

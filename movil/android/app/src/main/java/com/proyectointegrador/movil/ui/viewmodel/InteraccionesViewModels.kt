@@ -16,11 +16,15 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
     private val _resultado=MutableStateFlow<String?>(null);val resultado=_resultado.asStateFlow()
     val puedeGestionar get()=estado.value.datos?.let {it.usuario!=null && it.usuario.id==it.pareja.perdido.publicadoPor?.id &&
         it.pareja.perdido.estado=="ACTIVO" && it.pareja.encontrado.estado=="ACTIVO"}==true
-    fun pedir(tipo:String){if(puedeGestionar && tipo in listOf("recuperar","descartar"))_confirmacion.value=tipo}
+    fun pedir(tipo:String){if(puedeGestionar && tipo in listOf("recuperar","descartar","contactar"))_confirmacion.value=tipo}
     fun cancelar(){if(!accion.value.ocupada)_confirmacion.value=null}
     fun confirmar(){val tipo=_confirmacion.value?:return
         if(!puedeGestionar){rechazar("Solo el titular del perdido activo puede gestionar la pareja.");return}
         ejecutar {
+            if(tipo=="contactar") {
+                val pareja=estado.value.datos!!.pareja
+                val r=repo.contactar(ContactoRequest(pareja.perdido.id,pareja.encontrado.id));informar(if(r.repetido)"Ya existe tu solicitud de contacto." else "Solicitud de contacto registrada.");_confirmacion.value=null;return@ejecutar
+            }
             _resultado.value=if(tipo=="recuperar") {
                 val r=repo.recuperar(id);"Recuperación confirmada. Fecha del servidor: ${r.fechaRecuperacion}."
             } else {repo.descartar(id);"Coincidencia descartada. Se conservará al volver a consultar."}
