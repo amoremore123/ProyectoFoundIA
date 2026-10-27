@@ -21,8 +21,10 @@ conservando la fecha y el actor originales. Cambiarla después devuelve 409.
 Sin sesión: 401; no ADMIN/suspendido: 403; inexistente: 404.
 No hay alta, borrado físico ni edición general de reportes desde el panel (405).
 
-Antes de desplegar en una base existente, revisar y autorizar
-`database/migracion_h28_auditoria_reportes.sql`. **No reimportar script.sql ni seed.sql**.
-Durante el desarrollo no se aplicó esta migración a la base real.
+La migración `database/migracion_h28_auditoria_reportes.sql` se verificó y
+reejecutó en la base compartida el 2026-10-26 con respaldo previo; la base ya
+contenía las columnas y los datos existentes quedaron preservados. Para otra
+base, revisar y autorizar antes de aplicarla. **No reimportar script.sql ni
+seed.sql**.
 
 Pruebas: `python manage.py test nucleo.test_resolucion --settings=config.settings_test --noinput`.

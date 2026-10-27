@@ -442,10 +442,11 @@ el titular del perdido · `404` clave/pareja inválida, retirada o sin similitud
 suficiente · `409` descarte, recuperación previa u otro estado incompatible ·
 `500` fallo inesperado de persistencia, sin cambios parciales ni detalles SQL.
 
-Requisito de despliegue: revisar y aplicar
-`database/migracion_h22_fecha_recuperacion.sql` **solo con autorización sobre la
-base destino y respaldo**. No ejecutar `script.sql` sobre bases existentes.
-La implementación y migración solo se validaron sobre bases temporales de QA.
+`database/migracion_h22_fecha_recuperacion.sql` se verificó y reejecutó en la
+base compartida el 2026-10-26 con respaldo previo; la base ya contenía la columna
+y los datos quedaron intactos. Para otra base, revisar y aplicar **solo con
+autorización sobre la base destino y respaldo**. No ejecutar `script.sql` sobre
+bases existentes.
 Pruebas y alcance: [H22 — API/datos](../pruebas/casos-prueba-h22.md).
 
 ---

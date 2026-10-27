@@ -18,6 +18,9 @@ Spring Boot `:8081`, API común para web/móvil:
   Aviso único por pareja nueva al titular activo/verificado del perdido.
   `enlace` apunta a `/coincidencias/{pareja}`; el destino revalida disponibilidad.
   Consultar/recalcular por GET no escribe avisos ni coincidencias.
+  La publicación y su evento durable se guardan juntos. El aviso se procesa
+  después del commit; un fallo o cola llena deja el evento para reintento, sin
+  revertir la publicación ni duplicar avisos. H23 habilita su propio ejecutor async.
 - H24: GET/PUT `/api/notificaciones/preferencias`. Solo la cuenta del JWT.
   Cuerpo exacto de valores: `{"coincidencias":true,"contactos":true,"reclamos":true}`.
   Los tres booleanos son obligatorios. GET no crea filas; cambiar preferencias
@@ -37,8 +40,11 @@ real. Manejar 400/401/403/404/409 sin ocultar errores ni mostrar éxito anticipa
 ## Base de datos y pruebas
 
 Cinco migraciones incrementales: H22 (fecha), H23 (avisos y eventos), H24
-(preferencias) y H28 (auditoría). Revisar respaldo y autorizar destino antes de
-aplicarlas a la base compartida. **No reimportar script.sql/seed.sql ni usar down -v**.
+(preferencias) y H28 (auditoría). Fueron verificadas y reejecutadas en la base
+compartida el 2026-10-26 con respaldo físico y lógico previo; la base ya contaba
+con el esquema requerido, así que no hubo cambios de esquema ni de datos.
+Para otro entorno, revisar respaldo y autorizar el destino antes de aplicarlas.
+**No reimportar script.sql/seed.sql ni usar down -v**.
 
 Pruebas: Spring con H2 temporal y Django con SQLite en memoria; MySQL solo en
 instancia nueva aislada con guarda, nunca con la conexión habitual de la aplicación.

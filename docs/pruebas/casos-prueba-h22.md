@@ -18,8 +18,10 @@ Contrato: [endpoints](../api/endpoints.md). Web y Android se integran después.
   filtran contactos ni escriben avisos.
 
 La columna nullable `fecha_recuperacion` no rellena fechas históricas.
-Revisar/autorización antes de aplicar `migracion_h22_fecha_recuperacion.sql` en
-una base existente; no reimportar script.sql ni seed.sql.
+La migración `migracion_h22_fecha_recuperacion.sql` se verificó y reejecutó en la
+base compartida el 2026-10-26 con respaldo previo; la columna ya existía y los
+datos quedaron intactos. Para otra base, revisar y autorizar antes de aplicarla.
+No reimportar script.sql ni seed.sql.
 
 ```powershell
 # Desde backend/springboot; usa H2 temporal
