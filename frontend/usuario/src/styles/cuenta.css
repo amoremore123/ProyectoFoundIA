@@ -2,6 +2,7 @@
    FoundIA · Pantallas de cuenta del Sprint 2 (Yajaira)
    H33: términos y privacidad en el registro web.
    H35: recuperar y restablecer la contraseña.
+   H39: compartir publicaciones.
    Usa los tokens de index.css para respetar el modo claro y oscuro.
    ===================================================================== */
 
@@ -44,3 +45,8 @@
 .auth-olvido a { font-weight: 600; color: var(--primary); }
 .auth-olvido a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .banner-error .btn-enlace { display: inline-block; margin-left: 6px; }
+
+/* H39 - Compartir la URL pública de una publicación */
+.compartir-objeto { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.compartir-objeto .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.compartir-objeto .nota-suave { margin: 0; }
