@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
     private var enlace by mutableStateOf<Uri?>(null)
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         enlace=intent.data
     }
     override fun onCreate(savedInstanceState: Bundle?) {
