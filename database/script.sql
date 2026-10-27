@@ -273,6 +273,8 @@ CREATE TABLE reportes (
     estado            VARCHAR(20)  NOT NULL DEFAULT 'PENDIENTE',
     fecha_reporte     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_resolucion  DATETIME     NULL,
+    resolucion        VARCHAR(1000) NULL,
+    resuelto_por_id   BIGINT        NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_reportes_usuario FOREIGN KEY (usuario_id)
         REFERENCES usuarios (id)
@@ -280,6 +282,8 @@ CREATE TABLE reportes (
     CONSTRAINT fk_reportes_objeto FOREIGN KEY (objeto_id)
         REFERENCES objetos (id)
         ON DELETE CASCADE,
+    CONSTRAINT fk_reportes_resuelto_por FOREIGN KEY (resuelto_por_id)
+        REFERENCES usuarios (id) ON DELETE RESTRICT,
     CONSTRAINT chk_reportes_estado
         CHECK (estado IN ('PENDIENTE', 'REVISADO', 'RESUELTO', 'RECHAZADO'))
 ) ENGINE = InnoDB;

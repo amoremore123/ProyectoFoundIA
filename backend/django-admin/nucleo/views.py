@@ -6,6 +6,7 @@ import jwt
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -199,38 +200,18 @@ class ObjetoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         return Response(ObjetoSerializer(objeto).data)
 
 
-class ReporteViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/admin/reportes/ · GET/PUT/PATCH/DELETE /api/admin/reportes/{id}/"""
+class ReporteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H28: consultar y resolver; no crear, reasignar ni borrar denuncias."""
 
     queryset = Reporte.objects.select_related("usuario", "objeto").order_by("id")
     serializer_class = ReporteSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
 
-    @staticmethod
-    def _normalizar_fecha_resolucion(data):
-        """Acepta tambien el alias camelCase del contrato (fechaResolucion)."""
-        if "fecha_resolucion" not in data and "fechaResolucion" in data:
-            data = dict(data)
-            data["fecha_resolucion"] = data["fechaResolucion"]
-        return data
-
-    def update(self, request, *args, **kwargs):
-        return self._actualizar(request, partial=kwargs.pop("partial", False))
-
     def partial_update(self, request, *args, **kwargs):
-        return self._actualizar(request, partial=True)
+        from .resolucion_reportes import resolver_reporte
+        return resolver_reporte(request, kwargs["pk"])
 
-    def _actualizar(self, request, partial):
-        instance = self.get_object()
-        data = self._normalizar_fecha_resolucion(request.data)
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-
-        if (
-            serializer.validated_data.get("estado") == "RESUELTO"
-            and not serializer.validated_data.get("fecha_resolucion")
-        ):
-            serializer.validated_data["fecha_resolucion"] = timezone.now()
-
-        self.perform_update(serializer)
-        return Response(serializer.data)
+    @action(detail=True, methods=["post"])
+    def resolver(self, request, pk=None):
+        from .resolucion_reportes import resolver_reporte
+        return resolver_reporte(request, pk)

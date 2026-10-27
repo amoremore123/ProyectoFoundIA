@@ -91,8 +91,10 @@ class ReporteSerializer(serializers.ModelSerializer):
             "estado",
             "fecha_reporte",
             "fecha_resolucion",
+            "resolucion",
+            "resuelto_por",
         ]
-        read_only_fields = ["id", "fecha_reporte"]
+        read_only_fields = fields
 
 
 class NotificacionSerializer(serializers.ModelSerializer):
