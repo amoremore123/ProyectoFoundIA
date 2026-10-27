@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.ui.sprint
+package com.proyectointegrador.movil.domain
 
 import java.net.URI
 import java.net.URLDecoder

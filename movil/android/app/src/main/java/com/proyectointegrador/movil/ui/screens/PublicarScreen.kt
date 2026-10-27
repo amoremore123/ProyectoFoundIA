@@ -31,43 +31,35 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.proyectointegrador.movil.di.fabrica
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.theme.Background
 import com.proyectointegrador.movil.ui.theme.Danger
 import com.proyectointegrador.movil.ui.theme.Primary
 import com.proyectointegrador.movil.ui.theme.Primary50
 import com.proyectointegrador.movil.ui.theme.SurfaceWhite
-import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
-import kotlinx.coroutines.launch
-
-private const val MENSAJE_H2 = "Se requiere iniciar sesión para publicar (H2)"
-private val FORMATO_FECHA = Regex("^\\d{4}-\\d{2}-\\d{2}$")
+import com.proyectointegrador.movil.ui.viewmodel.PublicarViewModel
+import com.proyectointegrador.movil.ui.sprint.Consulta
+import com.proyectointegrador.movil.ui.sprint.EstadoAccion
 
 @Composable
-fun PublicarScreen(
-    viewModel: ObjetosViewModel = viewModel()
-) {
-    val categorias by viewModel.categorias.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    var tipo by remember { mutableStateOf("PERDIDO") }
-    var nombre by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var categoriaId by remember { mutableStateOf<Long?>(null) }
-    var ubicacion by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
-    var errores by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-
-    LaunchedEffect(Unit) { viewModel.cargarCategorias() }
+fun PublicarScreen(onPublicado:(Long)->Unit={},viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val form by viewModel.form.collectAsStateWithLifecycle()
+    val accion by viewModel.accion.collectAsStateWithLifecycle()
+    val evento by viewModel.evento.collectAsStateWithLifecycle()
+    LaunchedEffect(evento){evento?.toLongOrNull()?.let {viewModel.consumirEvento();onPublicado(it)}}
+    val categorias=estado.datos.orEmpty()
+    val tipo=form.tipo;val nombre=form.nombre;val descripcion=form.descripcion
+    val categoriaId=form.categoriaId;val ubicacion=form.ubicacion;val fecha=form.fecha;val errores=form.errores
 
     Scaffold(
         containerColor = Background,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = {}
     ) { padding ->
         Column(
             modifier = Modifier
@@ -94,12 +86,12 @@ fun PublicarScreen(
                 OpcionTipo(
                     etiqueta = "Perdí un objeto",
                     seleccionada = tipo == "PERDIDO",
-                    onClick = { tipo = "PERDIDO" }
+                    onClick = { viewModel.editar("tipo","PERDIDO") }
                 )
                 OpcionTipo(
                     etiqueta = "Encontré un objeto",
                     seleccionada = tipo == "ENCONTRADO",
-                    onClick = { tipo = "ENCONTRADO" }
+                    onClick = { viewModel.editar("tipo","ENCONTRADO") }
                 )
             }
 
@@ -107,14 +99,14 @@ fun PublicarScreen(
 
             CampoTexto(
                 valor = nombre,
-                onValueChange = { nombre = it },
+                onValueChange = { viewModel.editar("nombre",it) },
                 label = "Nombre *",
                 error = errores["nombre"]
             )
 
             CampoTexto(
                 valor = descripcion,
-                onValueChange = { descripcion = it },
+                onValueChange = { viewModel.editar("descripcion",it) },
                 label = "Descripción *",
                 error = errores["descripcion"],
                 minLines = 3
@@ -154,8 +146,8 @@ fun PublicarScreen(
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .clickable {
-                                    categoriaId = categoria.id
-                                    errores = errores - "categoria"
+                                    viewModel.categoria(categoria.id)
+                                    
                                 }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         )
@@ -166,14 +158,14 @@ fun PublicarScreen(
 
             CampoTexto(
                 valor = ubicacion,
-                onValueChange = { ubicacion = it },
+                onValueChange = { viewModel.editar("ubicacion",it) },
                 label = "Ubicación *",
                 error = errores["ubicacion"]
             )
 
             CampoTexto(
                 valor = fecha,
-                onValueChange = { fecha = it },
+                onValueChange = { viewModel.editar("fecha",it) },
                 label = "Fecha * (yyyy-MM-dd)",
                 error = errores["fecha"]
             )
@@ -184,20 +176,12 @@ fun PublicarScreen(
                 style = MaterialTheme.typography.bodySmall
             )
 
+            estado.error?.let { Text(it,color=Danger);Button(onClick=viewModel::recargar){Text("Reintentar categorías")} }
+            EstadoAccion(accion)
             Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = {
-                    errores = validar(
-                        nombre = nombre,
-                        descripcion = descripcion,
-                        categoriaId = categoriaId,
-                        ubicacion = ubicacion,
-                        fecha = fecha
-                    )
-                    if (errores.isEmpty()) {
-                        scope.launch { snackbarHostState.showSnackbar(MENSAJE_H2) }
-                    }
-                },
+                onClick = viewModel::publicar,
+                enabled = !accion.ocupada && !estado.cargando && estado.error == null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -208,22 +192,6 @@ fun PublicarScreen(
             }
         }
     }
-}
-
-private fun validar(
-    nombre: String,
-    descripcion: String,
-    categoriaId: Long?,
-    ubicacion: String,
-    fecha: String
-): Map<String, String> {
-    val errores = mutableMapOf<String, String>()
-    if (nombre.isBlank()) errores["nombre"] = "El nombre es obligatorio"
-    if (descripcion.isBlank()) errores["descripcion"] = "La descripción es obligatoria"
-    if (categoriaId == null) errores["categoria"] = "Selecciona una categoría"
-    if (ubicacion.isBlank()) errores["ubicacion"] = "La ubicación es obligatoria"
-    if (!FORMATO_FECHA.matches(fecha)) errores["fecha"] = "Usa el formato yyyy-MM-dd"
-    return errores
 }
 
 @Composable

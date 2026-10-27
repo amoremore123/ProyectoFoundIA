@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.proyectointegrador.movil.model.Objeto
-import com.proyectointegrador.movil.network.RetrofitClient
+import com.proyectointegrador.movil.domain.urlImagen
 import com.proyectointegrador.movil.ui.theme.Border
 import com.proyectointegrador.movil.ui.theme.ChipEncontradoBg
 import com.proyectointegrador.movil.ui.theme.ChipPerdidoBg
@@ -61,7 +61,7 @@ fun ObjetoCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val fotoUrl = RetrofitClient.urlAbsoluta(objeto.fotosSeguras.firstOrNull()?.url)
+    val fotoUrl = urlImagen(objeto.fotosSeguras.firstOrNull()?.url)
 
     Card(
         modifier = modifier

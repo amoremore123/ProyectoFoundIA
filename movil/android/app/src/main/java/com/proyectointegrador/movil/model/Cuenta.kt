@@ -23,3 +23,6 @@ data class ResultadoReporte(val id: Long, val objetoId: Long, val estado: String
 data class ConfirmarEliminacion(val confirmar: Boolean = true)
 data class Eliminacion(val id: Long?, val estado: String, val fechaSolicitud: String?, val repetido: Boolean, val informacion: String)
 data class Restablecer(val token: String, val password: String)
+
+data class PublicacionRequest(val categoriaId:Long,val nombre:String,val descripcion:String,val fechaObjeto:String,
+    val tipo:String,val ubicacion:String,val latitud:Double?=null,val longitud:Double?=null)

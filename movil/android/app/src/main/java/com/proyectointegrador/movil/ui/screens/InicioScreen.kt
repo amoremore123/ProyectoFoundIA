@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.proyectointegrador.movil.di.fabrica
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.components.ObjetoCard
 import com.proyectointegrador.movil.ui.theme.Background
 import com.proyectointegrador.movil.ui.theme.Danger
@@ -31,9 +34,10 @@ import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
 @Composable
 fun InicioScreen(
     onObjetoClick: (Long) -> Unit,
-    viewModel: ObjetosViewModel = viewModel()
+    viewModel: ObjetosViewModel = viewModel(factory=fabrica())
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit){viewModel.cargarRecientes()}
 
     Scaffold(containerColor = Background) { padding ->
         Column(
@@ -54,6 +58,7 @@ fun InicioScreen(
                 )
             }
 
+            state.aviso?.let {aviso -> Text(aviso,Modifier.padding(16.dp));Button(onClick=viewModel::cargarRecientes){Text("Actualizar")}}
             when {
                 state.cargando -> Cargando()
 

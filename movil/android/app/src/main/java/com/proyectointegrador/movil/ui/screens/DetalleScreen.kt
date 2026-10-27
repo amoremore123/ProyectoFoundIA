@@ -39,8 +39,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.proyectointegrador.movil.di.fabrica
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.proyectointegrador.movil.network.RetrofitClient
+import com.proyectointegrador.movil.domain.urlImagen
 import com.proyectointegrador.movil.ui.components.TipoChip
 import com.proyectointegrador.movil.ui.theme.Background
 import com.proyectointegrador.movil.ui.theme.Border
@@ -58,12 +60,13 @@ fun DetalleScreen(
     onComparar: (String) -> Unit = {},
     onReportar: (Long) -> Unit = {},
     onAcceso: () -> Unit = {},
-    viewModel: ObjetosViewModel = viewModel()
+    viewModel: ObjetosViewModel = viewModel(factory=fabrica())
 ) {
-    val detalle by viewModel.detalle.collectAsState()
-    val coincidencias by viewModel.coincidencias.collectAsState()
-    val cargando by viewModel.cargandoDetalle.collectAsState()
-    val error by viewModel.errorDetalle.collectAsState()
+    val detalle by viewModel.detalle.collectAsStateWithLifecycle()
+    val coincidencias by viewModel.coincidencias.collectAsStateWithLifecycle()
+    val cargando by viewModel.cargandoDetalle.collectAsStateWithLifecycle()
+    val error by viewModel.errorDetalle.collectAsStateWithLifecycle()
+    val aviso by viewModel.avisoDetalle.collectAsStateWithLifecycle()
 
     LaunchedEffect(objetoId) { viewModel.cargarDetalle(objetoId) }
 
@@ -119,6 +122,7 @@ fun DetalleScreen(
                 objeto = detalle!!,
                 coincidencias = coincidencias,
                 onObjetoClick = onObjetoClick,
+                aviso = aviso,
                 onComparar = onComparar,
                 onReportar = onReportar,
                 onAcceso = onAcceso,
@@ -133,12 +137,13 @@ private fun DetalleContenido(
     objeto: com.proyectointegrador.movil.model.Objeto,
     coincidencias: List<com.proyectointegrador.movil.model.CoincidenciaSugerida>,
     onObjetoClick: (Long) -> Unit,
+    aviso: String?,
     onComparar: (String) -> Unit,
     onReportar: (Long) -> Unit,
     onAcceso: () -> Unit,
     contentPadding: PaddingValues
 ) {
-    val fotoUrl = RetrofitClient.urlAbsoluta(objeto.fotosSeguras.firstOrNull()?.url)
+    val fotoUrl = urlImagen(objeto.fotosSeguras.firstOrNull()?.url)
 
     LazyColumn(
         modifier = Modifier
@@ -147,6 +152,7 @@ private fun DetalleContenido(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        if(aviso!=null) item {Text(aviso)}
         item {
             Box(
                 modifier = Modifier

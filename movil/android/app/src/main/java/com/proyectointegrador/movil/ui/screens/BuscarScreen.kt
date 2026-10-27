@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.proyectointegrador.movil.di.fabrica
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.components.ObjetoCard
 import com.proyectointegrador.movil.ui.theme.Background
 import com.proyectointegrador.movil.ui.theme.Danger
@@ -50,15 +52,12 @@ private val FILTROS = listOf(
 @Composable
 fun BuscarScreen(
     onObjetoClick: (Long) -> Unit,
-    viewModel: ObjetosViewModel = viewModel()
+    viewModel: ObjetosViewModel = viewModel(factory=fabrica())
 ) {
-    val state by viewModel.state.collectAsState()
-    var texto by remember { mutableStateOf("") }
-    var tipo by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(texto, tipo) {
-        viewModel.buscar(q = texto, tipo = tipo)
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
+    val texto=busqueda.texto;val tipo=busqueda.tipo
+    LaunchedEffect(Unit) {viewModel.buscarActual()}
 
     Scaffold(containerColor = Background) { padding ->
         Column(
@@ -75,7 +74,7 @@ fun BuscarScreen(
 
             OutlinedTextField(
                 value = texto,
-                onValueChange = { texto = it },
+                onValueChange = viewModel::editarBusqueda,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 placeholder = { Text("🔍 Buscar objeto...") },
@@ -95,11 +94,13 @@ fun BuscarScreen(
                     FiltroChip(
                         etiqueta = etiqueta,
                         seleccionado = tipo == valor,
-                        onClick = { tipo = valor }
+                        onClick = { viewModel.elegirTipo(valor) }
                     )
                 }
             }
 
+            state.aviso?.let {Text(it)}
+            if(state.error!=null || state.aviso!=null) androidx.compose.material3.Button(onClick=viewModel::buscarActual){Text("Reintentar")}
             when {
                 state.cargando -> Column(
                     modifier = Modifier

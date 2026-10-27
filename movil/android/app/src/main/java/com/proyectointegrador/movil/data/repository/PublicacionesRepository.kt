@@ -6,6 +6,7 @@ import com.proyectointegrador.movil.domain.Lectura
 import com.proyectointegrador.movil.model.*
 import com.proyectointegrador.movil.network.ApiService
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,14 +38,17 @@ class ApiPublicacionesRepository(private val api: ApiService, private val cache:
             if(respaldo!=null) {emit(respaldo.copy(desdeCache=true,aviso="Sin actualizar: mostrando una copia local. Conéctate y reintenta."));return@flow}
             throw e.comoErrorDatos()
         }
-        mutex.withLock {if(inicio==generacion)copia {guardar(datos)}}
+        mutex.withLock {
+            if(inicio!=generacion)throw com.proyectointegrador.movil.domain.ErrorDatos("Los datos cambiaron. Actualiza la consulta.")
+            copia {guardar(datos)}
+        }
         emit(Lectura(datos))
-    }
+    }.flowOn(Dispatchers.IO)
     private fun lista(clave:String, remota:suspend()->List<Objeto>) = consultar({cache.lista(clave)},{cache.guardarLista(clave,it)},remota,{cache.invalidarPublicaciones()})
     override fun listar(tipo:String?)=lista("lista:"+tipo.orEmpty()) {api.listarObjetos(tipo=tipo)}
     override fun buscar(q:String?,tipo:String?):Flow<Lectura<List<Objeto>>> {
         val consulta=q?.trim()?.ifBlank {null}
-        val clave="buscar:"+Gson().toJson(listOf(consulta,tipo))
+        val clave="buscar:"+java.security.MessageDigest.getInstance("SHA-256").digest(Gson().toJson(listOf(consulta,tipo)).toByteArray()).joinToString("") {"%02x".format(it)}
         return lista(clave) {api.buscarObjetos(q=consulta,tipo=tipo)}
     }
     override fun detalle(id:Long)=consultar({cache.detalle(id)},{cache.guardarDetalle(it)},{api.objetoPorId(id)},{cache.retirar(id)})

@@ -4,6 +4,7 @@ import com.proyectointegrador.movil.model.Categoria
 import com.proyectointegrador.movil.model.CoincidenciaSugerida
 import com.proyectointegrador.movil.model.Objeto
 import com.proyectointegrador.movil.model.*
+import retrofit2.http.DELETE
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -40,6 +41,9 @@ interface ApiService {
     @GET("api/objetos/{id}/coincidencias")
     suspend fun coincidencias(@Path("id") id: Long): List<CoincidenciaSugerida>
 
+    @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest):Objeto
+    @PUT("api/objetos/{id}") suspend fun editar(@Path("id") id:Long,@Body datos:PublicacionRequest):Objeto
+    @DELETE("api/objetos/{id}") suspend fun eliminar(@Path("id") id:Long):retrofit2.Response<Unit>
     @POST("api/auth/login") suspend fun login(@Body datos: Login): Acceso
     @POST("api/auth/register") suspend fun registrar(@Body datos: Registro): Mensaje
     @POST("api/auth/verificar") suspend fun verificar(@Body datos: Verificacion): Acceso

@@ -12,14 +12,18 @@ import javax.crypto.spec.GCMParameterSpec
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Solo conserva la sesión cifrada; no almacena contraseñas ni una base de datos local. */
+/** Conserva el JWT cifrado con Android Keystore; no guarda contraseñas ni datos privados en Room. */
 object Sesion {
     private const val ALIAS = "foundia_sesion"
     private lateinit var preferencias: android.content.SharedPreferences
     private val _token = MutableStateFlow<String?>(null)
+    private val contador = java.util.concurrent.atomic.AtomicLong(0)
+    val revision: Long get() = contador.get()
     val token = _token.asStateFlow()
     private val _aviso = MutableStateFlow<String?>(null)
     val aviso = _aviso.asStateFlow()
+    private val _estado=MutableStateFlow(com.proyectointegrador.movil.domain.EstadoSesion(false))
+    val estado=_estado.asStateFlow()
     val actual: String? get() = _token.value
 
     @Synchronized fun iniciar(contexto: Context) {
@@ -33,18 +37,23 @@ object Sesion {
                 String(cifrador.doFinal(Base64.decode(partes[1],Base64.NO_WRAP)),Charsets.UTF_8)
             }
         }.getOrElse { preferencias.edit().clear().commit(); null }
+        _estado.value=com.proyectointegrador.movil.domain.EstadoSesion(actual!=null,revision=revision)
     }
     @Synchronized fun guardar(token: String) {
         val cifrador=Cipher.getInstance("AES/GCM/NoPadding");cifrador.init(Cipher.ENCRYPT_MODE,llave())
         val valor=Base64.encodeToString(cifrador.iv,Base64.NO_WRAP)+":"+
             Base64.encodeToString(cifrador.doFinal(token.toByteArray(Charsets.UTF_8)),Base64.NO_WRAP)
         check(preferencias.edit().putString("acceso",valor).commit()) { "No se pudo guardar la sesión" }
+        contador.incrementAndGet()
         _aviso.value=null
         _token.value=token
+        _estado.value=com.proyectointegrador.movil.domain.EstadoSesion(true,revision=revision)
     }
     @Synchronized fun cerrar(esperado: String? = actual, aviso: String? = null) {
         if (actual != esperado) return
+        contador.incrementAndGet()
         preferencias.edit().clear().commit();_aviso.value=aviso;_token.value=null
+        _estado.value=com.proyectointegrador.movil.domain.EstadoSesion(false,aviso,revision)
     }
     private fun llave(): SecretKey {
         val almacen=KeyStore.getInstance("AndroidKeyStore").apply { load(null) }

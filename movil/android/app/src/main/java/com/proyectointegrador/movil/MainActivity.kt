@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enlace=intent?.data
-        com.proyectointegrador.movil.network.Sesion.iniciar(applicationContext)
         enableEdgeToEdge()
         setContent {
             FoundIATheme {

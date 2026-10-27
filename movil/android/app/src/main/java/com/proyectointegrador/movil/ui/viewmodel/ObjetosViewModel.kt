@@ -1,106 +1,59 @@
 package com.proyectointegrador.movil.ui.viewmodel
 
-import com.proyectointegrador.movil.ui.sprint.mensajeUsuario
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.proyectointegrador.movil.model.Categoria
-import com.proyectointegrador.movil.model.CoincidenciaSugerida
-import com.proyectointegrador.movil.model.Objeto
-import com.proyectointegrador.movil.repository.ObjetoRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import com.proyectointegrador.movil.data.repository.*
+import com.proyectointegrador.movil.model.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
-data class ObjetosUiState(
-    val objetos: List<Objeto> = emptyList(),
-    val cargando: Boolean = false,
-    val error: String? = null
-)
+data class ObjetosUiState(val objetos:List<Objeto> = emptyList(),val cargando:Boolean=false,val error:String?=null,val aviso:String?=null)
+data class FormBusqueda(val texto:String="",val tipo:String?=null)
 
-class ObjetosViewModel : ViewModel() {
-
-    private val repository = ObjetoRepository()
-
-    private val _state = MutableStateFlow(ObjetosUiState())
-    val state: StateFlow<ObjetosUiState> = _state.asStateFlow()
-
-    private val _detalle = MutableStateFlow<Objeto?>(null)
-    val detalle: StateFlow<Objeto?> = _detalle.asStateFlow()
-
-    private val _coincidencias = MutableStateFlow<List<CoincidenciaSugerida>>(emptyList())
-    val coincidencias: StateFlow<List<CoincidenciaSugerida>> = _coincidencias.asStateFlow()
-
-    private val _categorias = MutableStateFlow<List<Categoria>>(emptyList())
-    val categorias: StateFlow<List<Categoria>> = _categorias.asStateFlow()
-
-    private val _cargandoDetalle = MutableStateFlow(false)
-    val cargandoDetalle: StateFlow<Boolean> = _cargandoDetalle.asStateFlow()
-
-    private val _errorDetalle = MutableStateFlow<String?>(null)
-    val errorDetalle: StateFlow<String?> = _errorDetalle.asStateFlow()
-
-    init {
-        cargarRecientes()
-    }
-
-    fun cargarRecientes() {
-        viewModelScope.launch {
-            _state.value = ObjetosUiState(cargando = true)
-            repository.listarObjetos()
-                .onSuccess { lista ->
-                    _state.value = ObjetosUiState(objetos = lista, cargando = false)
-                }
-                .onFailure { error ->
-                    _state.value = ObjetosUiState(cargando = false, error = error.mensaje())
-                }
+class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel() {
+    private val _state=MutableStateFlow(ObjetosUiState());val state=_state.asStateFlow()
+    private val _busqueda=MutableStateFlow(FormBusqueda());val busqueda=_busqueda.asStateFlow()
+    private val _detalle=MutableStateFlow<Objeto?>(null);val detalle=_detalle.asStateFlow()
+    private val _coincidencias=MutableStateFlow<List<CoincidenciaSugerida>>(emptyList());val coincidencias=_coincidencias.asStateFlow()
+    val categorias=repository.observarCategorias().stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
+    private val _errorCategorias=MutableStateFlow<String?>(null);val errorCategorias=_errorCategorias.asStateFlow()
+    private val _cargandoDetalle=MutableStateFlow(false);val cargandoDetalle=_cargandoDetalle.asStateFlow()
+    private val _errorDetalle=MutableStateFlow<String?>(null);val errorDetalle=_errorDetalle.asStateFlow()
+    private val _avisoDetalle=MutableStateFlow<String?>(null);val avisoDetalle=_avisoDetalle.asStateFlow()
+    private var consulta:Job?=null;private var consultaDetalle:Job?=null
+    fun cargarRecientes(){consultar(false)}
+    fun editarBusqueda(texto:String){_busqueda.value=_busqueda.value.copy(texto=texto);consultar(true,300)}
+    fun elegirTipo(tipo:String?){_busqueda.value=_busqueda.value.copy(tipo=tipo);consultar(true)}
+    fun buscarActual(){consultar(true)}
+    private fun consultar(buscar:Boolean,espera:Long=0) {
+        consulta?.cancel();_state.value=ObjetosUiState(cargando=true)
+        consulta=viewModelScope.launch {
+            try {
+                if(espera>0)delay(espera)
+                val f=_busqueda.value
+                val fuente=if(buscar)repository.buscar(f.texto.ifBlank {null},f.tipo) else repository.listar()
+                fuente.collect {_state.value=ObjetosUiState(objetos=it.datos,aviso=it.aviso)}
+            } catch(e:CancellationException){throw e}
+            catch(e:Exception){_state.value=ObjetosUiState(error=e.comoErrorDatos().mensaje)}
         }
     }
-
-    fun buscar(q: String, tipo: String? = null) {
-        viewModelScope.launch {
-            _state.value = ObjetosUiState(cargando = true)
-            repository.buscar(q = q.ifBlank { null }, tipo = tipo)
-                .onSuccess { lista ->
-                    _state.value = ObjetosUiState(objetos = lista, cargando = false)
-                }
-                .onFailure { error ->
-                    _state.value = ObjetosUiState(cargando = false, error = error.mensaje())
-                }
+    fun cargarDetalle(id:Long) {
+        consultaDetalle?.cancel();_detalle.value=null;_coincidencias.value=emptyList();_errorDetalle.value=null;_avisoDetalle.value=null;_cargandoDetalle.value=true
+        consultaDetalle=viewModelScope.launch {
+            try {
+                repository.detalle(id).collect {lectura->_detalle.value=lectura.datos;_avisoDetalle.value=lectura.aviso}
+                _cargandoDetalle.value=false
+                try {_coincidencias.value=repository.coincidencias(id)}
+                catch(e:CancellationException){throw e}
+                catch(e:Exception){_avisoDetalle.value=listOfNotNull(_avisoDetalle.value,"No se pudieron actualizar las coincidencias. Reintenta.").joinToString(" ")}
+            } catch(e:CancellationException){throw e}
+            catch(e:Exception){_errorDetalle.value=e.comoErrorDatos().mensaje;_cargandoDetalle.value=false}
         }
     }
-
-    fun cargarDetalle(id: Long) {
-        _cargandoDetalle.value = true
-        _errorDetalle.value = null
-        _detalle.value = null
-        _coincidencias.value = emptyList()
-
-        viewModelScope.launch {
-            repository.detalle(id)
-                .onSuccess { objeto -> _detalle.value = objeto }
-                .onFailure { error -> _errorDetalle.value = error.mensaje() }
-
-            repository.coincidencias(id)
-                .onSuccess { lista -> _coincidencias.value = lista }
-                .onFailure { /* las coincidencias son opcionales */ }
-
-            _cargandoDetalle.value = false
-        }
-    }
-
-    fun cargarCategorias() {
-        if (_categorias.value.isNotEmpty()) return
-        viewModelScope.launch {
-            repository.categorias()
-                .onSuccess { lista -> _categorias.value = lista }
-                .onFailure { /* el selector de categorias es opcional */ }
-        }
-    }
-
-    fun limpiarError() {
-        _state.value = _state.value.copy(error = null)
-    }
+    fun cargarCategorias(){viewModelScope.launch {
+        try {val lectura=repository.categorias();_errorCategorias.value=lectura.aviso}
+        catch(e:CancellationException){throw e}
+        catch(e:Exception){_errorCategorias.value=e.comoErrorDatos().mensaje}
+    }}
+    fun limpiarError(){_state.value=_state.value.copy(error=null)}
 }
-
-private fun Throwable.mensaje(): String = mensajeUsuario()
