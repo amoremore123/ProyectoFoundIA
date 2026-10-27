@@ -7,10 +7,11 @@ H27, H28 y H29**, según la distribución del PDF y la corrección de alcance de
 No se adelanta el backend de las historias de Amore o Yajaira. No se cambian PDF,
 Word, horas, main ni ramas ajenas.
 
-Leonel termina toda esta parte y entrega el conjunto a Amore. Amore realiza el
-móvil correspondiente y sus tareas; después entrega a Yajaira para web. Leonel
-recibe el sprint integrado para revisarlo y realizar el único cierre final en main.
-No se hace ida/vuelta de ramas por cada historia.
+Leonel termina toda esta parte y entrega el conjunto a Amore. Amore completa sus
+historias propias **H33 y H34** y la capa móvil de **H21-H24, H27, H35 y H39**;
+después entrega a Yajaira, que completa **H30, H31, H35 y H39** y el apoyo web de
+las historias compartidas. Leonel recibe el sprint integrado para revisarlo y
+realizar el único cierre final en main. No se hace ida/vuelta de ramas por historia.
 
 ## API de estas ocho historias
 
@@ -39,9 +40,11 @@ idempotencia documentada si se pierde la respuesta.
 
 1. Recibir el cierre de esta entrega desde `origin/dev/leonel`. Revisar el estado
    local y los conflictos; no forzar ramas ni descartar cambios ajenos.
-2. Amore desarrolla móvil en `mobile/android` e integra su parte en `dev/amore`.
-   Después Yajaira toma la entrega, hace web en `frontend/web` e integra en `dev/yajaira`.
-   Solo Leonel revisa el resultado final y lo lleva a main.
+2. Amore desarrolla en `mobile/android` y `dev/amore`: completa sus historias
+   **H33 y H34** y la capa móvil de **H21-H24, H27, H35 y H39**. Después Yajaira
+   toma la entrega, completa **H30, H31, H35 y H39** y el apoyo web de **H21-H24,
+   H26-H29, H33 y H34** en `frontend/web` y `dev/yajaira`. Solo Leonel revisa el
+   resultado final y lo lleva a main.
 3. Usar la API y MySQL del servidor, no otra base o backend para Android.
    En el emulador, el host del PC suele ser `10.0.2.2`, no `localhost`.
    Configurar el mismo `JWT_SECRET` por entorno en ambos backends; no commitear secretos.

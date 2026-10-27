@@ -108,7 +108,8 @@
   },
   "sin_modificaciones": ["main", "otras ramas", "frontend", "Android", "PDF", "Word", "filas y valores previos de la BD compartida"],
   "pendiente_de_integracion": [
-    "Trabajo y evidencia movil de Amore, despues web de Yajaira",
+    "Amore: historias propias H33 y H34 y capa movil de H21-H24, H27, H35 y H39",
+    "Yajaira: historias propias H30, H31, H35 y H39 y apoyo web de H21-H24, H26-H29, H33 y H34",
     "Revision de Leonel y cierre final del sprint integrado en main"
   ],
   "evidencia_local_fuera_de_git": "foundia-leonel-ocho-vwhmvs16"

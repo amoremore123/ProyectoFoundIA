@@ -2,8 +2,10 @@
 
 Alcance exclusivo: **H21, H22, H23, H24, H26, H27, H28 y H29**.
 Se implementan API/datos y pruebas que el PDF asigna a Leonel. No se adelantan
-historias de otras personas. Amore continúa con móvil; Yajaira con web.
-No se modifica main: Leonel revisará el sprint integrado al final.
+historias de otras personas. Amore continúa con sus historias **H33/H34** y la
+capa móvil de **H21-H24, H27, H35 y H39**; Yajaira con sus historias **H30, H31,
+H35 y H39** y el apoyo web. No se modifica main: Leonel revisará el sprint
+integrado al final.
 
 ## Contratos
 
