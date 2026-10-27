@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDashboard, mensajeError } from '../services/api';
 import Icono from '../components/Icono';
 import useContador from '../hooks/useContador';
-import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 function CifraValor({ valor }) {
   const animado = useContador(valor);
@@ -185,10 +184,9 @@ export default function Dashboard() {
   const generales = [
     { etiqueta: 'Usuarios', valor: datos?.usuarios, icono: 'usuarios' },
     { etiqueta: 'Objetos activos', valor: datos?.objetosActivos, icono: 'caja' },
-    ...(EXTRAS_HABILITADOS ? [
-      { etiqueta: 'Reportes pendientes', valor: datos?.reportesPendientes, icono: 'bandera' },
-      { etiqueta: 'Categorías', valor: datos?.categorias, icono: 'etiqueta' },
-    ] : []),
+    // H29: las cuatro tarjetas históricas se conservan
+    { etiqueta: 'Reportes pendientes', valor: datos?.reportesPendientes, icono: 'bandera' },
+    { etiqueta: 'Categorías', valor: datos?.categorias, icono: 'etiqueta' },
   ];
 
   const periodo = datos?.objetos ? [

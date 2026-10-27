@@ -5,6 +5,7 @@
    H39: compartir publicaciones.
    H34: solicitud de eliminación de la cuenta (Perfil).
    H21-H24: decidir sobre una coincidencia, avisos de coincidencias y preferencias.
+   H27: reportar una publicación.
    Usa los tokens de index.css para respetar el modo claro y oscuro.
    ===================================================================== */
 
@@ -99,3 +100,24 @@ html[data-tema='oscuro'] .eliminacion-chip { color: #fdb022; background: rgba(25
 .preferencia-etiqueta { display: block; font-weight: 600; color: var(--text); }
 .preferencia-ayuda { display: block; font-size: 13px; color: var(--text-soft); }
 .preferencias-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* H27 - Reportar una publicación */
+.reportar-abrir { align-self: flex-start; font-size: 13px; color: var(--text-muted); }
+.reportar-sin-sesion { margin: 0; }
+.reportar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radio);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.reportar-titulo { margin: 0; font-size: 15px; color: var(--text); }
+.reportar .nota-suave { margin: 0; }
+.reportar-motivos { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; }
+.reportar-motivos legend { margin-bottom: 4px; }
+.reportar-motivo { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+.reportar-motivo input { accent-color: var(--primary); }
+.reportar textarea { min-height: 80px; resize: vertical; font: inherit; }
+.reportar-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }

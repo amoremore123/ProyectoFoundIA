@@ -206,6 +206,12 @@ export const confirmarRecuperacion = async (id) => {
   return data;
 };
 
+// H27: denunciar una publicación (el denunciante sale del token)
+export const reportarPublicacion = async (objetoId, { motivo, descripcion }) => {
+  const { data } = await api.post(`/api/objetos/${encodeURIComponent(objetoId)}/reportes`, { motivo, ...(descripcion ? { descripcion } : {}) });
+  return data;
+};
+
 // Notificaciones
 export const getNotificaciones = async () => {
   const { data } = await api.get('/api/notificaciones');

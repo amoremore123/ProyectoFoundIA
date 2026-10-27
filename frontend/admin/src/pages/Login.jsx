@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
-import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 // H15: motivo por el que el panel cerró la sesión (lo envía el interceptor de la API).
 const MOTIVOS = {
@@ -50,12 +49,12 @@ export default function Login() {
         <div className="login-panel-texto">
           <span className="login-panel-etiqueta">Panel administrativo · Tecsup</span>
           <h2>Gestiona los objetos perdidos del campus</h2>
-          <p>{EXTRAS_HABILITADOS ? 'Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.' : 'Gestiona usuarios y modera las publicaciones de la comunidad desde un solo lugar.'}</p>
+          <p>Modera publicaciones, atiende reportes y administra usuarios y categorías desde un solo lugar.</p>
         </div>
         <div className="login-panel-stats">
           <div><strong><Icono nombre="usuarios" tamano={18} /></strong>Usuarios</div>
           <div><strong><Icono nombre="caja" tamano={18} /></strong>Publicaciones</div>
-          {EXTRAS_HABILITADOS && <div><strong><Icono nombre="bandera" tamano={18} /></strong>Reportes</div>}
+          <div><strong><Icono nombre="bandera" tamano={18} /></strong>Reportes</div>
         </div>
       </aside>
 
