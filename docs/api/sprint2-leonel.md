@@ -1,29 +1,47 @@
-# Sprint 2 — contratos API/datos de Leonel
+# Leonel — API/datos de sus ocho historias
 
-Rama `dev/leonel`. No es cierre de historias completas: web y Android se integran
-en los turnos de Yajaira y Amore. No modificar bases compartidas ni llevar entregas
-parciales a `main`. Referencias H21/H22 en [endpoints](endpoints.md).
+Alcance exclusivo: **H21, H22, H23, H24, H26, H27, H28 y H29**.
+Se implementan API/datos y pruebas que el PDF asigna a Leonel. No se adelantan
+historias de otras personas. Amore continúa con móvil; Yajaira con web.
+No se modifica main: Leonel revisará el sprint integrado al final.
 
-## H23 — nuevas coincidencias in-app
+## Contratos
 
-Publicar o editar un objeto compara con el motor H16 y avisa una sola vez al
-titular activo/verificado del perdido por cada pareja nueva. El hallador no
-recibe un aviso de propiedad. Misma categoría, autores distintos, objetos activos,
-umbral H16; se respetan descartes. La escritura del objeto y el aviso son atómicos.
-No se usa push, correo ni chat; consultar o recalcular por GET no escribe datos.
+Spring Boot `:8081`, API común para web/móvil:
 
-`GET /api/notificaciones` conserva el contrato y añade `enlace` nullable. Para
-`COINCIDENCIA_NUEVA` es `/coincidencias/{perdidoId}-{encontradoId}`. El enlace no
-concede permisos y su destino vuelve a validar disponibilidad. La bandeja y lectura
-siguen siendo propias del JWT; no se incluyen correos ni contactos en el aviso.
+- H21: POST `/api/coincidencias/{perdidoId}-{encontradoId}/descartar`.
+  Solo titular del perdido. Repetir no duplica ni revive la pareja. Ver [contrato](endpoints.md).
+- H22: POST `/api/coincidencias/{pareja}/confirmar`, cuerpo
+  `{"confirmarRecuperacion":true}`. Guarda aceptación y recuperación propia de
+  forma atómica, con fecha UTC. No modifica el hallazgo ajeno.
+- H23: GET `/api/notificaciones`, PUT `/api/notificaciones/{id}/leida`.
+  Aviso único por pareja nueva al titular activo/verificado del perdido.
+  `enlace` apunta a `/coincidencias/{pareja}`; el destino revalida disponibilidad.
+  Consultar/recalcular por GET no escribe avisos ni coincidencias.
+- H24: GET/PUT `/api/notificaciones/preferencias`. Solo la cuenta del JWT.
+  Cuerpo exacto de valores: `{"coincidencias":true,"contactos":true,"reclamos":true}`.
+  Los tres booleanos son obligatorios. GET no crea filas; cambiar preferencias
+  solo afecta eventos nuevos y conserva el historial. No se añaden tipos futuros.
+- H27: POST `/api/objetos/{id}/reportes`. Ver [motivos, repetición y privacidad](reportar-publicacion-sprint2.md).
 
-Migración: `database/migracion_h23_avisos_coincidencias.sql`, incremental y
-re-ejecutable solo tras autorización del destino. La unicidad de `avisos_coincidencia`
-evita duplicados sin crear registros de coincidencia al consultar.
+Django `:8000`, solo ADMIN activo:
 
-Pruebas focalizadas H2: **57 aprobadas**, incluidas 5 de H23, H18, H21, H22 y
-publicación. Clases `AvisosCoincidenciaIntegrationTest` y su variante explícita
-`AvisosCoincidenciaMySqlQa`; nunca usar la variante MySQL contra datos compartidos.
-Evidencia local: `foundia-leonel-s2-completo-20261025-181525/h23-final.log`.
-Los mismos **5 casos H23 pasaron en MySQL 8.4.6 / REPEATABLE READ**, base nueva
-`foundia_s2_qa_7f107def8c46`, incluido el evento concurrente; `h23-mysql.log`.
+- H26: [gestión y desactivación lógica de categorías](categorias-sprint2.md).
+- H28: [consulta y resolución auditada de reportes](resolucion-reportes-sprint2.md).
+- H29: [conteos del tablero con rango de fechas](metricas-sprint2.md).
+
+La identidad se obtiene del JWT, no de IDs enviados en el cuerpo. Los clientes
+deben permitir cancelar antes de enviar y confirmar éxito solo tras la respuesta
+real. Manejar 400/401/403/404/409 sin ocultar errores ni mostrar éxito anticipado.
+
+## Base de datos y pruebas
+
+Cinco migraciones incrementales: H22 (fecha), H23 (avisos y eventos), H24
+(preferencias) y H28 (auditoría). Revisar respaldo y autorizar destino antes de
+aplicarlas a la base compartida. **No reimportar script.sql/seed.sql ni usar down -v**.
+
+Pruebas: Spring con H2 temporal y Django con SQLite en memoria; MySQL solo en
+instancia nueva aislada con guarda, nunca con la conexión habitual de la aplicación.
+Las cifras y el estado real de validación se documentan en la entrega a Amore.
+Esta entrega no acredita las pantallas web, APK o integración final que realizan
+después las otras responsables.

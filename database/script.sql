@@ -19,6 +19,7 @@ USE objetos_perdidos_db;
 -- 1. USUARIOS
 -- =====================================================================
 DROP TABLE IF EXISTS reportes;
+DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
 DROP TABLE IF EXISTS reclamos;
 DROP TABLE IF EXISTS notificaciones;
@@ -240,6 +241,14 @@ CREATE TABLE eventos_coincidencia (
  detalle VARCHAR(100) NULL, fecha_creacion DATETIME NOT NULL,
  KEY idx_evento_estado_id(estado,id),
  CONSTRAINT fk_evento_objeto FOREIGN KEY(objeto_id) REFERENCES objetos(id)
+) ENGINE=InnoDB;
+
+-- H24: preferencias propias, aplicadas a eventos futuros.
+CREATE TABLE preferencias_notificacion (
+ usuario_id BIGINT NOT NULL PRIMARY KEY,
+ coincidencias BOOLEAN NOT NULL DEFAULT TRUE, contactos BOOLEAN NOT NULL DEFAULT TRUE,
+ reclamos BOOLEAN NOT NULL DEFAULT TRUE, fecha_actualizacion DATETIME NOT NULL,
+ CONSTRAINT fk_preferencia_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
 
 -- H23: una pareja nueva avisa una sola vez, sin escrituras en los GET.
