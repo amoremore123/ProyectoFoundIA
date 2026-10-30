@@ -1,18 +1,27 @@
 # FoundIA — Plataforma de Objetos Perdidos y Encontrados
 
-## Entrega actual: Sprint 1 (Lab06, H1–H20)
+## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
-Estado actualizado: [integración de Leonel y Yajaira en dev/amore](docs/pruebas/integracion-sprint1-amore-2026-10-20.md).
-La rama integra las APIs H8/H9/H10/H16/H17 de Leonel y las pantallas de Yajaira,
-incluidos filtros avanzados y comparación de coincidencias. Las pruebas y sus
-límites están registrados en el informe; el cierre formal corresponde al equipo.
-Fotos, edición/eliminación, perfil, privacidad, administración de usuarios/publicaciones,
-coincidencias, contacto y reclamos pertenecen a este sprint.
+Estado: las 14 historias están implementadas en `dev/yajaira`, que reúne las tres
+entregas. Falta la revisión final de Leonel y la integración en `main`.
 
-Los extras se ocultan por defecto conservando su código: asistente, historial público,
-secciones adicionales de portada, reportes y gestión de categorías. El catálogo de
-categorías para publicar y buscar sigue disponible. Android se conserva fuera de esta entrega.
-Para reactivar los extras, consulta las instrucciones del informe; no requiere borrar datos.
+- [Entrega de Leonel](docs/integracion/entrega-leonel-sprint2.md) y su
+  [corrección de integración](docs/integracion/correccion-integracion-leonel-sprint2.md):
+  API de H21–H24 y H26–H29.
+- [Entrega de Amore](docs/integracion/entrega-amore-sprint2.md): API de H33–H34 y
+  Android del sprint.
+- [Entrega de Yajaira](docs/integracion/entrega-yajaira-sprint2.md): H30, H31, H35,
+  H39 y la web del sprint.
+
+Pasan al Sprint 3: H25, H32, H36, H37, H38 y H40.
+
+**Sprint 1 (H1–H20):** web y API integradas en `main` desde el 21/10/2026
+([informe](docs/pruebas/integracion-sprint1-amore-2026-10-20.md)). En Android quedan
+pendientes los filtros de ubicación y fecha (H8–H10), la cámara (H2) y el reclamo (H20).
+
+Los extras del Sprint 1 siguen ocultos por defecto conservando su código (asistente,
+historial público y secciones adicionales de portada). Categorías (H26) y reportes
+(H28) ya no dependen de ese interruptor porque son historias del Sprint 2.
 
 Proyecto integrador: plataforma web y móvil para **reportar y buscar objetos
 perdidos o encontrados**. Los usuarios publican objetos (perdidos o
@@ -112,6 +121,9 @@ Boot, la API de Django y el frontend usuario.
 
 Para detener: `docker compose down` (con `-v` borra también los datos).
 
+> **Recuperar contraseña (H35):** el enlace también llega a Mailpit. Vence en 30
+> minutos y sirve una sola vez. Para otro dominio, define `WEB_URL` en el servicio `api`.
+>
 > **Registro (H11):** al registrarte se envía un código de 6 dígitos. En
 > desarrollo los correos no salen a internet: ábrelos en **Mailpit**
 > (http://localhost:8025). Para enviar correos reales con Gmail, define en el
