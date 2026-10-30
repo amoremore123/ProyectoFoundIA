@@ -47,9 +47,9 @@ npx vitest run src/pages/RecuperarPassword.test.jsx src/pages/RestablecerPasswor
 
 - Web usuario: **206 pruebas correctas** en 29 archivos (incluye las de H35) y
   `vite build` correcto.
-- Spring: **no se volvió a ejecutar** el 30/10 porque el entorno de revisión no
-  tenía Java 17 ni acceso a Maven Central. Ejecutar el comando anterior antes del
-  cierre y anotar el resultado aquí.
+- Spring: `mvn verify` con **411 pruebas correctas**, 0 fallos, 0 errores y 0
+  omitidas (incluye los 8 casos de `RecuperarPasswordIntegrationTest`); `BUILD SUCCESS`
+  el 30/10/2026 a las 16:58, con Java 21 y Maven 3.9.16.
 
 ## Pendiente
 

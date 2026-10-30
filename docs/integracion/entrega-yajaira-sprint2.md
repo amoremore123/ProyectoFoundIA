@@ -49,14 +49,14 @@ junto con H33/H34.
 
 ## Validación
 
-Ejecutada el 30/10/2026 sobre una copia limpia de `dev/yajaira` (`4d50a5c`):
+Ejecutada el 30/10/2026 sobre `dev/yajaira` (`4d50a5c`; Spring en el PC de Yajaira):
 
 | Capa | Resultado |
 | --- | --- |
 | Web usuario (Vitest) | **206 pruebas correctas** en 29 archivos; `vite build` correcto |
 | Web admin (Vitest) | **17 pruebas correctas** en 3 archivos; `vite build` correcto |
 | Django (`nucleo`, SQLite en memoria) | **42 pruebas correctas** (10 de H30/H31) |
-| Spring | **No ejecutado** el 30/10: el entorno no tenía Java 17 ni Maven Central. Incluye `RecuperarPasswordIntegrationTest` (8 casos). Ejecutar `mvn verify` antes del cierre |
+| Spring (`mvn verify`, H2 temporal) | **411 pruebas correctas**, 0 fallos, 0 errores, 0 omitidas; JAR generado; `BUILD SUCCESS` (30/10/2026 16:58, Java 21, Maven 3.9.16, Windows 11). Incluye `RecuperarPasswordIntegrationTest` (8 casos) |
 
 Además, la rama se puede integrar con los 6 commits del rediseño de
 `mobile/android` sin conflictos: solo tocan `movil/`.
@@ -93,13 +93,12 @@ se hará un commit por historia.
 
 ## Pendientes declarados
 
-1. **Spring:** ejecutar `mvn verify` y anotar el resultado.
-2. **Evidencias manuales** con API real y Mailpit para H30/H31, H35 y H39 en
+1. **Evidencias manuales** con API real y Mailpit para H30/H31, H35 y H39 en
    `docs/pruebas/evidencias-yajaira-sprint2/` (detalle en cada caso de prueba).
-3. **H35 en Android:** Amore debe probarlo con el APK ahora que la API existe.
-4. **H35 en Django:** el panel ADMIN no invalida tokens anteriores al cambio de
+2. **H35 en Android:** Amore debe probarlo con el APK ahora que la API existe.
+3. **H35 en Django:** el panel ADMIN no invalida tokens anteriores al cambio de
    contraseña. Pasa al Sprint 3.
-5. **Enlace del correo:** abre la web; el formato `foundia://restablecer` de
+4. **Enlace del correo:** abre la web; el formato `foundia://restablecer` de
    Android no se genera todavía.
 
 ## Qué recibe Leonel
