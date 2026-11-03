@@ -88,9 +88,10 @@ class LoginView(APIView):
         usuario.bloqueado_hasta = None
         usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
         secret = os.environ.get("JWT_SECRET", JWT_SECRET_DEFAULT)
-        exp = datetime.now(dt_timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
+        emitido = datetime.now(dt_timezone.utc)
+        exp = emitido + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(
-            {"sub": str(usuario.id), "rol": usuario.rol, "exp": exp},
+            {"sub": str(usuario.id), "rol": usuario.rol, "iat": emitido, "exp": exp},
             secret,
             "HS256",
         )

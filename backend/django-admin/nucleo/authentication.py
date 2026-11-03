@@ -1,5 +1,6 @@
 """Autenticacion JWT compatible con la emision de Spring Boot (HS256)."""
 import os
+import math
 
 import jwt
 from django.utils import timezone
@@ -48,6 +49,15 @@ class JwtAuthentication(BaseAuthentication):
 
         if usuario.bloqueado_hasta and usuario.bloqueado_hasta > timezone.now():
             raise AuthenticationFailed("Tu cuenta está bloqueada temporalmente")
+
+        # H35: la recuperación invalida también los JWT del panel administrativo.
+        # MySQL y los JWT de Spring guardan este límite con precisión de segundos.
+        if usuario.password_actualizado_en:
+            emitido = payload.get("iat")
+            cambio = int(usuario.password_actualizado_en.timestamp())
+            if (isinstance(emitido, bool) or not isinstance(emitido, (int, float))
+                    or not math.isfinite(emitido) or emitido < cambio):
+                raise AuthenticationFailed("Tu contraseña cambió. Inicia sesión de nuevo")
 
         # DRF asigna request.user con el primer elemento de la tupla.
         request.user = usuario
