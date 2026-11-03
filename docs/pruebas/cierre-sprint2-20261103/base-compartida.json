@@ -1,0 +1,39 @@
+{
+  "base": "objetos_perdidos_db",
+  "volumen": "proyectofoundia_mysql_data",
+  "backupSha256": "2c1aeb0bb32bc17f9462d62cf263c9e0b5a8ea5b0b10cf7b9d39bbb07c02ba75",
+  "restauracionVerificada": true,
+  "migraciones": [
+    {
+      "archivo": "migracion_h33_aceptacion_legal.sql",
+      "estado": "Ya aplicada; no se ejecuta otra vez"
+    },
+    {
+      "archivo": "migracion_h34_solicitudes_eliminacion.sql",
+      "estado": "Ya aplicada; no se ejecuta otra vez"
+    },
+    {
+      "archivo": "migracion_h35_recuperacion_password.sql",
+      "estado": "Ya aplicada; no se ejecuta otra vez"
+    }
+  ],
+  "datosPreviosConservados": true,
+  "columnasAgregadas": [],
+  "respaldoLocal": "C:\\Users\\amore\\Documents\\ProyectoIntegrador\\RespaldosFoundIA\\cierre-sprint2-20261103\\objetos_perdidos_db.sql",
+  "tablasPrevias": {
+    "avisos_coincidencia": 4,
+    "categorias": 8,
+    "coincidencias": 1,
+    "contactos": 1,
+    "eventos_coincidencia": 8,
+    "fotos": 9,
+    "notificaciones": 7,
+    "objetos": 16,
+    "preferencias_notificacion": 2,
+    "reclamos": 0,
+    "reportes": 2,
+    "solicitudes_eliminacion": 0,
+    "tokens_recuperacion_password": 1,
+    "usuarios": 7
+  }
+}

@@ -1,0 +1,23 @@
+name: foundia-cierre-s2-qa-20261103
+services:
+  mysql:
+    image: mysql:8.0
+    labels:
+      com.foundia.qa: cierre-sprint2-20261103
+    environment:
+      MYSQL_ROOT_PASSWORD: cierre-s2-qa-local
+      MYSQL_DATABASE: objetos_perdidos_db
+    ports: ["127.0.0.1:13372:3306"]
+    volumes:
+      - ../database/script.sql:/docker-entrypoint-initdb.d/01-script.sql:ro
+      - ../database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pcierre-s2-qa-local"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  mailpit:
+    image: axllent/mailpit:latest
+    labels:
+      com.foundia.qa: cierre-sprint2-20261103
+    ports: ["127.0.0.1:11372:1025", "127.0.0.1:18372:8025"]
