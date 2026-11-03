@@ -1,5 +1,5 @@
 package com.proyectointegrador.movil
-import com.proyectointegrador.movil.ui.sprint.*
+import com.proyectointegrador.movil.domain.*
 import org.junit.Test
 import org.junit.Assert.*
 class EnlacesTest {

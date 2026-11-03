@@ -1,0 +1,28 @@
+{
+  "entorno": "Web existente + API QA + MySQL QA, sin sesión web",
+  "comprobaciones": [
+    {
+      "caso": "creado",
+      "resultado": "correcto",
+      "estado": "ACTIVO",
+      "apiReal": true
+    },
+    {
+      "caso": "editado",
+      "resultado": "correcto",
+      "estado": "ACTIVO",
+      "apiReal": true
+    },
+    {
+      "caso": "recuperado",
+      "resultado": "correcto",
+      "estado": "RECUPERADO",
+      "apiReal": true
+    },
+    {
+      "caso": "eliminado",
+      "resultado": "correcto",
+      "apiReal": true
+    }
+  ]
+}
