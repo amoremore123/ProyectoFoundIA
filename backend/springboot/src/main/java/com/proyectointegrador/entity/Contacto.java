@@ -54,7 +54,7 @@ public class Contacto {
     @PrePersist
     void prePersist() {
         if (fechaContacto == null) {
-            fechaContacto = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaContacto = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }

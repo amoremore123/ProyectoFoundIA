@@ -47,7 +47,7 @@ public class Reclamo {
     @PrePersist
     void prePersist() {
         if (fechaReclamo == null) {
-            fechaReclamo = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaReclamo = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }
