@@ -64,6 +64,12 @@ export const register = async (datos) => {
 };
 
 // H11: verificación de correo
+// H33: términos y política de privacidad vigentes (público, sin sesión)
+export const getDocumentosLegales = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/legal/documentos', { signal });
+  return data;
+};
+
 export const verificarCuenta = async (correo, codigo) => {
   const { data } = await api.post('/api/auth/verificar', { correo, codigo });
   return data;
@@ -71,6 +77,17 @@ export const verificarCuenta = async (correo, codigo) => {
 
 export const reenviarCodigo = async (correo) => {
   const { data } = await api.post('/api/auth/reenviar-codigo', { correo });
+  return data;
+};
+
+// H35: recuperar contraseña (respuesta igual exista o no el correo)
+export const solicitarRecuperacion = async (correo) => {
+  const { data } = await api.post('/api/auth/recuperar-password', { correo });
+  return data;
+};
+
+export const restablecerPassword = async (token, password) => {
+  const { data } = await api.post('/api/auth/restablecer-password', { token, password });
   return data;
 };
 
@@ -156,6 +173,17 @@ export const getPerfil = async () => {
   return data;
 };
 
+// H34: solicitud de eliminación de la cuenta (no ejecuta un borrado)
+export const getSolicitudEliminacion = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/perfil/solicitud-eliminacion', { signal });
+  return data;
+};
+
+export const solicitarEliminacion = async () => {
+  const { data } = await api.post('/api/perfil/solicitud-eliminacion', { confirmar: true });
+  return data;
+};
+
 export const actualizarPerfil = async (payload) => {
   const { data } = await api.put('/api/perfil', payload);
   return data;
@@ -166,9 +194,38 @@ export const getMisObjetos = async () => {
   return data;
 };
 
+// H21: descartar una coincidencia propia (no cambia los objetos)
+export const descartarCoincidencia = async (id) => {
+  const { data } = await api.post(`/api/coincidencias/${encodeURIComponent(id)}/descartar`);
+  return data;
+};
+
+// H22: confirmar que recuperaste tu objeto perdido con esta coincidencia
+export const confirmarRecuperacion = async (id) => {
+  const { data } = await api.post(`/api/coincidencias/${encodeURIComponent(id)}/confirmar`, { confirmarRecuperacion: true });
+  return data;
+};
+
+// H27: denunciar una publicación (el denunciante sale del token)
+export const reportarPublicacion = async (objetoId, { motivo, descripcion }) => {
+  const { data } = await api.post(`/api/objetos/${encodeURIComponent(objetoId)}/reportes`, { motivo, ...(descripcion ? { descripcion } : {}) });
+  return data;
+};
+
 // Notificaciones
 export const getNotificaciones = async () => {
   const { data } = await api.get('/api/notificaciones');
+  return data;
+};
+
+// H24: preferencias de avisos de la cuenta del token
+export const getPreferenciasNotificaciones = async ({ signal } = {}) => {
+  const { data } = await api.get('/api/notificaciones/preferencias', { signal });
+  return data;
+};
+
+export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos }) => {
+  const { data } = await api.put('/api/notificaciones/preferencias', { coincidencias, contactos, reclamos });
   return data;
 };
 

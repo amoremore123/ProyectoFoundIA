@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Service
@@ -44,10 +46,21 @@ public class JwtService {
             Claims claims = parseClaims(token);
             return claims.getSubject().equals(userDetails.getUsername())
                     && claims.getExpiration().after(new Date())
-                    && userDetails.isEnabled();
+                    && userDetails.isEnabled()
+                    && !emitidoAntesDelCambioDePassword(claims, userDetails);
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    /** H35: tras restablecer la contraseña, las sesiones abiertas antes deben iniciar sesión otra vez. */
+    private boolean emitidoAntesDelCambioDePassword(Claims claims, UserDetails userDetails) {
+        if (!(userDetails instanceof UserPrincipal principal) || principal.getPasswordActualizadoEn() == null) {
+            return false;
+        }
+        Date emitido = claims.getIssuedAt();
+        Instant cambio = principal.getPasswordActualizadoEn().truncatedTo(ChronoUnit.SECONDS);
+        return emitido == null || emitido.toInstant().isBefore(cambio);
     }
 
     private Claims parseClaims(String token) {

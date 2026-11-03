@@ -44,6 +44,9 @@ app:
     max-pixels: ${UPLOAD_MAX_PIXELS:40000000}
   mail:
     from: ${MAIL_FROM:no-reply@foundia.dev}
+  web:
+    # H35: dirección de la web de usuario para armar el enlace de recuperación
+    url: ${WEB_URL:http://localhost:5173}
   jwt:
     secret: ${JWT_SECRET:foundia-dev-jwt-secret-cambiar-en-produccion-123456}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

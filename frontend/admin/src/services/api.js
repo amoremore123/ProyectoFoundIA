@@ -76,9 +76,12 @@ export const loginAdmin = async (correo, password) => {
   return data;
 };
 
-// Dashboard
-export const getDashboard = async () => {
-  const { data } = await api.get('/api/admin/dashboard/');
+// Dashboard (H29: rango opcional desde/hasta AAAA-MM-DD; H30/H31 vienen en la misma respuesta)
+export const getDashboard = async ({ desde, hasta } = {}, { signal } = {}) => {
+  const params = {};
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  const { data } = await api.get('/api/admin/dashboard/', { params, signal });
   return data;
 };
 
@@ -97,8 +100,12 @@ export const patchPublicacion = async (id, payload) => {
   return data;
 };
 
-export const getReportes = async () => {
-  const { data } = await api.get('/api/admin/reportes/');
+// H28: todas las páginas del listado (DRF pagina de 10 en 10)
+export const getReportes = async () => obtenerTodas('/api/admin/reportes/');
+
+// H28: resolver o rechazar con una explicación; el actor y la fecha los pone el servidor
+export const resolverReporte = async (id, { estado, resolucion }) => {
+  const { data } = await api.post(`/api/admin/reportes/${id}/resolver/`, { estado, resolucion });
   return data;
 };
 
@@ -107,10 +114,8 @@ export const patchReporte = async (id, payload) => {
   return data;
 };
 
-export const getCategorias = async () => {
-  const { data } = await api.get('/api/admin/categorias/');
-  return data;
-};
+// H26: todas las páginas, incluidas las desactivadas
+export const getCategorias = async () => obtenerTodas('/api/admin/categorias/');
 
 export const crearCategoria = async (payload) => {
   const { data } = await api.post('/api/admin/categorias/', payload);

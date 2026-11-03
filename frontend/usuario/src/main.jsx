@@ -7,6 +7,7 @@ import './styles/objetos.css';
 import './styles/campus.css';
 import './styles/interaccion.css';
 import './styles/rediseno.css';
+import './styles/cuenta.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

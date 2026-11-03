@@ -20,3 +20,33 @@ Sin resultados se devuelven ceros, no un error ni datos ficticios.
 
 Pruebas con datos conocidos:
 `python manage.py test nucleo.test_metricas --settings=config.settings_test --noinput`.
+
+# H30 y H31 — recuperación y rankings (Yajaira)
+
+El mismo `GET /api/admin/dashboard/` (mismos permisos y mismos filtros `desde`/`hasta`
+sobre `fecha_publicacion`, UTC, solo publicaciones ACTIVO/RECUPERADO) agrega:
+
+```json
+"recuperacion": {"promedioHoras": 27.0, "promedioDias": 1.1, "medianaHoras": 27.0,
+                 "minimoHoras": 6.0, "maximoHoras": 48.0, "muestra": 2,
+                 "sinFecha": 0, "fechasIncoherentes": 0},
+"categoriasTop": [{"id": 2, "nombre": "Celulares", "total": 3, "perdidos": 3, "encontrados": 0}],
+"ubicacionesTop": [{"nombre": "Biblioteca", "total": 3, "perdidos": 2, "encontrados": 1}],
+"sinUbicacion": 2
+```
+
+- **H30** `recuperacion`: horas entre `fecha_publicacion` y `fecha_recuperacion`
+  (columna de H22) de los objetos PERDIDOS en estado RECUPERADO. `muestra` indica
+  cuántos entraron al cálculo. Los recuperados antiguos sin fecha no se inventan
+  (`sinFecha`) y una recuperación anterior a la publicación se excluye
+  (`fechasIncoherentes`). Sin recuperaciones, los tiempos son `null` (no 0).
+- **H31** "reportes" = publicaciones de objetos (perdidos + encontrados), no
+  denuncias de moderación. Se devuelven como máximo 5 por lista, ordenadas por
+  `total` (desempate por nombre). La ubicación es texto libre: se agrupan
+  variantes de mayúsculas y espacios ("Biblioteca", " biblioteca ") y se muestra
+  la forma más usada. Las publicaciones sin ubicación se informan en `sinUbicacion`.
+- No se expone ningún dato de personas.
+
+Requiere la migración `database/migracion_h22_fecha_recuperacion.sql` (ya entregada en H22).
+
+Pruebas: `python manage.py test nucleo.test_metricas_h30_h31 --settings=config.settings_test --noinput`.

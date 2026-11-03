@@ -1,12 +1,13 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import Notificaciones from './Notificaciones';
-import { getNotificaciones, marcarNotificacionLeida } from '../services/api';
+import Notificaciones, { enlaceInterno } from './Notificaciones';
+import { getNotificaciones, getPreferenciasNotificaciones, marcarNotificacionLeida } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(), getNotificaciones: vi.fn(), marcarNotificacionLeida: vi.fn(),
+  getPreferenciasNotificaciones: vi.fn(),
 }));
 
 let servidor;
@@ -23,6 +24,7 @@ function renderizar() {
 beforeEach(() => {
   vi.resetAllMocks();
   servidor = AVISOS.map((n) => ({ ...n }));
+  getPreferenciasNotificaciones.mockResolvedValue({ coincidencias: true, contactos: true, reclamos: true });
   getNotificaciones.mockImplementation(async () => servidor.map((n) => ({ ...n })));
   marcarNotificacionLeida.mockImplementation(async (id) => {
     servidor = servidor.map((n) => (n.id === id ? { ...n, leida: true } : n));
@@ -87,5 +89,51 @@ describe('H18/H20 - Pantalla de notificaciones', () => {
     expect(screen.queryByText('No tienes notificaciones todavía.')).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByText('Nuevo reclamo de objeto')).toBeTruthy();
+  });
+});
+
+describe('H23 - Aviso de posible coincidencia', () => {
+  const AVISO = { id: 5, tipo: 'COINCIDENCIA_NUEVA', titulo: 'Posible coincidencia para tu objeto', mensaje: 'Encontramos un objeto parecido a tu mochila.', leida: false, fechaCreacion: '2026-10-20T08:00:00', enlace: '/coincidencias/15-27' };
+
+  function renderizarConRutas() {
+    return render(
+      <MemoryRouter initialEntries={['/notificaciones']}>
+        <Routes>
+          <Route path="/notificaciones" element={<Notificaciones />} />
+          <Route path="/coincidencias/:id" element={<p>Pantalla de comparación</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it('marca el aviso como leído y abre la comparación de la pareja', async () => {
+    const user = userEvent.setup();
+    servidor = [{ ...AVISO }];
+    renderizarConRutas();
+    expect(await screen.findByText('Posible coincidencia')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /Posible coincidencia: .*Abre la coincidencia/ }));
+
+    await waitFor(() => expect(marcarNotificacionLeida).toHaveBeenCalledWith(5));
+    expect(await screen.findByText('Pantalla de comparación')).toBeTruthy();
+  });
+
+  it('si no se pudo marcar como leído no navega', async () => {
+    const user = userEvent.setup();
+    servidor = [{ ...AVISO }];
+    marcarNotificacionLeida.mockRejectedValueOnce({ response: { status: 500, data: {} } });
+    renderizarConRutas();
+    await user.click(await screen.findByRole('button', { name: /Posible coincidencia/ }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(screen.queryByText('Pantalla de comparación')).toBeNull();
+  });
+
+  it('solo acepta enlaces internos conocidos', () => {
+    expect(enlaceInterno('/coincidencias/15-27')).toBe('/coincidencias/15-27');
+    expect(enlaceInterno('/objeto/9')).toBe('/objeto/9');
+    expect(enlaceInterno('https://sitio-falso.example/coincidencias/1')).toBeNull();
+    expect(enlaceInterno('//sitio-falso.example')).toBeNull();
+    expect(enlaceInterno('/perfil')).toBeNull();
+    expect(enlaceInterno(null)).toBeNull();
   });
 });

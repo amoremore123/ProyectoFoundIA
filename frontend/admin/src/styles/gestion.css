@@ -1,0 +1,20 @@
+/* =====================================================================
+   FoundIA admin · Gestión del Sprint 2 (Yajaira)
+   H26: categorías (edición y desactivación confirmada).
+   H28: resolución de reportes con explicación.
+   ===================================================================== */
+
+.nota-tabla { margin: 0; font-size: 13px; color: var(--text-soft); }
+.celda-detalle { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--text-soft); overflow-wrap: anywhere; }
+
+.fila-edicion td { vertical-align: top; }
+.fila-edicion .input { min-width: 140px; }
+
+.filtro-segmentos { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.resolver-panel { border-color: var(--primary-100); }
+.resolver-opciones { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 0; border: 0; }
+.resolver-opciones legend { margin-bottom: 6px; }
+.resolver-opciones label { display: inline-flex; align-items: center; gap: 6px; color: var(--text); cursor: pointer; }
+.resolver-opciones input { accent-color: var(--primary); }
+.textarea { min-height: 84px; height: auto; padding-top: 10px; padding-bottom: 10px; resize: vertical; font: inherit; }

@@ -1,0 +1,82 @@
+{
+  "fecha": "2026-10-27",
+  "rama": "mobile/android",
+  "pruebasUnitarias": [
+    {
+      "name": "com.proyectointegrador.movil.ContratoApiTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.EnlacesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.RepositoriosMvvmTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.proyectointegrador.movil.ViewModelsMvvmTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "totalUnitarias": 26,
+  "androidReal": {
+    "pruebas": 5,
+    "resultado": "correcto",
+    "emuladorDedicado": "emulator-5560",
+    "servidor": "copia del JAR existente + MySQL QA :13370"
+  },
+  "web": {
+    "comprobaciones": 4,
+    "resultado": "correcto"
+  },
+  "cacheInterfaz": {
+    "comprobaciones": 3,
+    "resultado": "correcto"
+  },
+  "lint": {
+    "errores": 0,
+    "advertencias": 16
+  },
+  "compilacion": "correcta",
+  "apk": {
+    "rutaLocal": "movil\\android\\output\\FoundIA-MVVM-Room.apk",
+    "bytes": 11550061,
+    "sha256": "37af78155a5e4974af489009c28a411f79add6411e735e3283c62e4e2b111353"
+  },
+  "ramasProtegidasSinCambios": {
+    "dev/amore": "95c945335c53f73476ec791b0809fed349cbc469",
+    "dev/leonel": "bfceb95b9823906e6ba589d7912a95f821458ae5",
+    "dev/yajaira": "d7c90379c979c3372f5f6ec1c275d30f1928413f",
+    "frontend/web": "143decf4980e117422706ad5bf84c9f15b82a20f",
+    "main": "d7c90379c979c3372f5f6ec1c275d30f1928413f"
+  },
+  "mysqlCompartidoModificado": false,
+  "backendModificado": false,
+  "publicadoRemoto": false,
+  "commitsImplementacion": [
+    "9a7307c Identificar las categorÃ­as de cachÃ© sin simular un guardado remoto",
+    "612c42c Probar migraciones Room, estados MVVM y sincronizaciÃ³n con la API real",
+    "e7a179d Separar las pantallas de los repositorios mediante ViewModels",
+    "1a51841 AÃ±adir caducidad de cachÃ© y migraciÃ³n Room sin borrar registros",
+    "d00a406 Configurar Room y los repositorios de cachÃ© pÃºblica en Android"
+  ],
+  "limites": [
+    "No acredita el cierre de todas las historias o el rediseño completo del documento de contexto.",
+    "H35 permanece dependiente de la API del equipo; no se inventó un backend.",
+    "Las pruebas del backend real se ejecutaron con una copia del JAR existente, no con los cambios aún en curso de otros integrantes.",
+    "Tras añadir el aviso de categorías de caché se repitieron las 26 unitarias y se comprobó la interfaz sin conexión con el APK actualizado."
+  ]
+}

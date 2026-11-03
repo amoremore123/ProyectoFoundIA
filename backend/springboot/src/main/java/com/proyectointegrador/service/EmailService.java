@@ -23,6 +23,33 @@ public class EmailService {
         this.remitente = remitente;
     }
 
+    /** H35: enlace de un solo uso para definir una contraseña nueva. */
+    public void enviarEnlaceRecuperacion(String destinatario, String nombre, String enlace, long minutosVigencia) {
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setFrom(remitente);
+        mensaje.setTo(destinatario);
+        mensaje.setSubject("FoundIA | Restablece tu contraseña");
+        mensaje.setText("""
+                Hola %s,
+
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta de FoundIA.
+                Abre este enlace para definir una contraseña nueva:
+
+                %s
+
+                El enlace vence en %d minutos y solo se puede usar una vez.
+                Si no lo solicitaste, ignora este correo: tu contraseña no cambiará.
+
+                Equipo FoundIA
+                """.formatted(nombre, enlace, minutosVigencia));
+        try {
+            mailSender.send(mensaje);
+        } catch (MailException ex) {
+            log.error("No se pudo enviar el enlace de recuperación de contraseña", ex);
+            throw new EnvioCorreoException("No pudimos enviar el enlace de recuperación.");
+        }
+    }
+
     public void enviarCodigoVerificacion(String destinatario, String nombre, String codigo, long minutosVigencia) {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setFrom(remitente);

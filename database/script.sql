@@ -305,3 +305,17 @@ CREATE TABLE IF NOT EXISTS solicitudes_eliminacion (
     CONSTRAINT uk_solicitud_eliminacion_usuario UNIQUE (usuario_id),
     CONSTRAINT fk_solicitud_eliminacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H35: recuperación de contraseña. En bases existentes usar migracion_h35_recuperacion_password.sql.
+ALTER TABLE usuarios ADD COLUMN password_actualizado_en DATETIME NULL;
+CREATE TABLE IF NOT EXISTS tokens_recuperacion_password (
+    id          BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    usuario_id  BIGINT      NOT NULL,
+    token_hash  CHAR(64)    NOT NULL,
+    creado_en   DATETIME(6) NOT NULL,
+    expira_en   DATETIME(6) NOT NULL,
+    usado_en    DATETIME(6) NULL,
+    CONSTRAINT uk_token_recuperacion_hash UNIQUE (token_hash),
+    CONSTRAINT fk_token_recuperacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    INDEX idx_token_recuperacion_usuario (usuario_id, creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

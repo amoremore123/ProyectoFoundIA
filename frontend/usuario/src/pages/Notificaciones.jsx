@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
+import PreferenciasNotificaciones from '../components/PreferenciasNotificaciones';
 import { getNotificaciones, marcarNotificacionLeida, mensajeError } from '../services/api';
 import { avisarCambioNotificaciones } from '../hooks/useNotificaciones';
 
@@ -17,7 +19,14 @@ function fechaHora(valor) {
 const TIPOS = {
   CONTACTO_RECIBIDO: { etiqueta: 'Solicitud de contacto', clase: 'tipo-contacto' },
   RECLAMO_RECIBIDO: { etiqueta: 'Reclamo', clase: 'tipo-reclamo' },
+  // H23: aviso de una pareja nueva para quien perdió el objeto
+  COINCIDENCIA_NUEVA: { etiqueta: 'Posible coincidencia', clase: 'tipo-coincidencia' },
 };
+
+// H23: solo se navega a rutas internas conocidas; el destino vuelve a validar la disponibilidad
+export function enlaceInterno(enlace) {
+  return typeof enlace === 'string' && /^\/(coincidencias|objeto)\/[A-Za-z0-9-]+$/.test(enlace) ? enlace : null;
+}
 
 // Notificaciones propias (las del usuario del token). Abrir un aviso lo marca como leído.
 export default function Notificaciones() {
@@ -26,6 +35,7 @@ export default function Notificaciones() {
   const [errorCarga, setErrorCarga] = useState('');
   const [errorMarcar, setErrorMarcar] = useState('');
   const [marcando, setMarcando] = useState(null);
+  const navigate = useNavigate();
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -46,13 +56,18 @@ export default function Notificaciones() {
   }, [cargar]);
 
   const abrir = async (noti) => {
-    if (noti.leida) return;
+    const destino = enlaceInterno(noti.enlace);
+    if (noti.leida) {
+      if (destino) navigate(destino);
+      return;
+    }
     setMarcando(noti.id);
     setErrorMarcar('');
     try {
       await marcarNotificacionLeida(noti.id);
       setNotificaciones((prev) => prev.map((n) => (n.id === noti.id ? { ...n, leida: true } : n)));
       avisarCambioNotificaciones(); // actualiza el contador de la campana
+      if (destino) navigate(destino);
     } catch (e) {
       setErrorMarcar(mensajeError(e, 'No se pudo marcar la notificación como leída'));
     } finally {
@@ -76,8 +91,12 @@ export default function Notificaciones() {
       <p className="nota-suave notificaciones-ayuda">
         Recibes un aviso de <strong>solicitud de contacto</strong> cuando el dueño de un objeto perdido cree que
         coincide con algo que publicaste como encontrado, y un aviso de <strong>reclamo</strong> cuando alguien
-        dice que un objeto que publicaste es suyo. Tus datos de contacto nunca se comparten.
+        dice que un objeto que publicaste es suyo. También te avisamos de <strong>posibles coincidencias</strong> con
+        tus objetos perdidos. Tus datos de contacto nunca se comparten.
       </p>
+
+      {/* H24 */}
+      <PreferenciasNotificaciones />
 
       <MensajeError mensaje={errorCarga} onReintentar={cargar} />
       <MensajeError mensaje={errorMarcar} />
@@ -102,7 +121,7 @@ export default function Notificaciones() {
                   className={`notificacion${noti.leida ? '' : ' no-leida'}`}
                   onClick={() => abrir(noti)}
                   disabled={marcando === noti.id}
-                  aria-label={`${tipo.etiqueta}: ${noti.titulo}. ${noti.leida ? 'Leída' : 'Sin leer, pulsa para marcarla como leída'}`}
+                  aria-label={`${tipo.etiqueta}: ${noti.titulo}. ${noti.leida ? 'Leída' : 'Sin leer, pulsa para marcarla como leída'}${enlaceInterno(noti.enlace) ? '. Abre la coincidencia' : ''}`}
                 >
                   <span className="notificacion-icono" aria-hidden="true">
                     <Icono nombre="campana" tamano={18} />

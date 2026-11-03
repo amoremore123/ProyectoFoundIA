@@ -9,6 +9,8 @@ import Portada from './pages/Portada';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
 import Verificar from './pages/Verificar';
+import RecuperarPassword from './pages/RecuperarPassword';
+import RestablecerPassword from './pages/RestablecerPassword';
 import Buscar from './pages/Buscar';
 import Publicar from './pages/Publicar';
 import Detalle from './pages/Detalle';
@@ -34,6 +36,8 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
               <Route path="/verificar" element={<Verificar />} />
+              <Route path="/recuperar-password" element={<RecuperarPassword />} />
+              <Route path="/restablecer-password" element={<RestablecerPassword />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Portada />} />
                 <Route path="/explorar" element={<Inicio />} />
