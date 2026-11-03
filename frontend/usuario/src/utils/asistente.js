@@ -305,3 +305,6 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
 }
 
 export const SUGERENCIAS_INICIALES = SUGERENCIAS;
+
+// H46: palabras del dominio de FoundIA para elegir la mejor alternativa del dictado por voz
+export const VOCABULARIO = Array.from(new Set([...SINONIMOS.flat(), ...COLORES, ...LUGARES]));

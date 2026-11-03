@@ -135,15 +135,44 @@ describe('Asistente por voz - ChatAsistente', () => {
     expect(screen.getByRole('status').textContent).toContain('Escuchando');
   });
 
-  it('lo que se dicta se envía al asistente como una pregunta', async () => {
+  it('muestra el texto mientras se habla y deja revisar lo dictado antes de enviarlo', async () => {
     const user = await abrir();
     await user.click(screen.getByRole('button', { name: 'Hablar con el asistente' }));
+    const caja = screen.getByRole('textbox', { name: /escribe tu mensaje/i });
+    const parcial = Object.assign([{ transcript: 'busco una' }], { isFinal: false });
+    await act(async () => { ultimo.onresult({ results: [parcial] }); });
+    expect(caja.value).toBe('busco una');
+
+    // Entre varias alternativas elige la que usa el vocabulario de FoundIA y corrige "a la 204"
+    const final = Object.assign(
+      [{ transcript: 'busco una muchila negra en a la 204' }, { transcript: 'busco una mochila negra en a la 204' }],
+      { isFinal: true },
+    );
     await act(async () => {
-      ultimo.onresult({ results: [[{ transcript: 'busco una mochila negra' }]] });
+      ultimo.onresult({ results: [final] });
       ultimo.onend();
     });
-    expect(await screen.findByText('busco una mochila negra')).toBeTruthy();
+    expect(caja.value).toBe('busco una mochila negra en aula 204');
+    expect(screen.getByRole('status').textContent).toContain('Revisa el texto');
+    expect(buscarObjetos).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
+    expect(await screen.findByText('busco una mochila negra en aula 204')).toBeTruthy();
     expect(await screen.findByText('Mochila negra con libros')).toBeTruthy();
+  });
+
+  it('si el navegador no tiene español de Perú reintenta con español latinoamericano', async () => {
+    const user = await abrir();
+    await user.click(screen.getByRole('button', { name: 'Hablar con el asistente' }));
+    const primero = ultimo;
+    await act(async () => {
+      primero.onerror({ error: 'language-not-supported' });
+      primero.onend();
+    });
+    expect(ultimo).not.toBe(primero);
+    expect(ultimo.lang).toBe('es-419');
+    expect(ultimo.iniciado).toBe(true);
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('si se niega el permiso del micrófono lo explica y se puede seguir escribiendo', async () => {

@@ -30,8 +30,16 @@ export default function ChatAsistente() {
   const contador = useRef(0);
   const [leerRespuestas, setLeerRespuestas] = useState(false);
   const avisoVozMostrado = useRef(false);
-  const preguntarRef = useRef(null);
-  const voz = useVoz({ alReconocer: (dicho) => preguntarRef.current?.(dicho) });
+  const [dictado, setDictado] = useState(false);
+  // H46: lo dictado se escribe en la caja para revisarlo y corregirlo antes de enviar
+  const voz = useVoz({
+    alParcial: (parcial) => setTexto(parcial),
+    alReconocer: (dicho) => {
+      setTexto(dicho);
+      setDictado(true);
+      inputRef.current?.focus();
+    },
+  });
 
   const agregar = (mensaje) => {
     contador.current += 1;
@@ -43,6 +51,7 @@ export default function ChatAsistente() {
     if (!limpio || pensando) return;
     agregar({ de: 'usuario', texto: limpio });
     setTexto('');
+    setDictado(false);
     setPensando(true);
     try {
       if (!categoriasRef.current) categoriasRef.current = lista(await listarCategorias());
@@ -66,7 +75,6 @@ export default function ChatAsistente() {
       setPensando(false);
     }
   }, [pensando, leerRespuestas, voz.leer]);
-  preguntarRef.current = preguntar;
 
   // Mensaje enviado desde otra página (p. ej. el buscador de la portada)
   useEffect(() => {
@@ -213,7 +221,10 @@ export default function ChatAsistente() {
               ref={inputRef}
               className="chat-input"
               value={texto}
-              onChange={(e) => setTexto(e.target.value)}
+              onChange={(e) => {
+                setTexto(e.target.value);
+                if (!e.target.value) setDictado(false);
+              }}
               placeholder="Ej. Perdí mi casaca azul en el aula 204"
               aria-label="Escribe tu mensaje al asistente"
               maxLength={300}
@@ -235,6 +246,9 @@ export default function ChatAsistente() {
             </button>
           </form>
           {voz.escuchando && <p className="chat-voz-estado" role="status">Escuchando… habla ahora</p>}
+          {!voz.escuchando && dictado && texto && (
+            <p className="chat-voz-estado" role="status">Revisa el texto, corrígelo si hace falta y pulsa Enviar.</p>
+          )}
           {voz.errorVoz && <p className="chat-voz-error" role="alert">{voz.errorVoz}</p>}
         </section>
       )}
