@@ -35,5 +35,7 @@
     "solicitudes_eliminacion": 0,
     "tokens_recuperacion_password": 1,
     "usuarios": 7
-  }
+  },
+  "verificacionFinalFilasIguales": true,
+  "fechasCambioFuturas": 0
 }

@@ -1,0 +1,360 @@
+{
+  "fecha": "2026-11-03",
+  "rama": "dev/amore",
+  "integracion": {
+    "yajaira": "dc0b5f1",
+    "merge": "0166c8c",
+    "redisenioAndroid": "f390325",
+    "sprint1Conservado": "18b6860"
+  },
+  "spring": {
+    "pruebas": 411,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0,
+    "clases": [
+      {
+        "clase": "com.proyectointegrador.controller.AuthControllerTest",
+        "pruebas": 13,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.AvisosCoincidenciaIntegrationTest",
+        "pruebas": 6,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.CategoriaControllerTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.CategoriasPublicacionIntegrationTest",
+        "pruebas": 2,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ConfirmarRecuperacionIntegrationTest",
+        "pruebas": 31,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ContactoIntegrationTest",
+        "pruebas": 6,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.DescartarCoincidenciaIntegrationTest",
+        "pruebas": 19,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.EdicionPublicacionIntegrationTest",
+        "pruebas": 4,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.FiltrosCoincidenciasIntegrationTest",
+        "pruebas": 44,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.FiltrosCombinadosIntegrationTest",
+        "pruebas": 17,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.FotoPublicacionIntegrationTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.LegalCuentaIntegrationTest",
+        "pruebas": 7,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ObjetoControllerTest",
+        "pruebas": 28,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ObjetoPublicacionIntegrationTest",
+        "pruebas": 1,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.PerfilIntegrationTest",
+        "pruebas": 8,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.PreferenciasIntegrationTest",
+        "pruebas": 14,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.PrivacidadIntegrationTest",
+        "pruebas": 7,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.PublicacionesPropiasIntegrationTest",
+        "pruebas": 8,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ReclamoIntegrationTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.RecuperarPasswordIntegrationTest",
+        "pruebas": 8,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.controller.ReportarPublicacionIntegrationTest",
+        "pruebas": 10,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.dto.ObjetoRequestValidationTest",
+        "pruebas": 27,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.dto.RegisterRequestValidationTest",
+        "pruebas": 16,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.dto.UsuarioResumenTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.security.JwtServiceTest",
+        "pruebas": 4,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.security.UserPrincipalTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.AuthSecurityIntegrationTest",
+        "pruebas": 9,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.AuthServiceTest",
+        "pruebas": 24,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.BusquedaObjetosIntegrationTest",
+        "pruebas": 57,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.CoincidenciaCriteriosTest",
+        "pruebas": 17,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.CoincidenciaRendimientoIntegrationTest",
+        "pruebas": 1,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.DocumentosLegalesTest",
+        "pruebas": 1,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.service.ObjetoServiceTest",
+        "pruebas": 7,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      }
+    ],
+    "jarGenerado": true
+  },
+  "django": {
+    "pruebas": 49,
+    "fallos": 0
+  },
+  "webUsuario": {
+    "pruebas": 208,
+    "fallos": 0,
+    "compila": true
+  },
+  "webAdmin": {
+    "pruebas": 17,
+    "fallos": 0,
+    "compila": true
+  },
+  "android": {
+    "pruebasUnitarias": 38,
+    "instrumentadas": 6,
+    "fallos": 0,
+    "clases": [
+      {
+        "clase": "com.proyectointegrador.movil.ContratoApiTest",
+        "pruebas": 5,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.movil.EnlacesTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.movil.ExperienciaTest",
+        "pruebas": 3,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.movil.RedisenioViewModelsTest",
+        "pruebas": 6,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.movil.RepositoriosMvvmTest",
+        "pruebas": 10,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      },
+      {
+        "clase": "com.proyectointegrador.movil.ViewModelsMvvmTest",
+        "pruebas": 11,
+        "fallos": 0,
+        "errores": 0,
+        "omitidas": 0
+      }
+    ],
+    "version": "1.2.1",
+    "versionCode": 4,
+    "apiEntrega": "http://10.0.2.2:8081/",
+    "webEntrega": "http://10.0.2.2:5173/",
+    "lint": "0 errors, 26 warnings"
+  },
+  "historiasRevisadas": [
+    "H21",
+    "H22",
+    "H23",
+    "H24",
+    "H26",
+    "H27",
+    "H28",
+    "H29",
+    "H30",
+    "H31",
+    "H33",
+    "H34",
+    "H35",
+    "H39"
+  ],
+  "peticionesHttpQa": 58,
+  "baseCompartida": {
+    "backupRestauradoEnQa": true,
+    "filasConservadas": true,
+    "migracionesYaAplicadas": [
+      "H33",
+      "H34",
+      "H35"
+    ],
+    "reimportacion": false,
+    "borradoDeVolumenes": false
+  },
+  "apk": {
+    "ruta": "movil\\android\\output\\FoundIA-Sprint2-Amore-1.2.1.apk",
+    "bytes": 12077523,
+    "sha256": "686889b740e9d5cddec0503a70a818eefc4d1a2a766da41875ec0533c3fc7df8"
+  },
+  "jar": {
+    "ruta": "output\\FoundIA-Sprint2-Amore-20261103.jar",
+    "bytes": 60549710,
+    "sha256": "ea5135fe18824459f18c187e25df6a0c45daf56cd49d995551390078260054e8"
+  },
+  "mainModificado": false,
+  "etiquetaSprint2Creada": false,
+  "prExistenteDeReferencia": "https://github.com/amoremore123/ProyectoFoundIA/pull/5",
+  "ramaRemotaDeEntrega": "origin/dev/amore"
+}
