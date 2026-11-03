@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -72,6 +72,7 @@ describe('Asistente con IA - ChatAsistente', () => {
 
     expect(await screen.findByText('Celular Samsung Galaxy A54')).toBeTruthy();
   });
+
   it('indica si la respuesta viene del motor local', async () => {
     interpretarConIA.mockRejectedValue(new Error('Not Found'));
     await preguntar('Busco una mochila negra');
@@ -85,5 +86,74 @@ describe('Asistente con IA - ChatAsistente', () => {
     });
     await preguntar('perdí mi celular');
     expect(await screen.findByText('Interpretado con IA')).toBeTruthy();
+  });
+});
+
+// H46 - Voz en la web con un reconocimiento de voz simulado (no se usa un micrófono real)
+describe('Asistente por voz - ChatAsistente', () => {
+  let ultimo;
+  class ReconocimientoFalso {
+    constructor() { ultimo = this; this.iniciado = false; }
+    start() { this.iniciado = true; }
+    stop() { this.onend?.(); }
+    abort() { this.onend?.(); }
+  }
+
+  async function abrir() {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AsistenteProvider>
+          <ChatAsistente />
+        </AsistenteProvider>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: /abrir asistente/i }));
+    return user;
+  }
+
+  beforeEach(() => {
+    ultimo = null;
+    interpretarConIA.mockRejectedValue(new Error('Not Found'));
+    window.webkitSpeechRecognition = ReconocimientoFalso;
+  });
+  afterEach(() => { delete window.webkitSpeechRecognition; });
+
+  it('sin soporte del navegador no muestra el micrófono', async () => {
+    delete window.webkitSpeechRecognition;
+    await abrir();
+    expect(screen.queryByRole('button', { name: 'Hablar con el asistente' })).toBeNull();
+  });
+
+  it('avisa de la privacidad de la voz antes de escuchar y usa español de Perú', async () => {
+    const user = await abrir();
+    await user.click(screen.getByRole('button', { name: 'Hablar con el asistente' }));
+    expect(screen.getByText(/tu navegador envía el audio/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver la política de privacidad' }).getAttribute('href')).toBe('/privacidad');
+    expect(ultimo.lang).toBe('es-PE');
+    expect(ultimo.iniciado).toBe(true);
+    expect(screen.getByRole('status').textContent).toContain('Escuchando');
+  });
+
+  it('lo que se dicta se envía al asistente como una pregunta', async () => {
+    const user = await abrir();
+    await user.click(screen.getByRole('button', { name: 'Hablar con el asistente' }));
+    await act(async () => {
+      ultimo.onresult({ results: [[{ transcript: 'busco una mochila negra' }]] });
+      ultimo.onend();
+    });
+    expect(await screen.findByText('busco una mochila negra')).toBeTruthy();
+    expect(await screen.findByText('Mochila negra con libros')).toBeTruthy();
+  });
+
+  it('si se niega el permiso del micrófono lo explica y se puede seguir escribiendo', async () => {
+    const user = await abrir();
+    await user.click(screen.getByRole('button', { name: 'Hablar con el asistente' }));
+    await act(async () => {
+      ultimo.onerror({ error: 'not-allowed' });
+      ultimo.onend();
+    });
+    expect(screen.getByRole('alert').textContent).toContain('No diste permiso para usar el micrófono');
+    expect(screen.getByRole('textbox', { name: /escribe tu mensaje/i })).toBeTruthy();
   });
 });

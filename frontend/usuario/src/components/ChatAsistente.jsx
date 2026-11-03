@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Icono from './Icono';
 import ChipTipo from './ChipTipo';
 import { useAsistente } from '../context/AsistenteContext';
+import useVoz from '../hooks/useVoz';
 import { buscarObjetos, fotoUrl, interpretarConIA, listarCategorias, mensajeError } from '../services/api';
 import { adaptarInterpretacion, responder, SUGERENCIAS_INICIALES } from '../utils/asistente';
 
@@ -15,6 +16,8 @@ const BIENVENIDA = {
 
 const lista = (data) => (Array.isArray(data) ? data : data?.results || []);
 
+const AVISO_VOZ = 'Para entender tu voz, tu navegador envía el audio a su servicio de reconocimiento (Google en Chrome, Microsoft en Edge). FoundIA no guarda tu voz. Si prefieres, puedes escribir.';
+
 // Chat flotante del asistente de búsqueda (disponible en todas las páginas del MainLayout)
 export default function ChatAsistente() {
   const { abierto, abrir, cerrar, pendiente, consumirPendiente } = useAsistente();
@@ -25,6 +28,10 @@ export default function ChatAsistente() {
   const finRef = useRef(null);
   const inputRef = useRef(null);
   const contador = useRef(0);
+  const [leerRespuestas, setLeerRespuestas] = useState(false);
+  const avisoVozMostrado = useRef(false);
+  const preguntarRef = useRef(null);
+  const voz = useVoz({ alReconocer: (dicho) => preguntarRef.current?.(dicho) });
 
   const agregar = (mensaje) => {
     contador.current += 1;
@@ -48,6 +55,7 @@ export default function ChatAsistente() {
       const respuesta = responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta });
       // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
       agregar({ de: 'bot', fuente: consulta ? 'ia' : 'local', ...respuesta });
+      if (leerRespuestas) voz.leer(respuesta.texto);
     } catch (e) {
       agregar({
         de: 'bot',
@@ -57,7 +65,8 @@ export default function ChatAsistente() {
     } finally {
       setPensando(false);
     }
-  }, [pensando]);
+  }, [pensando, leerRespuestas, voz.leer]);
+  preguntarRef.current = preguntar;
 
   // Mensaje enviado desde otra página (p. ej. el buscador de la portada)
   useEffect(() => {
@@ -79,6 +88,20 @@ export default function ChatAsistente() {
     return () => window.removeEventListener('keydown', alPresionar);
   }, [abierto, cerrar]);
 
+  // H46: el primer uso del micrófono muestra el aviso de privacidad de la voz
+  const usarMicrofono = () => {
+    if (!avisoVozMostrado.current && !voz.escuchando) {
+      avisoVozMostrado.current = true;
+      agregar({ de: 'bot', texto: AVISO_VOZ, avisoVoz: true });
+    }
+    voz.escuchar();
+  };
+
+  const alternarLectura = () => {
+    if (leerRespuestas) voz.callar();
+    setLeerRespuestas((v) => !v);
+  };
+
   const enviar = (e) => {
     e.preventDefault();
     preguntar(texto);
@@ -94,6 +117,18 @@ export default function ChatAsistente() {
               <strong>Asistente FoundIA</strong>
               <span><i className="chat-estado" /> Búsqueda inteligente · Tecsup</span>
             </div>
+            {voz.soportaLectura && (
+              <button
+                type="button"
+                className={`chat-cerrar chat-leer${leerRespuestas ? ' activo' : ''}`}
+                onClick={alternarLectura}
+                aria-pressed={leerRespuestas}
+                aria-label={leerRespuestas ? 'Dejar de leer las respuestas en voz alta' : 'Leer las respuestas en voz alta'}
+                title={leerRespuestas ? 'Lectura en voz alta activada' : 'Leer respuestas en voz alta'}
+              >
+                <Icono nombre={leerRespuestas ? 'volumen' : 'volumenOff'} tamano={18} />
+              </button>
+            )}
             <button type="button" className="chat-cerrar" onClick={cerrar} aria-label="Cerrar asistente">
               <Icono nombre="cerrar" tamano={18} />
             </button>
@@ -104,6 +139,9 @@ export default function ChatAsistente() {
               <div key={m.id} className={`chat-fila ${m.de === 'usuario' ? 'chat-fila-usuario' : ''}`}>
                 <div className={`chat-burbuja ${m.de === 'usuario' ? 'chat-burbuja-usuario' : ''} ${m.error ? 'chat-burbuja-error' : ''}`}>
                   <p>{m.texto}</p>
+                  {m.avisoVoz && (
+                    <Link to="/privacidad" className="chat-aviso-enlace" onClick={cerrar}>Ver la política de privacidad</Link>
+                  )}
                   {m.fuente && (
                     <span className={`chat-fuente chat-fuente-${m.fuente}`}>
                       {m.fuente === 'ia' ? 'Interpretado con IA' : 'Respuesta del motor local'}
@@ -180,10 +218,24 @@ export default function ChatAsistente() {
               aria-label="Escribe tu mensaje al asistente"
               maxLength={300}
             />
+            {voz.soportaDictado && (
+              <button
+                type="button"
+                className={`chat-microfono${voz.escuchando ? ' escuchando' : ''}`}
+                onClick={usarMicrofono}
+                disabled={pensando}
+                aria-pressed={voz.escuchando}
+                aria-label={voz.escuchando ? 'Dejar de escuchar' : 'Hablar con el asistente'}
+              >
+                <Icono nombre="microfono" tamano={18} />
+              </button>
+            )}
             <button type="submit" className="chat-enviar" disabled={!texto.trim() || pensando} aria-label="Enviar mensaje">
               <Icono nombre="enviar" tamano={18} />
             </button>
           </form>
+          {voz.escuchando && <p className="chat-voz-estado" role="status">Escuchando… habla ahora</p>}
+          {voz.errorVoz && <p className="chat-voz-error" role="alert">{voz.errorVoz}</p>}
         </section>
       )}
 
