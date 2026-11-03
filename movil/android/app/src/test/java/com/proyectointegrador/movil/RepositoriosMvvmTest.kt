@@ -82,4 +82,22 @@ class RepositoriosMvvmTest {
         withContext(Dispatchers.IO){servidor.takeRequest()};tarea.cancelAndJoin()
         assertTrue(tarea.isCancelled);assertTrue(cache.listas.isEmpty())
     }
+    @Test fun recuperarSinSesionConservaLaPantallaDeConfirmacion()=runBlocking {
+        sesion.cerrar();val revision=sesion.revision
+        responder(Mensaje("Contraseña actualizada"))
+        cuenta.restablecer("TokenValidoDePrueba123456","Nueva123!")
+        assertEquals(revision,sesion.revision);assertFalse(sesion.autenticado);assertEquals(1,cache.invalidaciones)
+    }
+    @Test fun recuperarConSesionExigeNuevoAccesoYExplicaElCambio()=runBlocking {
+        responder(Mensaje("Contraseña actualizada"))
+        cuenta.restablecer("TokenValidoDePrueba123456","Nueva123!")
+        assertFalse(sesion.autenticado);assertTrue(sesion.aviso.orEmpty().contains("contraseña se actualizó"))
+    }
+    @Test fun enlaceVencidoNoCierraSesionNiAnunciaUnCambio()=runBlocking {
+        val revision=sesion.revision
+        responder(mapOf("mensaje" to "El enlace no es válido o ya venció."),400)
+        assertTrue(runCatching {cuenta.restablecer("TokenVencidoDePrueba1234","Nueva123!")}.isFailure)
+        assertEquals(revision,sesion.revision);assertTrue(sesion.autenticado);assertNull(sesion.aviso);assertEquals(0,cache.invalidaciones)
+    }
+
 }

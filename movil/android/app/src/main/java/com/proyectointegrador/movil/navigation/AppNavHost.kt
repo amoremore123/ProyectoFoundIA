@@ -51,9 +51,12 @@ import com.proyectointegrador.movil.ui.sprint.*
             controlador.isAppearanceLightNavigationBars=!fondoOscuro
         }}
         var recuperacion by remember {mutableStateOf<String?>(null)}
+        var aperturaRecuperacion by remember {mutableLongStateOf(0L)}
         LaunchedEffect(enlace) { if(enlace!=null) {
             recuperacion=tokenDeRecuperacion(enlace.toString(),BuildConfig.WEB_URL)
-            nav.navigate("nueva-clave") {launchSingleTop=true};consumirEnlace()
+            aperturaRecuperacion++
+            // Cada apertura vuelve a validar el enlace, incluso si se abre de nuevo el mismo.
+            nav.navigate("nueva-clave") {popUpTo(nav.graph.startDestinationId){inclusive=false};launchSingleTop=true};consumirEnlace()
         } }
         fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
         val volver:()->Unit={nav.popBackStack();Unit}
@@ -88,7 +91,7 @@ import com.proyectointegrador.movil.ui.sprint.*
                     VerificarScreen(it.arguments?.getString("correo").orEmpty().takeUnless {it=="_"}.orEmpty(),volver)
                 }
                 composable("recuperar") {RecuperarScreen(volver)}
-                composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver,entrar={recuperacion=null;abrir("perfil")})}
+                composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver,entrar={recuperacion=null;abrir("perfil")},apertura=aperturaRecuperacion)}
                 composable("detalle/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                     DetalleScreen(objetoId=it.arguments!!.getLong("id"),onBack=volver,onObjetoClick={abrir("detalle/$it")},
                         onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")})
