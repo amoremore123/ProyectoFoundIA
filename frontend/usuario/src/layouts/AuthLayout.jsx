@@ -55,6 +55,7 @@ export default function AuthLayout({ children }) {
         </ul>
 
         <p className="auth-panel-pie">© 2026 FoundIA · Proyecto integrador Tecsup</p>
+        <p className="auth-panel-legal"><a href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a><a href="/terminos" target="_blank" rel="noopener noreferrer">Términos</a></p>
       </aside>
 
       <main className="auth-contenido">{children}</main>

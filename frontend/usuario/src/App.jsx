@@ -18,6 +18,7 @@ import DetalleCoincidencia from './pages/DetalleCoincidencia';
 import Perfil from './pages/Perfil';
 import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
+import Legal from './pages/Legal';
 import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
@@ -43,6 +44,8 @@ export default function App() {
                 <Route path="/explorar" element={<Inicio />} />
                 <Route path="/historial" element={EXTRAS_HABILITADOS ? <HistorialObjetos /> : <Navigate to="/explorar" replace />} />
                 <Route path="/buscar" element={<Buscar />} />
+                <Route path="/privacidad" element={<Legal tipo="privacidad" />} />
+                <Route path="/terminos" element={<Legal tipo="terminos" />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
                 <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route

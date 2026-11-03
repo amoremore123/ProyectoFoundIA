@@ -72,7 +72,7 @@ export default function Portada() {
 
     <footer className="portada-footer">
       <div className="portada-footer-marca"><Logo tamano={28} /><p>Objetos perdidos y encontrados en la comunidad Tecsup.</p></div>
-      <nav className="portada-footer-links" aria-label="Enlaces del sitio"><Link to={EXTRAS_HABILITADOS ? '/historial' : '/explorar'}>{EXTRAS_HABILITADOS ? 'Historial' : 'Publicaciones'}</Link><Link to="/buscar">Buscar</Link><a href="#como-funciona">Cómo funciona</a><a href="#preguntas-frecuentes">Preguntas frecuentes</a></nav>
+      <nav className="portada-footer-links" aria-label="Enlaces del sitio"><Link to={EXTRAS_HABILITADOS ? '/historial' : '/explorar'}>{EXTRAS_HABILITADOS ? 'Historial' : 'Publicaciones'}</Link><Link to="/buscar">Buscar</Link><a href="#como-funciona">Cómo funciona</a><a href="#preguntas-frecuentes">Preguntas frecuentes</a><Link to="/privacidad">Privacidad</Link><Link to="/terminos">Términos</Link></nav>
       <p className="portada-footer-legal">© 2026 FoundIA · Proyecto integrador Tecsup</p>
     </footer>
   </div>;

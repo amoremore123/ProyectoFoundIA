@@ -4,21 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
+import TextoLegal from '../components/TextoLegal';
 import { getDocumentosLegales, mensajeError, statusDe } from '../services/api';
 import { REGLAS_PASSWORD, validarRegistro } from '../utils/validaciones';
-
-// Muestra el texto de los documentos (Markdown simple: títulos con # y ##, párrafos)
-function TextoLegal({ texto }) {
-  return texto
-    .split('\n')
-    .map((linea) => linea.trim())
-    .filter(Boolean)
-    .map((linea, i) => {
-      if (linea.startsWith('## ')) return <h4 key={i}>{linea.slice(3)}</h4>;
-      if (linea.startsWith('# ')) return <h3 key={i}>{linea.slice(2)}</h3>;
-      return <p key={i}>{linea}</p>;
-    });
-}
 
 // H11 - Registro de usuario con validaciones y envío de código al correo
 // H33 - Aceptación expresa de los términos y la política de privacidad vigentes
@@ -214,6 +202,10 @@ export default function Registro() {
                   <TextoLegal texto={documentos.privacidad} />
                 </div>
               </details>
+              <p className="legal-enlaces-registro">
+                <a href="/terminos" target="_blank" rel="noopener noreferrer">Abrir los Términos en una página aparte</a>
+                <a href="/privacidad" target="_blank" rel="noopener noreferrer">Abrir la Política de privacidad en una página aparte</a>
+              </p>
               <label className="legal-casilla">
                 <input
                   type="checkbox"

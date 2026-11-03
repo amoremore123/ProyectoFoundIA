@@ -121,3 +121,23 @@ html[data-tema='oscuro'] .eliminacion-chip { color: #fdb022; background: rgba(25
 .reportar-motivo input { accent-color: var(--primary); }
 .reportar textarea { min-height: 80px; resize: vertical; font: inherit; }
 .reportar-botones { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* H48 - Páginas públicas de privacidad y términos */
+.legal-pagina { max-width: 820px; }
+.legal-pagina-texto {
+  margin-top: 14px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radio-sm);
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.legal-pagina-texto h3 { margin: 4px 0 10px; font-size: 20px; color: var(--text); }
+.legal-pagina-texto h4 { margin: 18px 0 6px; font-size: 16px; color: var(--text); }
+.legal-pagina-texto p { margin: 0 0 10px; }
+.legal-pagina-enlaces { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; font-weight: 600; }
+.legal-enlaces-registro { display: flex; flex-wrap: wrap; gap: 14px; margin: 0; font-size: 13px; }
+.auth-panel-legal { display: flex; gap: 14px; margin: 0; font-size: 12.5px; }
+.auth-panel-legal a { color: inherit; text-decoration: underline; }
