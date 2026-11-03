@@ -10,7 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import Usuario
 
 # Mismo default que usa Spring Boot en desarrollo; sobrescribir con JWT_SECRET.
-JWT_SECRET_DEFAULT = "foundia-jwt-secret-key-cambiar-en-produccion"
+JWT_SECRET_DEFAULT = "foundia-dev-jwt-secret-cambiar-en-produccion-123456"
 
 
 def get_jwt_secret() -> str:
@@ -38,10 +38,14 @@ class JwtAuthentication(BaseAuthentication):
                 get_jwt_secret(),
                 algorithms=["HS256"],
             )
-            usuario_id = payload.get("sub")
-            if usuario_id is None:
+            identidad = payload.get("sub")
+            if not isinstance(identidad, str) or not identidad:
                 raise ValueError("token sin sub")
-            usuario = Usuario.objects.get(pk=int(usuario_id))
+            # Spring emite el correo. Se conservan los tokens Django anteriores por ID.
+            if identidad.isdecimal():
+                usuario = Usuario.objects.get(pk=int(identidad))
+            else:
+                usuario = Usuario.objects.get(correo__iexact=identidad)
         except AuthenticationFailed:
             raise
         except Exception:

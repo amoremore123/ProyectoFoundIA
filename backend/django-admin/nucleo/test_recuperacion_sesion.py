@@ -40,6 +40,7 @@ class SesionTrasRecuperacionTests(APITestCase):
         self.assertEqual(respuesta.status_code, 200)
         payload = jwt.decode(respuesta.data["token"], get_jwt_secret(), algorithms=["HS256"])
         self.assertIn("iat", payload)
+        self.assertEqual(payload["sub"], self.admin.correo)
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + respuesta.data["token"])
         self.assertEqual(self.client.get("/api/admin/usuarios/").status_code, 200)
 
@@ -51,3 +52,17 @@ class SesionTrasRecuperacionTests(APITestCase):
     def test_precision_del_limite_coincide_con_spring(self):
         limite = int(self.admin.password_actualizado_en.timestamp())
         self.assertEqual(self.consultar(limite).status_code, 200)
+
+    def test_token_por_correo_de_spring_es_compatible(self):
+        token = jwt.encode({"sub": self.admin.correo, "iat": self.ahora,
+                            "exp": self.ahora + timedelta(hours=1)}, get_jwt_secret(), "HS256")
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
+        self.assertEqual(self.client.get("/api/admin/usuarios/").status_code, 200)
+
+    def test_rol_de_la_base_prevalece_sobre_el_claim(self):
+        self.admin.rol = "USUARIO"
+        self.admin.save(update_fields=["rol"])
+        token = jwt.encode({"sub": self.admin.correo, "rol": "ADMIN", "iat": self.ahora,
+                            "exp": self.ahora + timedelta(hours=1)}, get_jwt_secret(), "HS256")
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
+        self.assertEqual(self.client.get("/api/admin/usuarios/").status_code, 403)
