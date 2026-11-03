@@ -45,7 +45,9 @@ export default function ChatAsistente() {
         interpretarConIA(limpio).catch(() => null),
       ]);
       const consulta = adaptarInterpretacion(ia, categoriasRef.current);
-      agregar({ de: 'bot', ...responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta }) });
+      const respuesta = responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta });
+      // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
+      agregar({ de: 'bot', fuente: consulta ? 'ia' : 'local', ...respuesta });
     } catch (e) {
       agregar({
         de: 'bot',
@@ -102,6 +104,11 @@ export default function ChatAsistente() {
               <div key={m.id} className={`chat-fila ${m.de === 'usuario' ? 'chat-fila-usuario' : ''}`}>
                 <div className={`chat-burbuja ${m.de === 'usuario' ? 'chat-burbuja-usuario' : ''} ${m.error ? 'chat-burbuja-error' : ''}`}>
                   <p>{m.texto}</p>
+                  {m.fuente && (
+                    <span className={`chat-fuente chat-fuente-${m.fuente}`}>
+                      {m.fuente === 'ia' ? 'Interpretado con IA' : 'Respuesta del motor local'}
+                    </span>
+                  )}
 
                   {m.resultados?.length > 0 && (
                     <ul className="chat-resultados">

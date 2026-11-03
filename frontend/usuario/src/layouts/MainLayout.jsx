@@ -4,7 +4,6 @@ import BottomNav from '../components/BottomNav';
 import ChatAsistente from '../components/ChatAsistente';
 import { AsistenteProvider } from '../context/AsistenteContext';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
-import { EXTRAS_HABILITADOS } from '../config/alcance';
 
 export default function MainLayout() {
   useRevelarEnScroll();
@@ -17,7 +16,8 @@ export default function MainLayout() {
           <Outlet />
         </main>
         <BottomNav />
-        {EXTRAS_HABILITADOS && <ChatAsistente />}
+        {/* H45: el asistente es parte del Sprint 3; ya no depende del interruptor de extras */}
+        <ChatAsistente />
       </div>
     </AsistenteProvider>
   );

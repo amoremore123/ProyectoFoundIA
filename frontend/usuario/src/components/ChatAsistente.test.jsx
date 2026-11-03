@@ -72,4 +72,18 @@ describe('Asistente con IA - ChatAsistente', () => {
 
     expect(await screen.findByText('Celular Samsung Galaxy A54')).toBeTruthy();
   });
+  it('indica si la respuesta viene del motor local', async () => {
+    interpretarConIA.mockRejectedValue(new Error('Not Found'));
+    await preguntar('Busco una mochila negra');
+    expect(await screen.findByText('Respuesta del motor local')).toBeTruthy();
+  });
+
+  it('indica cuando la frase fue interpretada con IA', async () => {
+    interpretarConIA.mockResolvedValue({
+      intencion: 'buscar', tipoBuscado: 'ENCONTRADO', categoria: { id: 1, nombre: 'Celular' },
+      ubicacion: 'biblioteca', palabras: ['celular'], colores: [],
+    });
+    await preguntar('perdí mi celular');
+    expect(await screen.findByText('Interpretado con IA')).toBeTruthy();
+  });
 });
