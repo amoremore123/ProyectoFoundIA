@@ -2,8 +2,12 @@
 
 ## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
-Estado: las 14 historias están implementadas en `dev/yajaira`, que reúne las tres
-entregas. Falta la revisión final de Leonel y la integración en `main`.
+Estado al 03/11/2026: `dev/amore` integra la entrega de `dev/yajaira`, el rediseño
+Android y la revisión final de las 14 historias. Pasaron 411 pruebas Spring,
+49 Django, 208 + 17 web y 38 + 6 Android; H35 se comprobó en el APK con API real.
+El cierre en `main` y la etiqueta `sprint-2` quedan pendientes del equipo.
+
+- [Revisión integrada, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).
 
 - [Entrega de Leonel](docs/integracion/entrega-leonel-sprint2.md) y su
   [corrección de integración](docs/integracion/correccion-integracion-leonel-sprint2.md):
@@ -43,8 +47,8 @@ publicaciones y reportes.
 | Backend administrativo | Python · Django 5 · Django REST Framework |
 | Frontend usuario | React 18 · Vite · JavaScript · React Router · Axios |
 | Frontend administrador | React 18 · Vite · JavaScript · React Router · Axios |
-| Móvil | Kotlin · Jetpack Compose · Navigation Compose · Retrofit |
-| Base de datos | MySQL 8 |
+| Móvil | Kotlin · Jetpack Compose · MVVM · Room (SQLite local) · Retrofit |
+| Base de datos | MySQL 8 compartido; SQLite/Room como caché Android |
 | Contenedores | Docker · Docker Compose |
 
 ## 2. Arquitectura
@@ -73,9 +77,9 @@ PROYECTO-INTEGRADOR/
 │   ├── usuario/           # App pública (React + Vite)     :5173
 │   └── admin/             # Panel administrativo (React)   :5174
 ├── movil/
-│   └── android/           # Avance futuro, fuera de la entrega Sprint 1
+│   └── android/           # App Android integrada del Sprint 2
 ├── database/
-│   ├── script.sql         # Esquema completo (9 tablas)
+│   ├── script.sql         # Esquema para instalaciones nuevas
 │   ├── seed.sql           # Datos iniciales de desarrollo
 │   └── README.md
 ├── docs/

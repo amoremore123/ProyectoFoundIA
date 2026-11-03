@@ -1,5 +1,11 @@
 # Integración del Sprint 2 en main
 
+> Actualización posterior, 03/11/2026: la revisión completa y las correcciones
+> realizadas en `dev/amore` están en [cierre integrado de Amore](cierre-sprint2-amore.md).
+> Este documento conserva el estado histórico de su entrega; los pendientes H35
+> y las cifras actuales se consultan en esa revisión.
+
+
 Fecha: 3 de noviembre de 2026. Rama: `dev/yajaira`. Destino: `main` mediante
 Pull Request. La prepara Yajaira con autorización del equipo; la aprueba Leonel.
 

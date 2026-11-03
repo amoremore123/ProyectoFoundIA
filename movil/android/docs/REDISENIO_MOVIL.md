@@ -1,5 +1,10 @@
 # Rediseño de FoundIA Android
 
+> Integración del 03/11/2026 en `dev/amore`: H35 ya fue verificada con la API real,
+> incluidos enlaces usados/vencidos y nuevo acceso. La versión integrada es 1.2.1.
+> Véase [el cierre de integración](../../../docs/integracion/cierre-sprint2-amore.md).
+
+
 Entrega del 27 de octubre de 2026. Rama exclusiva: `mobile/android`. No se modificaron backend, web, MySQL ni ramas de otros integrantes. Los commits de este rediseño permanecen locales hasta recibir autorización de publicación.
 
 ## Referencia e identidad

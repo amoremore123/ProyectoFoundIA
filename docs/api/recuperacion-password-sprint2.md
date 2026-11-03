@@ -33,7 +33,7 @@ Respuesta **200**, siempre la misma, exista o no la cuenta:
 El correo contiene `{WEB_URL}/restablecer-password?token=...`. Por defecto
 `WEB_URL=http://localhost:5173` (`app.web.url` en `application.yml`). En un celular,
 ese enlace abre la web; Android también acepta `foundia://restablecer?token=...`,
-pero el backend todavía no genera ese formato.
+pero el backend todavía no genera ese formato. La pantalla web ofrece «Abrir en FoundIA Android» para continuar con el mismo enlace sin consumirlo.
 
 ## 2. Definir la contraseña nueva
 
@@ -67,10 +67,12 @@ Respuesta **200**:
   bloqueo temporal de H12: recuperar la contraseña no quita un bloqueo.
 - Se guarda `password_actualizado_en`. En Spring, los JWT emitidos antes de ese
   momento dejan de valer (401): hay que **volver a iniciar sesión**.
-- **Limitación conocida:** la API de Django (`:8000`, panel ADMIN) todavía no
-  revisa `password_actualizado_en`, así que un token ADMIN anterior al cambio sigue
-  sirviendo allí hasta que vence (24 h). Queda pendiente para el Sprint 3, junto con
-  H37 (cerrar sesión de forma segura).
+- **Revisión integrada del 03/11/2026 en `dev/amore`:** Django también comprueba
+  `password_actualizado_en`. Los nuevos tokens incluyen fecha de emisión y correo;
+  se admite también el formato anterior por ID cuando está firmado con la clave
+  configurada del entorno y la contraseña no cambió.
+  El rol se consulta en la base, nunca se confía en el rol declarado en el JWT.
+  La precisión temporal se mantiene alineada con Spring (segundos).
 - La web quita el token de la barra de direcciones al abrir la página y cierra la
   sesión del navegador después de un cambio correcto.
 
@@ -89,5 +91,7 @@ reimportar `script.sql` ni `seed.sql` ni usar `docker compose down -v`.
 
 - Web usuario: `/recuperar-password` (con enlace desde el login, que pasa el correo
   ya escrito) y `/restablecer-password`.
-- Android: `RecuperarScreens.kt` usa las mismas rutas. Falta probarlo de punta a
-  punta con el APK (ver la entrega de Yajaira).
+- Android: `RecuperarScreens.kt` usa las mismas rutas. Verificado el 03/11/2026
+  con APK y API reales: correo, cambio, enlace reutilizado, enlace vencido y nuevo
+  acceso. Cada apertura crea un estado nuevo; no se reutiliza una confirmación
+  anterior. [Evidencias](../pruebas/cierre-sprint2-20261103/h35-apk.json).

@@ -64,7 +64,7 @@ interface ApiService {
     @POST("api/objetos/{id}/reportes") suspend fun reportar(@Path("id") id: Long, @Body datos: Denuncia): ResultadoReporte
     @GET("api/perfil/solicitud-eliminacion") suspend fun eliminacion(): Eliminacion
     @POST("api/perfil/solicitud-eliminacion") suspend fun solicitarEliminacion(@Body datos: ConfirmarEliminacion): Eliminacion
-    // H35: contrato de integración propuesto; la API es parte de la entrega de Yajaira.
+    // H35: recuperación mediante la API común, con enlace de un solo uso.
     @POST("api/auth/recuperar-password") suspend fun solicitarClave(@Body datos: Correo): Mensaje
     @POST("api/auth/restablecer-password") suspend fun restablecer(@Body datos: Restablecer): Mensaje
 }

@@ -1,5 +1,11 @@
 # Entrega de Amore: API propia y Android del sprint 2
 
+> Actualización posterior, 03/11/2026: la revisión completa y las correcciones
+> realizadas en `dev/amore` están en [cierre integrado de Amore](cierre-sprint2-amore.md).
+> Este documento conserva el estado histórico de su entrega; los pendientes H35
+> y las cifras actuales se consultan en esa revisión.
+
+
 Cierre de implementación: 27 de octubre de 2026. Reparto de referencia: PDF final
 «FoundIA-Sprint-2-Reparto-funcional-FINALXDDDDDDD», fechado el 26/10/2026.
 

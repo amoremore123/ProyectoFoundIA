@@ -1,5 +1,11 @@
 # Entrega de Yajaira a Leonel — Sprint 2
 
+> Actualización posterior, 03/11/2026: la revisión completa y las correcciones
+> realizadas en `dev/amore` están en [cierre integrado de Amore](cierre-sprint2-amore.md).
+> Este documento conserva el estado histórico de su entrega; los pendientes H35
+> y las cifras actuales se consultan en esa revisión.
+
+
 Fecha de implementación: 27 de octubre de 2026. Documento: 30 de octubre de 2026.
 Rama: `dev/yajaira` (`4d50a5c`). Se creó a partir de la corrección de Leonel
 `b4d810c`, que ya contenía `main`, su entrega y la de Amore, e integra `frontend/web`.
