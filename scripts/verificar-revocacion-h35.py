@@ -41,57 +41,59 @@ def main(salida):
 
     try:
         version = api.peticion("GET", "/api/legal/documentos")["version"]
-        for intento in range(1, 9):
-            correo = "revocacion-h35-" + secrets.token_hex(6) + "@qa.invalid"
-            _, usuario = api.cuenta(correo, version)
-            with db.cursor() as cur:
-                cur.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s AND correo=%s", (usuario["id"], correo))
-                assert cur.rowcount == 1
-            api.peticion("POST", "/api/auth/recuperar-password", {"correo": correo})
-            enlace = api.mensaje_para(correo, r"restablecer-password\?token=([A-Za-z0-9_-]+)")
-            # Esperar solo ANTES de emitir. No se espera entre login y reset.
-            frontera = math.ceil(time.time()) + .005
-            time.sleep(max(0, frontera - time.time()))
-            inicio = time.time()
-            anteriores = {
-                "spring": api.peticion("POST", "/api/auth/login", {"correo": correo, "password": "Inicial123!"})["token"],
-                "django": api.peticion("POST", "/api/admin/auth/login/", {"correo": correo, "password": "Inicial123!"}, base=api.ADMIN)["token"],
-            }
-            comprobar_ambos(anteriores, 200)
-            api.peticion("POST", "/api/auth/restablecer-password", {"token": enlace, "password": "Revocada456!"})
-            fin_reset = time.time()
-            with db.cursor() as cur:
-                cur.execute("SELECT password_actualizado_en FROM usuarios WHERE id=%s", (usuario["id"],))
-                cambio = int(cur.fetchone()[0].replace(tzinfo=timezone.utc).timestamp())
-            comprobar_ambos(anteriores, 401)
-            nuevos = {
-                "spring": api.peticion("POST", "/api/auth/login", {"correo": correo, "password": "Revocada456!"})["token"],
-                "django": api.peticion("POST", "/api/admin/auth/login/", {"correo": correo, "password": "Revocada456!"}, base=api.ADMIN)["token"],
-            }
-            comprobar_ambos(nuevos, 200)
-            mismo_segundo = all(emitido(token) == cambio for token in anteriores.values())
-            fila = {"intento": intento, "usuario_sintetico_id": usuario["id"],
-                    "iat_spring": emitido(anteriores["spring"]), "iat_django": emitido(anteriores["django"]),
-                    "cambio_segundo": cambio, "mismo_segundo_ambos_emisores": mismo_segundo,
-                    "login_a_reset_ms": round((fin_reset - inicio) * 1000, 2),
-                    "anteriores_antes_reset": [200] * 4, "anteriores_despues_reset": [401] * 4,
-                    "nuevos_login_inmediato": [200] * 4, "espera_entre_reset_y_login": False}
-            intentos.append(fila)
-            if mismo_segundo:
-                time.sleep(2.1)
+        # Un caso por emisor reduce llamadas dentro de la ventana de un segundo.
+        for emisor, ruta_login, base_login in (("spring", "/api/auth/login", api.API),
+                                               ("django", "/api/admin/auth/login/", api.ADMIN)):
+            for intento in range(1, 9):
+                correo = "revocacion-h35-" + secrets.token_hex(6) + "@qa.invalid"
+                _, usuario = api.cuenta(correo, version)
+                with db.cursor() as cur:
+                    cur.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s AND correo=%s", (usuario["id"], correo))
+                    assert cur.rowcount == 1
+                api.peticion("POST", "/api/auth/recuperar-password", {"correo": correo})
+                enlace = api.mensaje_para(correo, r"restablecer-password\?token=([A-Za-z0-9_-]+)")
+                # Esperar solo ANTES de emitir. No se espera entre login y reset.
+                frontera = math.ceil(time.time()) + .005
+                time.sleep(max(0, frontera - time.time()))
+                inicio = time.time()
+                anteriores = {emisor: api.peticion("POST", ruta_login,
+                    {"correo": correo, "password": "Inicial123!"}, base=base_login)["token"]}
+                comprobar_ambos(anteriores, 200)
+                api.peticion("POST", "/api/auth/restablecer-password", {"token": enlace, "password": "Revocada456!"})
+                fin_reset = time.time()
+                with db.cursor() as cur:
+                    cur.execute("SELECT password_actualizado_en FROM usuarios WHERE id=%s", (usuario["id"],))
+                    cambio = int(cur.fetchone()[0].replace(tzinfo=timezone.utc).timestamp())
                 comprobar_ambos(anteriores, 401)
-                fila["anteriores_tras_dos_segundos"] = [401] * 4
-                break
-        assert any(f["mismo_segundo_ambos_emisores"] for f in intentos), "Sin caso concluyente del mismo segundo; no afirmar éxito"
+                nuevos = {
+                    "spring": api.peticion("POST", "/api/auth/login", {"correo": correo, "password": "Revocada456!"})["token"],
+                    "django": api.peticion("POST", "/api/admin/auth/login/", {"correo": correo, "password": "Revocada456!"}, base=api.ADMIN)["token"],
+                }
+                comprobar_ambos(nuevos, 200)
+                mismo_segundo = emitido(anteriores[emisor]) == cambio
+                fila = {"emisor": emisor, "intento": intento, "usuario_sintetico_id": usuario["id"],
+                        "iat": emitido(anteriores[emisor]), "cambio_segundo": cambio,
+                        "mismo_segundo": mismo_segundo, "login_a_reset_ms": round((fin_reset - inicio) * 1000, 2),
+                        "anteriores_antes_reset": [200] * 2, "anteriores_despues_reset": [401] * 2,
+                        "nuevos_login_inmediato": [200] * 4, "espera_entre_reset_y_login": False}
+                intentos.append(fila)
+                if mismo_segundo:
+                    time.sleep(2.1)
+                    comprobar_ambos(anteriores, 401)
+                    fila["anteriores_tras_dos_segundos"] = [401] * 2
+                    break
+        concluyente = all(any(f["emisor"] == emisor and f["mismo_segundo"] for f in intentos)
+                          for emisor in ("spring", "django"))
         resultado = {"fecha": datetime.now(timezone.utc).isoformat(),
                      "codigo": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=raiz, text=True).strip(),
                      "codigo_sin_confirmar": bool(subprocess.check_output(["git", "diff", "--name-only"], cwd=raiz, text=True).strip()),
-                     "resultado": "correcto", "intentos": intentos, "peticiones_reales": api.PETICIONES,
+                     "resultado": "correcto" if concluyente else "no_concluyente", "intentos": intentos, "peticiones_reales": api.PETICIONES,
                      "relojes_o_fechas_sql_modificados": False, "solo_cuentas_sinteticas_qa": True,
                      "tokens_o_passwords_registrados": False}
         salida.parent.mkdir(parents=True, exist_ok=True)
         salida.write_text(json.dumps(resultado, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps(resultado, ensure_ascii=False, indent=2))
+        assert concluyente, "Sin caso concluyente del mismo segundo para cada emisor; no afirmar éxito"
     finally:
         db.close()
 
