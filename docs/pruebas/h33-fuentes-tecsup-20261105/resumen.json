@@ -1,0 +1,118 @@
+{
+  "fecha_local": "2026-11-05",
+  "zona": "America/Lima",
+  "registrado_utc": "2026-11-06T02:24:50.572416+00:00",
+  "punto": "H33.1",
+  "resultado": "COMPLETADO: fuentes oficiales suministradas, integradas y verificadas",
+  "autorizacion": "Leonel confirmó usar las fuentes oficiales de Tecsup antes de solicitar el respaldo compartido.",
+  "base": "9a376d84470accf050a299abfeed0164ca0d8ecd",
+  "codigo_funcional_verificado": "dba319ef6e5ec00f011a985f38f7e70bd1ec8cad",
+  "version_documentos": "foundia-tecsup-2026-11-05-v2",
+  "version_anterior_y_consentimientos_preservados": true,
+  "arboles_fuente": {
+    "backend": "68fd46d0cc32477029844c315daaba2ccc572004",
+    "frontend": "3e4ea6779d9b7f3197f556e8afaf4c8ee27cafb1",
+    "movil": "f8d5e915de321d9def6b351134f5436b7d40b3af",
+    "scripts": "d7c3fb2efc61f9c8aea9b60e05ed124303eb8b2e",
+    "database": "987cd48c05dd5d55d607cedc8cfa3635d77d7a1a"
+  },
+  "resultados": {
+    "spring_h2": {
+      "exit_code": 0,
+      "tests": 422,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "jar_sha256": "b3fc50c76c361d76f305445febb479f15a3a0c045b1e971dd0ea7d8b0c2a9a87"
+    },
+    "django_sqlite": {
+      "exit_code": 0,
+      "tests": 57,
+      "sqlite_in_memory": true
+    },
+    "web_unitarias_y_builds": {
+      "usuario": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 210,
+        "numPassedTests": 210,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      },
+      "admin": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 17,
+        "numPassedTests": 17,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      }
+    },
+    "android_unitarias_apk_lint": {
+      "exit_code": 0,
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "emulator_not_used": true,
+      "apk_sha256": "ade9aeae9c8cdf7c7e43fc23d289bc484074fa82d0664626489a225e8989b0e9",
+      "lint_errors": 0,
+      "lint_warnings": 25
+    },
+    "android_version": {
+      "versionName": "1.2.2",
+      "versionCode": 5
+    },
+    "http_real": {
+      "peticiones": 9,
+      "consentimiento_y_fuentes": true,
+      "consentimiento_anterior_preservado": true
+    },
+    "navegador_real": {
+      "registro_verificado": true,
+      "dos_fuentes_externas_200": true,
+      "sin_jwt_ni_referer_a_tecsup": true,
+      "sin_aceptacion_automatica_ni_consentimiento_publicitario": true
+    },
+    "postman_local": {
+      "assertions": 8,
+      "exit_code": 0,
+      "real_api_qa": true,
+      "cloud_reporting_disabled": true,
+      "script": "scripts/verificar-documentos-h33.postman.js"
+    },
+    "mysql_qa_ddl_auto_validate": true
+  },
+  "alcance_preservado": {
+    "historias": 14,
+    "tareas": 84,
+    "horas_estimadas": 183,
+    "dias_planificados": 10,
+    "no_equivale_a_84_pruebas_manuales": true,
+    "fuera_de_sprint2": [
+      "H25",
+      "H32",
+      "H36",
+      "H37",
+      "H38",
+      "H40"
+    ]
+  },
+  "seguridad_operativa": {
+    "datos_reales_leidos_o_modificados": false,
+    "migraciones": false,
+    "tag_sprint2_reescrito": false,
+    "config_opencode_preservada": true,
+    "volumenes_qa_conservados": true,
+    "secretos_tokens_y_sql_no_publicados": true
+  },
+  "limites": [
+    "Las fuentes son oficiales de Tecsup; su uso no es una aprobación institucional de FoundIA.",
+    "No se ha recibido ni comprobado el respaldo compartido; se solicitará después de este punto.",
+    "No se ejecutaron pruebas nuevas en emulador en esta fase; los resultados Android nuevos son unitarios, APK y lint."
+  ]
+}

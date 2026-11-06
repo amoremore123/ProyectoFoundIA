@@ -7,8 +7,10 @@ con la corrección final de H35 en Spring y Django. La sesión anterior se recha
 incluso dentro del mismo segundo del reset y el login nuevo funciona sin espera.
 La regresión ejecutada y el alcance exacto están en el
 [acta de cierre de Leonel](docs/integracion/cierre-sprint2-leonel-20261105.md).
-No implica aprobación legal institucional ni despliegue sobre datos reales;
-H33.1 conserva su condición externa y la evidencia de emulador del 03/11 es previa.
+H33.1 se completa después con las
+[fuentes oficiales de Tecsup y su alcance de consentimiento](docs/integracion/h33-fuentes-oficiales-20261105.md),
+autorizadas por Leonel. Su inclusión no implica aprobación institucional de
+FoundIA ni despliegue sobre datos reales. La evidencia de emulador del 03/11 es previa.
 
 - [Resultados nuevos y matriz de 84 tareas](docs/pruebas/cierre-sprint2-20261105/README.md).
 - [Antecedente del 03/11: integración, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).

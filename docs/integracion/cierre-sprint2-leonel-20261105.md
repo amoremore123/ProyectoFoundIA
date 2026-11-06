@@ -1,5 +1,9 @@
 # Cierre técnico del Sprint 2 — Leonel
 
+> Actualización posterior: [H33.1 integra fuentes oficiales de Tecsup](h33-fuentes-oficiales-20261105.md)
+> por autorización de Leonel. Las condiciones y resultados de abajo describen
+> el primer cierre, conservado como antecedente; no sustituyen esa actualización.
+
 Fecha: **5 de noviembre de 2026 (America/Lima)**. Alcance académico: **14 historias,
 84 tareas y 183 horas estimadas**, conservando el horizonte aprobado de 10 días.
 Las horas no se presentan como tiempo real trabajado.
