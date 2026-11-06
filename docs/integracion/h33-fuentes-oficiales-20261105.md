@@ -60,6 +60,8 @@ Los resultados ejecutados se registran en
 Las evidencias del cierre anterior permanecen inmutables como antecedentes.
 La etiqueta publicada `sprint-2` tampoco se reescribe.
 
-El respaldo compartido se solicitará después de completar esta integración,
-según el orden indicado por Leonel. No se presenta una restauración sintética
-como verificación de ese respaldo.
+**Aclaración posterior de Leonel:** cada integrante utiliza sus propios datos
+locales de prueba. No se necesita el respaldo de Amore ni se mantiene su ausencia
+como bloqueo. El [acuerdo de datos locales](datos-locales-pruebas-sprint2.md)
+sustituye aquella interpretación de una base central compartida. No se presenta
+una restauración local como verificación del archivo de otra PC.

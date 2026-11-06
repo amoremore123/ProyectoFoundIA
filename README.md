@@ -25,6 +25,10 @@ FoundIA ni despliegue sobre datos reales. La evidencia de emulador del 03/11 es 
 
 Pasan al Sprint 3: H25, H32, H36, H37, H38 y H40.
 
+**Datos de prueba:** cada integrante utiliza su propia BD local, no una base
+central ni el respaldo de otra PC. Spring y Django de una misma instalación sí
+usan el mismo MySQL. [Acuerdo y precauciones](docs/integracion/datos-locales-pruebas-sprint2.md).
+
 **Sprint 1 (H1–H20):** web y API integradas en `main` desde el 21/10/2026
 ([informe](docs/pruebas/integracion-sprint1-amore-2026-10-20.md)). En Android quedan
 pendientes los filtros de ubicación y fecha (H8–H10), la cámara (H2) y el reclamo (H20).

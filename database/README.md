@@ -2,6 +2,11 @@
 
 Base de datos principal de la plataforma: **`objetos_perdidos_db`** (MySQL 8).
 
+**Pruebas locales:** cada integrante tiene su propia base y datos sintéticos en
+su PC; no necesita importar el SQL de otra persona. Spring y Django comparten
+solo la base de esa instalación. Ver el
+[acuerdo de datos locales](../docs/integracion/datos-locales-pruebas-sprint2.md).
+
 Autenticación compartida: Spring y Django utilizan `usuarios.intentos_fallidos`
 y `usuarios.bloqueado_hasta`. Los códigos y bloqueos nuevos se guardan en UTC;
 no hace falta crear una columna adicional para el contador del panel.
@@ -10,11 +15,15 @@ no hace falta crear una columna adicional para el contador del panel.
 
 | Archivo        | Descripción                                                        |
 | -------------- | ------------------------------------------------------------------ |
-| `script.sql`   | Crea la base de datos, las 9 tablas, claves foráneas, índices y check constraints. |
+| `script.sql`   | Instalación nueva: crea la base y sus 14 tablas, claves foráneas, índices y restricciones. Elimina tablas anteriores si se reimporta. |
 | `seed.sql`     | Datos iniciales de desarrollo: categorías, usuarios de prueba y objetos de prueba. |
 | `migracion_h20_reclamos.sql` | Agrega la tabla de reclamos a bases ya existentes (H20). |
 
 ## Cómo ejecutarlas
+
+Las opciones siguientes son **solo para una instalación nueva y vacía**. Para
+conservar una base existente, respaldar esa base local y aplicar únicamente las
+migraciones que falten; nunca reimportar el esquema ni los datos iniciales.
 
 ### Opción 1 — MySQL Workbench / cliente gráfico
 
@@ -38,11 +47,13 @@ caracteres suplementarios, como emojis, consumen 4 bytes por par sustituto.
 
 ### Opción 3 — Docker
 
-Si usas `docker compose up` desde la raíz del proyecto, ambas cargan
-automáticamente al levantar el contenedor de MySQL.
+Si usas `docker compose up` desde la raíz del proyecto, ambos archivos se cargan
+automáticamente **solo al inicializar un volumen MySQL nuevo y vacío**. Un
+volumen existente no se actualiza automáticamente con esos archivos.
 
-> `seed.sql` es re-ejecutable: limpia los datos de negocio antes de insertar.
-> `script.sql` también puede re-ejecutarse (elimina y recrea las tablas).
+> **Destructivos sobre una base existente:** `seed.sql` limpia datos de negocio
+> y `script.sql` elimina y recrea tablas. No usarlos como actualización ni borrar
+> el volumen con `docker compose down -v`.
 
 ## Tablas
 
@@ -55,9 +66,16 @@ automáticamente al levantar el contenedor de MySQL.
 7. `notificaciones`
 8. `reportes`
 9. `reclamos`
+10. `eventos_coincidencia`
+11. `preferencias_notificacion`
+12. `avisos_coincidencia`
+13. `solicitudes_eliminacion`
+14. `tokens_recuperacion_password`
 
-Para una base existente, ejecutar `migracion_h20_reclamos.sql` para añadir la
-tabla de reclamos sin recrear el resto del esquema.
+Para una base existente, comparar su esquema antes de elegir las migraciones.
+Además de H20, el Sprint 2 incluye cambios H22, H23, H24, H28, H33, H34 y H35.
+Aplicar solo los archivos correspondientes a cambios ausentes, sin recrear
+tablas ni rellenar consentimientos o recuperaciones históricos.
 
 Detalle completo en [`docs/base-datos/modelo-bd.md`](../docs/base-datos/modelo-bd.md).
 
