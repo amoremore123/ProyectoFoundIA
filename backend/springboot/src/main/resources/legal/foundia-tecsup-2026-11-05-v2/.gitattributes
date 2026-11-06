@@ -1,0 +1,5 @@
+*.md text eol=lf
+*.json text eol=lf
+fuentes/*.txt text eol=lf -whitespace
+fuentes/*.origen -text -whitespace
+fuentes/*.pdf -text

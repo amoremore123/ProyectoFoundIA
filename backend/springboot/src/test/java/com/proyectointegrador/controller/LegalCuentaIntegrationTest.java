@@ -39,7 +39,11 @@ class LegalCuentaIntegrationTest {
         api.perform(get("/api/legal/documentos")).andExpect(status().isOk())
           .andExpect(jsonPath("$.version").value(DocumentosLegales.VERSION))
           .andExpect(jsonPath("$.sha256").value(org.hamcrest.Matchers.matchesPattern("[a-f0-9]{64}")))
-          .andExpect(jsonPath("$.estado").value("TEXTO_DEL_PROYECTO_PENDIENTE_REVISION_INSTITUCIONAL"));
+          .andExpect(jsonPath("$.estado").value("FUENTES_OFICIALES_TECSUP_CON_AVISO_FOUNDIA"))
+          .andExpect(jsonPath("$.aviso").value(org.hamcrest.Matchers.containsString("no autoriza publicidad")))
+          .andExpect(jsonPath("$.fuentes.length()").value(2))
+          .andExpect(jsonPath("$.fuentes[0].url").value("https://www.tecsup.edu.pe/terminos-y-condiciones/"))
+          .andExpect(jsonPath("$.fuentes[1].sha256Original").value("4c7407c132ad4882ee40db7266c453b1fbc853df2b0f314f306f5d10d31db2e9"));
     }
     @Test void sinAceptarNoRegistraNiEnviaCorreo() throws Exception {
         for (String extra : List.of("", ",\"aceptaTerminos\":false,\"versionLegal\":\""+DocumentosLegales.VERSION+"\"",
@@ -66,6 +70,22 @@ class LegalCuentaIntegrationTest {
            .content(registro(",\"aceptaTerminos\":true,\"versionLegal\":\""+DocumentosLegales.VERSION+"\"")))
            .andExpect(status().isServiceUnavailable());
         assertThat(usuarios.count()).isZero();
+    }
+    @Test void nuevaVersionNoReescribeUnConsentimientoHistorico() throws Exception {
+        var anterior = usuario();
+        var fecha = java.time.LocalDateTime.of(2026, 10, 27, 10, 0);
+        anterior.setVersionLegal("proyecto-2026-10-26-v1");
+        anterior.setAceptacionLegalFecha(fecha); anterior.setDocumentosLegalesHash("a".repeat(64));
+        usuarios.saveAndFlush(anterior);
+        api.perform(get("/api/legal/documentos")).andExpect(status().isOk());
+        api.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+            .content(registro(",\"aceptaTerminos\":true,\"versionLegal\":\"proyecto-2026-10-26-v1\"")))
+            .andExpect(status().isBadRequest());
+        var conservado = usuarios.findById(anterior.getId()).orElseThrow();
+        assertThat(conservado.getVersionLegal()).isEqualTo("proyecto-2026-10-26-v1");
+        assertThat(conservado.getAceptacionLegalFecha()).isEqualTo(fecha);
+        assertThat(conservado.getDocumentosLegalesHash()).isEqualTo("a".repeat(64));
+        assertThat(usuarios.count()).isEqualTo(1); verifyNoInteractions(correo);
     }
     Usuario usuario() {
         var u=new Usuario();u.setNombre("Prueba");u.setApellido("QA");u.setCorreo(UUID.randomUUID()+"@qa.invalid");

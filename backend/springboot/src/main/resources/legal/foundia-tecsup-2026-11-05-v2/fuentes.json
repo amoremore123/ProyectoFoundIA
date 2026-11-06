@@ -1,0 +1,18 @@
+[
+  {
+    "id": "terminos-tecsup",
+    "titulo": "Términos y Condiciones de Tecsup",
+    "url": "https://www.tecsup.edu.pe/terminos-y-condiciones/",
+    "consultadoEl": "2026-11-05",
+    "sha256Original": "76d0932ddf3843943c3781c2f153eda524521d071012ff301f10e29d169503bf",
+    "sha256Texto": "ccbac21fcbb644d790e1ae43c5cf886bd002b0a013ba9b3d942ea59917c49a3f"
+  },
+  {
+    "id": "privacidad-tecsup",
+    "titulo": "Política para el Tratamiento de Datos Personales de Tecsup",
+    "url": "https://www.tecsup.edu.pe/wp-content/uploads/2024/08/politica-tratamiento-personales-tecsup.pdf",
+    "consultadoEl": "2026-11-05",
+    "sha256Original": "4c7407c132ad4882ee40db7266c453b1fbc853df2b0f314f306f5d10d31db2e9",
+    "sha256Texto": "e7383d06f30cfe4d646056d45272a04829fee21222b0adb496d83caafc9875fd"
+  }
+]

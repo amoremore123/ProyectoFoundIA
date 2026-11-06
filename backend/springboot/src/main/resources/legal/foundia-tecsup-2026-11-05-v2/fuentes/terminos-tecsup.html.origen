@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="https://gmpg.org/xfn/11">
+		<meta name='robots' content='max-image-preview:large' />
+
+<!-- Google Tag Manager for WordPress by gtm4wp.com -->
+<script data-cfasync="false" data-pagespeed-no-defer>
+	var gtm4wp_datalayer_name = "dataLayer";
+	var dataLayer = dataLayer || [];
+</script>
+<!-- End Google Tag Manager for WordPress by gtm4wp.com --><script data-api-url="https://www.tecsup.edu.pe/wp-json/wordpress-popular-posts" data-debug="0" data-lang="0" data-post="7000" data-sampling-rate="100" data-sampling="0" data-token="95465c07cf" id="wpp-js" src="https://www.tecsup.edu.pe/wp-content/plugins/wordpress-popular-posts/assets/js/wpp.min.js?ver=7.4.1"></script>
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://www.tecsup.edu.pe/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.tecsup.edu.pe%2Fterminos-y-condiciones%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://www.tecsup.edu.pe/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.tecsup.edu.pe%2Fterminos-y-condiciones%2F&#038;format=xml" />
+<link rel="https://api.w.org/" href="https://www.tecsup.edu.pe/wp-json/" /><link rel="alternate" title="JSON" type="application/json" href="https://www.tecsup.edu.pe/wp-json/wp/v2/pages/7000" /><link rel="canonical" href="https://www.tecsup.edu.pe/terminos-y-condiciones/" />
+<link rel='shortlink' href='https://www.tecsup.edu.pe/?p=7000' />
+
+<!-- Google Tag Manager for WordPress by gtm4wp.com -->
+<!-- GTM Container placement set to automatic -->
+<script data-cfasync="false" data-pagespeed-no-defer type="text/javascript">
+	var dataLayer_content = {"pagePostType":"page","pagePostType2":"single-page","pagePostAuthor":"admin_uatweb"};
+	dataLayer.push( dataLayer_content );
+</script>
+<script data-cfasync="false" data-pagespeed-no-defer type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WBBS4KKQ');
+</script>
+<!-- End Google Tag Manager for WordPress by gtm4wp.com -->            <style id="wpp-loading-animation-styles">@-webkit-keyframes bgslide{from{background-position-x:0}to{background-position-x:-200%}}@keyframes bgslide{from{background-position-x:0}to{background-position-x:-200%}}.wpp-widget-block-placeholder,.wpp-shortcode-placeholder{margin:0 auto;width:60px;height:3px;background:#dd3737;background:linear-gradient(90deg,#dd3737 0%,#571313 10%,#dd3737 100%);background-size:200% auto;border-radius:3px;-webkit-animation:bgslide 1s infinite linear;animation:bgslide 1s infinite linear}</style>
+            <link rel="icon" href="https://www.tecsup.edu.pe/wp-content/uploads/2024/08/android-chrome-512x512-1.png" sizes="32x32" />
+<link rel="icon" href="https://www.tecsup.edu.pe/wp-content/uploads/2024/08/android-chrome-512x512-1.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://www.tecsup.edu.pe/wp-content/uploads/2024/08/android-chrome-512x512-1.png" />
+<meta name="msapplication-TileImage" content="https://www.tecsup.edu.pe/wp-content/uploads/2024/08/android-chrome-512x512-1.png" />
+	<link rel="stylesheet" href="https://www.tecsup.edu.pe/wp-content/themes/tecsup/assets/css/styles.css?version=1.0.7" async />
+	<title>Tecsup   Términos y Condiciones</title>
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}.wp-block-button{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;--wp--preset--dimension--75: 75%;--wp--preset--dimension--100: 100%;}:where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{padding-top: 0px;padding-right: 0px;padding-bottom: 0px;padding-left: 0px;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;font-style: inherit;font-weight: inherit;letter-spacing: inherit;line-height: inherit;padding-top: calc(0.667em + 2px);padding-right: calc(1.333em + 2px);padding-bottom: calc(0.667em + 2px);padding-left: calc(1.333em + 2px);text-decoration: none;text-transform: inherit;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<style id="wp-emoji-styles-inline-css">
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+/*# sourceURL=wp-emoji-styles-inline-css */
+</style>
+<style id="wp-block-library-inline-css">
+:root{--wp-block-synced-color:#7a00df;--wp-block-synced-color--rgb:122,0,223;--wp-bound-block-color:var(--wp-block-synced-color);--wp-editor-canvas-background:#ddd;--wp-admin-theme-color:#007cba;--wp-admin-theme-color--rgb:0,124,186;--wp-admin-theme-color-darker-10:#006ba1;--wp-admin-theme-color-darker-10--rgb:0,107,160.5;--wp-admin-theme-color-darker-20:#005a87;--wp-admin-theme-color-darker-20--rgb:0,90,135;--wp-admin-border-width-focus:2px}@media (min-resolution:192dpi){:root{--wp-admin-border-width-focus:1.5px}}.wp-element-button{cursor:pointer}:root .has-very-light-gray-background-color{background-color:#eee}:root .has-very-dark-gray-background-color{background-color:#313131}:root .has-very-light-gray-color{color:#eee}:root .has-very-dark-gray-color{color:#313131}:root .has-vivid-green-cyan-to-vivid-cyan-blue-gradient-background{background:linear-gradient(135deg,#00d084,#0693e3)}:root .has-purple-crush-gradient-background{background:linear-gradient(135deg,#34e2e4,#4721fb 50%,#ab1dfe)}:root .has-hazy-dawn-gradient-background{background:linear-gradient(135deg,#faaca8,#dad0ec)}:root .has-subdued-olive-gradient-background{background:linear-gradient(135deg,#fafae1,#67a671)}:root .has-atomic-cream-gradient-background{background:linear-gradient(135deg,#fdd79a,#004a59)}:root .has-nightshade-gradient-background{background:linear-gradient(135deg,#330968,#31cdcf)}:root .has-midnight-gradient-background{background:linear-gradient(135deg,#020381,#2874fc)}:root{--wp--preset--font-size--normal:16px;--wp--preset--font-size--huge:42px}.has-regular-font-size{font-size:1em}.has-larger-font-size{font-size:2.625em}.has-normal-font-size{font-size:var(--wp--preset--font-size--normal)}.has-huge-font-size{font-size:var(--wp--preset--font-size--huge)}:root .has-text-align-center{text-align:center}:root .has-text-align-left{text-align:left}:root .has-text-align-right{text-align:right}.has-fit-text{white-space:nowrap!important}#end-resizable-editor-section{display:none}.aligncenter{clear:both}.items-justified-left{justify-content:flex-start}.items-justified-center{justify-content:center}.items-justified-right{justify-content:flex-end}.items-justified-space-between{justify-content:space-between}.screen-reader-text{word-wrap:normal!important;border:0;clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px;word-break:normal!important}.screen-reader-text:focus{background-color:#ddd;clip-path:none;color:#444;display:block;font-size:1em;height:auto;left:5px;line-height:normal;padding:15px 23px 14px;text-decoration:none;top:5px;width:auto;z-index:100000}html :where(.has-border-color){border-style:solid}html :where([style^=border-color],[style*=";border-color"],[style*="; border-color"]){border-style:solid}html :where([style^=border-top-color],[style*=";border-top-color"],[style*="; border-top-color"]){border-top-style:solid}html :where([style^=border-right-color],[style*=";border-right-color"],[style*="; border-right-color"]){border-right-style:solid}html :where([style^=border-bottom-color],[style*=";border-bottom-color"],[style*="; border-bottom-color"]){border-bottom-style:solid}html :where([style^=border-left-color],[style*=";border-left-color"],[style*="; border-left-color"]){border-left-style:solid}html :where([style^=border-width],[style*=";border-width"],[style*="; border-width"]){border-style:solid}html :where([style^=border-top-width],[style*=";border-top-width"],[style*="; border-top-width"]){border-top-style:solid}html :where([style^=border-right-width],[style*=";border-right-width"],[style*="; border-right-width"]){border-right-style:solid}html :where([style^=border-bottom-width],[style*=";border-bottom-width"],[style*="; border-bottom-width"]){border-bottom-style:solid}html :where([style^=border-left-width],[style*=";border-left-width"],[style*="; border-left-width"]){border-left-style:solid}html :where(img[class*=wp-image-]){height:auto;max-width:100%}:where(figure){margin:0 0 1em}html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:var(--wp-admin--admin-bar--height,0px)}@media screen and (max-width:600px){html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:0px}}
+/*wp_block_styles_on_demand_placeholder:6aed35789d767*/
+/*# sourceURL=wp-block-library-inline-css */
+</style>
+<style id="classic-theme-styles-inline-css">
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+<style id="wp-block-styles-placeholder-inline-css">
+:root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }
+/*# sourceURL=wp-block-styles-placeholder-inline-css */
+</style>
+<style id="wp-global-styles-placeholder-inline-css">
+:root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }
+/*# sourceURL=wp-global-styles-placeholder-inline-css */
+</style>
+<link rel='stylesheet' id='wordpress-popular-posts-css-css' href='https://www.tecsup.edu.pe/wp-content/plugins/wordpress-popular-posts/assets/css/wpp.css?ver=7.4.1' media='all' />
+
+<script>var __uzdbm_1 = "4aacf8e3-f4a9-4d53-8e79-317212a39856";var __uzdbm_2 = "OWEwOTY3MGQtZWIwaS00MTM2LWI0NmQtNjFkNWJhODk3M2NhJDE4MS42Ni4xMDIuNDU=";var __uzdbm_3 = "";var __uzdbm_4 = "false";var __uzdbm_5 = "";var __uzdbm_6 = "";var __uzdbm_7 = "";</script> <script>
+    (function (w, d, e, u, c, g, a, b) {
+      w["SSJSConnectorObj"] = w["SSJSConnectorObj"] || {
+        ss_cid: c,
+        domain_info: "auto",
+      };
+      w[g] = function (i, j) {
+        w["SSJSConnectorObj"][i] = j;
+      };
+      a = d.createElement(e);
+      a.async = true;
+      if (
+        navigator.userAgent.indexOf('MSIE') !== -1 ||
+        navigator.appVersion.indexOf('Trident/') > -1
+      ) {
+        u = u.replace("/advanced/", "/advanced/ie/");
+      }
+      a.src = u;
+      b = d.getElementsByTagName(e)[0];
+      b.parentNode.insertBefore(a, b);
+    })(
+      window, document, "script", "/18f5227b-e27b-445a-a53f-f845fbe69b40/stormcaster.js", "eb0k", "ssConf"
+    );
+    ssConf("c1", "https://www.tecsup.edu.pe");
+    ssConf("c3", "c99a4269-161c-4242-a3f0-28d44fa6ce24");
+    ssConf("au", "tecsup.edu.pe");
+    ssConf("cu", "validate.perfdrive.com, ssc");
+  </script></head>
+
+<body class="wp-singular page-template-default page page-id-7000 wp-theme-tecsup">
+	
+<!-- GTM Container placement set to automatic -->
+<!-- Google Tag Manager (noscript) -->
+				<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WBBS4KKQ" height="0" width="0" style="display:none;visibility:hidden" aria-hidden="true"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->	<header class="js-header fixed inset-x-0 top-0 bg-white py-5 lg:py-0 z-30 transition-transform duration-500">
+					<div class="hidden lg:block bg-primary-100 text-white py-2">
+				<div class="container flex items-center justify-between gap-8">
+					<ul class="flex items-center gap-8">
+														<li><a href="" target="" class="font-bold"></a></li>
+											</ul>
+
+					<ul class="flex items-center gap-8">
+																			<li class="js-dropdown relative">
+								<a href="#" class="js-dropdown-header flex items-center gap-2">
+									<span>Alumnos</span> <i class="icon-angle-down text-lg"></i></a>
+								<div class="js-dropdown-content absolute top-[calc(100%+0.5rem)] right-0 max-h-0 z-20 rounded-b-lg shadow-[0px_0px_10px_0px_rgba(0,0,0,0.10)] overflow-hidden transition-all duration-500">
+									<ul class="flex flex-col gap-2 w-48 bg-white text-gray-70 px-4 py-2">
+																					<li>
+												<a href="https://campus-cloud.tecsup.edu.pe/" target="_blank">
+													Intranet Académica												</a>
+											</li>
+																					<li>
+												<a href="https://tecsup.instructure.com/login/saml" target="_blank">
+													Canvas												</a>
+											</li>
+																					<li>
+												<a href="https://desarrolloprofesional-cloud.tecsup.edu.pe" target="_blank">
+													Prácticas y Pasantías												</a>
+											</li>
+																					<li>
+												<a href="https://app.tecsup.edu.pe/SGA/biblioteca/index.html" target="_blank">
+													Servicios de Biblioteca												</a>
+											</li>
+																					<li>
+												<a href="https://sis.tecsup.edu.pe/Alumnos/Login" target="_blank">
+													Sistema Académico U+												</a>
+											</li>
+																			</ul>
+								</div>
+							</li>
+											</ul>
+				</div>
+			</div>
+				<div class="container flex justify-between items-center">
+			<a class="relative z-10" href="/" aria-label="Tecsup">
+				<img src="https://www.tecsup.edu.pe/wp-content/uploads/2024/07/Group-680.png" class="h-[1.875rem] lg:h-[2.625rem] text-primary-90">
+			</a>
+			<nav class="js-header-nav absolute lg:static top-0 inset-x-0 w-full h-screen max-h-dvh min-h-dvh lg:h-auto lg:max-h-fit lg:min-h-fit flex flex-col lg:items-center bg-gray-10 lg:bg-transparent pt-16 lg:pt-0 overflow-y-auto lg:overflow-y-visible scrollbar-hide transition-transform duration-500 -translate-y-full lg:transform-none">
+				<ul class="flex-1 flex flex-col lg:flex-row lg:items-center px-0 lg:px-8 py-16 lg:py-0">
+										<style>
+						/* Estilos específicos para cada posición en la lista */
+						ul li.orden_list_1 {
+							order: 1;
+						}
+
+						ul li.orden_list_2 {
+							order: 2;
+						}
+
+						ul li.orden_list_3 {
+							order: 3;
+						}
+
+						ul li.orden_list_4 {
+							order: 4;
+						}
+
+						ul li.orden_list_5 {
+							order: 5;
+						}
+
+						ul li.orden_list_6 {
+							order: 6;
+						}
+					</style>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_ofeta_academica orden_list_2">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Oferta Académica							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Oferta Académica									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col lg:grid lg:grid-cols-7 gap-10 lg:gap-20">
+											<div class="lg:col-span-5 flex flex-col gap-6 lg:gap-8">
+												<div class="hidden lg:flex lg:flex-col lg:gap-6">
+													<h6 class="text-lg lg:text-xl font-bold">Oferta Académica</h6>
+												</div>
+												<ul class="flex flex-col lg:grid lg:grid-cols-3 gap-10">
+													<li class="flex flex-col gap-2.5">
+																												  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/segmento-joven/"
+        target=""
+    aria-label="Carreras">
+    <h6 class="text-lg lg:text-xl font-bold">Carreras</h6><i class="icon-arrow-right text-2xl"></i>  </a>
+														<ul class="flex flex-col gap-4">
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsup.edu.pe/segmento-joven/"
+        target=""
+    aria-label="Carreras Profesionales">
+    <span class="font-bold">Carreras Profesionales</span>
+																							 <span class="text-sm text-gray-50">Duración 3 años</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsup.edu.pe/segmento-joven/"
+        target=""
+    aria-label="Carreras Técnicas">
+    <span class="font-bold">Carreras Técnicas</span>
+																							 <span class="text-sm text-gray-50">Duración 2 años</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://carreras.tecsup.edu.pe/distancia/minisite?utm_source=web_organico&utm_medium=web_menu&utm_campaign=admision_2025_02&utm_term=organico_general&utm_content=carreras_distancia"
+        target="_blank"
+    aria-label="Carreras A Distancia">
+    <span class="font-bold">Carreras A Distancia</span>
+																							 <span class="text-sm text-gray-50">100% Virtual</span>  </a>
+																</li>
+																													</ul>
+													</li>
+													<li class="flex flex-col gap-2.5">
+																												  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/segmento-adulto/"
+        target=""
+    aria-label="Educación Continua ">
+    <h6 class="text-lg lg:text-xl font-bold">Educación Continua </h6><i class="icon-arrow-right text-2xl"></i>  </a>
+														<ul class="flex flex-col gap-4">
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsup.edu.pe/buscador-y-biblioteca/?tipo_programa=29"
+        target=""
+    aria-label="Cursos Cortos">
+    <span class="font-bold">Cursos Cortos</span>
+																							 <span class="text-sm text-gray-50">Complementa tu carrera profesional</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsup.edu.pe/buscador-y-biblioteca/?tipo_programa=34"
+        target=""
+    aria-label="Programas Integrales">
+    <span class="font-bold">Programas Integrales</span>
+																							 <span class="text-sm text-gray-50">Desarrolla nuevas competencias</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsup.edu.pe/buscador-y-biblioteca/?tipo_programa=33"
+        target=""
+    aria-label="Programas de Alta Especialidad Profesional">
+    <span class="font-bold">Programas de Alta Especialidad Profesional</span>
+																							 <span class="text-sm text-gray-50">Especialízate y destaca en tu campo</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Laboratorios Remotos">
+    <span class="font-bold">Laboratorios Remotos</span>
+																							 <span class="text-sm text-gray-50">Aprendizaje sin límites</span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+          href="https://www.tecsupvirtual.edu.pe/"
+        target="_blank"
+    aria-label="Tecsup Virtual">
+    <span class="font-bold">Tecsup Virtual</span>
+																							 <span class="text-sm text-gray-50">Formación a distancia</span>  </a>
+																</li>
+																													</ul>
+													</li>
+													<li class="flex flex-col gap-2.5">
+																												  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/empresas/"
+        target=""
+    aria-label="Empresas">
+    <h6 class="text-lg lg:text-xl font-bold">Empresas</h6><i class="icon-arrow-right text-2xl"></i>  </a>
+														<ul class="flex flex-col gap-4">
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Programas de capacitación técnica y gestión">
+    <span class="font-bold">Programas de capacitación técnica y gestión</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Programas de capacitación inmersiva | Eduverso">
+    <span class="font-bold">Programas de capacitación inmersiva | Eduverso</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Programas de Responsabilidad Social">
+    <span class="font-bold">Programas de Responsabilidad Social</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Centro de seguridad">
+    <span class="font-bold">Centro de seguridad</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Manuales interactivos de Operación y Mantenimiento">
+    <span class="font-bold">Manuales interactivos de Operación y Mantenimiento</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Gestión y desarrollo del talento por competencias">
+    <span class="font-bold">Gestión y desarrollo del talento por competencias</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																															<li>
+																	  <a
+    class="flex flex-col"
+        target=""
+    aria-label="Gestión de Mantenimiento y Confiabilidad">
+    <span class="font-bold">Gestión de Mantenimiento y Confiabilidad</span>
+																							 <span class="text-sm text-gray-50"></span>  </a>
+																</li>
+																													</ul>
+													</li>
+												</ul>
+											</div>
+											<div class="lg:col-span-2 flex flex-col gap-6">
+												<div class="hidden lg:flex lg:flex-col lg:gap-6">
+													<h6 class="text-lg lg:text-xl font-bold">Otros formatos educativos</h6>
+													<div class="flex flex-col gap-4 text-pretty">
+														<p>
+															Conoce todas las opciones que te ofrecemos														</p>
+													</div>
+												</div>
+												<ul class="flex flex-col gap-4">
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://codigo.edu.pe"
+        target="_blank"
+    aria-label="CodiGo">
+    <span class="font-bold">CodiGo</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://sites.google.com/tecsup.edu.pe/conversalanguageschool-lima/programas"
+        target="_blank"
+    aria-label="Conversa">
+    <span class="font-bold">Conversa</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://www.tecsup.edu.pe/escuela-de-operadores"
+        target="_blank"
+    aria-label="Escuela de Operadores">
+    <span class="font-bold">Escuela de Operadores</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																									</ul>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_areas_formativas orden_list_3">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Áreas Formativas							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Áreas Formativas									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col gap-8">
+											<h6 class="text-lg lg:text-xl font-bold">Áreas Formativas</h6>
+
+											<ul class="flex flex-col lg:grid lg:grid-cols-3 gap-2.5 lg:gap-x-24 lg:gp-y-2.5">
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/electricidad-y-electronica/"
+        target=""
+    aria-label="Electricidad y Electrónica">
+    <span class="font-bold">Electricidad y Electrónica</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/gestion-y-produccion/"
+        target=""
+    aria-label="Gestión y Producción">
+    <span class="font-bold">Gestión y Producción</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/mecanica-y-aviacion/"
+        target=""
+    aria-label="Mecánica y Aviación">
+    <span class="font-bold">Mecánica y Aviación</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/mecatronica/"
+        target=""
+    aria-label="Mecatrónica">
+    <span class="font-bold">Mecatrónica</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/mineria-procesos-quimicos-y-metalurgicos/"
+        target=""
+    aria-label="Minería y Química">
+    <span class="font-bold">Minería y Química</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/seguridad-y-salud-en-el-trabajo/"
+        target=""
+    aria-label="Seguridad y Salud en el Trabajo">
+    <span class="font-bold">Seguridad y Salud en el Trabajo</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/tecnologia-agricola/"
+        target=""
+    aria-label="Tecnología Agrícola">
+    <span class="font-bold">Tecnología Agrícola</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																									<li>
+														  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/areas-formativas/tecnologia-digital/"
+        target=""
+    aria-label="Tecnología Digital">
+    <span class="font-bold">Tecnología Digital</span><i class="icon-arrow-right text-xl"></i>  </a>
+													</li>
+																							</ul>
+										</div>
+									</div>
+								</div>
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_vida_tecsup orden_list_4">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Vida Tecsup							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Vida Tecsup									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col lg:grid lg:grid-cols-7 gap-10 lg:gap-20">
+											<div class="lg:col-span-2 flex flex-col gap-6">
+												<div class="flex flex-col gap-6">
+													<h6 class="text-lg lg:text-xl font-bold">Tecsup es comunidad</h6>
+													<div class="flex flex-col gap-4 text-pretty">
+														<p>
+																													</p>
+													</div>
+												</div>
+												<ul class="flex flex-col gap-4">
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/noticias"
+        target="_blank"
+    aria-label="Noticias">
+    <span class="font-bold">Noticias</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://blog.tecsup.edu.pe/"
+        target="_blank"
+    aria-label="Blog">
+    <span class="font-bold">Blog</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/eventos"
+        target="_blank"
+    aria-label="Eventos">
+    <span class="font-bold">Eventos</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																											<li>
+															  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/revista"
+        target="_blank"
+    aria-label="Revista">
+    <span class="font-bold">Revista</span><i class="icon-arrow-right text-xl"></i>  </a>
+														</li>
+																									</ul>
+											</div>
+											<div class="lg:col-span-4 lg:col-start-4">
+																																			</div>
+										</div>
+									</div>
+								</div>
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_sedes orden_list_5">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Sedes							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Sedes									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col lg:grid lg:grid-cols-7 gap-10 lg:gap-20">
+											<div class="lg:col-span-5 flex flex-col gap-8">
+												<h6 class="text-lg lg:text-xl font-bold"></h6>
+												<ul class="flex flex-col lg:grid lg:grid-cols-3 gap-8 lg:gap-10">
+																																																									<li class="flex flex-col gap-4">
+																																	<picture class="block w-full h-20 lg:h-36">
+																		<img src="https://www.tecsup.edu.pe/wp-content/uploads/2024/07/SEDE-LIMA.jpg" alt="Sede Lima" class="w-full h-full object-cover" loading="lazy" />
+																	</picture>
+																																  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/sede/sede-lima/"
+        target=""
+    aria-label="Sede Lima">
+    <h6 class="text-lg lg:text-xl font-bold">Sede Lima</h6><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																																												<li class="flex flex-col gap-4">
+																																	<picture class="block w-full h-20 lg:h-36">
+																		<img src="https://www.tecsup.edu.pe/wp-content/uploads/2024/07/SEDE-AREQUIPA.jpg" alt="Sede Arequipa" class="w-full h-full object-cover" loading="lazy" />
+																	</picture>
+																																  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/sede/sede-arequipa/"
+        target=""
+    aria-label="Sede Arequipa">
+    <h6 class="text-lg lg:text-xl font-bold">Sede Arequipa</h6><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																																												<li class="flex flex-col gap-4">
+																																	<picture class="block w-full h-20 lg:h-36">
+																		<img src="https://www.tecsup.edu.pe/wp-content/uploads/2024/07/SEDE-NORTE.jpg" alt="Sede Trujillo" class="w-full h-full object-cover" loading="lazy" />
+																	</picture>
+																																  <a
+    class="flex justify-between items-center text-gray-80 py-3"
+          href="https://www.tecsup.edu.pe/sede/sede-trujillo/"
+        target=""
+    aria-label="Sede Trujillo">
+    <h6 class="text-lg lg:text-xl font-bold">Sede Trujillo</h6><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																																							</ul>
+											</div>
+											<div class="lg:col-span-2 flex flex-col gap-6">
+												<h6 class="text-lg lg:text-xl font-bold"></h6>
+												<div class="flex flex-col gap-4 text-pretty hidden lg:block">
+													<p></p>
+												</div>
+																							</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_empresas orden_list_6">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Alumni							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Alumni									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col gap-8">
+											<div class="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
+												<h6 class="text-lg lg:text-xl font-bold">Alumni</h6>
+												  <a
+    class="inline-flex items-center gap-2 text-primary-90 hover:text-primary-100 transition duration-300 ease-in-out font-bold"
+          href="https://www.tecsup.edu.pe/alumni/"
+        target=""
+    aria-label="Conoce más">
+    <span class="underline">Conoce más</span>  </a>
+											</div>
+											<ul class="flex flex-col lg:grid lg:grid-cols-3 gap-8 lg:gap-10">
+																							</ul>
+										</div>
+									</div>
+								</div>
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+											<li class="hover:bg-primary-10 transition duration-300 group detalles_para_el_enlace_nosotros orden_list_1">
+							<a class="js-header-nav-item block font-heading font-bold lg:font-normal leading-none text-3xl lg:text-base xl:text-xl text-gray-80 px-16 lg:px-4 py-4 lg:py-8 cursor-pointer">
+								Nosotros							</a>
+							<div class="js-header-secondary-nav absolute inset-0 lg:top-full lg:bottom-auto flex flex-col lg:max-h-0 lg:group-hover:max-h-[50rem] bg-gray-10 lg:bg-white lg:shadow-[0_0_10px_0_rgba(0,0,0,0.20)] p-header lg:!pt-0 -translate-y-full lg:translate-y-0 lg:overflow-hidden transition-transform lg:transition-all duration-500">
+								<div class="lg:hidden flex">
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 p-[1.125rem] js-header-secondary-nav-close" aria-label="arrow-left" data-modal="">
+										<i class="leading-none icon-arrow-left text-2xl"></i>
+									</button>
+									<h6 class="w-full flex-1 flex items-center font-heading font-bold text-xl bg-gray-70 text-white p-4">
+										Nosotros									</h6>
+								</div>
+								<div class="px-16 lg:px-0 pt-10 pb-28 lg:py-8 h-full lg:h-auto overflow-y-auto lg:overflow-y-visible scrollbar-hide">
+									<div class="container px-0 lg:px-8">
+										<div class="flex flex-col lg:grid lg:grid-cols-7 gap-10 lg:gap-20">
+											<div class="lg:col-span-2 flex flex-col gap-6">
+												<div class="flex flex-col gap-6">
+													<h6 class="text-lg lg:text-xl font-bold">Conócenos</h6>
+													<div class="flex flex-col gap-4 text-pretty hidden lg:block">
+														<p>Tecsup es una organización educativa privada sin fines de lucro, dedicada a formar y capacitar profesionales, así como brindar servicios de consultoría, investigación y aplicación de tecnología.</p>
+													</div>
+												</div>
+												<ul class="flex flex-col gap-4">
+																																										<li>
+																  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://www.tecsup.edu.pe/nosotros/"
+        target=""
+    aria-label="Acerca de Tecsup">
+    <span class="font-bold">Acerca de Tecsup</span><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																													<li>
+																  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://tecsup.zohorecruit.com/careers"
+        target="_blank"
+    aria-label="Trabaja con nosotros">
+    <span class="font-bold">Trabaja con nosotros</span><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																													<li>
+																  <a
+    class="flex justify-between items-center text-gray-80"
+          href="https://www.tecsup.edu.pe/centro-de-innovacion/"
+        target=""
+    aria-label="Centro de Innovación">
+    <span class="font-bold">Centro de Innovación</span><i class="icon-arrow-right text-2xl"></i>  </a>
+															</li>
+																																							</ul>
+											</div>
+											<div class="lg:col-span-4 lg:col-start-4">
+																																					<div class="js-video css-video relative w-full h-40 lg:h-full lg:min-h-96">
+														<video class="w-full h-full object-cover" poster="https://www.tecsup.edu.pe/wp-content/uploads/2024/07/DSC01364_cleanup.png" >
+															<source src="" type="video/mp4" />
+														</video>
+																											</div>
+																							</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="absolute bottom-0 lg:hidden w-full h-28 bg-gradient-to-b from-white/0 to-white/100"></div>
+							</div>
+						</li>
+									</ul>
+
+				<ul class="lg:hidden bg-primary-90 text-white py-8">
+											<li>
+													</li>
+										<li>
+											</li>
+					<li class="js-dropdown relative">
+						<a href="#" class="js-dropdown-header flex items-center gap-2 py-4 px-16"><span>Alumnos</span> <i class="icon-angle-down text-lg"></i></a>
+						<div class="js-dropdown-content absolute bottom-full left-16 right-16 max-h-0 z-20 rounded-t-lg shadow-[0px_0px_10px_0px_rgba(0,0,0,0.10)] overflow-hidden transition-all duration-500">
+							<ul class="flex flex-col gap-2 bg-white text-gray-70 px-4 py-2">
+																	<li>
+										  <a
+    class=""
+          href="https://campus-cloud.tecsup.edu.pe/"
+        target="_blank"
+    aria-label="Intranet Académica">
+    Intranet Académica  </a>
+									</li>
+																	<li>
+										  <a
+    class=""
+          href="https://tecsup.instructure.com/login/saml"
+        target="_blank"
+    aria-label="Canvas">
+    Canvas  </a>
+									</li>
+																	<li>
+										  <a
+    class=""
+          href="https://desarrolloprofesional-cloud.tecsup.edu.pe"
+        target="_blank"
+    aria-label="Prácticas y Pasantías">
+    Prácticas y Pasantías  </a>
+									</li>
+																	<li>
+										  <a
+    class=""
+          href="https://app.tecsup.edu.pe/SGA/biblioteca/index.html"
+        target="_blank"
+    aria-label="Servicios de Biblioteca">
+    Servicios de Biblioteca  </a>
+									</li>
+																	<li>
+										  <a
+    class=""
+          href="https://sis.tecsup.edu.pe/Alumnos/Login"
+        target="_blank"
+    aria-label="Sistema Académico U+">
+    Sistema Académico U+  </a>
+									</li>
+															</ul>
+						</div>
+					</li>
+				</ul>
+			</nav>
+
+			<div class="relative flex items-center gap-6 z-10">
+				<button class="js-header-hamburguer lg:hidden flex items-center gap-4 font-heading font-bold text-black text-lg">
+					<i class="icon-menu text-2xl text-primary-90"></i>
+					<span>Menú</span>
+				</button>
+
+				<!-- <button class="js-modal-trigger flex items-center gap-2 pl-4 py-2.5 lg:px-8 lg:py-3 font-semibold text-base text-primary-90 lg:hover:text-white leading-none lg:leading-normal border-l lg:border-2 border-gray-20 lg:border-primary-90 lg:hover:bg-primary-90 transition duration-300" data-modal="modal-search-header">
+					<span class="hidden lg:inline">Buscar</span>
+					<i class="icon-search"></i>
+				</button> -->
+			</div>
+
+			<div class="lg:hidden absolute bg-white inset-0"></div>
+		</div>
+	</header>
+
+	<div id="modal-search-header" class="js-modal fixed inset-0 z-50 hidden bg-gray-80/30 overflow-y-auto scrollbar-hide">
+		<div class="js-modal-backdrop fixed inset-0 bg-gray-80/30 opacity-0 transition duration-300">
+		</div>
+		<div class="flex justify-center items-end min-h-full md:items-center">
+			<div class="js-modal-content relative w-full opacity-0 translate-y-full md:translate-y-0 transition-all duration-300 text-white bg-gray-80 p-0 max-w-full" style="min-height:100vh">
+				<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-black border-white bg-white hover:border-primary-90 hover:bg-primary-90 group-hover:text-white group-hover:border-primary-100 group-hover:bg-primary-100  p-[0.8125rem]  js-modal-close absolute top-0 right-0 z-10" aria-label="xmark" data-modal>
+					<i class="leading-none icon-xmark text-xl"></i>
+				</button>
+
+				<div class="container mx-auto flex flex-col gap-12 lg:gap-16 px-6 py-16">
+					<div class="js-search-form-header css-search-form" data-search="busqueda" data-suggestion="sugerencia">
+						<form id="formMobile-header" class="flex flex-col gap-1">
+							<label class="block lg:text-2xl font-heading font-bold" for="search-form-header">¿Qué te gustaría
+								aprender?</label>
+							<div class="relative flex items-center gap-6 lg:gap-8">
+								<input class="w-full border-gray-20 focus:border-gray-20 focus:ring-gray-20  text-2xl lg:text-5xl font-light font-heading px-0 py-2.5 lg:py-4 bg-transparent border-t-0 border-x-0 focus:ring-0 placeholder:text-primary-50 " type="text" name="search-form-header" id="search-form-header">
+								<div class="js-search-form-suggestion js-search-form-suggestion-search-header absolute left-0 top-0 w-[calc(100%-4.625rem)] lg:w-[calc(100%-18.5rem)] overflow-hidden pointer-events-none text-transparent text-2xl lg:text-5xl font-heading leading-tight whitespace-nowrap py-2.5 lg:py-4">
+								</div>
+								<div>
+									<button class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100 disabled:bg-gray-10 disabled:text-gray-30 disabled:border-gray-10 pointer-events-none gap-4 px-8 py-2.5  " disabled aria-label="Buscar en el Catálogo" data-modal>
+										<i class="leading-none icon-search text-xl"></i>
+										<span>Buscar en el Catálogo</span>
+									</button>
+
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="js-tab ">
+						<div class="js-tab-nav tab-navigation-header">
+							<ul class="flex gap-4 lg:gap-0 w-full overflow-x-auto scroll-smooth scrollbar-hide lg:shadow-[inset_0_-1px_0_#DDDDDD] ">
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300 is-active js-tab-nav-item">
+										<span class="whitespace-nowrap">Todos</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-primary-10 text-primary-100">
+											20
+										</span>
+									</a>
+								</li>
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300  js-tab-nav-item">
+										<span class="whitespace-nowrap">Bootcamps</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-success-10 text-success-100">
+											3
+										</span>
+									</a>
+								</li>
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300  js-tab-nav-item">
+										<span class="whitespace-nowrap">Cursos cortos</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-warning-10 text-warning-100">
+											3
+										</span>
+									</a>
+								</li>
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300  js-tab-nav-item">
+										<span class="whitespace-nowrap">Diplomados</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-purple-10 text-purple-100">
+											3
+										</span>
+									</a>
+								</li>
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300  js-tab-nav-item">
+										<span class="whitespace-nowrap">Alta
+											especialización</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-error-10 text-error-100">
+											3
+										</span>
+									</a>
+								</li>
+								<li class="flex-1">
+									<a href="#" class="css-tab-nav-tags-item flex items-center justify-center gap-2 text-white lg:text-gray-50 text-sm lg:text-base px-4 py-2 lg:p-4 rounded-full lg:rounded-none border-2 lg:border-x-0 lg:border-t-0 lg:border-b-2 border-white lg:border-transparent hover:bg-white lg:hover:bg-transparent hover:text-gray-50 lg:hover:text-white lg:hover:border-primary-100 transition duration-300  js-tab-nav-item">
+										<span class="whitespace-nowrap">Integrales</span>
+										<span class="hidden lg:inline text-xs font-bold px-2 py-0.5 rounded-full bg-wine-10 text-wine-100">
+											3
+										</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="js-tab-body js-tab-body-search-header ">
+
+							<div class="js-tab-pane  ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+							<div class="js-tab-pane hidden ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Bootcamp
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+							<div class="js-tab-pane hidden ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Cursos cortos
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+							<div class="js-tab-pane hidden ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Diplomados
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+							<div class="js-tab-pane hidden ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Alta especialización
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+							<div class="js-tab-pane hidden ">
+
+								<ul class="flex flex-col gap-8 pt-12 lg:pt-16">
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+									<li>
+										<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+											<div class="flex-1 flex flex-col items-start gap-2">
+												<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+													<i class="text-base icon-bookmark"></i>
+													Integrales
+												</span>
+
+												<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+													en la protección de
+													infraestructuras de red</h6>
+
+												<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+													<p>Ut enim ad minima veniam, quis nostrum
+														exercitatio nem ullam.</p>
+
+												</div>
+											</div>
+											<div>
+												<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+													<i class="leading-none icon-arrow-right text-2xl"></i>
+
+												</a>
+
+											</div>
+											<a href="#" class="absolute inset-0"></a>
+										</article>
+									</li>
+								</ul>
+
+							</div>
+
+						</div>
+					</div>
+					<!-- Nodo de not found -->
+					<div class="js-search-not-found-header flex flex-col gap-4 text-center px-6">
+						<div>
+							<svg class="w-12 fill-primary-90 mx-auto" viewBox="0 0 47 47" fill="none">
+								<path d="M23.5 0C10.7944 0 0.5 10.5181 0.5 23.5C0.5 36.4819 10.7944 47 23.5 47C36.2056 47 46.5 36.4819 46.5 23.5C46.5 10.5181 36.2056 0 23.5 0ZM30.9194 15.9194C32.5609 15.9194 33.8871 17.2744 33.8871 18.9516C33.8871 20.6288 32.5609 21.9839 30.9194 21.9839C29.2778 21.9839 27.9516 20.6288 27.9516 18.9516C27.9516 17.2744 29.2778 15.9194 30.9194 15.9194ZM16.0806 15.9194C17.7222 15.9194 19.0484 17.2744 19.0484 18.9516C19.0484 20.6288 17.7222 21.9839 16.0806 21.9839C14.4391 21.9839 13.1129 20.6288 13.1129 18.9516C13.1129 17.2744 14.4391 15.9194 16.0806 15.9194ZM31.8653 36.5956C29.7879 34.056 26.7367 32.5968 23.5 32.5968C20.2633 32.5968 17.2121 34.056 15.1347 36.5956C13.8827 38.1401 11.6012 36.1976 12.8532 34.653C15.4964 31.4218 19.3823 29.5645 23.5 29.5645C27.6177 29.5645 31.5036 31.4218 34.1375 34.6625C35.3988 36.1976 33.1173 38.1401 31.8653 36.5956Z">
+								</path>
+							</svg>
+						</div>
+
+						<h5 class="text-xl lg:text-2xl font-bold text-white">Lamentablemente,
+							no se han encontrado resultados para
+							tu búsqueda</h5>
+
+						<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+							<p>
+								Por favor, intenta con términos diferentes o verifica si hay
+								opciones
+								similares disponibles
+							</p>
+
+						</div>
+					</div>
+					<!-- Nodo de Resultados -->
+					<div class="js-search-results-header js-search-recomendation-header flex flex-col gap-12 lg:gap-16">
+
+						<h5 class="text-xl lg:text-2xl font-bold text-white">Te mostramos
+							algunas <span class='text-primary-90'>sugerencias</span></h5>
+
+						<ul class="flex flex-col gap-8">
+							<li>
+								<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+									<div class="flex-1 flex flex-col items-start gap-2">
+										<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-success-100 bg-success-10  ">
+											<i class="text-base icon-bookmark"></i>
+											Bootcamp
+										</span>
+
+										<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+											en la protección de
+											infraestructuras de red</h6>
+
+										<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+											<p>Ut enim ad minima veniam, quis nostrum exercitatio
+												nem ullam.</p>
+
+										</div>
+									</div>
+									<div>
+										<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+											<i class="leading-none icon-arrow-right text-2xl"></i>
+
+										</a>
+
+									</div>
+									<a href="#" class="absolute inset-0"></a>
+								</article>
+							</li>
+							<li>
+								<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+									<div class="flex-1 flex flex-col items-start gap-2">
+										<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-warning-100 bg-warning-10  ">
+											<i class="text-base icon-bookmark"></i>
+											Cursos cortos
+										</span>
+
+										<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+											en la protección de
+											infraestructuras de red</h6>
+
+										<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+											<p>Ut enim ad minima veniam, quis nostrum exercitatio
+												nem ullam.</p>
+
+										</div>
+									</div>
+									<div>
+										<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+											<i class="leading-none icon-arrow-right text-2xl"></i>
+
+										</a>
+
+									</div>
+									<a href="#" class="absolute inset-0"></a>
+								</article>
+							</li>
+							<li>
+								<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+									<div class="flex-1 flex flex-col items-start gap-2">
+										<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-purple-100 bg-purple-10  ">
+											<i class="text-base icon-bookmark"></i>
+											Diplomados
+										</span>
+
+										<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+											en la protección de
+											infraestructuras de red</h6>
+
+										<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+											<p>Ut enim ad minima veniam, quis nostrum exercitatio
+												nem ullam.</p>
+
+										</div>
+									</div>
+									<div>
+										<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+											<i class="leading-none icon-arrow-right text-2xl"></i>
+
+										</a>
+
+									</div>
+									<a href="#" class="absolute inset-0"></a>
+								</article>
+							</li>
+							<li>
+								<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+									<div class="flex-1 flex flex-col items-start gap-2">
+										<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-error-100 bg-error-10  ">
+											<i class="text-base icon-bookmark"></i>
+											Alta especialización
+										</span>
+
+										<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+											en la protección de
+											infraestructuras de red</h6>
+
+										<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+											<p>Ut enim ad minima veniam, quis nostrum exercitatio
+												nem ullam.</p>
+
+										</div>
+									</div>
+									<div>
+										<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+											<i class="leading-none icon-arrow-right text-2xl"></i>
+
+										</a>
+
+									</div>
+									<a href="#" class="absolute inset-0"></a>
+								</article>
+							</li>
+							<li>
+								<article class="relative flex items-center gap-8 pb-8 border-b border-gray-70 group">
+									<div class="flex-1 flex flex-col items-start gap-2">
+										<span class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full text-wine-100 bg-wine-10  ">
+											<i class="text-base icon-bookmark"></i>
+											Integrales
+										</span>
+
+										<h6 class="text-lg lg:text-xl font-semibold text-white">Ciberseguridad
+											en la protección de
+											infraestructuras de red</h6>
+
+										<div class="css-text-container flex flex-col gap-4 text-pretty ">
+
+											<p>Ut enim ad minima veniam, quis nostrum exercitatio
+												nem ullam.</p>
+
+										</div>
+									</div>
+									<div>
+										<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-white border-primary-90 bg-primary-90 hover:border-primary-100 hover:bg-primary-100  p-[1.125rem]  group-hover:bg-primary-100 group-hover:border-primary-100" href="#" aria-label="arrow-right" data-modal>
+											<i class="leading-none icon-arrow-right text-2xl"></i>
+
+										</a>
+
+									</div>
+									<a href="#" class="absolute inset-0"></a>
+								</article>
+							</li>
+						</ul>
+					</div>
+					<!-- Skeleton de carga -->
+					<div class="nodeLoadSkeleton-header animate-pulse flex flex-col gap-12 lg:gap-16">
+						<div class="w-full h-10 bg-gray-70 rounded-full"></div>
+						<ul class="flex flex-col gap-8">
+							<li class="pb-8 border-b border-gray-70">
+								<div class="flex flex-col gap-2 lg:w-3/5">
+									<div class="w-14 h-5 bg-gray-70/50 rounded-full"></div>
+									<div class="w-32 h-5 bg-gray-70 rounded-full"></div>
+									<div class="w-full h-3 bg-gray-70/50 rounded-full"></div>
+									<div class="w-4/5 h-3 bg-gray-70/50 rounded-full"></div>
+								</div>
+							</li>
+							<li class="pb-8 border-b border-gray-70">
+								<div class="flex flex-col gap-2 lg:w-3/5">
+									<div class="w-14 h-5 bg-gray-70/50 rounded-full"></div>
+									<div class="w-32 h-5 bg-gray-70 rounded-full"></div>
+									<div class="w-full h-3 bg-gray-70/50 rounded-full"></div>
+									<div class="w-4/5 h-3 bg-gray-70/50 rounded-full"></div>
+								</div>
+							</li>
+							<li class="pb-8 border-b border-gray-70">
+								<div class="flex flex-col gap-2 lg:w-3/5">
+									<div class="w-14 h-5 bg-gray-70/50 rounded-full"></div>
+									<div class="w-32 h-5 bg-gray-70 rounded-full"></div>
+									<div class="w-full h-3 bg-gray-70/50 rounded-full"></div>
+									<div class="w-4/5 h-3 bg-gray-70/50 rounded-full"></div>
+								</div>
+							</li>
+							<li class="pb-8 border-b border-gray-70">
+								<div class="flex flex-col gap-2 lg:w-3/5">
+									<div class="w-14 h-5 bg-gray-70/50 rounded-full"></div>
+									<div class="w-32 h-5 bg-gray-70 rounded-full"></div>
+									<div class="w-full h-3 bg-gray-70/50 rounded-full"></div>
+									<div class="w-4/5 h-3 bg-gray-70/50 rounded-full"></div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		var objetive_search_header = "posts";
+	</script>
+	<script type="module" src="https://www.tecsup.edu.pe/wp-content/themes/tecsup/js/filters/SearchHeader.js?version=1.0.7"></script><script type="module" src="https://www.tecsup.edu.pe/wp-content/themes/tecsup/assets/js/entry/hoisted5.js?version=1.0.7"></script>
+<main>
+	<section class="py-10">
+		<div class="container grid grid-cols-1 lg:grid-cols-10 xl:items-center gap-16 lg:gap-20">
+			<div class="lg:col-span-2 flex flex-col gap-8">
+				<h2 class="text-4xl lg:text-5xl font-bold"> Términos y Condiciones </h2>
+				<div class="flex flex-col gap-4 text-pretty">
+					<div class="node__content">
+<div class="clearfix text-formatted field field--name-body field--type-text-with-summary field--label-hidden field__item quickedit-field" data-quickedit-field-id="node/44/body/es/full">
+<p class="text-align-justify" dir="ltr"><strong>¿Acepta ud. los Términos y Condiciones, Términos y Condiciones? Declaro expresamente haber leído y aceptado las Políticas de Privacidad.</strong></p>
+<p class="text-align-justify" dir="ltr">Autorizo a TECSUP N° 1 y a la Asociación TECSUP N° 2, afiliadas, asociadas, personas naturales o jurídicas con las que haya suscrito contratos o convenios, para que realice el tratamiento* de mis datos personales (nombre, imagen, voz, notas, etc.), recopilados anteriormente, actualmente y/o por recopilar, por un plazo indeterminado y a su utilización con la finalidad** en promoción de todo tipo de publicidad, en cualquier medio de comunicación: físico, virtual, televisivo u otro. Asimismo, para el envío de información: promocional, educativa, académica y administrativa, a través de cualquier medio de comunicación, sea este telefónico, correo electrónico, etc., que se considere pertinente para la difusión, tanto a mi persona como a mis padres, apoderados o responsables de pago. El titular de los datos personales puede ejercer sus derechos ARCO*** de acceso, rectificación, cancelación u oposición en términos legales mediante el correo datospersonales@tecsup.edu.pe . Sus datos personales serán almacenados en las bases de datos de Tecsup N° 1 y Asociación Tecsup N° 2, respectivamente. Mediante la pulsación del botón "Acepto" o "Enviar" en la presente página web o el envío de la ficha o formulario manifiesto mi consentimiento informado, previo, libre, expreso, y por tiempo indefinido, para que Tecsup N°1 y Asociación Tecsup N° 2, pueda, a nivel nacional, hacer uso de los datos personales que les proporcione, así como de la información que se derive de su uso y de cualquier información de acceso público. Tecsup N°1 y Asociación Tecsup N° 2 garantizan el mantenimiento de la confidencialidad y el tratamiento seguro de los datos personales, incluyendo el resguardo en las transferencias de los mismos, que se realicen, en cumplimiento de la Ley 29733. La presente autorización, la otorgo en cumplimiento de la Ley 29733, su Reglamento y normas modificatorias o complementarias. Declaro haber recibido toda la información necesaria para el ejercicio libre y voluntario de mis derechos a la protección de mis datos personales.</p><br>
+<p class="text-align-justify" dir="ltr"><strong>Ley de Protección de Datos Personales concordado con su Reglamento</strong></p>
+<p class="text-align-justify" dir="ltr">*Ley de Protección de datos Personales</p>
+<p class="text-align-justify" dir="ltr">Articulo 2.- Numeral 17</p>
+<p class="text-align-justify" dir="ltr">*Tratamiento de Datos personales .- Cualquier procedimiento técnico automatizado o no, que permite la recopilación registro, organización, almacenamiento, conservación, elaboración, modificación extracción, consulta, utilización, bloqueo, supresión, comunicación por transferencia o por difusión o cualquier otra forma de procesamiento que facilite el acceso, correlación o interconexión de los datos personales.</p>
+<p class="text-align-justify" dir="ltr">** Artículo 6.- Principio de finalidad.</p>
+<p class="text-align-justify" dir="ltr">En atención al principio de finalidad se considera que una finalidad está determinada cuando haya sido expresada con claridad, sin lugar a confusión y cuando de manera objetiva se especifica el objeto que tendrá el tratamiento de los datos personales. ***El titular de los datos personales tiene derecho al acceso, rectificación, cancelación, oposición de sus datos personales.</p>
+
+</div>
+</div>				</div>
+			</div>
+		</div>
+	</section>
+</main>
+
+
+	<footer class="bg-white border-t border-gray-20 py-16">
+		<div class="container flex flex-col gap-16 lg:gap-20 px-16 lg:px-8">
+							<div class="flex flex-col items-start md:items-center md:flex-row md:justify-between gap-8">
+											<a href="/" aria-label="Tecsup">
+							<img src="https://www.tecsup.edu.pe/wp-content/uploads/2024/06/logo-tecsup.jpg" class="h-[2.625rem] text-primary-90">
+						</a>
+					
+											<a class="inline-flex justify-center items-center border-2 transition duration-300 ease-in-out text-primary-90 border-primary-90 bg-transparent hover:text-white hover:border-primary-100 hover:bg-primary-100 gap-4 px-8 py-2.5"
+							href="https://www.tecsup.edu.pe/contactanos"
+							target=""
+							aria-label="Contáctanos" data-modal="">
+							<span>Contáctanos</span>
+						</a>
+									</div>
+			
+							<div class="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-20">
+											<div class="flex flex-col gap-4 lg:gap-14">
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											NOSOTROS <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+									
+																			<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/nosotros/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Acerca de Tecsup</a>
+												</li>
+																							<li>
+													<a href="https://tecsup.zohorecruit.com/careers" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Trabaja con Nosotros</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/centro-de-innovacion/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Centro de Innovación</a>
+												</li>
+																					</ul>
+																	</div>
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											VIDA TECSUP <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+									
+																			<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/noticias" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Noticias</a>
+												</li>
+																							<li>
+													<a href="https://blog.tecsup.edu.pe " target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Blog</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/eventos " target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Eventos</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/revista" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Revista</a>
+												</li>
+																					</ul>
+																	</div>
+													</div>
+					
+											<div class="flex flex-col gap-4 lg:gap-14">
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											CARRERAS, PROGRAMAS Y SERVICIOS <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/segmento-joven/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Carreras</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/segmento-adulto/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Educación Continua</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/empresas/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Empresas</a>
+												</li>
+																					</ul>
+																	</div>
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											OTROS FORMATOS EDUCATIVOS <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://codigo.edu.pe/ " target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">CodiGo</a>
+												</li>
+																							<li>
+													<a href="https://sites.google.com/tecsup.edu.pe/conversalanguageschool-lima/programas" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Conversa</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/escuela-de-operadores" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Escuela de Operadores</a>
+												</li>
+																							<li>
+													<a href="https://sites.google.com/tecsup.edu.pe/cda/inicio" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Comunidad Digital de Aprendizaje (CDA)</a>
+												</li>
+																					</ul>
+																	</div>
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											ATENCIÓN AL CLIENTE <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://docs.google.com/forms/d/e/1FAIpQLScyFYUV7sPVYIg7ZxznMMeAe8o01jW3du1MJV5zKBafb0yIuQ/viewform" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Atención de Solicitudes y Consultas - Cursos y Programas de Extensión </a>
+												</li>
+																							<li>
+													<a href="https://docs.google.com/forms/d/e/1FAIpQLScs15BNHf5wWdzwr-U24Zcycye8_HKRiMpUGWHG5GDQB2O9Yg/viewform" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Atención de Trámites - Cursos y Programas de Extensión</a>
+												</li>
+																							<li>
+													<a href="https://zeroq.cl/offices/tecsup-asesor-virtual" target="_blank" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Atención de Carreras a Distancia</a>
+												</li>
+																					</ul>
+																	</div>
+													</div>
+					
+											<div class="flex flex-col gap-4 lg:gap-14">
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											ÁREAS FORMATIVAS <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/electricidad-y-electronica/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Electricidad y Electrónica</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/gestion-y-produccion/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Gestión y Producción</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/mecanica-y-aviacion/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Mecánica y Aviación</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/mecatronica/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Mecatrónica</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/mineria-procesos-quimicos-y-metalurgicos/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Minería y Química</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/seguridad-y-salud-en-el-trabajo/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Seguridad y Salud en el Trabajo</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/tecnologia-agricola/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Tecnología Agrícola</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/areas-formativas/tecnologia-digital/" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Tecnología Digital</a>
+												</li>
+																					</ul>
+																	</div>
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											SEDES <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/sede/sede-lima" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Sede Lima</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/sede/sede-arequipa" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Sede Arequipa</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/sede/sede-trujillo" target="" class="block font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">Sede Trujillo</a>
+												</li>
+																					</ul>
+																	</div>
+													</div>
+					
+											<div class="flex flex-col gap-4 lg:gap-14">
+															<div class="js-footer-dropdown css-footer-dropdown flex flex-col gap-4">
+																			<h6 class="text-lg lg:text-xl font-bold js-footer-dropdown-title css-footer-dropdown-title flex justify-between items-center">
+											LEGALES <i class="icon-angle-down text-2xl lg:hidden transition-all duration-300"></i>
+										</h6>
+																												<ul class="css-footer-dropdown-content max-h-0 lg:max-h-fit overflow-hidden transition-all duration-300">
+																							<li>
+													<a href="https://www.tecsup.edu.pe/politica-tratamiento-personales-tecsup/" target="_blank" class="flex items-center gap-3 font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">
+																												<span>Política para el Tratamiento de Datos Personales</span>
+													</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/portal-de-transparencia/" target="" class="flex items-center gap-3 font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">
+																												<span>Portal de Transparencia</span>
+													</a>
+												</li>
+																							<li>
+													<a href="https://www.tecsup.edu.pe/datos-personales-colegios/" target="" class="flex items-center gap-3 font-bold text-gray-50 hover:text-primary-90 underline py-1 transition duration-300">
+																												<span>Datos Personales – Colegios</span>
+													</a>
+												</li>
+																					</ul>
+																	</div>
+													</div>
+									</div>
+			
+							<div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 pt-8 border-t border-gray-20 xl:pr-12">
+					
+											<div class="flex flex-wrap items-center gap-6">
+															<span class="text-sm text-gray-50">Encuéntranos en redes sociales</span>
+																						<ul class="flex flex-wrap items-center gap-6">
+																														<li>
+												<a href="https://www.facebook.com/tecsup" target="_blank" class="text-xl text-primary-90 hover:text-primary-100 transition duration-300">
+																											<i class="icon-facebook-square"></i>
+																									</a>
+											</li>
+																																								<li>
+												<a href="https://x.com/tecsup_pe" target="_blank" class="text-xl text-primary-90 hover:text-primary-100 transition duration-300">
+																											<i class="icon-x"></i>
+																									</a>
+											</li>
+																																								<li>
+												<a href="https://www.linkedin.com/school/tecsup/" target="_blank" class="text-xl text-primary-90 hover:text-primary-100 transition duration-300">
+																											<i class="icon-linkedin"></i>
+																									</a>
+											</li>
+																											</ul>
+														<div style="max-width: 100px; padding: 5px; border: solid 1px #00000017; border-radius: 5px;">
+								<a href="https://www.tecsup.edu.pe/libro-reclamaciones/" target="_blank" class="text-sm text-gray-50 hover:text-primary-90 transition duration-300">
+									<img src="https://www.tecsup.edu.pe/wp-content/themes/tecsup/assets/images/libro-reclamaciones.png" alt="Libro de Reclamaciones">
+								</a>
+							</div>
+						</div>
+									</div>
+					</div>
+	</footer>
+
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/tecsup/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script id="wp-emoji-settings" type="application/json">
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"concatemoji":"https://www.tecsup.edu.pe/wp-includes/js/wp-emoji-release.min.js?ver=7.1.4"}}
+</script>
+<script type="module">
+/*! This file is auto-generated */
+var e="script#wp-emoji-settings",t=document.querySelector(e);if(!(t instanceof HTMLScriptElement))throw new Error("Element missing: "+e);const r=JSON.parse(t.text),s=(window._wpemojiSettings=r,"wpEmojiSettingsSupports"),o=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(s,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const r=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===r[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e<n.data.length;e++)if(0!==n.data[e])return!1;return!0}function u(e,t,n,r){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\udde8\ud83c\uddf6","\ud83c\udde8\u200b\ud83c\uddf6")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!r(e,"\ud83e\u1fac8")}return!1}function f(e,t,n,r){let a;const s=(a="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):document.createElement("canvas")).getContext("2d",{willReadFrequently:!0}),o=(s.textBaseline="top",s.font="600 32px Arial",{});return e.forEach(e=>{o[e]=t(s,e,n,r)}),o}function a(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}r.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(s));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(o),u.toString(),c.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"});const a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=e=>{i(n=e.data),a.terminate(),t(n)})}catch(e){}i(n=f(o,u,c,p))}t(n)}).then(e=>{for(const n in e)r.supports[n]=e[n],r.supports.everything=r.supports.everything&&r.supports[n],"flag"!==n&&(r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&r.supports[n]);var t;r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&!r.supports.flag,r.supports.everything||((t=r.source||{}).concatemoji?a(t.concatemoji):t.wpemoji&&t.twemoji&&(a(t.twemoji),a(t.wpemoji)))});
+//# sourceURL=https://www.tecsup.edu.pe/wp-includes/js/wp-emoji-loader.min.js
+</script>
+</body>
+
+</html>

@@ -2,6 +2,45 @@
 
 ## H33: documentos y aceptación antes del registro
 
+> Actualización autorizada por Leonel, 05/11/2026: se integran fuentes oficiales de
+> Tecsup en la versión `foundia-tecsup-2026-11-05-v2`. La primera versión de abajo
+> se conserva como antecedente; no se altera su contenido ni sus aceptaciones.
+
+### Versión actual y alcance
+
+`GET /api/legal/documentos` mantiene `version`, `estado`, `terminos`, `privacidad`
+y `sha256`, y añade `aviso` y `fuentes`. No requiere sesión ni consulta Tecsup al
+arrancar o registrarse: las transcripciones y sus originales quedan versionados.
+`estado` es `FUENTES_OFICIALES_TECSUP_CON_AVISO_FOUNDIA`, no una aprobación del
+proyecto. `aviso` explica que la casilla solo acepta las condiciones de FoundIA.
+
+Cada elemento de `fuentes` contiene `id`, `titulo`, `url`, `consultadoEl`,
+`sha256Original` y `sha256Texto`. Se incluyen los Términos y Condiciones publicados
+en el sitio oficial y la Política para el Tratamiento de Datos Personales (PDF
+oficial completo, siete páginas). Las fechas son de consulta, no fechas de
+aprobación ni una versión institucional inventada. Los originales se conservan
+para comprobar las huellas y se valida su integridad al cargar los documentos.
+
+Los textos de referencia se anexan a `terminos` y `privacidad`, identificados y
+separados de las condiciones del proyecto. La huella aceptada conserva el
+algoritmo SHA-256 de `terminos + "\n" + privacidad` normalizado a LF y por tanto
+cubre también sus transcripciones, fuentes y alcance. Leer una fuente no acepta
+publicidad, no marca la casilla y no transmite datos de FoundIA a Tecsup.
+
+Web y Android presentan los textos y enlaces HTTPS oficiales antes del alta.
+El cuerpo de registro no cambia: `aceptaTerminos:true` y la versión recibida de la
+API. La versión anterior, la aceptación omitida o falsa reciben 400 sin crear una
+cuenta ni enviar correo. No hay migraciones ni reescritura de consentimientos.
+
+Comprobación local reutilizable, contra la API real QA y sin publicar resultados
+en la nube:
+
+```powershell
+postman request http://127.0.0.1:18083/api/legal/documentos --script-post-request @scripts/verificar-documentos-h33.postman.js --no-report-events
+```
+
+### Antecedente: versión inicial
+
 `GET /api/legal/documentos` es público. Devuelve `version`, `estado`, `terminos`,
 `privacidad` y `sha256`. La versión inicial es `proyecto-2026-10-26-v1`.
 Los textos fueron preparados a petición de Amore para la demostración académica;

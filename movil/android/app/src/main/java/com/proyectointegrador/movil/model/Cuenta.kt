@@ -8,7 +8,10 @@ data class Registro(val nombre: String, val apellido: String, val correo: String
 data class Verificacion(val correo: String, val codigo: String)
 data class Correo(val correo: String)
 data class Mensaje(val mensaje: String)
-data class Documentos(val version: String, val estado: String, val terminos: String, val privacidad: String, val sha256: String)
+data class FuenteLegal(val id: String, val titulo: String, val url: String, val consultadoEl: String,
+    val sha256Original: String, val sha256Texto: String)
+data class Documentos(val version: String, val estado: String, val terminos: String, val privacidad: String, val sha256: String,
+    val aviso: String? = null, val fuentes: List<FuenteLegal>? = null)
 data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true)
 data class Aviso(val id: Long, val titulo: String, val mensaje: String, val tipo: String, val leida: Boolean,
     val fechaCreacion: String?, val enlace: String?)
