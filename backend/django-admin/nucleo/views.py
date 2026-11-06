@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Categoria, Objeto, Reporte, Usuario
-from .authentication import get_jwt_secret
+from .authentication import get_jwt_secret, sello_credencial
 from .permissions import EsAdmin
 from .serializers import (
     CategoriaSerializer,
@@ -91,7 +91,8 @@ class LoginView(APIView):
         emitido = datetime.now(dt_timezone.utc)
         exp = emitido + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(
-            {"sub": usuario.correo, "rol": usuario.rol, "iat": emitido, "exp": exp},
+            {"sub": usuario.correo, "rol": usuario.rol, "iat": emitido, "exp": exp,
+             "cred": sello_credencial(usuario)},
             secret,
             "HS256",
         )

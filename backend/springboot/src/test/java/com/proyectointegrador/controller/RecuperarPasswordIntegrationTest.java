@@ -137,13 +137,11 @@ class RecuperarPasswordIntegrationTest {
         String jwtAnterior = json.readTree(respuesta).get("token").asText();
         api.perform(get("/api/perfil").header("Authorization", "Bearer " + jwtAnterior)).andExpect(status().isOk());
 
-        Thread.sleep(1100); // el JWT guarda la emisión en segundos
         solicitar("ana@qa.invalid");
         restablecer(tokenEnviado(1), NUEVA).andExpect(status().isOk());
 
         api.perform(get("/api/perfil").header("Authorization", "Bearer " + jwtAnterior))
                 .andExpect(status().isUnauthorized());
-        Thread.sleep(1100);
         String nueva = login("ana@qa.invalid", NUEVA).andReturn().getResponse().getContentAsString();
         api.perform(get("/api/perfil").header("Authorization", "Bearer " + json.readTree(nueva).get("token").asText()))
                 .andExpect(status().isOk());

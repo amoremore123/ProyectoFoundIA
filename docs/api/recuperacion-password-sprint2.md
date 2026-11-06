@@ -65,14 +65,43 @@ Respuesta **200**:
   enlaces se guardan en la misma transacción.
 - Se conservan el estado de la cuenta, la verificación, los intentos fallidos y el
   bloqueo temporal de H12: recuperar la contraseña no quita un bloqueo.
-- Se guarda `password_actualizado_en`. En Spring, los JWT emitidos antes de ese
-  momento dejan de valer (401): hay que **volver a iniciar sesión**.
-- **Revisión integrada del 03/11/2026 en `dev/amore`:** Django también comprueba
-  `password_actualizado_en`. Los nuevos tokens incluyen fecha de emisión y correo;
-  se admite también el formato anterior por ID cuando está firmado con la clave
-  configurada del entorno y la contraseña no cambió.
-  El rol se consulta en la base, nunca se confía en el rol declarado en el JWT.
-  La precisión temporal se mantiene alineada con Spring (segundos).
+- Se guarda `password_actualizado_en`. Tras restablecer la contraseña, las
+  sesiones anteriores responden **401 en Spring y Django**, incluso si el JWT
+  y el cambio se produjeron dentro del mismo segundo. El login nuevo funciona
+  inmediatamente; no exige esperar ni cambiar el reloj.
+- Los JWT nuevos conservan `sub` (correo), `iat` y `exp`, y añaden `cred`: un
+  sello HMAC-SHA-256 ligado al correo y a la credencial almacenada. Ambos
+  backends lo verifican contra el usuario actual. No contiene la contraseña ni
+  su hash BCrypt, y no depende de la precisión de `DATETIME` ni de `iat`.
+  El rol y el estado se siguen consultando en la base, no se confía en el rol
+  declarado en el JWT.
+- Compatibilidad: un JWT anterior **sin** `cred` conserva su validez solo si la
+  cuenta no tiene un restablecimiento registrado. Después de H35 se rechaza
+  todo JWT sin sello, aunque su `iat` coincida con el segundo del cambio.
+  Django conserva el formato anterior por ID bajo esa misma condición y la
+  clave configurada del entorno. Un sello presente pero inválido nunca vuelve
+  al modo compatible.
+- Se deben actualizar ambos backends juntos. Los clientes siguen tratando el
+  JWT como un valor opaco; no cambian rutas, cuerpos JSON ni el enlace del correo.
+  La corrección no necesita columnas nuevas ni atribuye cambios a cuentas antiguas.
+
+### Sello de sesión compartido (`cred`)
+
+Valor hexadecimal en minúsculas de HMAC-SHA-256, usando los bytes UTF-8 de
+`JWT_SECRET` como clave y el mensaje:
+
+```text
+UTF8("foundia-session-v1") || 0x00 || UTF8(correo almacenado) || 0x00 || UTF8(hash de contraseña almacenado)
+```
+
+La comparación es de tiempo constante. Un sello presente exige `iat` y exactamente
+64 caracteres `[0-9a-f]`; `null` tampoco se interpreta como ausencia. Las fechas
+de expiración, el estado de cuenta y los permisos siguen siendo obligatorios.
+Un cambio de hash por otra ruta también invalida los JWT con sello anterior.
+
+Regresión reproducible con servicios QA: `python scripts/verificar-revocacion-h35.py
+--salida <archivo.json>`. Usa solo cuentas sintéticas y comprueba ambos emisores
+contra ambos backends, antes y después del reset y con login nuevo sin espera.
 - La web quita el token de la barra de direcciones al abrir la página y cierra la
   sesión del navegador después de un cambio correcto.
 

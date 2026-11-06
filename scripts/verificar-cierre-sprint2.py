@@ -166,7 +166,6 @@ def main():
     with db.cursor() as cur:
         cur.execute("UPDATE usuarios SET rol='ADMIN' WHERE id=%s AND correo=%s", (admin_perfil["id"], admin_correo))
     anterior = peticion("POST", "/api/admin/auth/login/", {"correo": admin_correo, "password": "Inicial123!"}, base=ADMIN)["token"]
-    time.sleep(1.1)  # JWT y MySQL usan precisión de segundos.
     peticion("POST", "/api/auth/recuperar-password", {"correo": admin_correo})
     token = mensaje_para(admin_correo, r"restablecer-password\?token=([A-Za-z0-9_-]+)")
     peticion("POST", "/api/auth/restablecer-password", {"token": token, "password": "Actualizada456!"})

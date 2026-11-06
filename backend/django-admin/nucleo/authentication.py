@@ -1,6 +1,9 @@
 """Autenticacion JWT compatible con la emision de Spring Boot (HS256)."""
 import os
 import math
+import hashlib
+import hmac
+import re
 
 import jwt
 from django.utils import timezone
@@ -15,6 +18,12 @@ JWT_SECRET_DEFAULT = "foundia-dev-jwt-secret-cambiar-en-produccion-123456"
 
 def get_jwt_secret() -> str:
     return os.environ.get("JWT_SECRET", JWT_SECRET_DEFAULT)
+
+
+def sello_credencial(usuario) -> str:
+    """HMAC compartido con Spring, sin incluir el hash BCrypt en el JWT."""
+    datos = b"foundia-session-v1\0" + usuario.correo.encode("utf-8") + b"\0" + usuario.password.encode("utf-8")
+    return hmac.new(get_jwt_secret().encode("utf-8"), datos, hashlib.sha256).hexdigest()
 
 
 class JwtAuthentication(BaseAuthentication):
@@ -54,14 +63,18 @@ class JwtAuthentication(BaseAuthentication):
         if usuario.bloqueado_hasta and usuario.bloqueado_hasta > timezone.now():
             raise AuthenticationFailed("Tu cuenta está bloqueada temporalmente")
 
-        # H35: la recuperación invalida también los JWT del panel administrativo.
-        # MySQL y los JWT de Spring guardan este límite con precisión de segundos.
-        if usuario.password_actualizado_en:
+        # H35: el sello cambia con la credencial, incluso dentro del mismo segundo.
+        if "cred" in payload:
+            sello = payload["cred"]
             emitido = payload.get("iat")
-            cambio = int(usuario.password_actualizado_en.timestamp())
-            if (isinstance(emitido, bool) or not isinstance(emitido, (int, float))
-                    or not math.isfinite(emitido) or emitido < cambio):
+            if (not isinstance(sello, str) or re.fullmatch(r"[0-9a-f]{64}", sello) is None
+                    or isinstance(emitido, bool) or not isinstance(emitido, (int, float))
+                    or not math.isfinite(emitido)
+                    or not hmac.compare_digest(sello, sello_credencial(usuario))):
                 raise AuthenticationFailed("Tu contraseña cambió. Inicia sesión de nuevo")
+        elif usuario.password_actualizado_en:
+            # Un sello presente pero inválido nunca se trata como token legado.
+            raise AuthenticationFailed("Tu contraseña cambió. Inicia sesión de nuevo")
 
         # DRF asigna request.user con el primer elemento de la tupla.
         request.user = usuario
