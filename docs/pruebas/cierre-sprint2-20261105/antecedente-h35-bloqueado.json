@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-05T15:12:24.992256+00:00",
+  "tested_commit": "521965bc3619846deb36977fdae8a918ccddb2da",
+  "scenario": "JWT emitido antes del restablecimiento, dentro del mismo segundo almacenado",
+  "reproduced_old_session_retained": true,
+  "conclusive_same_second_attempt": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "synthetic_user_id": 16,
+      "issued_at_seconds": 1793891542,
+      "password_changed_at_seconds": 1793891542,
+      "reset_elapsed_ms": 588.63,
+      "original_token_valid_before_reset": true,
+      "same_stored_second": true,
+      "old_token_spring_status": 200,
+      "old_token_django_status": 200,
+      "expected_old_token_status": 401,
+      "old_token_spring_after_two_seconds": 200,
+      "old_token_django_after_two_seconds": 200,
+      "not_only_a_transient_race": true
+    }
+  ],
+  "real_http_and_mysql_qa": true,
+  "clock_or_sql_dates_modified": false,
+  "only_synthetic_accounts_used": true,
+  "tokens_or_passwords_recorded": false
+}

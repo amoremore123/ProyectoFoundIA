@@ -1,5 +1,10 @@
 # Revisión integrada del Sprint 2 en dev/amore
 
+> Revisión posterior, 05/11/2026: [cierre técnico de Leonel](cierre-sprint2-leonel-20261105.md).
+> La revocación H35 del mismo segundo se corrigió después de esta entrega. Las
+> cifras, el respaldo compartido y la prueba en emulador de abajo son antecedentes
+> del 03/11, no resultados nuevos del cierre posterior.
+
 Fecha: 3 de noviembre de 2026. Responsable de esta integración: Amore.
 
 ## Integración y alcance

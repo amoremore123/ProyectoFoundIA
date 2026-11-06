@@ -1,0 +1,185 @@
+{
+  "fecha_local": "2026-11-05",
+  "zona": "America/Lima",
+  "generado_utc": "2026-11-06T01:47:54.494311+00:00",
+  "decision": "CIERRE TECNICO ACADEMICO; no implica aprobación institucional ni despliegue real",
+  "codigo_funcional_verificado": "f1a5087ddcb79b4ac6d5580694f7da08de99ecf5",
+  "base_main": "521965bc3619846deb36977fdae8a918ccddb2da",
+  "commits_reparacion": [
+    "4e20f17",
+    "6b0145b",
+    "f1a5087"
+  ],
+  "arboles_fuente": {
+    "backend": "a9388a9e64ff3c31aeac71f1ce385ddaf61edf98",
+    "frontend": "21bcd604cc0b3598a97403110193773c3ffcf59a",
+    "movil": "ca53452cd8f52099587d33e7e9852fc1609886c2",
+    "database": "987cd48c05dd5d55d607cedc8cfa3635d77d7a1a",
+    "scripts": "b3c5b6570e1d13e362c15fea1d8a2e3a462c4cd3"
+  },
+  "alcance": {
+    "historias": 14,
+    "tareas": 84,
+    "horas_estimadas": 183,
+    "horizonte_dias_planificado": 10,
+    "sprint3_sin_cambio": [
+      "H25",
+      "H32",
+      "H36",
+      "H37",
+      "H38",
+      "H40"
+    ],
+    "word_pdf_originales_sin_modificar": true,
+    "no_afirma_84_pruebas_manuales_ni_84_tareas_sin_condiciones_externas": true
+  },
+  "hallazgos": {
+    "C2-01_revocacion_h35": "CORREGIDO Y COMPROBADO",
+    "C2-02_mapeos_char": "CORREGIDO; arranque validate MySQL QA",
+    "H33.1_aprobacion_institucional": "PENDIENTE EXTERNO; prototipo académico, no política oficial"
+  },
+  "resultados_nuevos": {
+    "spring_h2": {
+      "tests": 418,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "jar_sha256": "f6f45470b95b80b9c57ad34ac8cf67828f2ab4c3101a9c2bf5d036b733e9bb8a"
+    },
+    "django_sqlite": {
+      "tests": 57,
+      "exit_code": 0,
+      "sqlite_in_memory": true
+    },
+    "web_unitarias_build": {
+      "usuario": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 208,
+        "numPassedTests": 208,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      },
+      "admin": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 17,
+        "numPassedTests": 17,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      }
+    },
+    "android_unitarias_apk_lint": {
+      "exit_code": 0,
+      "tests": 38,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "emulator_not_used": true,
+      "apk_sha256": "36e7455f3af36a399deac1a41e4c1bd55306a3a6b50d5414efaf16446bac60de",
+      "lint_errors": 0,
+      "lint_warnings": 25
+    },
+    "http_real": {
+      "historias": 14,
+      "peticiones": 58
+    },
+    "h35_mismo_segundo_real": {
+      "emisores": [
+        "Spring",
+        "Django"
+      ],
+      "peticiones": 43,
+      "anterior_401_ambas_api": true,
+      "login_nuevo_sin_espera_200_ambas_api": true,
+      "sin_alterar_relojes_o_fechas_sql": true
+    },
+    "jwt_contrato_real": {
+      "comprobaciones": 21,
+      "peticiones": 53,
+      "todos_correctos": true
+    },
+    "navegador_real": {
+      "comprobaciones": 10,
+      "errores": 0,
+      "rutas_simuladas": false,
+      "h39": {
+        "realBrowser": true,
+        "anonymousContext": true,
+        "publicThenWithdrawn": true,
+        "passed": true,
+        "qaOnly": true
+      }
+    },
+    "postman": {
+      "peticiones": 2,
+      "aserciones": 7,
+      "reportes_cloud": false,
+      "exit_code": 0
+    },
+    "migraciones_qa": {
+      "archivos": 8,
+      "pasadas": 2,
+      "datos_previos_conservados": true,
+      "columnas_indices_fk_equivalentes": true
+    },
+    "respaldo_sintetico_qa": {
+      "tablas": 14,
+      "restauracion_identica": true,
+      "no_verifica_respaldo_compartido": true
+    },
+    "fallo_smtp_real": {
+      "date": "2026-11-06T01:41:16.315437+00:00",
+      "qa_only": true,
+      "fault": "Own QA SMTP container stopped; real socket failure, not a stub",
+      "h33_failed_delivery_rolls_back_account_and_consent": true,
+      "h35_failure_does_not_enumerate_accounts": true,
+      "h35_undelivered_link_invalidated": true,
+      "qa_smtp_restarted": true
+    },
+    "arranque_mysql_estricto": {
+      "ddl_auto": "validate",
+      "exito": true,
+      "jar_sha256": "f6f45470b95b80b9c57ad34ac8cf67828f2ab4c3101a9c2bf5d036b733e9bb8a"
+    }
+  },
+  "pruebas_rojas_antes_del_cambio": {
+    "spring": {
+      "casos": 9,
+      "fallos": 5,
+      "errores": 0
+    },
+    "django": {
+      "casos": 11,
+      "fallos_incluidos_subtests": 10,
+      "errores_por_claim_ausente": 1
+    }
+  },
+  "limites": [
+    "H33.1 no dispone de aprobación institucional; se mantiene explícita la condición externa.",
+    "Las seis instrumentadas y el recorrido APK del 03/11 son evidencia anterior del equipo; no se repitieron en emulador.",
+    "No hay imagen completa de emulador; no se usó el AVD personal ni un teléfono físico.",
+    "El respaldo compartido de la PC de Amore no estuvo disponible; no se sustituyó por una copia sintética.",
+    "No se acredita auditoría integral de seguridad ni certificación de accesibilidad."
+  ],
+  "seguridad_operativa": {
+    "bd_real_leida_o_modificada": false,
+    "migracion_nueva_necesaria": false,
+    "sql_seed_historico_sin_cambio": true,
+    "down_v_usado": false,
+    "volumenes_qa_conservados": true,
+    "config_local_opencode_preservada": true,
+    "secretos_tokens_sql_fuera_de_git": true
+  },
+  "publicacion_objetivo": {
+    "rama": "main",
+    "etiqueta": "sprint-2",
+    "solo_avance_seguro": true,
+    "no_es_despliegue": true
+  }
+}

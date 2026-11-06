@@ -2,12 +2,16 @@
 
 ## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
-Estado al 03/11/2026: `dev/amore` integra la entrega de `dev/yajaira`, el rediseño
-Android y la revisión final de las 14 historias. Pasaron 411 pruebas Spring,
-49 Django, 208 + 17 web y 38 + 6 Android; H35 se comprobó en el APK con API real.
-El cierre en `main` y la etiqueta `sprint-2` quedan pendientes del equipo.
+Estado al 05/11/2026: cierre técnico académico de las 14 historias integradas,
+con la corrección final de H35 en Spring y Django. La sesión anterior se rechaza
+incluso dentro del mismo segundo del reset y el login nuevo funciona sin espera.
+La regresión ejecutada y el alcance exacto están en el
+[acta de cierre de Leonel](docs/integracion/cierre-sprint2-leonel-20261105.md).
+No implica aprobación legal institucional ni despliegue sobre datos reales;
+H33.1 conserva su condición externa y la evidencia de emulador del 03/11 es previa.
 
-- [Revisión integrada, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).
+- [Resultados nuevos y matriz de 84 tareas](docs/pruebas/cierre-sprint2-20261105/README.md).
+- [Antecedente del 03/11: integración, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).
 
 - [Entrega de Leonel](docs/integracion/entrega-leonel-sprint2.md) y su
   [corrección de integración](docs/integracion/correccion-integracion-leonel-sprint2.md):

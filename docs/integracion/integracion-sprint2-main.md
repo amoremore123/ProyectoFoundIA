@@ -1,5 +1,9 @@
 # Integración del Sprint 2 en main
 
+> Cierre posterior, 05/11/2026: [acta de Leonel](cierre-sprint2-leonel-20261105.md).
+> Corrige y comprueba la revocación H35 dentro del mismo segundo. Este archivo
+> conserva el estado histórico de la integración, no los pendientes actuales.
+
 > Actualización posterior, 03/11/2026: la revisión completa y las correcciones
 > realizadas en `dev/amore` están en [cierre integrado de Amore](cierre-sprint2-amore.md).
 > Este documento conserva el estado histórico de su entrega; los pendientes H35

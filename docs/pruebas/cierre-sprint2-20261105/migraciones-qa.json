@@ -1,0 +1,46 @@
+{
+  "fixture_database": "qa_migraciones_cierre_20261105",
+  "migration_files": 8,
+  "passes": 2,
+  "existing_values_preserved": true,
+  "no_fabricated_consent_or_recovery": true,
+  "columns_equivalent": true,
+  "indexes_equivalent": true,
+  "foreign_keys_equivalent": true,
+  "differences": {},
+  "files": [
+    {
+      "file": "migracion_h22_fecha_recuperacion.sql",
+      "sha256": "2345a26a71a9c99bb5ad1946411a04515520e87d1f48f3eabbdd638dc1826d5c"
+    },
+    {
+      "file": "migracion_h23_avisos_coincidencias.sql",
+      "sha256": "2a79f9552a002986987276ef5662f15d522c4b56456097b3afda53c9f55e7d4c"
+    },
+    {
+      "file": "migracion_h23_eventos_pendientes.sql",
+      "sha256": "767c0cdb16490ee99528ce2962eb8cee02125a3f0eb18a823ff2e33180b85917"
+    },
+    {
+      "file": "migracion_h24_preferencias.sql",
+      "sha256": "9e545c6f69cd4b4859a52ee9f4fcddceae96d94c8b6f060628fc637eafd8e78b"
+    },
+    {
+      "file": "migracion_h28_auditoria_reportes.sql",
+      "sha256": "55f3e12fc934828a1c482396ed83be1e631ebaf6ed77e68dd00484f2f313a441"
+    },
+    {
+      "file": "migracion_h33_aceptacion_legal.sql",
+      "sha256": "57912ccbdef48167745e2c8e9319c4754e56b3d2d9a697eff3c124b1380d33a2"
+    },
+    {
+      "file": "migracion_h34_solicitudes_eliminacion.sql",
+      "sha256": "8f345d4fb3a152cd9cbc67148717813d633ed93a6b797fdb44e9ceeeb86e0e3b"
+    },
+    {
+      "file": "migracion_h35_recuperacion_password.sql",
+      "sha256": "bc6ff329b826f29f3ccb4458720033af382bb355289b4266a89f22b259e11fb8"
+    }
+  ],
+  "real_database_touched": false
+}

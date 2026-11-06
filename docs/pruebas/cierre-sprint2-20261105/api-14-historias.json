@@ -1,0 +1,87 @@
+{
+  "rama": "candidato de cierre de Leonel",
+  "entorno": "API18083, Django18004, MySQL13372, Mailpit18372",
+  "peticiones": 58,
+  "historias": {
+    "H33": {
+      "resultado": "correcto",
+      "consentimientoReal": true,
+      "version": "proyecto-2026-10-26-v1"
+    },
+    "H21": {
+      "resultado": "correcto",
+      "permisos": true,
+      "descartePersistente": true,
+      "repeticionSegura": true
+    },
+    "H22": {
+      "resultado": "correcto",
+      "perdidoRecuperado": 21,
+      "hallazgoAjenoConservado": 22
+    },
+    "H23": {
+      "resultado": "correcto",
+      "avisosReales": 4,
+      "lecturaPersistente": true
+    },
+    "H24": {
+      "resultado": "correcto",
+      "valoresGuardadosYRestaurados": true
+    },
+    "H26": {
+      "resultado": "correcto",
+      "conservaId": 12,
+      "desactivacionYReactivacion": true
+    },
+    "H27": {
+      "resultado": "correcto",
+      "denuncia": 1,
+      "identidadDeSesion": true,
+      "sinDuplicados": true
+    },
+    "H28": {
+      "resultado": "correcto",
+      "auditoriaReal": true,
+      "repeticionSegura": true,
+      "conflicto409": true
+    },
+    "H29": {
+      "resultado": "correcto",
+      "conteosReales": true,
+      "rangoInvalido400": true
+    },
+    "H30": {
+      "resultado": "correcto",
+      "muestra": 4,
+      "estadisticasReales": true
+    },
+    "H31": {
+      "resultado": "correcto",
+      "rankingsReales": true,
+      "sinUbicacion": 1
+    },
+    "H34": {
+      "resultado": "correcto",
+      "solicitudPendiente": true,
+      "cuentaConservada": true
+    },
+    "H39": {
+      "resultado": "correcto",
+      "objetoPublico": 23,
+      "accesoSinSesion": true,
+      "navegadorPendiente": true
+    },
+    "H35": {
+      "resultado": "correcto",
+      "fechasUtcComprobadas": true,
+      "correoReal": true,
+      "enlaceDeUnUso": true,
+      "sesionAdminAnterior401": true,
+      "nuevoLoginCorrecto": true,
+      "apkPendiente": true
+    }
+  },
+  "codigo": "f1a5087ddcb79b4ac6d5580694f7da08de99ecf5",
+  "evidencia_nueva_20261105": true,
+  "antecedentes_20261103_sin_modificar": true
+}
