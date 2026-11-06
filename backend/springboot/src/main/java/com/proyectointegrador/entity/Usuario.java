@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +58,7 @@ public class Usuario {
     private LocalDateTime aceptacionLegalFecha;
 
     @Column(name = "documentos_legales_hash", length = 64)
+    @JdbcTypeCode(SqlTypes.CHAR)
     private String documentosLegalesHash;
 
     /** H11: la cuenta solo puede iniciar sesión cuando el correo está verificado. */
