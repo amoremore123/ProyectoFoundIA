@@ -1,0 +1,264 @@
+{
+  "fecha_cierre_local": "2026-11-06",
+  "zona": "America/Lima",
+  "consolidado_utc": "2026-11-07T00:11:34.471427+00:00",
+  "estado": "SPRINT 2 COMPLETADO Y CERRADO para el alcance aprobado de pruebas locales",
+  "codigo_funcional": "dba319ef6e5ec00f011a985f38f7e70bd1ec8cad",
+  "base_integrada": "976c19de02aeb1d50b163e5f3f88463f8e900c97",
+  "actualizaciones_finales_solo_documentales": true,
+  "alcance": {
+    "historias": 14,
+    "tareas": 84,
+    "horas_estimadas": 183,
+    "dias_planificados": 10,
+    "sprint3": [
+      "H25",
+      "H32",
+      "H36",
+      "H37",
+      "H38",
+      "H40"
+    ],
+    "descripcion_y_responsables_originales_preservados": true,
+    "no_afirma_84_pruebas_manuales_independientes": true
+  },
+  "resultados_base_reutilizados": {
+    "spring_h2": {
+      "exit_code": 0,
+      "tests": 422,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "jar_sha256": "b3fc50c76c361d76f305445febb479f15a3a0c045b1e971dd0ea7d8b0c2a9a87"
+    },
+    "django_sqlite": {
+      "exit_code": 0,
+      "tests": 57,
+      "sqlite_in_memory": true
+    },
+    "web_unitarias_y_builds": {
+      "usuario": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 210,
+        "numPassedTests": 210,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      },
+      "admin": {
+        "install_exit": 0,
+        "test_exit": 0,
+        "numTotalTests": 17,
+        "numPassedTests": 17,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "success": true,
+        "build_exit": 0
+      }
+    },
+    "android_unitarias_apk_lint": {
+      "exit_code": 0,
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "emulator_not_used": true,
+      "apk_sha256": "ade9aeae9c8cdf7c7e43fc23d289bc484074fa82d0664626489a225e8989b0e9",
+      "lint_errors": 0,
+      "lint_warnings": 25
+    },
+    "android_version": {
+      "versionName": "1.2.2",
+      "versionCode": 5
+    },
+    "http_real": {
+      "peticiones": 9,
+      "consentimiento_y_fuentes": true,
+      "consentimiento_anterior_preservado": true
+    },
+    "navegador_real": {
+      "registro_verificado": true,
+      "dos_fuentes_externas_200": true,
+      "sin_jwt_ni_referer_a_tecsup": true,
+      "sin_aceptacion_automatica_ni_consentimiento_publicitario": true
+    },
+    "postman_local": {
+      "assertions": 8,
+      "exit_code": 0,
+      "real_api_qa": true,
+      "cloud_reporting_disabled": true,
+      "script": "scripts/verificar-documentos-h33.postman.js"
+    },
+    "mysql_qa_ddl_auto_validate": true
+  },
+  "reutilizacion": "Suites, builds y APK normal del 05/11: mismos árboles backend/frontend/movil/scripts y mismo SQL que la entrega final; no se presenta esa ejecución como nueva del 06/11.",
+  "resultados_nuevos_06_11": {
+    "instrumentadas": {
+      "casos_unicos": 6,
+      "api30": {
+        "date_utc": "2026-11-06T16:14:23.383505+00:00",
+        "serial": "emulator-5560",
+        "api_level": "30",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "api_real_opt_in": true,
+        "real_api_mysql_and_room": true,
+        "only_synthetic_local_qa": true,
+        "other_devices_and_personal_avds_not_modified": true,
+        "app_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+        "test_apk_sha256": "26c25a7fba32276940e9ae405e52a7bc57aa9d6f76ee032af9ab7004cfe899f0"
+      },
+      "api36": {
+        "date_utc": "2026-11-06T15:46:28.133873+00:00",
+        "serial": "emulator-5560",
+        "api_level": "36",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "api_real_opt_in": true,
+        "real_api_mysql_and_room": true,
+        "only_synthetic_local_qa": true,
+        "other_devices_and_personal_avds_not_modified": true,
+        "app_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+        "test_apk_sha256": "26c25a7fba32276940e9ae405e52a7bc57aa9d6f76ee032af9ab7004cfe899f0"
+      },
+      "no_equivalen_a_12_casos_distintos": true
+    },
+    "h33_apk": {
+      "date_utc": "2026-11-06T16:19:59.508984+00:00",
+      "serial": "emulator-5560",
+      "version": "foundia-tecsup-2026-11-05-v2",
+      "real_apk_api_mysql_and_mailpit": true,
+      "official_terms_transcription_presented": true,
+      "consent_unchecked_after_reading": true,
+      "explicit_checkbox_click_required": true,
+      "actual_registration_and_email_verification": true,
+      "stored_version_hash_date_correct": true,
+      "only_synthetic_local_data": true,
+      "no_personal_avd_or_other_device_used": true,
+      "tokens_passwords_and_email_not_recorded": true
+    },
+    "h35_apk": {
+      "solicitudDesdeApk": true,
+      "correoRealMailpit": true,
+      "puenteWebAndroidVerificado": true,
+      "cambioRealConfirmado": true,
+      "enlaceReutilizadoRechazado": true,
+      "enlaceVencidoRechazado": true,
+      "passwordAnteriorRechazada": true,
+      "nuevoLoginEnApk": true,
+      "vencimientoForzadoSoloEnQa": true,
+      "tokensExcluidosDeEvidencias": true,
+      "api_level": "30",
+      "apk_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+      "evidencia_guardada_utc": "2026-11-06T16:24:54.035489+00:00"
+    },
+    "http": {
+      "historias": 14,
+      "peticiones": 58
+    },
+    "h35_temporal": {
+      "peticiones": 62,
+      "mismo_segundo_ambos_emisores": true,
+      "anterior_401_y_nuevo_200": true,
+      "fechas_y_relojes_no_manipulados": true
+    },
+    "h39_navegador": {
+      "realBrowser": true,
+      "anonymousContext": true,
+      "publicThenWithdrawn": true,
+      "passed": true,
+      "qaOnly": true
+    },
+    "smtp": {
+      "date": "2026-11-06T16:27:29.330371+00:00",
+      "qa_only": true,
+      "fault": "Own QA SMTP container stopped; real socket failure, not a stub",
+      "h33_failed_delivery_rolls_back_account_and_consent": true,
+      "h35_failure_does_not_enumerate_accounts": true,
+      "h35_undelivered_link_invalidated": true,
+      "qa_smtp_restarted": true
+    },
+    "postman": {
+      "assertions": 8,
+      "exit_code": 0,
+      "target": "real local QA API",
+      "cloud_reporting_disabled": true
+    },
+    "respaldo_local": {
+      "date": "2026-11-07T00:03:20.401132+00:00",
+      "scope": "Synthetic local QA on this PC; no central team database",
+      "source": "objetos_perdidos_db on QA :13372",
+      "restored_db": "qa_respaldo_cierre_20261106",
+      "dump_sha256": "4417c5d6bdd63c5db4f5074da0d8dd898b5e1f25c35f58471f61f93b4edffc71",
+      "bytes": 53517,
+      "tables": 14,
+      "all_columns_rows_and_hashes_equal": true,
+      "source_unchanged": true,
+      "shared_database_read_or_written": false,
+      "external_pc_backup_not_required_under_user_agreement": true,
+      "rows_per_table": {
+        "avisos_coincidencia": 93,
+        "categorias": 10,
+        "coincidencias": 8,
+        "contactos": 2,
+        "eventos_coincidencia": 26,
+        "fotos": 7,
+        "notificaciones": 97,
+        "objetos": 30,
+        "preferencias_notificacion": 2,
+        "reclamos": 0,
+        "reportes": 2,
+        "solicitudes_eliminacion": 2,
+        "tokens_recuperacion_password": 8,
+        "usuarios": 16
+      }
+    }
+  },
+  "acuerdo_datos": {
+    "cada_integrante_usa_sus_datos_locales_sinteticos": true,
+    "no_hay_bd_central_requerida": true,
+    "no_se_necesita_sql_de_amore": true,
+    "respaldo_ajeno_no_es_bloqueo": true
+  },
+  "artefactos": {
+    "jar_sha256": "b3fc50c76c361d76f305445febb479f15a3a0c045b1e971dd0ea7d8b0c2a9a87",
+    "apk_normal_sha256": "ade9aeae9c8cdf7c7e43fc23d289bc484074fa82d0664626489a225e8989b0e9",
+    "apk_qa_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+    "test_apk_sha256": "26c25a7fba32276940e9ae405e52a7bc57aa9d6f76ee032af9ab7004cfe899f0",
+    "version_android": "1.2.2",
+    "version_code": 5,
+    "qa_solo_cambia_los_origenes_api_y_web_configurados": true
+  },
+  "entorno": {
+    "datos_reales_usuarios_utilizados": false,
+    "solo_qa_sintetica_de_esta_pc": true,
+    "avd_personal_y_otros_dispositivos_no_usados": true,
+    "recorridos_visuales_aprobados_en_api30": true,
+    "api36_visuales_no_se_cuentan_como_aprobados": true,
+    "incidencias_no_aprobadas": [
+      "ANR de primer arranque de API36 y avisos de servicios Google/System UI del emulador.",
+      "El ejecutor inicialmente suponía clase CheckBox; Compose expone la fila como View checkable en API30. Se corrigió solo el ejecutor, no el APK ni los tiempos."
+    ],
+    "logs_completos_y_sql_tokens_secretos_fuera_de_git": true
+  },
+  "conservacion": {
+    "word_pdf_originales_sin_cambio": true,
+    "historial_publicado_no_reescrito": true,
+    "tag_sprint2_anterior_preservado": "9a376d84470accf050a299abfeed0164ca0d8ecd",
+    "volumenes_qa_conservados": true,
+    "bd_local_de_desarrollo_no_tocada": true,
+    "opencode_no_modificado_por_este_trabajo": true
+  },
+  "limites_de_alcance": [
+    "No es despliegue institucional ni aprobación legal de FoundIA.",
+    "No se inventan certificaciones de accesibilidad ni auditoría integral de seguridad.",
+    "No se utiliza ni se afirma recuperar una base central inexistente para este escenario."
+  ],
+  "referencia_final_prevista": "sprint-2-final"
+}

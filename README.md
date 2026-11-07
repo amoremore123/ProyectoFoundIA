@@ -2,17 +2,17 @@
 
 ## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
-Estado al 05/11/2026: cierre técnico académico de las 14 historias integradas,
-con la corrección final de H35 en Spring y Django. La sesión anterior se rechaza
-incluso dentro del mismo segundo del reset y el login nuevo funciona sin espera.
-La regresión ejecutada y el alcance exacto están en el
-[acta de cierre de Leonel](docs/integracion/cierre-sprint2-leonel-20261105.md).
-H33.1 se completa después con las
-[fuentes oficiales de Tecsup y su alcance de consentimiento](docs/integracion/h33-fuentes-oficiales-20261105.md),
-autorizadas por Leonel. Su inclusión no implica aprobación institucional de
-FoundIA ni despliegue sobre datos reales. La evidencia de emulador del 03/11 es previa.
+Estado al **06/11/2026: Sprint 2 completado** para las pruebas locales del equipo.
+H35 rechaza la sesión anterior incluso dentro del mismo segundo del reset y
+permite entrar inmediatamente con la nueva clave. H33.1 incorpora las fuentes
+oficiales de Tecsup autorizadas por Leonel, sin publicidad ni aprobación
+institucional inventadas. Se ejecutaron pruebas nuevas en emuladores QA y los
+recorridos H33/H35 del APK. Ver el
+[acta final](docs/integracion/cierre-sprint2-final-20261106.md) y las
+[evidencias y matriz de 84 tareas](docs/pruebas/cierre-sprint2-final-20261106/README.md).
+La referencia final es `sprint-2-final`; la etiqueta anterior se conserva.
 
-- [Resultados nuevos y matriz de 84 tareas](docs/pruebas/cierre-sprint2-20261105/README.md).
+- [Antecedente del 05/11: revisión y corrección H35](docs/pruebas/cierre-sprint2-20261105/README.md).
 - [Antecedente del 03/11: integración, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).
 
 - [Entrega de Leonel](docs/integracion/entrega-leonel-sprint2.md) y su
