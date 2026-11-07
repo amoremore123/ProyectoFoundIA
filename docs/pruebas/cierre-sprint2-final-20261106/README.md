@@ -1,5 +1,12 @@
 # Evidencias finales del Sprint 2 — 06/11/2026
 
+**Entrega vigente: `sprint-2`.** Leonel autorizó después unificar los nombres:
+el antiguo corte es `sprint-2-preliminar` y se retiró el alias `sprint-2-final`.
+Los JSON de resultados no se modifican: `referencia_final_prevista` refleja el
+nombre que se utilizó en su captura original. El
+[registro de etiquetas](../../integracion/etiquetas-sprint2.md) detalla el ajuste.
+Solo se actualizan este índice y su huella, no las pruebas ni sus resultados.
+
 Las aplicaciones conservan el código funcional verificado en `dba319e`; las
 actualizaciones finales posteriores son documentales. Se separan los resultados
 nuevos de los reutilizados sobre fuentes idénticas, y se mantienen todos los

@@ -1,5 +1,10 @@
 # Cierre técnico del Sprint 2 — Leonel
 
+> **Antecedente:** este primer corte `9a376d8` se conserva ahora como
+> `sprint-2-preliminar`. La entrega vigente es `sprint-2`; ver el
+> [acta final](cierre-sprint2-final-20261106.md). Las referencias de abajo a la
+> etiqueta original describen su situación histórica, no el nombre actual.
+
 > Actualización posterior: [H33.1 integra fuentes oficiales de Tecsup](h33-fuentes-oficiales-20261105.md)
 > por autorización de Leonel. Las condiciones y resultados de abajo describen
 > el primer cierre, conservado como antecedente; no sustituyen esa actualización.

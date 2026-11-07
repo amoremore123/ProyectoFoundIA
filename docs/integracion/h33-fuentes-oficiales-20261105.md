@@ -58,7 +58,10 @@ Código funcional: `dba319e`. Resultados nuevos sobre esa integración:
 Los resultados ejecutados se registran en
 [`docs/pruebas/h33-fuentes-tecsup-20261105/`](../pruebas/h33-fuentes-tecsup-20261105/).
 Las evidencias del cierre anterior permanecen inmutables como antecedentes.
-La etiqueta publicada `sprint-2` tampoco se reescribe.
+Posteriormente, Leonel autorizó ordenar las etiquetas: `sprint-2` identifica el
+cierre completo y `sprint-2-preliminar` el corte anterior. El
+[registro del ajuste](etiquetas-sprint2.md) explica el cambio sin alterar commits
+ni resultados de pruebas.
 
 **Aclaración posterior de Leonel:** cada integrante utiliza sus propios datos
 locales de prueba. No se necesita el respaldo de Amore ni se mantiene su ausencia

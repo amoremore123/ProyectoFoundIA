@@ -10,7 +10,9 @@ institucional inventadas. Se ejecutaron pruebas nuevas en emuladores QA y los
 recorridos H33/H35 del APK. Ver el
 [acta final](docs/integracion/cierre-sprint2-final-20261106.md) y las
 [evidencias y matriz de 84 tareas](docs/pruebas/cierre-sprint2-final-20261106/README.md).
-La referencia final es `sprint-2-final`; la etiqueta anterior se conserva.
+La entrega oficial es **`sprint-2`**. El corte anterior se conserva como
+`sprint-2-preliminar`; el alias `sprint-2-final` se retiró para evitar confusiones.
+[Orden de etiquetas y actualización local](docs/integracion/etiquetas-sprint2.md).
 
 - [Antecedente del 05/11: revisión y corrección H35](docs/pruebas/cierre-sprint2-20261105/README.md).
 - [Antecedente del 03/11: integración, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).

@@ -91,9 +91,16 @@ despliegue institucional; ninguno de esos hechos se inventa para marcar tareas.
 
 Se mantienen el historial de Leonel, Amore y Yajaira, los originales Word/PDF,
 las evidencias históricas, los volúmenes de datos y `.opencode/`. No se fuerzan
-ramas ni se mueve la etiqueta publicada `sprint-2`, que identifica el primer
-cierre. Las actualizaciones finales avanzan desde esa versión conservando su
-historia. No se exige sincronizar ni copiar datos entre las computadoras.
-El cierre completo se identifica con una nueva etiqueta `sprint-2-final`, sin
-reescribir `sprint-2`. La publicación de ramas y etiqueta se verifica contra el
-remoto después de consolidar estas evidencias.
+ramas ni se reescriben commits. No se exige sincronizar ni copiar datos entre las
+computadoras.
+
+Con autorización posterior y expresa de Leonel se ordenaron los nombres: el
+cierre completo es **`sprint-2`** y el corte anterior `9a376d8` se conserva como
+**`sprint-2-preliminar`**. Se retiró el alias `sprint-2-final`, que apuntaba al
+cierre `86aa0a8`. El ajuste posterior solo cambia documentación y referencias
+Git: las aplicaciones y los resultados probados son los mismos.
+
+Las evidencias originales permanecen intactas; su campo histórico
+`referencia_final_prevista` registra el nombre utilizado al capturarlas, no el
+nombre vigente de entrega. Ver el [registro de etiquetas](etiquetas-sprint2.md)
+y las instrucciones para refrescar las etiquetas de otras copias locales.
