@@ -1,0 +1,12 @@
+{
+  "solicitudDesdeApk": true,
+  "correoRealMailpit": true,
+  "puenteWebAndroidVerificado": true,
+  "cambioRealConfirmado": true,
+  "enlaceReutilizadoRechazado": true,
+  "enlaceVencidoRechazado": true,
+  "passwordAnteriorRechazada": true,
+  "nuevoLoginEnApk": true,
+  "vencimientoForzadoSoloEnQa": true,
+  "tokensExcluidosDeEvidencias": true
+}

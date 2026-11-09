@@ -21,7 +21,7 @@ import com.proyectointegrador.movil.ui.components.*
 @Composable fun PrivacidadScreen(volver:()->Unit,vm:RegistroViewModel=viewModel(factory=fabrica())) {
  val estado by vm.estado.collectAsStateWithLifecycle()
  Pagina("Privacidad y términos",volver){Consulta(estado,vm::recargarDocumentos){docs,_->
-  AvisoEstado("Documentos del proyecto: ${docs.estado}. Versión ${docs.version}. Pendientes de revisión institucional.")
+   AvisoEstado(avisoDocumentos(docs));Text("Versión ${docs.version}");FuentesLegales(docs)
   Panel("Términos de uso"){Text(docs.terminos)};Panel("Política de privacidad"){Text(docs.privacidad)}
  }}
 }

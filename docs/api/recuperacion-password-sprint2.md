@@ -33,7 +33,7 @@ Respuesta **200**, siempre la misma, exista o no la cuenta:
 El correo contiene `{WEB_URL}/restablecer-password?token=...`. Por defecto
 `WEB_URL=http://localhost:5173` (`app.web.url` en `application.yml`). En un celular,
 ese enlace abre la web; Android también acepta `foundia://restablecer?token=...`,
-pero el backend todavía no genera ese formato.
+pero el backend todavía no genera ese formato. La pantalla web ofrece «Abrir en FoundIA Android» para continuar con el mismo enlace sin consumirlo.
 
 ## 2. Definir la contraseña nueva
 
@@ -65,12 +65,43 @@ Respuesta **200**:
   enlaces se guardan en la misma transacción.
 - Se conservan el estado de la cuenta, la verificación, los intentos fallidos y el
   bloqueo temporal de H12: recuperar la contraseña no quita un bloqueo.
-- Se guarda `password_actualizado_en`. En Spring, los JWT emitidos antes de ese
-  momento dejan de valer (401): hay que **volver a iniciar sesión**.
-- **Limitación conocida:** la API de Django (`:8000`, panel ADMIN) todavía no
-  revisa `password_actualizado_en`, así que un token ADMIN anterior al cambio sigue
-  sirviendo allí hasta que vence (24 h). Queda pendiente para el Sprint 3, junto con
-  H37 (cerrar sesión de forma segura).
+- Se guarda `password_actualizado_en`. Tras restablecer la contraseña, las
+  sesiones anteriores responden **401 en Spring y Django**, incluso si el JWT
+  y el cambio se produjeron dentro del mismo segundo. El login nuevo funciona
+  inmediatamente; no exige esperar ni cambiar el reloj.
+- Los JWT nuevos conservan `sub` (correo), `iat` y `exp`, y añaden `cred`: un
+  sello HMAC-SHA-256 ligado al correo y a la credencial almacenada. Ambos
+  backends lo verifican contra el usuario actual. No contiene la contraseña ni
+  su hash BCrypt, y no depende de la precisión de `DATETIME` ni de `iat`.
+  El rol y el estado se siguen consultando en la base, no se confía en el rol
+  declarado en el JWT.
+- Compatibilidad: un JWT anterior **sin** `cred` conserva su validez solo si la
+  cuenta no tiene un restablecimiento registrado. Después de H35 se rechaza
+  todo JWT sin sello, aunque su `iat` coincida con el segundo del cambio.
+  Django conserva el formato anterior por ID bajo esa misma condición y la
+  clave configurada del entorno. Un sello presente pero inválido nunca vuelve
+  al modo compatible.
+- Se deben actualizar ambos backends juntos. Los clientes siguen tratando el
+  JWT como un valor opaco; no cambian rutas, cuerpos JSON ni el enlace del correo.
+  La corrección no necesita columnas nuevas ni atribuye cambios a cuentas antiguas.
+
+### Sello de sesión compartido (`cred`)
+
+Valor hexadecimal en minúsculas de HMAC-SHA-256, usando los bytes UTF-8 de
+`JWT_SECRET` como clave y el mensaje:
+
+```text
+UTF8("foundia-session-v1") || 0x00 || UTF8(correo almacenado) || 0x00 || UTF8(hash de contraseña almacenado)
+```
+
+La comparación es de tiempo constante. Un sello presente exige `iat` y exactamente
+64 caracteres `[0-9a-f]`; `null` tampoco se interpreta como ausencia. Las fechas
+de expiración, el estado de cuenta y los permisos siguen siendo obligatorios.
+Un cambio de hash por otra ruta también invalida los JWT con sello anterior.
+
+Regresión reproducible con servicios QA: `python scripts/verificar-revocacion-h35.py
+--salida <archivo.json>`. Usa solo cuentas sintéticas y comprueba ambos emisores
+contra ambos backends, antes y después del reset y con login nuevo sin espera.
 - La web quita el token de la barra de direcciones al abrir la página y cierra la
   sesión del navegador después de un cambio correcto.
 
@@ -89,5 +120,7 @@ reimportar `script.sql` ni `seed.sql` ni usar `docker compose down -v`.
 
 - Web usuario: `/recuperar-password` (con enlace desde el login, que pasa el correo
   ya escrito) y `/restablecer-password`.
-- Android: `RecuperarScreens.kt` usa las mismas rutas. Falta probarlo de punta a
-  punta con el APK (ver la entrega de Yajaira).
+- Android: `RecuperarScreens.kt` usa las mismas rutas. Verificado el 03/11/2026
+  con APK y API reales: correo, cambio, enlace reutilizado, enlace vencido y nuevo
+  acceso. Cada apertura crea un estado nuevo; no se reutiliza una confirmación
+  anterior. [Evidencias](../pruebas/cierre-sprint2-20261103/h35-apk.json).

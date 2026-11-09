@@ -23,6 +23,13 @@
 .legal-estado, .legal-version { margin: 0; font-size: 13px; color: var(--text-soft); }
 .legal-version strong { color: var(--text-muted); }
 
+.legal-fuentes { font-size: 13px; color: var(--text-soft); overflow-wrap: anywhere; }
+.legal-fuentes h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
+.legal-fuentes p { margin: 6px 0; }
+.legal-fuentes ul { margin: 6px 0; padding-left: 20px; }
+.legal-fuentes li + li { margin-top: 6px; }
+.legal-fuentes a { color: var(--primary); }
+
 .legal-doc { border: 1px solid var(--border); border-radius: var(--radio-sm); background: var(--surface); }
 .legal-doc summary { cursor: pointer; padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--primary); }
 .legal-doc[open] summary { border-bottom: 1px solid var(--border); }

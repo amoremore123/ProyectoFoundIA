@@ -1,0 +1,283 @@
+{
+  "date": "2026-11-06T01:40:00.541Z",
+  "realBrowser": true,
+  "mockedRoutes": false,
+  "qaOnly": true,
+  "checks": [
+    {
+      "name": "H29/H30/H31: tablero real con conteos 4/2/2/4, promedio 3 días y rankings conocidos",
+      "ok": true
+    },
+    {
+      "name": "H30/H31: sin datos no inventa un promedio ni rankings",
+      "ok": true
+    },
+    {
+      "name": "H29: filtro invertido se rechaza sin consulta",
+      "ok": true
+    },
+    {
+      "name": "H33: documentos reales, aceptación desmarcada, alta versionada y verificación por correo real",
+      "ok": true
+    },
+    {
+      "name": "H21: comparación, cancelar sin envío y descarte persistente desde la web",
+      "ok": true
+    },
+    {
+      "name": "H22: cancelación y recuperación real sin alterar el hallazgo ajeno",
+      "ok": true
+    },
+    {
+      "name": "H23/H24: bandeja real y preferencias guardadas, canceladas y recargadas sin borrar historial",
+      "ok": true
+    },
+    {
+      "name": "H27: motivo Otro validado, cancelar y denuncia real desde la web",
+      "ok": true
+    },
+    {
+      "name": "H34: cancelar no envía y solicitud pendiente persiste sin borrar la cuenta",
+      "ok": true
+    },
+    {
+      "name": "H35 web: correo real, token retirado de URL, cambio, enlace usado rechazado y nuevo login",
+      "ok": true,
+      "boundaryVerifiedBySeparateRunner": "h35-revocacion-real.json"
+    }
+  ],
+  "errors": [],
+  "traffic": [
+    {
+      "method": "GET",
+      "path": "/api/admin/dashboard/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/dashboard/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/dashboard/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/legal/documentos",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/verificar",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/coincidencias/24-25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/coincidencias/24-25/descartar",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/coincidencias/26-27",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/coincidencias/26-27/confirmar",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones/preferencias",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notificaciones/preferencias",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones/preferencias",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/objetos/25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/objetos/25/coincidencias",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/objetos/25",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/objetos/25/coincidencias",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/objetos/25/reportes",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil/solicitud-eliminacion",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/perfil/solicitud-eliminacion",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil/solicitud-eliminacion",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/notificaciones",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/perfil/solicitud-eliminacion",
+      "status": 200
+    }
+  ],
+  "finished": "2026-11-06T01:40:29.435Z"
+}

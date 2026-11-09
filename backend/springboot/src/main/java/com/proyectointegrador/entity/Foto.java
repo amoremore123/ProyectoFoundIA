@@ -43,7 +43,7 @@ public class Foto {
     @PrePersist
     void prePersist() {
         if (fechaSubida == null) {
-            fechaSubida = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaSubida = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }

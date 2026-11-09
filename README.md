@@ -2,8 +2,20 @@
 
 ## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
-Estado: las 14 historias están implementadas en `dev/yajaira`, que reúne las tres
-entregas. Falta la revisión final de Leonel y la integración en `main`.
+Estado al **06/11/2026: Sprint 2 completado** para las pruebas locales del equipo.
+H35 rechaza la sesión anterior incluso dentro del mismo segundo del reset y
+permite entrar inmediatamente con la nueva clave. H33.1 incorpora las fuentes
+oficiales de Tecsup autorizadas por Leonel, sin publicidad ni aprobación
+institucional inventadas. Se ejecutaron pruebas nuevas en emuladores QA y los
+recorridos H33/H35 del APK. Ver el
+[acta final](docs/integracion/cierre-sprint2-final-20261106.md) y las
+[evidencias y matriz de 84 tareas](docs/pruebas/cierre-sprint2-final-20261106/README.md).
+La entrega oficial es **`sprint-2`**. El corte anterior se conserva como
+`sprint-2-preliminar`; el alias `sprint-2-final` se retiró para evitar confusiones.
+[Orden de etiquetas y actualización local](docs/integracion/etiquetas-sprint2.md).
+
+- [Antecedente del 05/11: revisión y corrección H35](docs/pruebas/cierre-sprint2-20261105/README.md).
+- [Antecedente del 03/11: integración, respaldo y evidencias](docs/integracion/cierre-sprint2-amore.md).
 
 - [Entrega de Leonel](docs/integracion/entrega-leonel-sprint2.md) y su
   [corrección de integración](docs/integracion/correccion-integracion-leonel-sprint2.md):
@@ -14,6 +26,10 @@ entregas. Falta la revisión final de Leonel y la integración en `main`.
   H39 y la web del sprint.
 
 Pasan al Sprint 3: H25, H32, H36, H37, H38 y H40.
+
+**Datos de prueba:** cada integrante utiliza su propia BD local, no una base
+central ni el respaldo de otra PC. Spring y Django de una misma instalación sí
+usan el mismo MySQL. [Acuerdo y precauciones](docs/integracion/datos-locales-pruebas-sprint2.md).
 
 **Sprint 1 (H1–H20):** web y API integradas en `main` desde el 21/10/2026
 ([informe](docs/pruebas/integracion-sprint1-amore-2026-10-20.md)). En Android quedan
@@ -43,8 +59,8 @@ publicaciones y reportes.
 | Backend administrativo | Python · Django 5 · Django REST Framework |
 | Frontend usuario | React 18 · Vite · JavaScript · React Router · Axios |
 | Frontend administrador | React 18 · Vite · JavaScript · React Router · Axios |
-| Móvil | Kotlin · Jetpack Compose · Navigation Compose · Retrofit |
-| Base de datos | MySQL 8 |
+| Móvil | Kotlin · Jetpack Compose · MVVM · Room (SQLite local) · Retrofit |
+| Base de datos | MySQL 8 compartido; SQLite/Room como caché Android |
 | Contenedores | Docker · Docker Compose |
 
 ## 2. Arquitectura
@@ -73,9 +89,9 @@ PROYECTO-INTEGRADOR/
 │   ├── usuario/           # App pública (React + Vite)     :5173
 │   └── admin/             # Panel administrativo (React)   :5174
 ├── movil/
-│   └── android/           # Avance futuro, fuera de la entrega Sprint 1
+│   └── android/           # App Android integrada del Sprint 2
 ├── database/
-│   ├── script.sql         # Esquema completo (9 tablas)
+│   ├── script.sql         # Esquema para instalaciones nuevas
 │   ├── seed.sql           # Datos iniciales de desarrollo
 │   └── README.md
 ├── docs/

@@ -1,0 +1,68 @@
+{
+  "fecha": "2026-11-06T01:38:22.671282+00:00",
+  "codigo": "f1a5087ddcb79b4ac6d5580694f7da08de99ecf5",
+  "codigo_sin_confirmar": false,
+  "resultado": "correcto",
+  "intentos": [
+    {
+      "emisor": "spring",
+      "intento": 1,
+      "usuario_sintetico_id": 15,
+      "iat": 1793929092,
+      "cambio_segundo": 1793929092,
+      "mismo_segundo": true,
+      "login_a_reset_ms": 600.91,
+      "anteriores_antes_reset": [
+        200,
+        200
+      ],
+      "anteriores_despues_reset": [
+        401,
+        401
+      ],
+      "nuevos_login_inmediato": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "espera_entre_reset_y_login": false,
+      "anteriores_tras_dos_segundos": [
+        401,
+        401
+      ]
+    },
+    {
+      "emisor": "django",
+      "intento": 1,
+      "usuario_sintetico_id": 16,
+      "iat": 1793929099,
+      "cambio_segundo": 1793929099,
+      "mismo_segundo": true,
+      "login_a_reset_ms": 612.68,
+      "anteriores_antes_reset": [
+        200,
+        200
+      ],
+      "anteriores_despues_reset": [
+        401,
+        401
+      ],
+      "nuevos_login_inmediato": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "espera_entre_reset_y_login": false,
+      "anteriores_tras_dos_segundos": [
+        401,
+        401
+      ]
+    }
+  ],
+  "peticiones_reales": 43,
+  "relojes_o_fechas_sql_modificados": false,
+  "solo_cuentas_sinteticas_qa": true,
+  "tokens_o_passwords_registrados": false
+}

@@ -40,7 +40,7 @@ public class Categoria {
     @PrePersist
     void prePersist() {
         if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaCreacion = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }

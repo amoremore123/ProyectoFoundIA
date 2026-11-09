@@ -1,0 +1,7 @@
+{
+  "realBrowser": true,
+  "anonymousContext": true,
+  "publicThenWithdrawn": true,
+  "passed": true,
+  "qaOnly": true
+}

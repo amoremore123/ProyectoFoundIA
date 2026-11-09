@@ -16,6 +16,7 @@ interface AlmacenSesion {
     val aviso: String?
     fun guardar(token: String)
     fun cerrar()
+    fun cerrarConAviso(mensaje:String) { cerrar() }
 }
 
 object SesionCifrada : AlmacenSesion {
@@ -25,6 +26,7 @@ object SesionCifrada : AlmacenSesion {
     override val aviso get() = Sesion.aviso.value
     override fun guardar(token:String) = Sesion.guardar(token)
     override fun cerrar() = Sesion.cerrar()
+    override fun cerrarConAviso(mensaje:String) = Sesion.cerrar(aviso=mensaje)
 }
 
 data class SugerenciasDatos(val objeto:Objeto,val candidatas:List<CoincidenciaSugerida>,val usuario:Usuario)
@@ -90,9 +92,11 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun reportar(id:Long,datos:Denuncia)=privada {api.reportar(id,datos)}
     suspend fun solicitarClave(correo:String)=llamadaApi {api.solicitarClave(Correo(correo.trim()))}
     suspend fun restablecer(token:String,password:String)=llamadaApi {
-        api.restablecer(Restablecer(token,password));cerrarSesion()
+        api.restablecer(Restablecer(token,password))
+        if(sesion.autenticado) cerrarSesion("Tu contraseña se actualizó. Inicia sesión de nuevo.")
+        else publicaciones.invalidar()
     }
-    suspend fun cerrarSesion() = withContext(Dispatchers.IO) {
-        try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};sesion.cerrar()}
+    suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
+        try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }
 }

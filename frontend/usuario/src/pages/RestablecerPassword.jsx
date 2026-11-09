@@ -105,6 +105,15 @@ export default function RestablecerPassword() {
         <h1>Nueva contraseña</h1>
         <p className="auth-subtitulo">Crea una contraseña segura. Al guardarla se cerrarán tus sesiones abiertas.</p>
 
+        {!enlaceInvalido && !enviando && (
+          <p className="auth-enlace">
+            <a href={`foundia://restablecer?token=${encodeURIComponent(token)}`} referrerPolicy="no-referrer">
+              Abrir en FoundIA Android
+            </a>
+            <br />Si tienes la app instalada, puedes continuar allí o usar este formulario.
+          </p>
+        )}
+
         {error && (
           <div className="banner-error" role="alert">
             <Icono nombre={enlaceInvalido ? 'candado' : 'alerta'} tamano={18} /> {error}

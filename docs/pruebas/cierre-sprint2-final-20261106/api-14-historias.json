@@ -1,0 +1,102 @@
+{
+  "rama": "cierre local de Leonel",
+  "entorno": "API18083, Django18004, MySQL13372, Mailpit18372",
+  "peticiones": 58,
+  "historias": {
+    "H33": {
+      "resultado": "correcto",
+      "consentimientoReal": true,
+      "version": "foundia-tecsup-2026-11-05-v2",
+      "fuentesOficialesIntegradas": true,
+      "apkVerificado": true
+    },
+    "H21": {
+      "resultado": "correcto",
+      "permisos": true,
+      "descartePersistente": true,
+      "repeticionSegura": true
+    },
+    "H22": {
+      "resultado": "correcto",
+      "perdidoRecuperado": 14,
+      "hallazgoAjenoConservado": 15
+    },
+    "H23": {
+      "resultado": "correcto",
+      "avisosReales": 4,
+      "lecturaPersistente": true
+    },
+    "H24": {
+      "resultado": "correcto",
+      "valoresGuardadosYRestaurados": true
+    },
+    "H26": {
+      "resultado": "correcto",
+      "conservaId": 10,
+      "desactivacionYReactivacion": true
+    },
+    "H27": {
+      "resultado": "correcto",
+      "denuncia": 2,
+      "identidadDeSesion": true,
+      "sinDuplicados": true
+    },
+    "H28": {
+      "resultado": "correcto",
+      "auditoriaReal": true,
+      "repeticionSegura": true,
+      "conflicto409": true
+    },
+    "H29": {
+      "resultado": "correcto",
+      "conteosReales": true,
+      "rangoInvalido400": true
+    },
+    "H30": {
+      "resultado": "correcto",
+      "muestra": 2,
+      "estadisticasReales": true
+    },
+    "H31": {
+      "resultado": "correcto",
+      "rankingsReales": true,
+      "sinUbicacion": 0
+    },
+    "H34": {
+      "resultado": "correcto",
+      "solicitudPendiente": true,
+      "cuentaConservada": true
+    },
+    "H39": {
+      "resultado": "correcto",
+      "objetoPublico": 16,
+      "accesoSinSesion": true,
+      "navegadorPendiente": false,
+      "publicacionYRetiradaVerificadasEnWeb": true
+    },
+    "H35": {
+      "resultado": "correcto",
+      "fechasUtcComprobadas": true,
+      "correoReal": true,
+      "enlaceDeUnUso": true,
+      "sesionAdminAnterior401": true,
+      "nuevoLoginCorrecto": true,
+      "apkPendiente": false,
+      "apkVerificado": {
+        "solicitudDesdeApk": true,
+        "correoRealMailpit": true,
+        "puenteWebAndroidVerificado": true,
+        "cambioRealConfirmado": true,
+        "enlaceReutilizadoRechazado": true,
+        "enlaceVencidoRechazado": true,
+        "passwordAnteriorRechazada": true,
+        "nuevoLoginEnApk": true,
+        "vencimientoForzadoSoloEnQa": true,
+        "tokensExcluidosDeEvidencias": true
+      }
+    }
+  },
+  "codigo_funcional": "dba319ef6e5ec00f011a985f38f7e70bd1ec8cad",
+  "checkout_base": "976c19de02aeb1d50b163e5f3f88463f8e900c97",
+  "datos": "Sinteticos en esta PC; sin BD central ni SQL de otra integrante"
+}

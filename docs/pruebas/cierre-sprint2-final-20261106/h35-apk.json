@@ -1,0 +1,15 @@
+{
+  "solicitudDesdeApk": true,
+  "correoRealMailpit": true,
+  "puenteWebAndroidVerificado": true,
+  "cambioRealConfirmado": true,
+  "enlaceReutilizadoRechazado": true,
+  "enlaceVencidoRechazado": true,
+  "passwordAnteriorRechazada": true,
+  "nuevoLoginEnApk": true,
+  "vencimientoForzadoSoloEnQa": true,
+  "tokensExcluidosDeEvidencias": true,
+  "api_level": "30",
+  "apk_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+  "evidencia_guardada_utc": "2026-11-06T16:24:54.035489+00:00"
+}

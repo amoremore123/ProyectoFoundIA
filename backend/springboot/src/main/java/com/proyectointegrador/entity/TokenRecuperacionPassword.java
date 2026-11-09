@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ public class TokenRecuperacionPassword {
     private Usuario usuario;
 
     @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    @JdbcTypeCode(SqlTypes.CHAR)
     private String tokenHash;
 
     @Column(name = "creado_en", nullable = false, updatable = false)

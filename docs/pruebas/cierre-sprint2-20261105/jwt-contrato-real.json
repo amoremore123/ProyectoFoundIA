@@ -1,0 +1,137 @@
+{
+  "tested_commit": "f1a5087ddcb79b4ac6d5580694f7da08de99ecf5",
+  "real_http_mysql_qa": true,
+  "crafted_tokens_only_in_this_isolated_qa": true,
+  "secrets_or_credentials_recorded": false,
+  "checks": [
+    {
+      "case": "legitimate_spring",
+      "spring": 200,
+      "django": 200,
+      "ok": true
+    },
+    {
+      "case": "legitimate_django",
+      "spring": 200,
+      "django": 200,
+      "ok": true
+    },
+    {
+      "case": "legacy_email_no_reset",
+      "spring": 200,
+      "django": 200,
+      "ok": true
+    },
+    {
+      "case": "legacy_id_no_reset",
+      "spring": 401,
+      "django": 200,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_0",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_1",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_2",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_3",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_4",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_5",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_6",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_7",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "malformed_cred_8",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "missing_iat",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "expired",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "wrong_signature",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "db_role_precedes_claim",
+      "spring": 200,
+      "django": 403,
+      "ok": true
+    },
+    {
+      "case": "suspended_account",
+      "spring": 401,
+      "django": 403,
+      "ok": true
+    },
+    {
+      "case": "legacy_email_after_reset",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "legacy_id_after_reset",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    },
+    {
+      "case": "old_stamp_after_reset",
+      "spring": 401,
+      "django": 401,
+      "ok": true
+    }
+  ],
+  "check_count": 21,
+  "real_requests": 53,
+  "all_passed": true
+}

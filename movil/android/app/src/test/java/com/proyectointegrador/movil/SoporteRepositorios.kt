@@ -29,4 +29,5 @@ class SesionPrueba:AlmacenSesion {
     override val aviso get()=estado.value.aviso
     override fun guardar(token:String){estado.value=EstadoSesion(true,revision=revision+1)}
     override fun cerrar(){estado.value=EstadoSesion(false,revision=revision+1)}
+    override fun cerrarConAviso(mensaje:String){estado.value=EstadoSesion(false,aviso=mensaje,revision=revision+1)}
 }

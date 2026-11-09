@@ -18,8 +18,8 @@ import com.proyectointegrador.movil.ui.viewmodel.*
         }
     }
 }
-@Composable fun NuevaClaveScreen(token:String?,volver:()->Unit,entrar:()->Unit,
-    vm:NuevaClaveViewModel=viewModel(key="clave-${token?.hashCode()}",factory=fabrica(tokenRecuperacion=token))) {
+@Composable fun NuevaClaveScreen(token:String?,volver:()->Unit,entrar:()->Unit,apertura:Long=0,
+    vm:NuevaClaveViewModel=viewModel(key="clave-${token?.hashCode()}-$apertura",factory=fabrica(tokenRecuperacion=token))) {
     val f by vm.form.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
     Pagina("Nueva contraseña",volver) {
         when {

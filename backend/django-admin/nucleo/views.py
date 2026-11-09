@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Categoria, Objeto, Reporte, Usuario
+from .authentication import get_jwt_secret, sello_credencial
 from .permissions import EsAdmin
 from .serializers import (
     CategoriaSerializer,
@@ -21,7 +22,6 @@ from .serializers import (
     UsuarioSerializer,
 )
 
-JWT_SECRET_DEFAULT = "foundia-jwt-secret-key-cambiar-en-produccion"
 TOKEN_EXPIRE_HOURS = 12
 
 
@@ -87,10 +87,12 @@ class LoginView(APIView):
         usuario.intentos_login = 0
         usuario.bloqueado_hasta = None
         usuario.save(update_fields=["intentos_login", "bloqueado_hasta"])
-        secret = os.environ.get("JWT_SECRET", JWT_SECRET_DEFAULT)
-        exp = datetime.now(dt_timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
+        secret = get_jwt_secret()
+        emitido = datetime.now(dt_timezone.utc)
+        exp = emitido + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(
-            {"sub": str(usuario.id), "rol": usuario.rol, "exp": exp},
+            {"sub": usuario.correo, "rol": usuario.rol, "iat": emitido, "exp": exp,
+             "cred": sello_credencial(usuario)},
             secret,
             "HS256",
         )

@@ -58,12 +58,14 @@ import com.proyectointegrador.movil.ui.components.*
     Campo("Confirmar contraseña",f.confirmar,{vm.editar("confirmar",it)},secreto=true,habilitado=!accion.ocupada)
    }
    Panel("03 · Tú decides") {
-    AvisoEstado("Documentos del proyecto pendientes de revisión institucional. Versión ${docs.version}.")
+     AvisoEstado(avisoDocumentos(docs))
+     Text("Versión ${docs.version}")
+     FuentesLegales(docs)
     TextButton(onClick={leer=docs.terminos}){Text("Leer términos de uso")}
     TextButton(onClick={leer=docs.privacidad}){Text("Leer política de privacidad")}
     Row(Modifier.toggleable(value=f.acepta,role=Role.Checkbox,enabled=!accion.ocupada,onValueChange=vm::aceptar),verticalAlignment=Alignment.CenterVertically) {
      Checkbox(f.acepta,onCheckedChange=null,enabled=!accion.ocupada)
-     Text("Acepto los términos y la política de privacidad de esta versión",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
+      Text("Acepto los términos y la política de privacidad de FoundIA de esta versión",Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
     }
    }
    EstadoAccion(accion);BotonPrincipal("Registrarme y recibir código",vm::registrar,f.acepta&&!accion.ocupada)

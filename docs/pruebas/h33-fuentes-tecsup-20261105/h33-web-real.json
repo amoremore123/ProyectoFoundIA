@@ -1,0 +1,27 @@
+{
+  "realBrowser": true,
+  "mockedRoutes": false,
+  "qaOnly": true,
+  "externalSources": [
+    {
+      "url": "https://www.tecsup.edu.pe/terminos-y-condiciones/",
+      "status": 200,
+      "noAuthorizationOrReferrer": true
+    },
+    {
+      "url": "https://www.tecsup.edu.pe/wp-content/uploads/2024/08/politica-tratamiento-personales-tecsup.pdf",
+      "status": 200,
+      "noAuthorizationOrReferrer": true
+    }
+  ],
+  "version": "foundia-tecsup-2026-11-05-v2",
+  "bothCompleteTranscriptsVisible": true,
+  "consentInitiallyUnchecked": true,
+  "readingDoesNotAccept": true,
+  "noPostWithoutAcceptance": true,
+  "registration201": true,
+  "exactVersionAndAcceptancePayload": true,
+  "noMarketingConsentAdded": true,
+  "actualVerificationEmailAndSession": true,
+  "tokensPasswordsEmailsNotRecorded": true
+}

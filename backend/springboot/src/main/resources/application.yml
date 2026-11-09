@@ -17,6 +17,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+        # DATETIME conserva el valor UTC de LocalDateTime sin convertirlo otra vez.
+        type.java_time_use_direct_jdbc: true
   mail:
     # Por defecto usa Mailpit (docker compose) -> bandeja en http://localhost:8025
     # Para Gmail: MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_SMTP_AUTH=true,

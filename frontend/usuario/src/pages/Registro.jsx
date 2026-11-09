@@ -190,6 +190,30 @@ export default function Registro() {
                 Versión <strong>{documentos.version}</strong>
                 {documentos.estado?.includes('PENDIENTE') && ' · texto del proyecto pendiente de revisión institucional'}
               </p>
+              {documentos.aviso && <p className="legal-estado">{documentos.aviso}</p>}
+              {documentos.fuentes?.length > 0 && (
+                <div className="legal-fuentes">
+                  <h3>Fuentes oficiales de Tecsup</h3>
+                  <p>Referencia institucional. Las transcripciones completas están en los documentos de abajo.</p>
+                  <ul>
+                    {documentos.fuentes.filter((fuente) => {
+                      try {
+                        const url = new URL(fuente.url);
+                        return url.protocol === 'https:' && url.hostname === 'www.tecsup.edu.pe'
+                          && !url.username && !url.password && !url.port;
+                      } catch { return false; }
+                    }).map((fuente) => (
+                      <li key={fuente.id}>
+                        <a href={fuente.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">
+                          {fuente.titulo} (sitio externo)
+                        </a>
+                        <span> · Consulta: {fuente.consultadoEl}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p>Leer estas fuentes no marca la casilla ni autoriza publicidad.</p>
+                </div>
+              )}
               <details className="legal-doc">
                 <summary>Leer los Términos de uso</summary>
                 <div className="legal-texto" tabIndex={0} aria-label="Términos de uso">
@@ -218,7 +242,7 @@ export default function Registro() {
                   aria-describedby={errorTerminos ? 'error-terminos' : undefined}
                 />
                 <span>
-                  He leído y acepto los Términos de uso y la Política de privacidad (versión {documentos.version}).
+                  He leído y acepto los Términos de uso y la Política de privacidad de FoundIA (versión {documentos.version}).
                 </span>
               </label>
               {errorTerminos && (

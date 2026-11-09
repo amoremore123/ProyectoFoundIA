@@ -95,8 +95,22 @@ describe('H35 - Restablecer la contraseña desde el enlace', () => {
     await guardar();
 
     expect(screen.getByRole('alert').textContent).toContain(ENLACE_INVALIDO);
+    expect(screen.queryByRole('link', { name: 'Abrir en FoundIA Android' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Solicitar un nuevo enlace' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Guardar contraseña' }).disabled).toBe(true);
     expect(screen.getByLabelText(/^Nueva contraseña/).value).toBe('');
   });
+  it('permite continuar el enlace válido en la aplicación Android sin llamar al servidor', () => {
+    renderizar();
+    expect(screen.getByRole('link', { name: 'Abrir en FoundIA Android' }).getAttribute('href'))
+      .toBe(`foundia://restablecer?token=${TOKEN}`);
+    expect(rutaActual).toBe('/restablecer-password');
+    expect(restablecerPassword).not.toHaveBeenCalled();
+  });
+
+  it('no ofrece abrir Android cuando el enlace tiene un formato inválido', () => {
+    renderizar('/restablecer-password?token=corto');
+    expect(screen.queryByRole('link', { name: 'Abrir en FoundIA Android' })).toBeNull();
+  });
+
 });

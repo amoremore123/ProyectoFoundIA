@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-06T01:41:42.010154+00:00",
+  "scope": "Synthetic QA only, not the shared database",
+  "source": "objetos_perdidos_db on QA :13372",
+  "restored_db": "qa_respaldo_cierre_20261105",
+  "dump_sha256": "5f76f4b8fec3310b60ad284649f02f782ac1e28dba17c2fbbd141bfe2b573706",
+  "bytes": 44886,
+  "tables": 14,
+  "all_columns_rows_and_hashes_equal": true,
+  "source_unchanged": true,
+  "shared_database_read_or_written": false,
+  "does_not_replace_missing_shared_backup_verification": true,
+  "rows_per_table": {
+    "avisos_coincidencia": 32,
+    "categorias": 12,
+    "coincidencias": 6,
+    "contactos": 0,
+    "eventos_coincidencia": 13,
+    "fotos": 3,
+    "notificaciones": 34,
+    "objetos": 27,
+    "preferencias_notificacion": 3,
+    "reclamos": 0,
+    "reportes": 2,
+    "solicitudes_eliminacion": 2,
+    "tokens_recuperacion_password": 16,
+    "usuarios": 24
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-06T16:27:29.330371+00:00",
+  "qa_only": true,
+  "fault": "Own QA SMTP container stopped; real socket failure, not a stub",
+  "h33_failed_delivery_rolls_back_account_and_consent": true,
+  "h35_failure_does_not_enumerate_accounts": true,
+  "h35_undelivered_link_invalidated": true,
+  "qa_smtp_restarted": true
+}

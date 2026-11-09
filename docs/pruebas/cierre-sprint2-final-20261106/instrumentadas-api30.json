@@ -1,0 +1,15 @@
+{
+  "date_utc": "2026-11-06T16:14:23.383505+00:00",
+  "serial": "emulator-5560",
+  "api_level": "30",
+  "tests": 6,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "api_real_opt_in": true,
+  "real_api_mysql_and_room": true,
+  "only_synthetic_local_qa": true,
+  "other_devices_and_personal_avds_not_modified": true,
+  "app_sha256": "0a3bb3e365353082d168c888ff32dcfbdbf1bc7e61c98e5ce35be1ab8cbd81de",
+  "test_apk_sha256": "26c25a7fba32276940e9ae405e52a7bc57aa9d6f76ee032af9ab7004cfe899f0"
+}

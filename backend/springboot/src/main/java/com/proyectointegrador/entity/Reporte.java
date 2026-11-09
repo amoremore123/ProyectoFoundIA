@@ -56,7 +56,7 @@ public class Reporte {
     @PrePersist
     void prePersist() {
         if (fechaReporte == null) {
-            fechaReporte = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            fechaReporte = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }
