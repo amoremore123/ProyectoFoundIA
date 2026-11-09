@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.ui.sprint
+package com.proyectointegrador.movil.ui.screens.cuenta
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*

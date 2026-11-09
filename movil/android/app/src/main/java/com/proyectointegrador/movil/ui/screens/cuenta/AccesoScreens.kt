@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.ui.sprint
+package com.proyectointegrador.movil.ui.screens.cuenta
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable

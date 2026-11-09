@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.ExperienciaViewModel
-import com.proyectointegrador.movil.ui.sprint.EstadoAccion
+import com.proyectointegrador.movil.ui.components.EstadoAccion
 
 @Composable fun BienvenidaScreen(vm:ExperienciaViewModel,abrir:(String)->Unit) {
  var paso by rememberSaveable {mutableIntStateOf(-1)}

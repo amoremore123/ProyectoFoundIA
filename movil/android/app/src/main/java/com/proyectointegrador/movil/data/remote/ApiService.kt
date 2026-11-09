@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.network
+package com.proyectointegrador.movil.data.remote
 
 import com.proyectointegrador.movil.model.Categoria
 import com.proyectointegrador.movil.model.CoincidenciaSugerida

@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.network
+package com.proyectointegrador.movil.data.session
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec

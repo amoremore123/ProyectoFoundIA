@@ -16,7 +16,8 @@ import coil.compose.AsyncImage
 import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.PublicarViewModel
-import com.proyectointegrador.movil.ui.sprint.EstadoAccion
+import com.proyectointegrador.movil.ui.components.EstadoAccion
+import com.proyectointegrador.movil.ui.components.Pagina
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,13 +32,13 @@ import java.util.*
  val fechaPicker=rememberDatePickerState(selectableDates=object:SelectableDates{override fun isSelectableDate(utcTimeMillis:Long)=utcTimeMillis<=System.currentTimeMillis()})
  val titulos=listOf("Tipo de publicación","Información del objeto","Fotografía","Ubicación","Fecha","Revisa y publica")
  if(evento!=null) {
-  com.proyectointegrador.movil.ui.sprint.Pagina("¡Ya está publicado!"){
+  Pagina("¡Ya está publicado!"){
    IlustracionEncuentro(2,Modifier.fillMaxWidth().heightIn(max=230.dp));Text("Un paso más cerca de reencontrarse.",style=MaterialTheme.typography.headlineMedium)
    AvisoEstado("Tu publicación se guardó en el servidor y está disponible para la comunidad.")
    BotonPrincipal("Ver publicación",{val id=evento?.toLongOrNull();viewModel.consumirEvento();if(id!=null)onPublicado(id)})
   };return
  }
- com.proyectointegrador.movil.ui.sprint.Pagina("Comparte y conecta",desplazamiento=desplazamiento) {
+ Pagina("Comparte y conecta",desplazamiento=desplazamiento) {
   Text("Ayuda a que cada objeto vuelva a su lugar.",color=MaterialTheme.colorScheme.onSurfaceVariant)
   Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){repeat(6){indice->Surface(color=if(indice<=f.paso)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,shape=RoundedCornerShape(5.dp),modifier=Modifier.weight(1f).height(5.dp)) {}}}
   Text("PASO ${f.paso+1} DE 6",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)

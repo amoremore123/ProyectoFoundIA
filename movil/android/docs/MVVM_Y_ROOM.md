@@ -19,11 +19,15 @@ flowchart LR
   errores y validaciones puras, sin dependencias de la interfaz.
 - `data/local/entity` y `dao`: entidades Room y consultas suspendidas/Flow.
 - `data/local/FoundIADatabase.kt`: instancia local `foundia-local.db`, versión 2.
+- `data/remote`: cliente Retrofit y contrato HTTP de Spring.
+- `data/session`: almacenamiento cifrado de la sesión de FoundIA.
 - `data/repository`: coordinación de la API con la caché. Solo aquí se decide
   cuándo una copia puede mostrarse y cuándo se debe invalidar.
 - `ui/viewmodel`: carga, validación, errores, reenvíos, confirmaciones y acciones.
   Cada pantalla recibe su ViewModel por la factoría de `di/Contenedor.kt`.
-- `ui/screens`, `ui/sprint` y `navigation`: presentación y observación con
+- `ui/screens`: pantallas agrupadas por cuenta, avisos, coincidencias y
+  publicaciones. `ui/components`: formularios y componentes compartidos.
+- `navigation` y pantallas: presentación y observación con
   `collectAsStateWithLifecycle`; no acceden a Retrofit, DAO ni Room.
 - `FoundiaApplication` inicializa la sesión segura y el contenedor. Se conservan
   el paquete `com.proyectointegrador.movil` y las pantallas existentes.
@@ -118,8 +122,9 @@ argumento de instrumentación `probarApiReal=true` y verifica ese origen exacto.
 **únicamente** el proceso de la API QA y `qa/verificar_cache_emulador.py` verifica
 el emulador dedicado 5560, marcado con `debug.foundia.qa_room=20261027`. Este
 script no instala, no borra datos ni opera sobre el emulador personal 5554.
-`qa/verificar_arquitectura.py` revisa las fronteras y que los cambios estén limitados
-a `movil/android`. Al terminar se detienen solo los servicios temporales de QA.
+`qa/verificar_arquitectura.py` revisa las fronteras. Con `--base main` también
+comprueba que el diff desde la referencia indicada esté limitado a `movil/android`.
+Al terminar se detienen solo los servicios temporales de QA.
 
 Referencias: [arquitectura Android](https://developer.android.com/topic/architecture/recommendations),
 [Room 2.7.2](https://developer.android.com/jetpack/androidx/releases/room#2.7.2) y

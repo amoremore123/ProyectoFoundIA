@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.ui.sprint
+package com.proyectointegrador.movil.ui.screens.publicaciones
 
 import android.content.Intent
 import androidx.compose.material3.*

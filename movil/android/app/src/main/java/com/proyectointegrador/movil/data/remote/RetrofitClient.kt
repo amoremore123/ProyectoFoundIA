@@ -1,5 +1,6 @@
-package com.proyectointegrador.movil.network
+package com.proyectointegrador.movil.data.remote
 
+import com.proyectointegrador.movil.data.session.Sesion
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

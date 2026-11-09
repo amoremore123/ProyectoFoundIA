@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.proyectointegrador.movil.data.local.CachePublica
 import com.proyectointegrador.movil.domain.Lectura
 import com.proyectointegrador.movil.model.*
-import com.proyectointegrador.movil.network.ApiService
+import com.proyectointegrador.movil.data.remote.ApiService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*

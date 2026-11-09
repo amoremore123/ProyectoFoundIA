@@ -1,4 +1,4 @@
-package com.proyectointegrador.movil.ui.sprint
+package com.proyectointegrador.movil.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.ScrollState
@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.*
-import com.proyectointegrador.movil.ui.components.*
 
 @Composable fun EstadoAccion(accion:com.proyectointegrador.movil.ui.viewmodel.EstadoAccion) {
  if(accion.ocupada)LinearProgressIndicator(Modifier.fillMaxWidth())

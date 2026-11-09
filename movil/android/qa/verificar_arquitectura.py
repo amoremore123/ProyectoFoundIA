@@ -1,6 +1,9 @@
 """Auditoría repetible de las fronteras MVVM. Solo inspecciona archivos Android."""
 from pathlib import Path
-import json,re,subprocess
+import argparse,json,re,subprocess
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--base", help="Referencia opcional para verificar que el diff solo toca Android")
+args=parser.parse_args()
 raiz=Path(__file__).resolve().parents[1]
 java=raiz/"app/src/main/java/com/proyectointegrador/movil"
 fallos=[];vistas=[]
@@ -16,10 +19,10 @@ assert "fallbackToDestructiveMigration" not in fuentes
 assert not fallos,fallos
 assert (raiz/"app/schemas/com.proyectointegrador.movil.data.local.FoundIADatabase/1.json").exists()
 assert (raiz/"app/schemas/com.proyectointegrador.movil.data.local.FoundIADatabase/2.json").exists()
-repo=raiz.parents[1]
-cambios=subprocess.check_output(["git","diff","--name-only","c8c782f"],cwd=repo,text=True).splitlines()
-assert all(p.startswith("movil/android/") for p in cambios),cambios
 informe={"vistasRevisadas":len(vistas),"llamadasDirectasDeApiODaoEnVistas":0,"consultasEnHiloPrincipal":False,
- "migracionDestructiva":False,"esquemasRoom":[1,2],"cambiosSoloAndroid":True}
-(raiz/"qa/evidencias/arquitectura.json").write_text(json.dumps(informe,ensure_ascii=False,indent=2),encoding="utf-8")
+ "migracionDestructiva":False,"esquemasRoom":[1,2]}
+if args.base:
+ cambios=subprocess.check_output(["git","diff","--name-only",args.base,"--"],cwd=raiz.parents[1],text=True).splitlines()
+ assert all(p.startswith("movil/android/") for p in cambios),cambios
+ informe["cambiosSoloAndroid"]=True
 print(json.dumps(informe,ensure_ascii=False))

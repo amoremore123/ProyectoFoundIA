@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.proyectointegrador.movil.data.repository.*
 import com.proyectointegrador.movil.domain.*
 import com.proyectointegrador.movil.model.*
-import com.proyectointegrador.movil.network.ApiService
+import com.proyectointegrador.movil.data.remote.ApiService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import okhttp3.mockwebserver.*
