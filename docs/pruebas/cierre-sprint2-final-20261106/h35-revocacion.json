@@ -1,0 +1,92 @@
+{
+  "fecha": "2026-11-06T16:09:19.592977+00:00",
+  "codigo": "976c19de02aeb1d50b163e5f3f88463f8e900c97",
+  "codigo_sin_confirmar": true,
+  "resultado": "correcto",
+  "intentos": [
+    {
+      "emisor": "spring",
+      "intento": 1,
+      "usuario_sintetico_id": 11,
+      "iat": 1793981326,
+      "cambio_segundo": 1793981327,
+      "mismo_segundo": false,
+      "login_a_reset_ms": 877.86,
+      "anteriores_antes_reset": [
+        200,
+        200
+      ],
+      "anteriores_despues_reset": [
+        401,
+        401
+      ],
+      "nuevos_login_inmediato": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "espera_entre_reset_y_login": false
+    },
+    {
+      "emisor": "spring",
+      "intento": 2,
+      "usuario_sintetico_id": 12,
+      "iat": 1793981340,
+      "cambio_segundo": 1793981340,
+      "mismo_segundo": true,
+      "login_a_reset_ms": 506.8,
+      "anteriores_antes_reset": [
+        200,
+        200
+      ],
+      "anteriores_despues_reset": [
+        401,
+        401
+      ],
+      "nuevos_login_inmediato": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "espera_entre_reset_y_login": false,
+      "anteriores_tras_dos_segundos": [
+        401,
+        401
+      ]
+    },
+    {
+      "emisor": "django",
+      "intento": 1,
+      "usuario_sintetico_id": 13,
+      "iat": 1793981356,
+      "cambio_segundo": 1793981356,
+      "mismo_segundo": true,
+      "login_a_reset_ms": 581.28,
+      "anteriores_antes_reset": [
+        200,
+        200
+      ],
+      "anteriores_despues_reset": [
+        401,
+        401
+      ],
+      "nuevos_login_inmediato": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "espera_entre_reset_y_login": false,
+      "anteriores_tras_dos_segundos": [
+        401,
+        401
+      ]
+    }
+  ],
+  "peticiones_reales": 62,
+  "relojes_o_fechas_sql_modificados": false,
+  "solo_cuentas_sinteticas_qa": true,
+  "tokens_o_passwords_registrados": false
+}
