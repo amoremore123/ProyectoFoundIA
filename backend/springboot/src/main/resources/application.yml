@@ -49,6 +49,12 @@ app:
   web:
     # H35: dirección de la web de usuario para armar el enlace de recuperación
     url: ${WEB_URL:http://localhost:5173}
+  # H53: recordatorios de objetos perdidos sin resolver.
+  recordatorios:
+    habilitados: ${RECORDATORIOS_HABILITADOS:true}
+    intervalo-ms: ${RECORDATORIOS_INTERVALO_MS:86400000}
+    retraso-inicial-ms: ${RECORDATORIOS_RETRASO_INICIAL_MS:300000}
+    dias-sin-resolver: ${RECORDATORIOS_DIAS_SIN_RESOLVER:7}
   jwt:
     secret: ${JWT_SECRET:foundia-dev-jwt-secret-cambiar-en-produccion-123456}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

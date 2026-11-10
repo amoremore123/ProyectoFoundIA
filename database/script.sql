@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS tokens_revocados;
 DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
+DROP TABLE IF EXISTS recordatorios_objeto;
 DROP TABLE IF EXISTS reclamos;
 DROP TABLE IF EXISTS custodias;
 DROP TABLE IF EXISTS secuencias_custodia;
@@ -295,7 +296,8 @@ CREATE TABLE eventos_coincidencia (
 CREATE TABLE preferencias_notificacion (
  usuario_id BIGINT NOT NULL PRIMARY KEY,
  coincidencias BOOLEAN NOT NULL DEFAULT TRUE, contactos BOOLEAN NOT NULL DEFAULT TRUE,
- reclamos BOOLEAN NOT NULL DEFAULT TRUE, fecha_actualizacion DATETIME NOT NULL,
+ reclamos BOOLEAN NOT NULL DEFAULT TRUE, recordatorios BOOLEAN NOT NULL DEFAULT TRUE,
+ fecha_actualizacion DATETIME NOT NULL,
  CONSTRAINT fk_preferencia_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
 
@@ -308,6 +310,21 @@ CREATE TABLE avisos_coincidencia (
  CONSTRAINT fk_aviso_encontrado FOREIGN KEY (objeto_encontrado_id) REFERENCES objetos(id),
  CONSTRAINT fk_aviso_notificacion FOREIGN KEY (notificacion_id) REFERENCES notificaciones(id)
 ) ENGINE=InnoDB;
+
+-- H53: un recordatorio por objeto y mes UTC; evita repetir el aviso en el periodo.
+CREATE TABLE recordatorios_objeto (
+    id              BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    objeto_id       BIGINT      NOT NULL,
+    periodo         CHAR(7)     NOT NULL,
+    notificacion_id BIGINT      NULL,
+    fecha_creacion  DATETIME(6) NOT NULL,
+    CONSTRAINT uk_recordatorio_objeto_periodo UNIQUE (objeto_id, periodo),
+    CONSTRAINT fk_recordatorio_objeto FOREIGN KEY (objeto_id) REFERENCES objetos(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_recordatorio_notificacion FOREIGN KEY (notificacion_id) REFERENCES notificaciones(id)
+        ON DELETE SET NULL,
+    INDEX idx_recordatorios_periodo (periodo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================================
 -- 9. REPORTES

@@ -542,6 +542,35 @@ Acciones que ofrece la pantalla "Mis publicaciones" (mismas reglas que la API de
 ]
 ```
 
+> **H53:** los recordatorios de objetos perdidos sin resolver llegan con
+> `tipo: "RECORDATORIO_OBJETO"` y `enlace: "/objeto/{id}"`. Se generan como
+> máximo una vez por objeto y mes UTC; el detalle está en
+> `docs/api/sprint3-h53.md`.
+
+### GET `/api/notificaciones/preferencias`  _(H24, H53)_
+
+**Response** `200 OK`
+
+```json
+{ "coincidencias": true, "contactos": true, "reclamos": true, "recordatorios": true }
+```
+
+### PUT `/api/notificaciones/preferencias`  _(H24, H53)_
+
+**Request**
+
+```json
+{ "coincidencias": true, "contactos": false, "reclamos": true, "recordatorios": true }
+```
+
+Los tres primeros booleanos son obligatorios. `recordatorios` es opcional: si
+no llega, se conserva el valor guardado (compatibilidad con los clientes de
+H24). Un cliente nuevo debe enviarlo para activar o desactivar los
+recordatorios. Los cambios solo afectan a avisos nuevos; el historial no se
+borra.
+
+**Response** `200 OK` con los cuatro valores guardados.
+
 ### PUT `/api/notificaciones/{id}/leida`
 
 **Response** `200 OK` — notificación marcada como leída · `404`

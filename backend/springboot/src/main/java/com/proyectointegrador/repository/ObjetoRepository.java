@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,15 @@ public interface ObjetoRepository extends JpaRepository<Objeto, Long>, JpaSpecif
 
     @EntityGraph(attributePaths = {"usuario", "categoria", "fotos"})
     List<Objeto> findByTipoAndCategoriaIdAndEstado(TipoObjeto tipo, Long categoriaId, EstadoObjeto estado);
+
+    /**
+     * H53: objetos perdidos que siguen sin resolverse. Se usa la fecha de
+     * publicación, no la fecha del hecho, para no recordar publicaciones
+     * recién creadas sobre hechos antiguos.
+     */
+    @EntityGraph(attributePaths = {"usuario"})
+    List<Objeto> findByTipoAndEstadoAndFechaRecuperacionIsNullAndFechaPublicacionLessThanEqualOrderById(
+            TipoObjeto tipo, EstadoObjeto estado, LocalDateTime limite);
 
     long countByUsuarioId(Long usuarioId);
 

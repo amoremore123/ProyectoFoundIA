@@ -29,6 +29,8 @@ public class PreferenciaNotificacionService {
         var p=preferencias.buscarParaActualizar(usuarioId).orElseGet(PreferenciaNotificacion::new);
         p.setUsuarioId(usuarioId); p.setCoincidencias(datos.coincidencias()); p.setContactos(datos.contactos());
         p.setReclamos(datos.reclamos());
+        // H53: un cliente de H24 que no envía `recordatorios` conserva el valor guardado.
+        if (datos.recordatorios()!=null) p.setRecordatorios(datos.recordatorios());
         p.setFechaActualizacion(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS));
         return respuesta(preferencias.saveAndFlush(p));
     }
@@ -43,11 +45,12 @@ public class PreferenciaNotificacionService {
             case "COINCIDENCIA_NUEVA" -> p.isCoincidencias();
             case "CONTACTO_RECIBIDO" -> p.isContactos();
             case "RECLAMO_RECIBIDO" -> p.isReclamos();
+            case "RECORDATORIO_OBJETO" -> p.isRecordatorios();
             default -> throw new IllegalArgumentException("Tipo de aviso no admitido");
         };
     }
 
     private PreferenciasRequest respuesta(PreferenciaNotificacion p) {
-        return new PreferenciasRequest(p.isCoincidencias(),p.isContactos(),p.isReclamos());
+        return new PreferenciasRequest(p.isCoincidencias(),p.isContactos(),p.isReclamos(),p.isRecordatorios());
     }
 }
