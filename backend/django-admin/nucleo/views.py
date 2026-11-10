@@ -31,6 +31,7 @@ from .models import (
     Usuario,
 )
 from .authentication import get_jwt_secret, sello_credencial
+from .exportacion import FORMATO_PDF, FORMATO_XLSX, excel_reporte, nombre_archivo, pdf_reporte
 from .permissions import EsAdmin, EsBibliotecaOAdmin
 from .reclamos_custodia import (
     fecha_expiracion_retiro,
@@ -144,22 +145,57 @@ class LoginView(APIView):
         )
 
 
+def _datos_dashboard(params):
+    """H29-H31 + tarjetas del tablero. Lo comparten el tablero y H32."""
+    from .metricas import metricas_dashboard
+
+    return {
+        **metricas_dashboard(params),
+        "usuarios": Usuario.objects.count(),
+        "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
+        "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
+        "categorias": Categoria.objects.count(),
+    }
+
+
 class DashboardView(APIView):
     """GET /api/admin/dashboard/"""
 
     permission_classes = [IsAuthenticated, EsAdmin]
 
     def get(self, request):
-        from .metricas import metricas_dashboard
+        return Response(_datos_dashboard(request.query_params))
 
-        datos = {
-            **metricas_dashboard(request.query_params),
-            "usuarios": Usuario.objects.count(),
-            "objetosActivos": Objeto.objects.filter(estado="ACTIVO").count(),
-            "reportesPendientes": Reporte.objects.filter(estado="PENDIENTE").count(),
-            "categorias": Categoria.objects.count(),
-        }
-        return Response(datos)
+
+class DashboardExportView(APIView):
+    """H32 - GET /api/admin/dashboard/exportar.xlsx|.pdf
+
+    Usa exactamente los mismos datos y validación de rango que el tablero.
+    El responsable y la fecha de emisión salen de la sesión y del servidor.
+    """
+
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    def get(self, request, formato):
+        datos = _datos_dashboard(request.query_params)
+        responsable = f"{request.user.nombre} {request.user.apellido}".strip()
+        if request.user.correo:
+            responsable = f"{responsable} ({request.user.correo})"
+        emitido = timezone.localtime()
+
+        if formato == "xlsx":
+            contenido = excel_reporte(datos, responsable, emitido)
+            tipo = FORMATO_XLSX
+        else:
+            contenido = pdf_reporte(datos, responsable, emitido)
+            tipo = FORMATO_PDF
+
+        respuesta = HttpResponse(contenido, content_type=tipo)
+        respuesta["Content-Disposition"] = (
+            f'attachment; filename="{nombre_archivo(datos, formato, emitido)}"'
+        )
+        respuesta["X-Content-Type-Options"] = "nosniff"
+        return respuesta
 
 
 def _solo_estado(request, permitidos):

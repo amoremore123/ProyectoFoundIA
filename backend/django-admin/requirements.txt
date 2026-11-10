@@ -8,3 +8,4 @@ django-cors-headers
 sqlparse
 reportlab
 qrcode[pil]
+openpyxl
