@@ -2,23 +2,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icono from './Icono';
 import { useAsistente } from '../context/AsistenteContext';
-import { IMAGEN_FINDI } from '../config/findi';
+const IMAGEN_FINDI_HERO = '/findi/findi-hero.webp';
 
 const INTERVALO = 7000;
 
-// La primera diapositiva presenta a FINDI; las demás usan fotografías del campus.
+// FINDI abre el carrusel; las siguientes escenas presentan la comunidad y sus objetos.
 const DIAPOSITIVAS = [
   {
     id: 'findi',
     findi: true,
     etiqueta: 'FINDI',
-    titulo: <>¿Perdiste algo en <span>TECSUP</span>?</>,
-    texto: <>Reporta, busca y recupera tus objetos de forma rápida y segura con la ayuda de <strong>FINDI</strong>.</>,
+    titulo: <>Tu asistente<br /> inteligente<br /> en <span>TECSUP</span></>,
+    texto: <>Reporta, busca y recupera tus objetos perdidos con la ayuda de la IA de <strong>FoundIA</strong>.</>,
   },
   {
     id: 'campus',
-    imagen: '/imagenes/tecsup-campus.png',
-    posicion: 'center 45%',
+    imagen: '/imagenes/campus.jpg',
+    posicion: 'center 50%',
     etiqueta: 'Comunidad Tecsup',
     titulo: <>¿Lo perdiste en el campus? <span>Busquémoslo juntos.</span></>,
     texto: 'Estudiantes y personal de Tecsup publican aquí lo que pierden y lo que encuentran.',
@@ -101,7 +101,7 @@ export default function SliderPortada() {
 
   return (
     <section
-      className={`slider-portada${pausado || enFoco ? ' detenido' : ''}`}
+      className={`slider-portada${actual === 0 ? ' mostrando-findi' : ''}${pausado || enFoco ? ' detenido' : ''}`}
       aria-roledescription="carrusel"
       aria-label="Destacados de FoundIA"
       onMouseEnter={() => setEnFoco(true)}
@@ -153,16 +153,27 @@ export default function SliderPortada() {
                   {d.accion.texto} <Icono nombre="flechaDer" tamano={16} />
                 </Link>
               )}
+              {d.findi && <p className="hero-findi-nota"><Icono nombre="escudo" tamano={15} /> Hecho para estudiantes y personal de Tecsup</p>}
             </div>
 
             {d.findi && (
               <figure className="slide-findi-figura" ref={figuraRef}>
-                <span className="findi-destellos" aria-hidden="true"><i /><i /><i /></span>
-                <img className="findi-imagen" src={IMAGEN_FINDI} alt="FINDI, el asistente de FoundIA, saludando" width="742" height="772" />
-                <button type="button" className="findi-globo" onClick={() => abrir()} tabIndex={foco} aria-label="Hablar con FINDI">
-                  <span className="findi-globo-saludo">¡Hola! <span aria-hidden="true">👋</span></span>
-                  Soy <strong>FINDI</strong>, tu asistente inteligente. Puedo ayudarte a reportar, buscar y recuperar objetos en <strong>TECSUP</strong>.
-                </button>
+                <div className="findi-escenario">
+                  <span className="findi-estela" aria-hidden="true" />
+                  <img className="findi-imagen" src={IMAGEN_FINDI_HERO} alt="FINDI, el asistente de FoundIA, presentando una búsqueda" width="900" height="952" />
+                  <button type="button" className="findi-globo" onClick={() => abrir()} tabIndex={foco} aria-label="Hablar con FINDI">
+                    <span className="findi-globo-saludo">¡Hola! <span aria-hidden="true">👋</span></span>
+                    <span>Soy <strong>FINDI</strong>, tu asistente de FoundIA. ¿En qué puedo ayudarte?</span>
+                  </button>
+                  <div className="findi-objetos" aria-label="Buscar por objeto">
+                    <span className="findi-objetos-etiqueta">¿Qué estás buscando?</span>
+                    <div>
+                      <Link to="/buscar?q=Audífonos" tabIndex={foco} aria-label="Buscar audífonos"><img src="/imagenes/audifonos.jpg" alt="" /><span>Audífonos</span></Link>
+                      <Link to="/buscar?q=Celular" tabIndex={foco} aria-label="Buscar celular"><img src="/imagenes/celular.jpg" alt="" /><span>Celular</span></Link>
+                      <Link to="/buscar?q=Mochila" tabIndex={foco} aria-label="Buscar mochila"><img src="/imagenes/mochila.jpg" alt="" /><span>Mochila</span></Link>
+                    </div>
+                  </div>
+                </div>
               </figure>
             )}
           </div>

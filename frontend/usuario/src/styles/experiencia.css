@@ -146,7 +146,6 @@ html[data-tema='oscuro'] .cifra-findi-icono.azul { color: #4d90ff; }
 
 /* FINDI sigue al cursor: el desplazamiento se suma a la flotación */
 .slide-findi-figura .findi-imagen { translate: var(--findi-x, 0) var(--findi-y, 0); }
-.slide-findi-figura .findi-globo { translate: calc(var(--findi-x, 0px) * -0.5) calc(var(--findi-y, 0px) * -0.5); }
 
 /* Destellos amarillos junto a FINDI */
 .findi-destellos { position: absolute; left: 4%; top: 24%; width: 40px; height: 60px; pointer-events: none; }

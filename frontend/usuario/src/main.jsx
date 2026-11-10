@@ -10,6 +10,7 @@ import './styles/rediseno.css';
 import './styles/cuenta.css';
 import './styles/foundia.css';
 import './styles/experiencia.css';
+import './styles/hero-findi.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

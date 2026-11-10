@@ -11,7 +11,7 @@ export default function MainLayout() {
 
   return (
     <AsistenteProvider>
-      <div className="app-shell">
+      <div className={`app-shell${pathname === '/' ? ' portada-cristal' : ''}`}>
         <Navbar />
         <main className="contenido">
           {/* La clave por ruta repite la entrada suave en cada cambio de página */}

@@ -66,7 +66,7 @@ export default function Navbar() {
     <header className={`navbar${conScroll ? ' con-scroll' : ''}`}>
       <div className="navbar-inner">
         <Link to="/" className="logo" aria-label="FoundIA inicio">
-          <Logo tamano={34} />
+          <Logo claro={location.pathname === '/'} tamano={34} />
         </Link>
 
         <nav
