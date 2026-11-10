@@ -419,3 +419,27 @@ class Reporte(models.Model):
 
     def __str__(self):
         return f"Reporte {self.id} ({self.estado})"
+
+
+class Respaldo(models.Model):
+    """H38: metadatos de cada respaldo lógico de la base de datos.
+
+    El archivo y su huella viven en el volumen del servicio de respaldo;
+    esta tabla solo permite consultar el resultado desde el panel.
+    """
+
+    nombre_archivo = models.CharField(max_length=255, unique=True)
+    huella_sha256 = models.CharField(max_length=64, null=True, blank=True)
+    tamano_bytes = models.BigIntegerField(null=True, blank=True)
+    estado = models.CharField(max_length=20, default="EN_PROCESO")
+    iniciado_en = models.DateTimeField()
+    finalizado_en = models.DateTimeField(null=True, blank=True)
+    mensaje = models.CharField(max_length=500, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "respaldos"
+        ordering = ["-iniciado_en", "-id"]
+
+    def __str__(self):
+        return f"Respaldo {self.nombre_archivo} ({self.estado})"

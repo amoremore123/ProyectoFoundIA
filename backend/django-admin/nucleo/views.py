@@ -28,6 +28,7 @@ from .models import (
     Objeto,
     Reclamo,
     Reporte,
+    Respaldo,
     SecuenciaCustodia,
     TokenRevocado,
     Usuario,
@@ -51,6 +52,7 @@ from .serializers import (
     ReclamoResolucionSerializer,
     ReclamoSerializer,
     ReporteSerializer,
+    RespaldoSerializer,
     RetiroSerializer,
     UsuarioSerializer,
 )
@@ -807,3 +809,23 @@ class ReporteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
     def resolver(self, request, pk=None):
         from .resolucion_reportes import resolver_reporte
         return resolver_reporte(request, pk)
+
+
+class RespaldoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H38 - GET /api/admin/respaldos/ y /{id}/: historial de respaldos.
+
+    Solo lectura: el servicio programado de Docker Compose es el único que
+    crea y actualiza filas. `ultimo/` devuelve el respaldo más reciente o
+    `{"ultimo": null}` si todavía no se ejecutó ninguno.
+    """
+
+    queryset = Respaldo.objects.all()
+    serializer_class = RespaldoSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    @action(detail=False, methods=["get"])
+    def ultimo(self, request):
+        respaldo = self.get_queryset().first()
+        return Response({
+            "ultimo": RespaldoSerializer(respaldo).data if respaldo else None,
+        })

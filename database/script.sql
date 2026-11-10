@@ -19,6 +19,7 @@ USE objetos_perdidos_db;
 -- 1. USUARIOS
 -- =====================================================================
 DROP TABLE IF EXISTS cambios_rol;
+DROP TABLE IF EXISTS respaldos;
 DROP TABLE IF EXISTS tokens_revocados;
 DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS preferencias_notificacion;
@@ -391,4 +392,20 @@ CREATE TABLE IF NOT EXISTS tokens_revocados (
     expira_en   DATETIME(6) NOT NULL,
     CONSTRAINT fk_token_revocado_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     INDEX idx_tokens_revocados_expira (expira_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H38: registro de respaldos lógicos. En bases existentes usar migracion_h38_respaldos.sql.
+-- Solo guarda metadatos; el archivo .sql.gz y su .sha256 viven en el volumen respaldos_data.
+CREATE TABLE IF NOT EXISTS respaldos (
+    id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre_archivo VARCHAR(255) NOT NULL,
+    huella_sha256  CHAR(64)     NULL,
+    tamano_bytes   BIGINT       NULL,
+    estado         VARCHAR(20)  NOT NULL DEFAULT 'EN_PROCESO',
+    iniciado_en    DATETIME(6)  NOT NULL,
+    finalizado_en  DATETIME(6)  NULL,
+    mensaje        VARCHAR(500) NULL,
+    CONSTRAINT uk_respaldo_archivo UNIQUE (nombre_archivo),
+    CONSTRAINT chk_respaldo_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADO', 'FALLIDO')),
+    INDEX idx_respaldos_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

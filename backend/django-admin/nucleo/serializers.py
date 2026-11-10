@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Usuario
+from .models import Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Respaldo, Usuario
 
 
 class LoginSerializer(serializers.Serializer):
@@ -227,3 +227,21 @@ class NotificacionSerializer(serializers.ModelSerializer):
             "fecha_creacion",
         ]
         read_only_fields = ["id", "fecha_creacion"]
+
+
+class RespaldoSerializer(serializers.ModelSerializer):
+    """H38: solo lectura; el servicio de respaldo escribe la fila."""
+
+    nombreArchivo = serializers.CharField(source="nombre_archivo", read_only=True)
+    huellaSha256 = serializers.CharField(source="huella_sha256", read_only=True)
+    tamanoBytes = serializers.IntegerField(source="tamano_bytes", read_only=True)
+    iniciadoEn = serializers.DateTimeField(source="iniciado_en", read_only=True)
+    finalizadoEn = serializers.DateTimeField(source="finalizado_en", read_only=True)
+
+    class Meta:
+        model = Respaldo
+        fields = [
+            "id", "nombreArchivo", "huellaSha256", "tamanoBytes",
+            "estado", "iniciadoEn", "finalizadoEn", "mensaje",
+        ]
+        read_only_fields = fields

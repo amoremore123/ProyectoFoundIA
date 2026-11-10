@@ -604,6 +604,39 @@ Requiere `Authorization: Bearer <token>`. Invalida todos los tokens de la cuenta
 { "usuarios": 4, "objetosActivos": 6, "reportesPendientes": 0, "categorias": 8 }
 ```
 
+### GET `/api/admin/respaldos/`  _(H38)_
+
+Historial paginado de respaldos, más reciente primero. Solo ADMIN.
+
+```json
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 12,
+      "nombreArchivo": "foundia_objetos_perdidos_db_20261109T030000Z.sql.gz",
+      "huellaSha256": "9f2c...64 caracteres...",
+      "tamanoBytes": 184320,
+      "estado": "COMPLETADO",
+      "iniciadoEn": "2026-11-09T03:00:00Z",
+      "finalizadoEn": "2026-11-09T03:00:04Z",
+      "mensaje": null
+    }
+  ]
+}
+```
+
+### GET `/api/admin/respaldos/{id}/`  _(H38)_
+
+Detalle de un respaldo. `404` si no existe.
+
+### GET `/api/admin/respaldos/ultimo/`  _(H38)_
+
+Devuelve `200 OK` con `{ "ultimo": { ... } }` o `{ "ultimo": null }` si todavía
+no se ejecutó ningún respaldo. Es un recurso de solo lectura: `POST`, `PUT`,
+`PATCH` y `DELETE` responden `405`. Detalle:
+`docs/api/sprint3-h38.md`.
+
 ### CRUDs  _(solo ADMIN)_
 
 | Recurso                          | Rutas                                     | Notas                                        |
@@ -612,6 +645,7 @@ Requiere `Authorization: Bearer <token>`. Invalida todos los tokens de la cuenta
 | Categorías                       | `GET/POST /api/admin/categorias/` · `GET/PUT/PATCH/DELETE /api/admin/categorias/{id}/` | `PATCH { "estado": false }` para desactivar  |
 | Publicaciones (objetos) _(H15)_  | `GET /api/admin/publicaciones/` · `GET/PATCH /api/admin/publicaciones/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "OCULTO" \| "ELIMINADO" }` |
 | Reportes                         | `GET/POST /api/admin/reportes/` · `GET/PUT/PATCH/DELETE /api/admin/reportes/{id}/` | `PATCH { "estado": "RESUELTO", "fechaResolucion": "2026-10-04T12:00:00" }` |
+| Respaldos _(H38)_                | `GET /api/admin/respaldos/` · `GET /api/admin/respaldos/{id}/` · `GET /api/admin/respaldos/ultimo/` | Solo lectura; las filas las crea el servicio de respaldo |
 
 **Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe · `405` método no permitido
 

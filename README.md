@@ -134,8 +134,10 @@ Boot, la API de Django y el frontend usuario.
 | API Django | http://localhost:8000 |
 | MySQL | localhost:3306 (`root` / `root`) |
 | Mailpit (correos de prueba) | http://localhost:8025 |
+| Respaldo programado (H38) | volumen `respaldos_data`, sin puerto |
 
-Para detener: `docker compose down` (con `-v` borra también los datos).
+Para detener: `docker compose down` (con `-v` borra también los datos y los
+respaldos guardados en `respaldos_data`).
 
 > **Recuperar contraseña (H35):** el enlace también llega a Mailpit. Vence en 30
 > minutos y sirve una sola vez. Para otro dominio, define `WEB_URL` en el servicio `api`.
@@ -293,12 +295,24 @@ Más usados:
 docker compose up --build     # levanta todo
 docker compose up -d          # en segundo plano
 docker compose logs -f api    # logs de Spring Boot
+docker compose logs -f respaldo  # logs del respaldo programado (H38)
 docker compose down           # detener
-docker compose down -v        # detener y borrar volúmenes (datos MySQL)
+docker compose down -v        # detener y borrar volúmenes (datos MySQL y respaldos)
 ```
 
 Contenedores: `mysql` (8.0), `api` (Spring Boot), `admin-api` (Django),
-`frontend-usuario` (Vite).
+`frontend-usuario` (Vite) y `respaldo` (volcado lógico de MySQL, H38).
+
+Respaldo manual y restauración aislada:
+
+```bash
+docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
+DB_NAME=foundia_restauracion_prueba RESPALDO_ARCHIVO=/ruta/archivo.sql.gz \
+  bash scripts/restaurar_respaldo.sh
+```
+
+Detalle, frecuencia, retención y guardas:
+[`docs/api/sprint3-h38.md`](docs/api/sprint3-h38.md).
 
 ## 14. Documentación
 
