@@ -18,8 +18,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.proyectointegrador.movil.R
 
-val AzulNoche=Color(0xFF0C1E4B)
-val AzulElectrico=Color(0xFF2563EB)
+val AzulNoche=Color(0xFF14234B)
+val AzulElectrico=Color(0xFF0866F5)
 val Cielo=Color(0xFF5AD5F4)
 val Violeta=Color(0xFFA18BF8)
 val DegradadoMarca=Brush.linearGradient(listOf(AzulNoche,Color(0xFF193C8A),Color(0xFF2862D6)))
@@ -48,6 +48,8 @@ object Simbolos {
  val Salir=crear("Salir","M10 3 H3 V21 H10 M8 12 H22 M17 7 L22 12 L17 17")
  val Escudo=crear("Escudo","M12 2 L21 6 V12 Q21 19 12 22 Q3 19 3 12 V6 Z M8 12 L11 15 L16 9")
  val Luna=crear("Luna","M21 14 A9 9 0 1 1 10 3 A8 8 0 0 0 21 14")
+ val Chat=crear("Chat","M21 11 A9 9 0 1 1 6 18 L2 22 L4 16 M7 11 H7.1 M12 11 H12.1 M17 11 H17.1")
+ val Microfono=crear("Microfono","M9 5 A3 3 0 0 1 15 5 V11 A3 3 0 0 1 9 11 Z M5 10 V11 A7 7 0 0 0 19 11 V10 M12 18 V22 M8 22 H16")
  val Check=crear("Confirmado","M5 12 L10 17 L20 6")
  val Compartir=crear("Compartir","M7 12 L18 5 M7 12 L18 19 M7 12 A2 2 0 1 1 3 12 A2 2 0 1 1 7 12 M21 4 A2 2 0 1 1 17 4 A2 2 0 1 1 21 4 M21 20 A2 2 0 1 1 17 20 A2 2 0 1 1 21 20")
 }

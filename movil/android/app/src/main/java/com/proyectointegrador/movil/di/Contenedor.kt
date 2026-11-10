@@ -14,6 +14,7 @@ class Contenedor(context:Context) {
     val base=FoundIADatabase.abrir(context)
     val publicaciones:PublicacionesRepository=ApiPublicacionesRepository(RetrofitClient.api,RoomCachePublica(base))
     val cuenta=CuentaRepository(RetrofitClient.api,publicaciones)
+    val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {
     lateinit var contenedor:Contenedor;private set
@@ -23,6 +24,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
     @Suppress("UNCHECKED_CAST") override fun <T:ViewModel> create(modelClass:Class<T>):T {
         val c=Inyeccion.contenedor
         val modelo:ViewModel=when(modelClass) {
+            AsistenteViewModel::class.java->AsistenteViewModel(c.asistente)
             ComunidadViewModel::class.java->ComunidadViewModel(c.cuenta)
             ExperienciaViewModel::class.java->ExperienciaViewModel(c.experiencia)
             ObjetosViewModel::class.java->ObjetosViewModel(c.publicaciones)

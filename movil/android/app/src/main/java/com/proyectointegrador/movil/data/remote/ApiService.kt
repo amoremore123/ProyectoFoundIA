@@ -15,6 +15,9 @@ import retrofit2.http.Query
 /** Contrato de la API publica de Spring Boot (seccion 3 de docs/api/endpoints.md). */
 interface ApiService {
 
+    @POST("api/asistente/interpretar")
+    suspend fun interpretarFindi(@Body datos: ConsultaFindi): InterpretacionFindi
+
     @GET("api/objetos")
     suspend fun listarObjetos(
         @Query("tipo") tipo: String? = null,
@@ -29,7 +32,8 @@ interface ApiService {
     suspend fun buscarObjetos(
         @Query("q") q: String? = null,
         @Query("tipo") tipo: String? = null,
-        @Query("categoriaId") categoriaId: Long? = null
+        @Query("categoriaId") categoriaId: Long? = null,
+        @Query("ubicacion") ubicacion: String? = null
     ): List<Objeto>
 
     @GET("api/objetos/categoria/{id}")
