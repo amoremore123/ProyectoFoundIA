@@ -21,6 +21,7 @@ import java.security.MessageDigest;
 import java.util.Date;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -42,6 +43,8 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(ahora))
                 .setExpiration(new Date(ahora + expirationMs))
+                .setId(UUID.randomUUID().toString())
+                .claim("ver", versionSesion(userDetails))
                 .claim("cred", selloCredencial(userDetails))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
@@ -51,16 +54,52 @@ public class JwtService {
         return parseClaims(token).getSubject();
     }
 
+    /** H37: identificador único del token; null en los JWT emitidos antes. */
+    public String extractJti(String token) {
+        String jti = parseClaims(token).getId();
+        return jti == null || jti.isBlank() ? null : jti;
+    }
+
+    public Date extractExpiration(String token) {
+        return parseClaims(token).getExpiration();
+    }
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             Claims claims = parseClaims(token);
             return claims.getSubject().equals(userDetails.getUsername())
                     && claims.getExpiration().after(new Date())
                     && userDetails.isEnabled()
+                    && versionSesionVigente(claims, userDetails)
                     && credencialVigente(claims, userDetails);
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    /**
+     * H37: un JWT sin {@code ver} es legado y solo vale mientras la cuenta
+     * conserve la versión 0. Cerrar todas las sesiones invalida esos tokens.
+     */
+    private boolean versionSesionVigente(Claims claims, UserDetails userDetails) {
+        if (!(userDetails instanceof UserPrincipal principal)) {
+            return true;
+        }
+        int esperada = principal.getSesionVersion();
+        Object version = claims.get("ver");
+        if (version == null) {
+            return esperada == 0;
+        }
+        if (!(version instanceof Number numero)) {
+            return false;
+        }
+        long valor = numero.longValue();
+        return valor >= 0 && valor <= Integer.MAX_VALUE
+                && numero.doubleValue() == valor && valor == esperada;
+    }
+
+    private int versionSesion(UserDetails userDetails) {
+        return userDetails instanceof UserPrincipal principal ? principal.getSesionVersion() : 0;
     }
 
     /** H35: no depende de la precisión en segundos de iat ni del DATETIME de MySQL. */

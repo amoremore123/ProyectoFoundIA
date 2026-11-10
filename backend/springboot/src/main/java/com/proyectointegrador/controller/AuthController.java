@@ -9,13 +9,17 @@ import com.proyectointegrador.dto.RegisterRequest;
 import com.proyectointegrador.dto.RegistroResponse;
 import com.proyectointegrador.dto.RestablecerPasswordRequest;
 import com.proyectointegrador.dto.VerificarRequest;
+import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.AuthService;
+import com.proyectointegrador.service.CierreSesionService;
 import com.proyectointegrador.service.RecuperacionPasswordService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,10 +29,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final RecuperacionPasswordService recuperacionPasswordService;
+    private final CierreSesionService cierreSesionService;
 
-    public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService) {
+    public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService,
+                          CierreSesionService cierreSesionService) {
         this.authService = authService;
         this.recuperacionPasswordService = recuperacionPasswordService;
+        this.cierreSesionService = cierreSesionService;
     }
 
     /** H11 - Crea la cuenta (sin verificar) y envía el código al correo. */
@@ -65,5 +72,33 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    /** H37 - Revoca únicamente el token con el que se llama. */
+    @PostMapping("/logout")
+    public ResponseEntity<MensajeResponse> logout(Authentication authentication,
+                                                  @RequestHeader("Authorization") String authorization) {
+        boolean todas = cierreSesionService.cerrarSesion(
+                principal(authentication).getId(), tokenDe(authorization));
+        return ResponseEntity.ok(new MensajeResponse(todas
+                ? "Sesión cerrada en todos los dispositivos"
+                : "Sesión cerrada"));
+    }
+
+    /** H37 - Invalida todos los tokens de la cuenta, incluidos otros dispositivos. */
+    @PostMapping("/logout-all")
+    public ResponseEntity<MensajeResponse> logoutAll(Authentication authentication) {
+        cierreSesionService.cerrarTodasLasSesiones(principal(authentication).getId());
+        return ResponseEntity.ok(new MensajeResponse("Sesiones cerradas en todos los dispositivos"));
+    }
+
+    private UserPrincipal principal(Authentication authentication) {
+        return (UserPrincipal) authentication.getPrincipal();
+    }
+
+    private String tokenDe(String authorization) {
+        return authorization != null && authorization.startsWith("Bearer ")
+                ? authorization.substring(7).trim()
+                : "";
     }
 }

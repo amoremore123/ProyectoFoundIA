@@ -19,6 +19,7 @@ USE objetos_perdidos_db;
 -- 1. USUARIOS
 -- =====================================================================
 DROP TABLE IF EXISTS cambios_rol;
+DROP TABLE IF EXISTS tokens_revocados;
 DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
@@ -379,4 +380,15 @@ CREATE TABLE IF NOT EXISTS tokens_recuperacion_password (
     CONSTRAINT uk_token_recuperacion_hash UNIQUE (token_hash),
     CONSTRAINT fk_token_recuperacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     INDEX idx_token_recuperacion_usuario (usuario_id, creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H37: cierre de sesión. En bases existentes usar migracion_h37_cierre_sesion.sql.
+ALTER TABLE usuarios ADD COLUMN sesion_version INT NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS tokens_revocados (
+    jti         VARCHAR(64) NOT NULL PRIMARY KEY,
+    usuario_id  BIGINT      NOT NULL,
+    revocado_en DATETIME(6) NOT NULL,
+    expira_en   DATETIME(6) NOT NULL,
+    CONSTRAINT fk_token_revocado_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    INDEX idx_tokens_revocados_expira (expira_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

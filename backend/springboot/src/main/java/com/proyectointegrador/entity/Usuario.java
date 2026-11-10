@@ -83,6 +83,10 @@ public class Usuario {
     @Column(name = "password_actualizado_en")
     private LocalDateTime passwordActualizadoEn;
 
+    /** H37: se incrementa al cerrar todas las sesiones; invalida los JWT anteriores. */
+    @Column(name = "sesion_version", nullable = false)
+    private int sesionVersion = 0;
+
     /** H12: intentos fallidos consecutivos; al llegar a 5 se bloquea la cuenta. */
     @Column(name = "intentos_fallidos", nullable = false)
     private int intentosFallidos = 0;

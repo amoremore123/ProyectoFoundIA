@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 import hmac
@@ -6,7 +7,7 @@ import hmac
 import bcrypt
 import jwt
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -28,6 +29,7 @@ from .models import (
     Reclamo,
     Reporte,
     SecuenciaCustodia,
+    TokenRevocado,
     Usuario,
 )
 from .authentication import get_jwt_secret, sello_credencial
@@ -125,6 +127,7 @@ class LoginView(APIView):
         exp = emitido + timedelta(hours=TOKEN_EXPIRE_HOURS)
         token = jwt.encode(
             {"sub": usuario.correo, "rol": usuario.rol, "iat": emitido, "exp": exp,
+             "jti": uuid.uuid4().hex, "ver": usuario.sesion_version or 0,
              "cred": sello_credencial(usuario)},
             secret,
             "HS256",
@@ -143,6 +146,47 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class LogoutView(APIView):
+    """H37 - POST /api/admin/auth/logout/ revoca el token actual."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payload = request.auth or {}
+        jti = payload.get("jti")
+        if not isinstance(jti, str) or not jti:
+            # Un token legado sin jti no se puede revocar de forma individual.
+            Usuario.objects.filter(pk=request.user.pk).update(
+                sesion_version=F("sesion_version") + 1)
+            return Response({"mensaje": "Sesión cerrada en todos los dispositivos"})
+
+        exp = payload.get("exp")
+        if isinstance(exp, (int, float)) and not isinstance(exp, bool):
+            expira = datetime.fromtimestamp(exp, tz=dt_timezone.utc)
+        else:
+            expira = timezone.now() + timedelta(hours=TOKEN_EXPIRE_HOURS)
+        TokenRevocado.objects.get_or_create(
+            jti=jti,
+            defaults={
+                "usuario": request.user,
+                "revocado_en": timezone.now(),
+                "expira_en": expira,
+            },
+        )
+        return Response({"mensaje": "Sesión cerrada"})
+
+
+class LogoutAllView(APIView):
+    """H37 - POST /api/admin/auth/logout-all/ invalida todos los dispositivos."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        Usuario.objects.filter(pk=request.user.pk).update(
+            sesion_version=F("sesion_version") + 1)
+        return Response({"mensaje": "Sesiones cerradas en todos los dispositivos"})
 
 
 def _datos_dashboard(params):

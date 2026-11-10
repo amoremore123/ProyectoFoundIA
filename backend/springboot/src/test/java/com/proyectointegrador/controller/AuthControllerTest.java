@@ -12,6 +12,7 @@ import com.proyectointegrador.exception.DuplicateResourceException;
 import com.proyectointegrador.exception.GlobalExceptionHandler;
 import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.service.AuthService;
+import com.proyectointegrador.service.CierreSesionService;
 import com.proyectointegrador.service.RecuperacionPasswordService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,8 @@ class AuthControllerTest {
         authService = mock(AuthService.class);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService, mock(RecuperacionPasswordService.class)))
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService,
+                        mock(RecuperacionPasswordService.class), mock(CierreSesionService.class)))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();

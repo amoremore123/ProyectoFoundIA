@@ -18,6 +18,7 @@ no hace falta crear una columna adicional para el contador del panel.
 | `script.sql`   | Instalación nueva: crea la base y sus 14 tablas, claves foráneas, índices y restricciones. Elimina tablas anteriores si se reimporta. |
 | `seed.sql`     | Datos iniciales de desarrollo: categorías, usuarios de prueba y objetos de prueba. |
 | `migracion_h20_reclamos.sql` | Agrega la tabla de reclamos a bases ya existentes (H20). |
+| `migracion_h37_cierre_sesion.sql` | Agrega `usuarios.sesion_version` y `tokens_revocados` (H37). |
 
 ## Cómo ejecutarlas
 
@@ -71,9 +72,11 @@ volumen existente no se actualiza automáticamente con esos archivos.
 12. `avisos_coincidencia`
 13. `solicitudes_eliminacion`
 14. `tokens_recuperacion_password`
+15. `tokens_revocados`
 
 Para una base existente, comparar su esquema antes de elegir las migraciones.
-Además de H20, el Sprint 2 incluye cambios H22, H23, H24, H28, H33, H34 y H35.
+Además de H20, el Sprint 2 incluye cambios H22, H23, H24, H28, H33, H34 y H35;
+el Sprint 3 incluye H36, H37, H41 y H43.
 Aplicar solo los archivos correspondientes a cambios ausentes, sin recrear
 tablas ni rellenar consentimientos o recuperaciones históricos.
 

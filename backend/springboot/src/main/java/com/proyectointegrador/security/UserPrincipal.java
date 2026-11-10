@@ -22,13 +22,15 @@ public class UserPrincipal implements UserDetails {
     private final boolean habilitado;
     /** H35: los JWT emitidos antes de este instante ya no son válidos. */
     private final Instant passwordActualizadoEn;
+    /** H37: versión de sesión del usuario; un JWT con otra versión ya no sirve. */
+    private final int sesionVersion;
 
     public UserPrincipal(Long id, String nombre, String correo, String password, Rol rol) {
-        this(id, nombre, correo, password, rol, true, null);
+        this(id, nombre, correo, password, rol, true, null, 0);
     }
 
     private UserPrincipal(Long id, String nombre, String correo, String password, Rol rol, boolean habilitado,
-                          Instant passwordActualizadoEn) {
+                          Instant passwordActualizadoEn, int sesionVersion) {
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
@@ -36,6 +38,7 @@ public class UserPrincipal implements UserDetails {
         this.rol = rol;
         this.habilitado = habilitado;
         this.passwordActualizadoEn = passwordActualizadoEn;
+        this.sesionVersion = sesionVersion;
     }
 
     public static UserPrincipal from(Usuario usuario) {
@@ -47,7 +50,8 @@ public class UserPrincipal implements UserDetails {
                 usuario.getRol(),
                 usuario.getEstado() == EstadoUsuario.ACTIVO && usuario.isVerificado(),
                 usuario.getPasswordActualizadoEn() == null
-                        ? null : usuario.getPasswordActualizadoEn().toInstant(ZoneOffset.UTC)
+                        ? null : usuario.getPasswordActualizadoEn().toInstant(ZoneOffset.UTC),
+                usuario.getSesionVersion()
         );
     }
 
@@ -65,6 +69,10 @@ public class UserPrincipal implements UserDetails {
 
     public Instant getPasswordActualizadoEn() {
         return passwordActualizadoEn;
+    }
+
+    public int getSesionVersion() {
+        return sesionVersion;
     }
 
     public String getCorreo() {

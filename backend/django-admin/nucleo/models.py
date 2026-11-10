@@ -91,6 +91,8 @@ class Usuario(models.Model):
     intentos_login = models.IntegerField(default=0, db_column="intentos_fallidos")
     bloqueado_hasta = models.DateTimeField(null=True, blank=True)
     password_actualizado_en = models.DateTimeField(null=True, blank=True)
+    # H37: se incrementa al cerrar todas las sesiones; invalida los JWT anteriores.
+    sesion_version = models.IntegerField(default=0, db_column="sesion_version")
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="USUARIO")
     estado = models.CharField(
         max_length=20, choices=ESTADO_USUARIO_CHOICES, default="ACTIVO"
@@ -104,6 +106,25 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {self.apellido} <{self.correo}>"
+
+
+class TokenRevocado(models.Model):
+    """H37: JWT individual revocado al cerrar sesión."""
+
+    jti = models.CharField(max_length=64, primary_key=True)
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="tokens_revocados",
+    )
+    revocado_en = models.DateTimeField(default=timezone.now)
+    expira_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "tokens_revocados"
+
+    def __str__(self):
+        return f"Token revocado {self.jti}"
 
 
 class Categoria(models.Model):

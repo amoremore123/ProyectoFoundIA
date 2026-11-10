@@ -83,6 +83,14 @@ class JwtServiceTest {
         return UserPrincipal.from(usuario);
     }
 
+    private UserPrincipal conVersion(int version) {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L); usuario.setNombre("Ana"); usuario.setCorreo(ana.getCorreo());
+        usuario.setPassword("hash"); usuario.setRol(Rol.USUARIO); usuario.setVerificado(true);
+        usuario.setSesionVersion(version);
+        return UserPrincipal.from(usuario);
+    }
+
     private String legado(Date emitido, Object sello, boolean incluirSello) {
         var builder = Jwts.builder().setSubject(ana.getUsername()).setIssuedAt(emitido)
                 .setExpiration(new Date(System.currentTimeMillis() + 60_000));
@@ -153,5 +161,61 @@ class JwtServiceTest {
         JwtService jwt = new JwtService(SECRETO, 60_000);
         String token = jwt.generateToken(ana);
         assertThat(jwt.isTokenValid(token, credencialActual("otro-hash", null))).isFalse();
+    }
+
+    @Test
+    @DisplayName("H37: el token incluye jti y la versión de sesión")
+    void incluyeJtiYVersionDeSesion() {
+        JwtService jwt = new JwtService(SECRETO, 60_000);
+        String token = jwt.generateToken(ana);
+        Claims payload = claims(token);
+
+        assertThat(payload.getId()).isNotBlank();
+        assertThat(jwt.extractJti(token)).isEqualTo(payload.getId());
+        assertThat(payload.get("ver", Integer.class)).isZero();
+        assertThat(jwt.extractExpiration(token)).isAfter(new Date());
+    }
+
+    @Test
+    @DisplayName("H37: una versión de sesión distinta invalida el token")
+    void versionDistintaInvalidaElToken() {
+        JwtService jwt = new JwtService(SECRETO, 60_000);
+        String anterior = jwt.generateToken(ana);
+
+        assertThat(jwt.isTokenValid(anterior, conVersion(1))).isFalse();
+        String nuevo = jwt.generateToken(conVersion(1));
+        assertThat(jwt.isTokenValid(nuevo, conVersion(1))).isTrue();
+        assertThat(jwt.isTokenValid(nuevo, conVersion(2))).isFalse();
+    }
+
+    @Test
+    @DisplayName("H37: un token sin ver solo vale mientras la cuenta esté en versión 0")
+    void tokenSinVersionSoloValeEnCero() {
+        JwtService jwt = new JwtService(SECRETO, 60_000);
+        String legado = Jwts.builder().setSubject(ana.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 60_000))
+                .signWith(Keys.hmacShaKeyFor(SECRETO.getBytes(StandardCharsets.UTF_8)),
+                        SignatureAlgorithm.HS256)
+                .compact();
+
+        assertThat(jwt.isTokenValid(legado, ana)).isTrue();
+        assertThat(jwt.isTokenValid(legado, conVersion(1))).isFalse();
+    }
+
+    @Test
+    @DisplayName("H37: una versión malformada no se acepta")
+    void versionMalformadaNoSeAcepta() {
+        JwtService jwt = new JwtService(SECRETO, 60_000);
+        for (Object version : new Object[]{"1", true, -1, 1.5}) {
+            String token = Jwts.builder().setSubject(ana.getUsername())
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + 60_000))
+                    .claim("ver", version)
+                    .signWith(Keys.hmacShaKeyFor(SECRETO.getBytes(StandardCharsets.UTF_8)),
+                            SignatureAlgorithm.HS256)
+                    .compact();
+            assertThat(jwt.isTokenValid(token, ana)).as("ver=%s", version).isFalse();
+        }
     }
 }

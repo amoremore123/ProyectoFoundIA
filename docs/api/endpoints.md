@@ -134,6 +134,20 @@ Bloqueo: al **5.º intento fallido consecutivo** la cuenta se bloquea **15 minut
 (columna `bloqueado_hasta`). Mientras dure, se rechaza incluso la contraseña
 correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
+### POST `/api/auth/logout`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Revoca únicamente el token usado.
+**Response** `200 OK`: `{ "mensaje": "Sesión cerrada" }`. Sin token: `401`.
+
+### POST `/api/auth/logout-all`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Incrementa `usuarios.sesion_version`
+e invalida todos los tokens de la cuenta, incluidos otros dispositivos.
+**Response** `200 OK`:
+`{ "mensaje": "Sesiones cerradas en todos los dispositivos" }`.
+
+Detalle de claims, compatibilidad y migración: `docs/api/sprint3-h37.md`.
+
 ---
 
 ## 2. Categorías — Spring Boot
@@ -570,6 +584,17 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 ```
 
 **Errores**: `401` credenciales inválidas · `403` el usuario no es ADMIN
+
+### POST `/api/admin/auth/logout/`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Revoca el token actual.
+**Response** `200 OK`: `{ "mensaje": "Sesión cerrada" }`.
+
+### POST `/api/admin/auth/logout-all/`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Invalida todos los tokens de la cuenta.
+**Response** `200 OK`:
+`{ "mensaje": "Sesiones cerradas en todos los dispositivos" }`.
 
 ### GET `/api/admin/dashboard/`
 

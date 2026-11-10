@@ -7,6 +7,8 @@ from .views import (
     DashboardExportView,
     DashboardView,
     LoginView,
+    LogoutAllView,
+    LogoutView,
     ObjetoViewSet,
     ReclamoViewSet,
     ReporteViewSet,
@@ -24,6 +26,8 @@ router.register("reportes", ReporteViewSet, basename="reportes")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),
+    path("auth/logout/", LogoutView.as_view(), name="admin-logout"),
+    path("auth/logout-all/", LogoutAllView.as_view(), name="admin-logout-all"),
     path("dashboard/", DashboardView.as_view(), name="admin-dashboard"),
     # H32: el punto forma parte de la ruta pedida por la historia.
     re_path(r"^dashboard/exportar\.(?P<formato>xlsx|pdf)$",
