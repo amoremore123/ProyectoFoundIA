@@ -2,6 +2,7 @@
 from django.contrib import admin
 
 from .models import (
+    CambioRol,
     Categoria,
     Coincidencia,
     Contacto,
@@ -18,6 +19,13 @@ class UsuarioAdmin(admin.ModelAdmin):
     list_display = ("id", "nombre", "apellido", "correo", "rol", "estado", "fecha_registro")
     search_fields = ("nombre", "apellido", "correo")
     list_filter = ("rol", "estado")
+
+
+@admin.register(CambioRol)
+class CambioRolAdmin(admin.ModelAdmin):
+    list_display = ("id", "usuario", "rol_anterior", "rol_nuevo", "cambiado_por", "fecha_cambio")
+    list_filter = ("rol_anterior", "rol_nuevo")
+    search_fields = ("usuario__correo", "cambiado_por__correo")
 
 
 @admin.register(Categoria)

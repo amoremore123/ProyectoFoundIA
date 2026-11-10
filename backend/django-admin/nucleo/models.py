@@ -17,6 +17,7 @@ from django.utils import timezone
 
 ROL_CHOICES = [
     ("USUARIO", "USUARIO"),
+    ("BIBLIOTECA", "BIBLIOTECA"),
     ("ADMIN", "ADMIN"),
 ]
 
@@ -32,6 +33,7 @@ TIPO_OBJETO_CHOICES = [
 
 ESTADO_OBJETO_CHOICES = [
     ("ACTIVO", "ACTIVO"),
+    ("EN_CUSTODIA", "EN_CUSTODIA"),
     ("RECUPERADO", "RECUPERADO"),
     ("OCULTO", "OCULTO"),
     ("ELIMINADO", "ELIMINADO"),
@@ -247,6 +249,31 @@ class Notificacion(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class CambioRol(models.Model):
+    """H36: auditoría de cada cambio de rol, con responsable y fecha."""
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="cambios_rol",
+    )
+    rol_anterior = models.CharField(max_length=20, choices=ROL_CHOICES)
+    rol_nuevo = models.CharField(max_length=20, choices=ROL_CHOICES)
+    cambiado_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="cambiado_por_id",
+        related_name="cambios_rol_realizados",
+    )
+    motivo = models.CharField(max_length=500, null=True, blank=True)
+    fecha_cambio = models.DateTimeField(default=timezone.now, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "cambios_rol"
+        ordering = ["-fecha_cambio", "-id"]
+
+    def __str__(self):
+        return f"{self.usuario_id}: {self.rol_anterior} -> {self.rol_nuevo}"
 
 
 class Reporte(models.Model):

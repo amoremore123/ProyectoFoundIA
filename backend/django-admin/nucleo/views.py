@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Categoria, Objeto, Reporte, Usuario
+from .models import ROL_CHOICES, CambioRol, Categoria, Objeto, Reporte, Usuario
 from .authentication import get_jwt_secret, sello_credencial
 from .permissions import EsAdmin
 from .serializers import (
@@ -72,9 +72,11 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        if usuario.rol != "ADMIN":
+        # H36: BIBLIOTECA entra al panel solo para custodia y reclamos;
+        # las vistas de sistema siguen exigiendo EsAdmin.
+        if usuario.rol not in ("ADMIN", "BIBLIOTECA"):
             return Response(
-                {"detail": "No autorizado: se requiere rol ADMIN"},
+                {"detail": "No autorizado: se requiere rol ADMIN o BIBLIOTECA"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -142,9 +144,12 @@ def _solo_estado(request, permitidos):
 
 
 class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """H15 - GET /api/admin/usuarios/ y /{id}/ · PATCH /{id}/ {"estado": "ACTIVO" | "SUSPENDIDO"}.
+    """H15/H36 - GET /api/admin/usuarios/ y /{id}/.
 
-    No se crean ni borran cuentas, ni se cambian rol, correo o contraseña desde el panel.
+    PATCH /{id}/ {"estado": "ACTIVO" | "SUSPENDIDO"} conserva H15.
+    PATCH /{id}/ {"rol": "...", "confirmar": true, "motivo": "..."} cambia el rol
+    solo si lo pide un ADMIN y deja auditoría. Nunca se quita el rol al último
+    ADMIN ni al propio administrador.
     """
 
     queryset = Usuario.objects.all().order_by("id")
@@ -153,6 +158,11 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
 
     def partial_update(self, request, *args, **kwargs):
         usuario = self.get_object()
+        campos = set(request.data.keys())
+
+        if "rol" in campos:
+            return self._cambiar_rol(request, usuario)
+
         estado, error = _solo_estado(request, ("ACTIVO", "SUSPENDIDO"))
         if error:
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
@@ -164,6 +174,81 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         usuario.estado = estado
         usuario.save(update_fields=["estado", "fecha_actualizacion"])
         return Response(UsuarioSerializer(usuario).data)
+
+    def _cambiar_rol(self, request, usuario):
+        if set(request.data.keys()) - {"rol", "confirmar", "motivo"}:
+            return Response(
+                {"detail": "El cambio de rol solo admite rol, confirmar y motivo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if request.data.get("confirmar") is not True:
+            return Response(
+                {"detail": "Debes confirmar el cambio de rol con confirmar=true."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        nuevo = request.data.get("rol")
+        permitidos = {clave for clave, _ in ROL_CHOICES}
+        if nuevo not in permitidos:
+            return Response(
+                {"detail": f"Rol inválido. Valores permitidos: {', '.join(sorted(permitidos))}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            # El bloqueo evita que dos ADMIN degraden al mismo tiempo al último ADMIN.
+            actual = Usuario.objects.select_for_update().get(pk=usuario.pk)
+            if actual.rol == nuevo:
+                return Response(
+                    {"detail": f"La cuenta ya tiene el rol {nuevo}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if actual.pk == request.user.pk:
+                return Response(
+                    {"detail": "No puedes quitarte a ti mismo el rol de administrador."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if actual.rol == "ADMIN" and not Usuario.objects.filter(rol="ADMIN").exclude(pk=actual.pk).exists():
+                return Response(
+                    {"detail": "Debe quedar al menos un ADMIN en el sistema."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            anterior = actual.rol
+            actual.rol = nuevo
+            actual.save(update_fields=["rol", "fecha_actualizacion"])
+            cambio = CambioRol.objects.create(
+                usuario=actual,
+                rol_anterior=anterior,
+                rol_nuevo=nuevo,
+                cambiado_por=request.user,
+                motivo=(request.data.get("motivo") or "").strip() or None,
+            )
+
+        datos = UsuarioSerializer(actual).data
+        datos["cambioRol"] = {
+            "id": cambio.id,
+            "rolAnterior": anterior,
+            "rolNuevo": nuevo,
+            "cambiadoPor": request.user.correo,
+            "fecha": cambio.fecha_cambio,
+        }
+        return Response(datos)
+
+    @action(detail=True, methods=["get"], url_path="cambios-rol")
+    def cambios_rol(self, request, pk=None):
+        usuario = self.get_object()
+        cambios = CambioRol.objects.filter(usuario=usuario).select_related("cambiado_por")[:50]
+        return Response([
+            {
+                "id": cambio.id,
+                "rolAnterior": cambio.rol_anterior,
+                "rolNuevo": cambio.rol_nuevo,
+                "cambiadoPor": cambio.cambiado_por.correo,
+                "motivo": cambio.motivo,
+                "fecha": cambio.fecha_cambio,
+            }
+            for cambio in cambios
+        ])
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):

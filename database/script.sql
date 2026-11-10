@@ -18,6 +18,7 @@ USE objetos_perdidos_db;
 -- =====================================================================
 -- 1. USUARIOS
 -- =====================================================================
+DROP TABLE IF EXISTS cambios_rol;
 DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
@@ -53,7 +54,7 @@ CREATE TABLE usuarios (
                                  ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_usuarios_correo (correo),
-    CONSTRAINT chk_usuarios_rol CHECK (rol IN ('USUARIO', 'ADMIN')),
+    CONSTRAINT chk_usuarios_rol CHECK (rol IN ('USUARIO', 'BIBLIOTECA', 'ADMIN')),
     CONSTRAINT chk_usuarios_estado CHECK (estado IN ('ACTIVO', 'SUSPENDIDO'))
 ) ENGINE = InnoDB;
 
@@ -291,6 +292,21 @@ CREATE TABLE reportes (
 CREATE INDEX idx_reportes_usuario ON reportes (usuario_id);
 CREATE INDEX idx_reportes_objeto  ON reportes (objeto_id);
 CREATE INDEX idx_reportes_estado  ON reportes (estado);
+
+-- H36: auditoría de cambios de rol. El último ADMIN no se puede degradar.
+CREATE TABLE IF NOT EXISTS cambios_rol (
+    id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    usuario_id     BIGINT       NOT NULL,
+    rol_anterior   VARCHAR(20)  NOT NULL,
+    rol_nuevo      VARCHAR(20)  NOT NULL,
+    cambiado_por_id BIGINT      NOT NULL,
+    motivo         VARCHAR(500) NULL,
+    fecha_cambio   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cambio_rol_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_cambio_rol_autor FOREIGN KEY (cambiado_por_id) REFERENCES usuarios(id) ON DELETE RESTRICT,
+    CONSTRAINT chk_cambio_rol_anterior CHECK (rol_anterior IN ('USUARIO', 'BIBLIOTECA', 'ADMIN')),
+    CONSTRAINT chk_cambio_rol_nuevo CHECK (rol_nuevo IN ('USUARIO', 'BIBLIOTECA', 'ADMIN'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- H33/H34: esquema de instalaciones nuevas. En bases existentes usar las dos migraciones incrementales.
 ALTER TABLE usuarios ADD COLUMN version_legal VARCHAR(80) NULL,

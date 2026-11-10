@@ -73,7 +73,12 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String authority = rol == Rol.ADMIN ? "ROLE_ADMIN" : "ROLE_USER";
+        // H36: cada rol conserva su autoridad propia; BIBLIOTECA no hereda ADMIN.
+        String authority = switch (rol) {
+            case ADMIN -> "ROLE_ADMIN";
+            case BIBLIOTECA -> "ROLE_BIBLIOTECA";
+            case USUARIO -> "ROLE_USER";
+        };
         return List.of(new SimpleGrantedAuthority(authority));
     }
 
