@@ -1,9 +1,11 @@
 # H38 — Respaldar los datos automáticamente
 
 > Estado de esta entrega: script, servicio de Docker Compose, tabla de registro,
-> API de consulta y pruebas de Django implementados. La verificación de extremo
-> a extremo con MySQL/Docker queda pendiente en este equipo porque el daemon de
-> Docker no estaba disponible; no se declara como ejecutada.
+> API de consulta y pruebas de Django implementados. Verificado de extremo a
+> extremo con Docker y MySQL 8.0.46 el 2026-11-10: respaldo real, huella
+> SHA-256, registro `COMPLETADO`, restauración en una base aislada y retención
+> de archivos. La prueba encontró y corrigió un fallo del cliente MySQL al
+> registrar el respaldo (faltaba seleccionar la base de datos).
 
 ## Alcance
 
@@ -145,9 +147,24 @@ Para una prueba real se recomienda una base desechable, por ejemplo
   sintaxis válida.
 - Guardas del restaurador comprobadas sin MySQL: nombre inválido, base de
   producción sin confirmación y huella SHA-256 alterada.
-- **Pendiente de verificar con Docker/MySQL:** ejecución real del respaldo,
-  contenido restaurado y retención de archivos. El daemon de Docker no estaba
-  disponible al preparar esta entrega.
+- **Verificación real con Docker/MySQL 8.0.46 (2026-11-10):**
+  - MySQL arrancó con un volumen nuevo y cargó `script.sql` + `seed.sql`
+    (20 tablas, 4 usuarios, 8 categorías y 6 objetos).
+  - Tres respaldos consecutivos de 5059, 6115 y 6215 bytes. Cada fila quedó
+    `COMPLETADO` con huella y tamaño; `sha256sum -c` devolvió `OK`.
+  - Restauración en `objetos_perdidos_restauracion`: huella verificada antes de
+    conectar, 20 tablas y conteos iguales a la base original (`usuarios=4`,
+    `categorias=8`, `objetos=6`, `respaldos=1` en ese momento). La base aislada
+    se eliminó después de comprobar.
+  - Retención: un archivo simulado con 3 días de antigüedad y
+    `RESPALDO_RETENCION_DIAS=1` fue eliminado; los respaldos recientes se
+    conservaron.
+  - `GET /api/admin/respaldos/` y `/ultimo/` devolvieron el respaldo real con
+    `estado: COMPLETADO`; sin token responden `401`.
+  - **Fallo encontrado y corregido:** los comandos `mysql` que registran el
+    respaldo no seleccionaban la base y fallaban con
+    `ERROR 1046 (3D000): No database selected`. Se agregó
+    `--database="$DB_NAME"` en `scripts/respaldo.sh` (commit `a7926f4`).
 
 ## Tareas de otras capas
 
