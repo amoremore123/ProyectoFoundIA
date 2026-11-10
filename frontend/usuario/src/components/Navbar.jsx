@@ -87,14 +87,14 @@ export default function Navbar() {
         <div className="navbar-iconos">
           <BotonTema />
           {token && (
-            <Link to="/notificaciones" className="icono-btn" aria-label="Notificaciones">
+            <Link to="/notificaciones" className="icono-btn" aria-label={`Notificaciones${noLeidas > 0 ? ` ${noLeidas} sin leer` : ''}`}>
               <Icono nombre="campana" tamano={20} />
-              {noLeidas > 0 && <span className="punto-rojo" data-testid="notif-dot">{noLeidas}</span>}
+              {noLeidas > 0 && <span className="punto-rojo" data-testid="notif-dot" aria-hidden="true">{noLeidas}</span>}
             </Link>
           )}
           {token ? (
-            <NavLink to="/perfil" className={({ isActive }) => `navbar-avatar${isActive ? ' activo' : ''}`} aria-label="Perfil" title="Mi perfil">
-              {siglas || <Icono nombre="usuario" tamano={18} />}
+            <NavLink to="/perfil" className={({ isActive }) => `navbar-avatar${isActive ? ' activo' : ''}`} aria-label={`Perfil${siglas ? ` ${siglas}` : ''}`} title="Mi perfil">
+              <span aria-hidden="true">{siglas || <Icono nombre="usuario" tamano={18} />}</span>
             </NavLink>
           ) : (
             <Link to="/login" className="btn btn-primario navbar-entrar">Iniciar sesión</Link>

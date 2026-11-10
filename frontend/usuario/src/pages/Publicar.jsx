@@ -56,6 +56,7 @@ export default function Publicar() {
   const [vistaPrevia, setVistaPrevia] = useState('');
   const [progresoFoto, setProgresoFoto] = useState(null); // null = sin subida en curso
   const entradaFoto = useRef(null);
+  const entradaCamara = useRef(null);
   const [publicacionCreada, setPublicacionCreada] = useState(null);
   const [coordenadas, setCoordenadas] = useState({ latitud: null, longitud: null });
   const [ubicando, setUbicando] = useState(false);
@@ -81,6 +82,7 @@ export default function Publicar() {
     setArchivoFoto(null);
     setErrorFoto('');
     if (entradaFoto.current) entradaFoto.current.value = '';
+    if (entradaCamara.current) entradaCamara.current.value = '';
   };
 
   // Al editar se toma la publicación de la lista propia: así solo se edita lo que es tuyo,
@@ -131,7 +133,6 @@ export default function Publicar() {
     const archivo = e.target.files?.[0] || null;
     setErrorFoto('');
     if (!archivo) {
-      setArchivoFoto(null);
       return;
     }
     if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
@@ -461,6 +462,22 @@ export default function Publicar() {
             disabled={enviando}
           />
           <span id="foto-ayuda" className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
+          <label className="campo-label" htmlFor="foto-camara">Tomar foto con la cámara</label>
+          <input
+            id="foto-camara"
+            ref={entradaCamara}
+            type="file"
+            className="input"
+            accept="image/*"
+            capture="environment"
+            aria-describedby="foto-ayuda camara-ayuda"
+            onChange={seleccionarFoto}
+            disabled={enviando}
+          />
+          <span id="camara-ayuda" className="nota-suave">
+            En un celular compatible se abrirá la cámara trasera. Revisa la foto antes de publicar.
+            Si cancelas o no puedes usar la cámara, puedes elegir una imagen de tu galería.
+          </span>
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
 
           {archivoFoto && (

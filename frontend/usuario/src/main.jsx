@@ -12,6 +12,11 @@ import './styles/foundia.css';
 import './styles/experiencia.css';
 import './styles/hero-findi.css';
 
+// Herramienta H51 optativa, excluida de producción; no contiene credenciales.
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('auditar')) {
+  import('./qa/accesibilidad.js');
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

@@ -421,7 +421,8 @@ select.input {
 }
 
 .toggle-tipo:hover { color: var(--text); }
-.toggle-tipo.activo-perdido { background: var(--surface); color: var(--warning); box-shadow: var(--sombra-sm); }
+.toggle-tipo.activo-perdido { background: var(--surface); color: #a34700; box-shadow: var(--sombra-sm); }
+[data-tema="oscuro"] .toggle-tipo.activo-perdido { color: #ffb86b; }
 .toggle-tipo.activo-encontrado { background: var(--surface); color: var(--success); box-shadow: var(--sombra-sm); }
 
 .proximamente {

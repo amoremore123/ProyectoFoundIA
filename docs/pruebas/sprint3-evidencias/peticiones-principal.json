@@ -1,0 +1,388 @@
+[
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 403,
+    "esperado": 403,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/categorias",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/objetos",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/objetos",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/asistente/interpretar",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/asistente/interpretar",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/asistente/sugerir-publicacion",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/custodias/",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/custodias/",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/1/etiqueta/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 16498,
+    "sha256": "7ef9bd177f1da819aac546347b38e65f14940a12d5167f1288a5f1dc1e6d6607"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/1/constancia/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 2610,
+    "sha256": "af5fd7280cc30ad82393bcaf47af0065e23711c26ff3c5b627bf9776e6f9e2ee"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/objetos/8/reclamos",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/reclamos/1/resolver/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/reclamos/1/qr-retiro/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 7880,
+    "sha256": "1a918fd28f2da9962ed340975e02f766f3ed25c4fb7b2db9655e9e871be40b97"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/reclamos/retirar/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/reclamos/retirar/",
+    "status": 409,
+    "esperado": 409,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 400,
+    "esperado": 400,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "PUT",
+    "ruta": "/api/notificaciones/leidas",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "PUT",
+    "ruta": "/api/notificaciones/leidas",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/exportar.pdf",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 13044,
+    "sha256": "a74980b0834cf5c7a3b92ead102f9375fcc0a0167f5ea4f6338e6d7b8e97d731"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/exportar.xlsx",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 7327,
+    "sha256": "8f454b00bf488f23782701173b9b6a3a4ebc2052291005e63938663d89f43206"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/logout",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/logout-all",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/notificaciones/historial",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/logout/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/logout-all/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 401,
+    "esperado": 401,
+    "ok": true,
+    "api": "http://localhost:8000"
+  }
+]

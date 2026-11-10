@@ -182,4 +182,13 @@ describe('H20 - reclamo de un objeto encontrado', () => {
     await screen.findByRole('heading', { name: 'Mochila encontrada', level: 1 });
     expect(screen.queryByRole('button', { name: 'Reclamar este objeto' })).toBeNull();
   });
+
+  it('H43: permite confirmar el reclamo de un hallazgo ajeno en custodia', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
+    renderizar(true);
+    fireEvent.click(await screen.findByRole('button', { name: 'Reclamar este objeto' }));
+    expect(reclamarObjeto).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, reclamar' }));
+    await waitFor(() => expect(reclamarObjeto).toHaveBeenCalledWith(hallazgoAjeno.id));
+  });
 });

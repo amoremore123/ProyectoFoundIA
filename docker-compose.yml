@@ -96,6 +96,7 @@ services:
       JWT_SECRET: foundia-dev-jwt-secret-cambiar-en-produccion-123456
       DJANGO_DEBUG: "True"
       HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}
+      CUSTODIA_PLAZO_DIAS: ${CUSTODIA_PLAZO_DIAS:-60}
     ports:
       - "8000:8000"
     depends_on:

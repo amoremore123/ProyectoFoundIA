@@ -54,6 +54,34 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('H1/H3/H4 - Formulario de publicación', () => {
+  it('H52: solicita cámara trasera y sube su captura usando el mismo servicio', async () => {
+    const user = userEvent.setup();
+    renderizar();
+    await rellenar(user);
+    const camara = screen.getByLabelText('Tomar foto con la cámara');
+    expect(camara.getAttribute('accept')).toBe('image/*');
+    expect(camara.getAttribute('capture')).toBe('environment');
+    const foto = new File(['captura'], 'camara.jpg', { type: 'image/jpeg' });
+    fireEvent.change(camara, { target: { files: [foto] } });
+    expect(await screen.findByText('Seleccionada: camara.jpg')).toBeTruthy();
+    // Cancelar el selector no elimina la captura anterior ni vacía el formulario.
+    fireEvent.change(camara, { target: { files: [] } });
+    expect(screen.getByText('Seleccionada: camara.jpg')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
+    await screen.findByText('Detalle de prueba');
+    expect(subirFotoObjeto).toHaveBeenCalledWith(55, foto, expect.any(Function));
+  });
+
+  it('H52: rechaza HEIC y capturas mayores a 5 MiB sin publicar', async () => {
+    renderizar();
+    const camara = screen.getByLabelText('Tomar foto con la cámara');
+    fireEvent.change(camara, { target: { files: [new File(['heic'], 'foto.heic', { type: 'image/heic' })] } });
+    expect(await screen.findByText('Elige una imagen JPEG o PNG.')).toBeTruthy();
+    fireEvent.change(camara, { target: { files: [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'foto.jpg', { type: 'image/jpeg' })] } });
+    expect(await screen.findByText('La imagen no debe superar los 5 MiB.')).toBeTruthy();
+    expect(crearObjeto).not.toHaveBeenCalled();
+    expect(subirFotoObjeto).not.toHaveBeenCalled();
+  });
   it('marca los campos obligatorios y no envía un formulario vacío', async () => {
     const user = userEvent.setup();
     renderizar();

@@ -130,7 +130,7 @@ export default function Detalle() {
     reclamoDesdeFindi.current = false;
     const usuario = sesion.user;
     const ajeno = usuario && String(usuario.id) !== String(objeto.publicadoPor?.id);
-    if (sesion.token && ajeno && objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO') setConfirmarReclamo(true);
+    if (sesion.token && ajeno && objeto.tipo === 'ENCONTRADO' && ['ACTIVO', 'EN_CUSTODIA'].includes(objeto.estado)) setConfirmarReclamo(true);
   }, [objeto, sesion.token, sesion.user]);
 
   if (cargando) return <Cargando />;
@@ -161,7 +161,7 @@ export default function Detalle() {
     : '—';
   const puedeContactar = Boolean(token && user && objeto.tipo === 'PERDIDO'
     && String(user.id) === String(objeto.publicadoPor?.id));
-  const esReclamable = objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO';
+  const esReclamable = objeto.tipo === 'ENCONTRADO' && ['ACTIVO', 'EN_CUSTODIA'].includes(objeto.estado);
   const puedeReclamar = Boolean(token && user && esReclamable && String(user.id) !== String(objeto.publicadoPor?.id));
   const reclamoSinSesion = esReclamable && !token;
 

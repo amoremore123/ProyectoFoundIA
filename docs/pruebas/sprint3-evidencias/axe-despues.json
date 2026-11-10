@@ -1,0 +1,243 @@
+[
+  {
+    "ruta": "/perfil",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/notificaciones",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ],
+          [
+            ".resultados-contador"
+          ],
+          [
+            ".notificaciones-ayuda"
+          ],
+          [
+            "strong:nth-child(1)"
+          ],
+          [
+            "strong:nth-child(2)"
+          ],
+          [
+            "strong:nth-child(3)"
+          ],
+          [
+            ".btn-fantasma.btn-mini.btn:nth-child(2)"
+          ],
+          [
+            ".btn-fantasma.btn-mini.btn:nth-child(3)"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/publicar",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            ".btn-fantasma"
+          ],
+          [
+            "h1"
+          ],
+          [
+            "p"
+          ],
+          [
+            "select"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".activo > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/mis-publicaciones",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ],
+          [
+            ".resultados-contador"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/objeto/1",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            ".imagen-referencial-etiqueta"
+          ],
+          [
+            "strong"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".bottom-nav-item[href$=\"perfil\"] > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/perfil",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/notificaciones",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/publicar",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            "select"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".activo > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/mis-publicaciones",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/objeto/1",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".imagen-referencial-etiqueta"
+          ],
+          [
+            "strong"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".bottom-nav-item[href$=\"perfil\"] > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  }
+]

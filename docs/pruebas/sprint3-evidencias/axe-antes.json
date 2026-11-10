@@ -1,0 +1,508 @@
+[
+  {
+    "ruta": "/perfil",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/notificaciones",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .no-leida.notificacion[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .no-leida.notificacion[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/publicar",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "color-contrast",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              ".activo-perdido"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 3.43 (foreground color: #dc6a07, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            "select"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".activo > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/mis-publicaciones",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/objeto/1",
+    "tema": "claro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/perfil",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "color-contrast",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              ".btn-secundario.btn-bloque[href$=\"mis-publicaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 1.31 (foreground color: #252e47, background color: #0c1733, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".btn-secundario.btn-bloque[href$=\"notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 1.31 (foreground color: #252e47, background color: #0c1733, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".perfil-acciones > .btn-peligro.btn-bloque[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 1.13 (foreground color: #262037, background color: #0c1733, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section > .btn-peligro.btn-bloque[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 1.13 (foreground color: #262037, background color: #0c1733, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ],
+          [
+            ".btn-fantasma"
+          ],
+          [
+            "#titulo-eliminacion"
+          ],
+          [
+            ".eliminacion-texto"
+          ],
+          [
+            "section > .nota-suave"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/notificaciones",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .no-leida.notificacion[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .no-leida.notificacion[type=\"button\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ],
+          [
+            ".resultados-contador"
+          ],
+          [
+            ".notificaciones-ayuda"
+          ],
+          [
+            "strong:nth-child(1)"
+          ],
+          [
+            "strong:nth-child(2)"
+          ],
+          [
+            "strong:nth-child(3)"
+          ],
+          [
+            ".btn-fantasma.btn-mini.btn:nth-child(2)"
+          ],
+          [
+            ".btn-fantasma.btn-mini.btn:nth-child(3)"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/publicar",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            ".btn-fantasma"
+          ],
+          [
+            "h1"
+          ],
+          [
+            "p"
+          ],
+          [
+            "select"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".activo > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/mis-publicaciones",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            "h1"
+          ],
+          [
+            ".resultados-contador"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  },
+  {
+    "ruta": "/objeto/1",
+    "tema": "oscuro",
+    "ancho": 375,
+    "texto": "20.8px",
+    "axe": "4.14.0",
+    "violaciones": [
+      {
+        "id": "color-contrast",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              ".estado-vacio > p"
+            ],
+            "resumen": "Fix any of the following:\n  Element has insufficient color contrast of 1.1 (foreground color: #15203b, background color: #0c1632, font size: 11.3pt (15px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impacto": "serious",
+        "nodos": [
+          {
+            "target": [
+              "a[aria-label=\"Notificaciones\"]"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          },
+          {
+            "target": [
+              ".navbar-avatar"
+            ],
+            "resumen": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+          }
+        ]
+      }
+    ],
+    "incompletas": [
+      {
+        "id": "color-contrast",
+        "nodos": [
+          [
+            ".punto-rojo"
+          ],
+          [
+            ".imagen-referencial-etiqueta"
+          ],
+          [
+            "strong"
+          ],
+          [
+            "h2"
+          ],
+          [
+            ".bottom-nav-item[href=\"/\"] > .bottom-nav-label"
+          ],
+          [
+            ".bottom-nav-item[href$=\"perfil\"] > .bottom-nav-label"
+          ]
+        ]
+      }
+    ],
+    "desbordamiento": false
+  }
+]

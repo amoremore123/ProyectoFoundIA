@@ -57,20 +57,20 @@ describe('H18/H20 - Pantalla de notificaciones', () => {
   it('abrir un aviso lo marca como leído y se conserva al consultar de nuevo', async () => {
     const user = userEvent.setup();
     const primera = renderizar();
-    await user.click(await screen.findByRole('button', { name: /Reclamo: Nuevo reclamo de objeto\. Sin leer/ }));
+    await user.click(await screen.findByRole('button', { name: /Reclamo Nuevo reclamo de objeto/ }));
 
     await waitFor(() => expect(marcarNotificacionLeida).toHaveBeenCalledWith(1));
     expect(await screen.findByText('Todas leídas')).toBeTruthy();
 
     primera.unmount();
     renderizar();
-    expect(await screen.findByRole('button', { name: /Reclamo: Nuevo reclamo de objeto\. Leída/ })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /Reclamo Nuevo reclamo de objeto.*Leída/ })).toBeTruthy();
   });
 
   it('un aviso ya leído no vuelve a llamar a la API', async () => {
     const user = userEvent.setup();
     renderizar();
-    await user.click(await screen.findByRole('button', { name: /Solicitud de contacto: Nueva solicitud de contacto\. Leída/ }));
+    await user.click(await screen.findByRole('button', { name: /Solicitud de contacto Nueva solicitud de contacto.*Leída/ }));
     expect(marcarNotificacionLeida).not.toHaveBeenCalled();
   });
 
@@ -78,7 +78,7 @@ describe('H18/H20 - Pantalla de notificaciones', () => {
     const user = userEvent.setup();
     marcarNotificacionLeida.mockRejectedValueOnce({ response: { status: 404, data: { mensaje: 'Notificación no encontrada' } } });
     renderizar();
-    await user.click(await screen.findByRole('button', { name: /Reclamo: Nuevo reclamo de objeto\. Sin leer/ }));
+    await user.click(await screen.findByRole('button', { name: /Reclamo Nuevo reclamo de objeto/ }));
 
     expect(await screen.findByText('Notificación no encontrada')).toBeTruthy();
     expect(screen.getByText('1 sin leer')).toBeTruthy();
@@ -121,7 +121,7 @@ describe('H23 - Aviso de posible coincidencia', () => {
     servidor = [{ ...AVISO }];
     renderizarConRutas();
     expect(await screen.findByText('Posible coincidencia')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /Posible coincidencia: .*Abre la coincidencia/ }));
+    await user.click(screen.getByRole('button', { name: /Posible coincidencia/ }));
 
     await waitFor(() => expect(marcarNotificacionLeida).toHaveBeenCalledWith(5));
     expect(await screen.findByText('Pantalla de comparación')).toBeTruthy();
@@ -159,7 +159,7 @@ describe('H23 - Aviso de posible coincidencia', () => {
       </MemoryRouter>,
     );
     expect(await screen.findByText('Recordatorio')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /Abre la publicación/ }));
+    await user.click(screen.getByRole('button', { name: /Recordatorio Tu objeto sigue sin resolverse/ }));
     expect(await screen.findByText('Pantalla del objeto')).toBeTruthy();
     expect(marcarNotificacionLeida).toHaveBeenCalledWith(5);
   });

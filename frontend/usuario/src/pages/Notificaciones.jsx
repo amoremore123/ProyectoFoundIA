@@ -213,7 +213,7 @@ export default function Notificaciones() {
                     className={`notificacion${noti.leida ? '' : ' no-leida'}`}
                     onClick={() => abrir(noti)}
                     disabled={marcando === noti.id}
-                    aria-label={`${tipo.etiqueta}: ${noti.titulo}. ${noti.leida ? 'Leída' : 'Sin leer, pulsa para marcarla como leída'}${destino ? (destino.startsWith('/objeto/') ? '. Abre la publicación' : '. Abre la coincidencia') : ''}`}
+                    aria-description={`${noti.leida ? 'Leída' : 'Sin leer, pulsa para marcarla como leída'}${destino ? (destino.startsWith('/objeto/') ? '. Abre la publicación' : '. Abre la coincidencia') : ''}`}
                   >
                     <span className="notificacion-icono" aria-hidden="true">
                       <Icono nombre="campana" tamano={18} />

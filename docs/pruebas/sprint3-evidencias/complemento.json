@@ -1,0 +1,140 @@
+[
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/vencidas/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/custodias/2/disponer/",
+    "status": 201,
+    "esperado": 201,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/2/acta/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000",
+    "bytes": 2587,
+    "sha256": "250009321dce85c3ec57c1cdf4e2b91fc9b2e2a2ea9509cc7ee9753b6399fe41"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/custodias/2/disponer/",
+    "status": 409,
+    "esperado": 409,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/respaldos/ultimo/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/auth/login",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8081"
+  },
+  {
+    "metodo": "PATCH",
+    "ruta": "/api/admin/usuarios/3/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "POST",
+    "ruta": "/api/admin/auth/login/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/reclamos/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/custodias/vencidas/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/dashboard/",
+    "status": 403,
+    "esperado": 403,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/usuarios/",
+    "status": 403,
+    "esperado": 403,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/categorias/",
+    "status": 403,
+    "esperado": 403,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "GET",
+    "ruta": "/api/admin/reportes/",
+    "status": 403,
+    "esperado": 403,
+    "ok": true,
+    "api": "http://localhost:8000"
+  },
+  {
+    "metodo": "PATCH",
+    "ruta": "/api/admin/usuarios/3/",
+    "status": 200,
+    "esperado": 200,
+    "ok": true,
+    "api": "http://localhost:8000"
+  }
+]

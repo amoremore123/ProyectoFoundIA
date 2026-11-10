@@ -63,8 +63,51 @@ Los componentes nuevos de esta entrega se escribieron con las mismas reglas:
 - H47: tarjetas de FINDI en una lista con nombre («Tarjetas de FINDI») y acciones en un grupo con nombre; cada acción pide confirmación.
 - H49: la sugerencia se anuncia con `aria-live="polite"`; la descripción sugerida tiene su etiqueta.
 
+## Pantallas con sesión — 10/11/2026
+
+Sesión real de Ana (`database/seed.sql`), Spring :8081 y MySQL en Docker.
+axe-core **4.14.0**, navegador Chromium integrado, viewport **375 × 812**,
+raíz a **130 % (20,8 px)**. No se simularon respuestas de la API.
+Se revisaron los mismos tags WCAG y best-practice indicados al inicio.
+
+| Pantalla | Antes claro: nodos con infracción | Antes oscuro: nodos con infracción | Después claro/oscuro |
+| --- | ---: | ---: | --- |
+| Perfil | 2 | 6 | 0 / 0 |
+| Notificaciones | 4 | 4 | 0 / 0 |
+| Publicar (incluida H52) | 3 | 2 | 0 / 0 |
+| Mis publicaciones | 2 | 2 | 0 / 0 |
+| Detalle `/objeto/1` | 2 | 3 | 0 / 0 |
+
+Correcciones:
+
+- El enlace de notificaciones incluye en su nombre el contador visible; el avatar
+  incluye las iniciales visibles. Esto permite identificarlos también por voz.
+- Los avisos toman su nombre del contenido visible completo. La instrucción para
+  marcarlos y abrirlos se comunica por `aria-description`, sin sustituir su nombre.
+- El botón de tipo Perdido usa marrón oscuro en claro y naranja claro en oscuro,
+  con contraste suficiente frente a su superficie.
+
+No hubo desbordamiento horizontal en las diez combinaciones. La captura inicial
+también detectó contrastes durante animaciones de entrada; la repetición espera
+fuentes y 1,2 s para medir el render estable, sin desactivar reglas de axe.
+
+Evidencia completa: [antes](sprint3-evidencias/axe-antes.json) y
+[después](sprint3-evidencias/axe-despues.json). Las diez pasadas finales tienen
+cero **violaciones automáticas**; siete conservan comprobaciones de contraste
+`incomplete` (superficies translúcidas, imágenes o controles nativos). No se
+convierten en aprobadas: requieren revisión manual y no permiten afirmar una
+certificación WCAG completa. Aumentar la raíz tampoco amplía los estilos que
+usan píxeles fijos; queda pendiente contrastarlo con la ampliación del teléfono.
+
+Reproducción: `npm run dev` en usuario, entrar con una cuenta seed, abrir cada
+ruta con `?auditar=1`, fijar 375 × 812 y pulsar **Ejecutar auditoría H51**.
+Cambiar el tema desde la interfaz y repetir. El módulo `src/qa/accesibilidad.js`
+solo se importa en desarrollo con ese parámetro; no entra en el build de producción.
+
 ## Pendiente
 
-- Auditar con axe las pantallas con sesión cuando la API esté encendida (Docker).
-- Lighthouse en Chrome como segunda opinión.
+- Revisión manual de los contrastes `incomplete`, lector de pantalla y ampliación nativa.
+- Lighthouse en Chrome como segunda opinión: no ejecutado; la herramienta no está instalada
+  en la caché local (`npx --offline --no-install lighthouse --version`: `ENOTCACHED`).
+  Esta pasada de axe usa el navegador integrado.
 - Android (TalkBack y texto al 130 %) es la capa de Amore.
