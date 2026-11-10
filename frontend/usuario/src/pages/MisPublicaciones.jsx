@@ -85,7 +85,7 @@ export default function MisPublicaciones() {
   return (
     <div className="pagina">
       <div className="seccion-header">
-        <h1 className="pagina-titulo">Mis publicaciones</h1>
+        <h1 className="pagina-titulo">Mis reportes</h1>
         <Link to="/publicar" className="btn btn-primario">
           <Icono nombre="mas" tamano={16} /> Publicar objeto
         </Link>

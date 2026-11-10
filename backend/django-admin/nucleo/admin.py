@@ -2,13 +2,17 @@
 from django.contrib import admin
 
 from .models import (
+    CambioRol,
     Categoria,
     Coincidencia,
     Contacto,
+    Custodia,
     Foto,
     Notificacion,
     Objeto,
+    Reclamo,
     Reporte,
+    SecuenciaCustodia,
     Usuario,
 )
 
@@ -18,6 +22,13 @@ class UsuarioAdmin(admin.ModelAdmin):
     list_display = ("id", "nombre", "apellido", "correo", "rol", "estado", "fecha_registro")
     search_fields = ("nombre", "apellido", "correo")
     list_filter = ("rol", "estado")
+
+
+@admin.register(CambioRol)
+class CambioRolAdmin(admin.ModelAdmin):
+    list_display = ("id", "usuario", "rol_anterior", "rol_nuevo", "cambiado_por", "fecha_cambio")
+    list_filter = ("rol_anterior", "rol_nuevo")
+    search_fields = ("usuario__correo", "cambiado_por__correo")
 
 
 @admin.register(Categoria)
@@ -54,6 +65,25 @@ class ContactoAdmin(admin.ModelAdmin):
 class NotificacionAdmin(admin.ModelAdmin):
     list_display = ("id", "usuario", "titulo", "tipo", "leida", "fecha_creacion")
     list_filter = ("leida", "tipo")
+
+
+@admin.register(Custodia)
+class CustodiaAdmin(admin.ModelAdmin):
+    list_display = ("id", "codigo", "objeto", "estado", "recibido_por", "fecha_recepcion")
+    list_filter = ("estado",)
+    search_fields = ("codigo", "objeto__nombre")
+
+
+@admin.register(SecuenciaCustodia)
+class SecuenciaCustodiaAdmin(admin.ModelAdmin):
+    list_display = ("anio", "ultimo")
+
+
+@admin.register(Reclamo)
+class ReclamoAdmin(admin.ModelAdmin):
+    list_display = ("id", "objeto", "usuario", "estado", "fecha_reclamo", "resuelto_por", "fecha_resolucion")
+    list_filter = ("estado",)
+    search_fields = ("objeto__nombre", "usuario__correo")
 
 
 @admin.register(Reporte)

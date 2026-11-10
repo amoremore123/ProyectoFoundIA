@@ -17,6 +17,7 @@ from django.utils import timezone
 
 ROL_CHOICES = [
     ("USUARIO", "USUARIO"),
+    ("BIBLIOTECA", "BIBLIOTECA"),
     ("ADMIN", "ADMIN"),
 ]
 
@@ -32,6 +33,7 @@ TIPO_OBJETO_CHOICES = [
 
 ESTADO_OBJETO_CHOICES = [
     ("ACTIVO", "ACTIVO"),
+    ("EN_CUSTODIA", "EN_CUSTODIA"),
     ("RECUPERADO", "RECUPERADO"),
     ("OCULTO", "OCULTO"),
     ("ELIMINADO", "ELIMINADO"),
@@ -64,6 +66,18 @@ ESTADO_REPORTE_CHOICES = [
     ("RECHAZADO", "RECHAZADO"),
 ]
 
+ESTADO_CUSTODIA_CHOICES = [
+    ("EN_CUSTODIA", "EN_CUSTODIA"),
+    ("RETIRADO", "RETIRADO"),
+]
+
+ESTADO_RECLAMO_CHOICES = [
+    ("PENDIENTE", "PENDIENTE"),
+    ("ACEPTADO", "ACEPTADO"),
+    ("RECHAZADO", "RECHAZADO"),
+    ("RETIRADO", "RETIRADO"),
+]
+
 
 class Usuario(models.Model):
     # DRF/DRF auth necesitan request.user.is_authenticated (no es un campo BD).
@@ -77,6 +91,8 @@ class Usuario(models.Model):
     intentos_login = models.IntegerField(default=0, db_column="intentos_fallidos")
     bloqueado_hasta = models.DateTimeField(null=True, blank=True)
     password_actualizado_en = models.DateTimeField(null=True, blank=True)
+    # H37: se incrementa al cerrar todas las sesiones; invalida los JWT anteriores.
+    sesion_version = models.IntegerField(default=0, db_column="sesion_version")
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="USUARIO")
     estado = models.CharField(
         max_length=20, choices=ESTADO_USUARIO_CHOICES, default="ACTIVO"
@@ -90,6 +106,25 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {self.apellido} <{self.correo}>"
+
+
+class TokenRevocado(models.Model):
+    """H37: JWT individual revocado al cerrar sesión."""
+
+    jti = models.CharField(max_length=64, primary_key=True)
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="tokens_revocados",
+    )
+    revocado_en = models.DateTimeField(default=timezone.now)
+    expira_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "tokens_revocados"
+
+    def __str__(self):
+        return f"Token revocado {self.jti}"
 
 
 class Categoria(models.Model):
@@ -238,6 +273,7 @@ class Notificacion(models.Model):
     titulo = models.CharField(max_length=150)
     mensaje = models.TextField()
     tipo = models.CharField(max_length=50, null=True, blank=True)
+    enlace = models.CharField(max_length=500, null=True, blank=True)
     leida = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(default=timezone.now, blank=True)
 
@@ -247,6 +283,108 @@ class Notificacion(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class CambioRol(models.Model):
+    """H36: auditoría de cada cambio de rol, con responsable y fecha."""
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="cambios_rol",
+    )
+    rol_anterior = models.CharField(max_length=20, choices=ROL_CHOICES)
+    rol_nuevo = models.CharField(max_length=20, choices=ROL_CHOICES)
+    cambiado_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="cambiado_por_id",
+        related_name="cambios_rol_realizados",
+    )
+    motivo = models.CharField(max_length=500, null=True, blank=True)
+    fecha_cambio = models.DateTimeField(default=timezone.now, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "cambios_rol"
+        ordering = ["-fecha_cambio", "-id"]
+
+    def __str__(self):
+        return f"{self.usuario_id}: {self.rol_anterior} -> {self.rol_nuevo}"
+
+
+class SecuenciaCustodia(models.Model):
+    """H41: consecutivo por año para el código FND-YYYY-#### sin repetidos."""
+
+    anio = models.IntegerField(primary_key=True)
+    ultimo = models.IntegerField(default=0)
+
+    class Meta:
+        managed = False
+        db_table = "secuencias_custodia"
+
+    def __str__(self):
+        return f"{self.anio}: {self.ultimo}"
+
+
+class Custodia(models.Model):
+    """H41: recepción de un objeto con código único, token QR firmado y constancia."""
+
+    objeto = models.OneToOneField(
+        Objeto, on_delete=models.DO_NOTHING, db_column="objeto_id",
+        related_name="custodia",
+    )
+    codigo = models.CharField(max_length=20, unique=True)
+    token_qr = models.CharField(max_length=500)
+    recibido_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="recibido_por_id",
+        related_name="custodias_recibidas",
+    )
+    fecha_recepcion = models.DateTimeField(default=timezone.now, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
+    estado = models.CharField(
+        max_length=20, choices=ESTADO_CUSTODIA_CHOICES, default="EN_CUSTODIA"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "custodias"
+        ordering = ["-fecha_recepcion", "-id"]
+
+    def __str__(self):
+        return f"{self.codigo} ({self.estado})"
+
+
+class Reclamo(models.Model):
+    """H43: bandeja de reclamos de custodia y QR de retiro de un solo uso."""
+
+    objeto = models.ForeignKey(
+        Objeto, on_delete=models.DO_NOTHING, db_column="objeto_id",
+        related_name="reclamos",
+    )
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="reclamos",
+    )
+    estado = models.CharField(
+        max_length=20, choices=ESTADO_RECLAMO_CHOICES, default="PENDIENTE"
+    )
+    fecha_reclamo = models.DateTimeField(default=timezone.now, blank=True)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id",
+        related_name="reclamos_resueltos", null=True, blank=True,
+    )
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    motivo_resolucion = models.TextField(null=True, blank=True)
+    qr_retiro_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    qr_retiro_expira = models.DateTimeField(null=True, blank=True)
+    qr_retiro_usado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "reclamos"
+        unique_together = [("objeto", "usuario")]
+        ordering = ["-fecha_reclamo", "-id"]
+
+    def __str__(self):
+        return f"Reclamo {self.id} ({self.estado})"
 
 
 class Reporte(models.Model):
@@ -281,3 +419,27 @@ class Reporte(models.Model):
 
     def __str__(self):
         return f"Reporte {self.id} ({self.estado})"
+
+
+class Respaldo(models.Model):
+    """H38: metadatos de cada respaldo lógico de la base de datos.
+
+    El archivo y su huella viven en el volumen del servicio de respaldo;
+    esta tabla solo permite consultar el resultado desde el panel.
+    """
+
+    nombre_archivo = models.CharField(max_length=255, unique=True)
+    huella_sha256 = models.CharField(max_length=64, null=True, blank=True)
+    tamano_bytes = models.BigIntegerField(null=True, blank=True)
+    estado = models.CharField(max_length=20, default="EN_PROCESO")
+    iniciado_en = models.DateTimeField()
+    finalizado_en = models.DateTimeField(null=True, blank=True)
+    mensaje = models.CharField(max_length=500, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "respaldos"
+        ordering = ["-iniciado_en", "-id"]
+
+    def __str__(self):
+        return f"Respaldo {self.nombre_archivo} ({self.estado})"

@@ -1,130 +1,106 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import Dashboard, { formatearDuracion } from './Dashboard';
-import { getDashboard } from '../services/api';
+import Dashboard from './Dashboard';
+import { getDashboard, getPublicaciones, getReportes, getUsuarios } from '../services/api';
 
-vi.mock('../services/api', async (importOriginal) => ({ ...await importOriginal(), getDashboard: vi.fn() }));
+vi.mock('../services/api', async (importOriginal) => ({
+  ...await importOriginal(),
+  getDashboard: vi.fn(),
+  getPublicaciones: vi.fn(),
+  getReportes: vi.fn(),
+  getUsuarios: vi.fn(),
+}));
+vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { nombre: 'Yajaira' } }) }));
 
-const respuesta = {
+const resumen = {
   usuarios: 12,
   objetosActivos: 7,
-  reportesPendientes: 1,
+  reportesPendientes: 3,
   categorias: 5,
-  rango: { desde: null, hasta: null, campo: 'fecha_publicacion', zonaHoraria: 'UTC' },
-  objetos: { perdidos: 6, encontrados: 4, recuperados: 2, activos: 7 },
-  recuperacion: {
-    promedioHoras: 27, promedioDias: 1.1, medianaHoras: 27, minimoHoras: 6, maximoHoras: 48,
-    muestra: 2, sinFecha: 1, fechasIncoherentes: 0,
-  },
-  categoriasTop: [
-    { id: 2, nombre: 'Celulares', total: 4, perdidos: 3, encontrados: 1 },
-    { id: 1, nombre: 'Mochilas', total: 2, perdidos: 2, encontrados: 0 },
-  ],
-  ubicacionesTop: [{ nombre: 'Biblioteca', total: 3, perdidos: 2, encontrados: 1 }],
-  sinUbicacion: 1,
+  objetos: { perdidos: 6, encontrados: 4, recuperados: 3, activos: 7 },
 };
+const objetos = [
+  { id: 1, nombre: 'Mochila negra', tipo: 'PERDIDO', estado: 'ACTIVO', ubicacion: 'Biblioteca', fecha_publicacion: new Date().toISOString(), publicado_por: 'Ana Pérez' },
+  { id: 2, nombre: 'Oculto', tipo: 'PERDIDO', estado: 'OCULTO', fecha_publicacion: new Date().toISOString() },
+];
 
 async function renderizar() {
-  await act(async () => { render(<Dashboard />); });
+  await act(async () => { render(<MemoryRouter><Dashboard /></MemoryRouter>); });
 }
 
 beforeEach(() => {
-  getDashboard.mockReset();
+  [getDashboard, getPublicaciones, getReportes, getUsuarios].forEach((f) => f.mockReset());
   // Sin animación de contadores: los valores se ven de inmediato
   window.matchMedia = vi.fn().mockReturnValue({ matches: true });
 });
 afterEach(() => cleanup());
 
-describe('H30 - Formato del tiempo de recuperación', () => {
-  it('usa horas hasta 48 h y días desde ahí', () => {
-    expect(formatearDuracion(null)).toBe('—');
-    expect(formatearDuracion(0.4)).toBe('menos de 1 h');
-    expect(formatearDuracion(27)).toBe('27 h');
-    expect(formatearDuracion(6.25)).toBe('6.3 h');
-    expect(formatearDuracion(48)).toBe('2 días');
-    expect(formatearDuracion(84)).toBe('3.5 días');
-  });
-});
-
-describe('H29/H30/H31 - Dashboard administrativo', () => {
-  it('muestra los conteos del periodo, el tiempo de recuperación y los rankings', async () => {
-    getDashboard.mockResolvedValueOnce(respuesta);
+describe('Fase 3 - Dashboard administrativo', () => {
+  it('muestra los indicadores reales, el saludo y el porcentaje de recuperación', async () => {
+    getDashboard.mockResolvedValueOnce(resumen);
+    getPublicaciones.mockResolvedValueOnce(objetos);
+    getReportes.mockResolvedValueOnce([]);
+    getUsuarios.mockResolvedValueOnce([]);
     await renderizar();
 
-    expect(getDashboard).toHaveBeenCalledWith({ desde: '', hasta: '' }, expect.anything());
-    expect(screen.getByText('Todo el historial')).toBeTruthy();
-    expect(screen.getByText('Parte de los perdidos')).toBeTruthy();
-
-    expect(screen.getByTestId('promedio-recuperacion').textContent).toBe('27 h');
-    expect(screen.getByText(/Basado en 2 recuperaciones/)).toBeTruthy();
-    expect(screen.getByText('1 recuperación antigua no tiene fecha y no se incluye.')).toBeTruthy();
-
-    const categorias = screen.getByRole('region', { name: /Categorías con más reportes/ });
-    const filas = within(categorias).getAllByRole('listitem');
-    expect(filas.map((f) => within(f).getByText(/Celulares|Mochilas/).textContent)).toEqual(['Celulares', 'Mochilas']);
-    expect(within(filas[0]).getByText('4 publicaciones')).toBeTruthy();
-    expect(within(filas[0]).getByText('3 perdidos · 1 encontrado')).toBeTruthy();
-
-    const ubicaciones = screen.getByRole('region', { name: /Ubicaciones con más reportes/ });
-    expect(within(ubicaciones).getByText('Biblioteca')).toBeTruthy();
-    expect(within(ubicaciones).getByText('1 publicación no indica ubicación.')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /Hola, Yajaira/ })).toBeTruthy();
+    const indicadores = screen.getByRole('region', { name: 'Indicadores generales' });
+    const valor = (etiqueta) => within(indicadores).getByText(etiqueta).parentElement.querySelector('.indicador-valor').textContent;
+    expect(valor('Objetos reportados')).toBe('10');
+    expect(valor('Objetos recuperados')).toBe('3');
+    expect(valor('Denuncias pendientes')).toBe('3');
+    expect(valor('Usuarios registrados')).toBe('12');
+    expect(within(indicadores).getByText('50% de los perdidos')).toBeTruthy();
+    expect(screen.getByRole('img', { name: '50% de los objetos perdidos fueron recuperados' })).toBeTruthy();
   });
 
-  it('sin recuperaciones ni publicaciones muestra estados vacíos, no ceros inventados', async () => {
-    getDashboard.mockResolvedValueOnce({
-      ...respuesta,
-      recuperacion: { promedioHoras: null, promedioDias: null, medianaHoras: null, minimoHoras: null,
-        maximoHoras: null, muestra: 0, sinFecha: 0, fechasIncoherentes: 0 },
-      categoriasTop: [],
-      ubicacionesTop: [],
-      sinUbicacion: 0,
-    });
+  it('lista solo objetos visibles en recientes y en la actividad', async () => {
+    getDashboard.mockResolvedValueOnce(resumen);
+    getPublicaciones.mockResolvedValueOnce(objetos);
+    getReportes.mockResolvedValueOnce([]);
+    getUsuarios.mockResolvedValueOnce([]);
     await renderizar();
 
-    expect(screen.getByText('Aún no hay recuperaciones con fecha en este periodo.')).toBeTruthy();
-    expect(screen.queryByTestId('promedio-recuperacion')).toBeNull();
-    expect(screen.getByText('No hay publicaciones en este periodo.')).toBeTruthy();
-    expect(screen.getByText('No hay publicaciones con ubicación en este periodo.')).toBeTruthy();
+    const recientes = screen.getByRole('region', { name: /Objetos recientes/ });
+    expect(within(recientes).getByText('Mochila negra')).toBeTruthy();
+    expect(within(recientes).queryByText('Oculto')).toBeNull();
+    expect(screen.getByText('Objeto perdido reportado')).toBeTruthy();
   });
 
-  it('aplica y limpia el filtro de fechas', async () => {
-    getDashboard.mockResolvedValue(respuesta);
+  it('sin objetos muestra estados vacíos, no cifras inventadas', async () => {
+    getDashboard.mockResolvedValueOnce({ ...resumen, objetos: { perdidos: 0, encontrados: 0, recuperados: 0, activos: 0 } });
+    getPublicaciones.mockResolvedValueOnce([]);
+    getReportes.mockResolvedValueOnce([]);
+    getUsuarios.mockResolvedValueOnce([]);
     await renderizar();
 
-    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-01' } });
-    fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2026-10-31' } });
-    getDashboard.mockResolvedValueOnce({ ...respuesta, rango: { ...respuesta.rango, desde: '2026-10-01', hasta: '2026-10-31' } });
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Aplicar' })); });
-
-    expect(getDashboard).toHaveBeenLastCalledWith({ desde: '2026-10-01', hasta: '2026-10-31' }, expect.anything());
-    expect(screen.getByText('Del 01/10/2026 al 31/10/2026')).toBeTruthy();
-
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Limpiar' })); });
-    expect(getDashboard).toHaveBeenLastCalledWith({ desde: '', hasta: '' }, expect.anything());
-    expect(screen.getByLabelText('Desde').value).toBe('');
+    expect(screen.getByText('Aún no hay objetos publicados en estos meses.')).toBeTruthy();
+    expect(screen.getByText('Aún no hay objetos publicados.')).toBeTruthy();
+    expect(screen.getByText('Todavía no hay actividad.')).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Aún no hay objetos perdidos' })).toBeTruthy();
   });
 
-  it('no consulta si el rango está invertido', async () => {
-    getDashboard.mockResolvedValue(respuesta);
+  it('si una lista falla, avisa y mantiene el resto del panel', async () => {
+    getDashboard.mockResolvedValueOnce(resumen);
+    getPublicaciones.mockResolvedValueOnce(objetos);
+    getReportes.mockRejectedValueOnce(new Error('caída'));
+    getUsuarios.mockResolvedValueOnce([]);
     await renderizar();
-    const llamadas = getDashboard.mock.calls.length;
 
-    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-31' } });
-    fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2026-10-01' } });
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Aplicar' })); });
-
-    expect(screen.getByRole('alert').textContent).toContain('no puede ser posterior');
-    expect(getDashboard.mock.calls.length).toBe(llamadas);
+    expect(screen.getByText(/No se pudieron cargar: denuncias/)).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Indicadores generales' })).toBeTruthy();
   });
 
   it('muestra el error del servidor y permite reintentar', async () => {
-    getDashboard.mockRejectedValueOnce({ response: { status: 400, data: { detail: 'Filtros admitidos: desde y hasta (AAAA-MM-DD).' } } });
+    getDashboard.mockRejectedValueOnce({ response: { status: 500, data: { detail: 'Servidor no disponible' } } });
+    [getPublicaciones, getReportes, getUsuarios].forEach((f) => f.mockResolvedValue([]));
     await renderizar();
-    expect(screen.getByRole('alert').textContent).toContain('Filtros admitidos');
+    expect(screen.getByRole('alert').textContent).toContain('Servidor no disponible');
 
-    getDashboard.mockResolvedValueOnce(respuesta);
+    getDashboard.mockResolvedValueOnce(resumen);
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Reintentar' })); });
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(screen.getByTestId('promedio-recuperacion')).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Indicadores generales' })).toBeTruthy();
   });
 });

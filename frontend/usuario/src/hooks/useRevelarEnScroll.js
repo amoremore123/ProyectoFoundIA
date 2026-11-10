@@ -10,6 +10,7 @@ const SELECTOR_USUARIO = [
   '.inicio-faq',
   '.ayuda-campus',
   '.grid-objetos > *',
+  '.proceso-pasos > li',
   '.lista-mis-publicaciones > li',
   '.lista-notificaciones > li',
   '.lista-coincidencias > *',

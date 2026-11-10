@@ -1,0 +1,343 @@
+/* =====================================================================
+   FoundIA · Experiencia estilo Apple (se carga después de foundia.css)
+   - Respuesta inmediata al presionar, sin esperar a soltar.
+   - Materiales translúcidos (vidrio) para la navegación y las tarjetas
+     que flotan sobre el hero.
+   - Movimiento corto y amortiguado: curva --suave, sin rebotes.
+   - Con "reducir movimiento" todo pasa a fundidos; con "reducir
+     transparencia" el vidrio se vuelve sólido.
+   ===================================================================== */
+
+/* ---------- Navegación ---------- */
+
+.navbar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom-color: transparent;
+  transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.navbar.con-scroll { background: rgba(255, 255, 255, 0.82); border-bottom-color: var(--border); box-shadow: 0 8px 24px -18px rgba(20, 35, 75, 0.35); }
+html[data-tema='oscuro'] .navbar { background: rgba(11, 21, 48, 0.6); }
+html[data-tema='oscuro'] .navbar.con-scroll { background: rgba(11, 21, 48, 0.85); }
+
+/* Seis enlaces necesitan espacio: debajo de 1080 px se usa la barra inferior */
+.navbar-links { position: relative; display: none; gap: 2px; padding: 4px; border-radius: 999px; }
+@media (min-width: 1080px) { .navbar-links { display: flex; } }
+.navbar-links a { position: relative; z-index: 1; padding: 8px 15px; border-radius: 999px; color: var(--text-muted); transition: color 0.25s var(--suave); }
+.navbar-links a::after { display: none; }
+.navbar-links a:hover { background: transparent; color: var(--text); }
+.navbar-links a.active { color: #fff; }
+.navbar-links a:active { transform: scale(0.97); }
+
+/* Píldora azul que se desliza hasta el enlace activo */
+.navbar-pildora {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--pildora-ancho, 0);
+  transform: translateX(var(--pildora-x, 0));
+  border-radius: 999px;
+  background: var(--azul);
+  box-shadow: 0 6px 16px -8px rgba(8, 102, 245, 0.8);
+  transition: transform 0.45s var(--suave), width 0.45s var(--suave), opacity 0.2s;
+}
+.navbar-links[data-indicador='no'] .navbar-pildora { opacity: 0; }
+
+.navbar-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--marino);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary-100);
+  transition: transform 0.25s var(--suave), box-shadow 0.25s;
+}
+.navbar-avatar:hover, .navbar-avatar.activo { transform: scale(1.06); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--azul); }
+.navbar-avatar.activo { background: var(--azul); }
+.navbar-avatar:active { transform: scale(0.95); }
+.navbar-entrar { height: 38px; padding: 0 18px; border-radius: 999px; }
+@media (max-width: 640px) { .navbar-entrar { display: none; } }
+
+/* La barra inferior se queda hasta 1079 px */
+@media (min-width: 768px) and (max-width: 1079px) {
+  .bottom-nav { display: grid; }
+  .app-shell { padding-bottom: 72px; }
+}
+.bottom-nav { background: var(--vidrio); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+.bottom-nav-item { transition: color 0.2s, transform 0.15s; }
+.bottom-nav-item:active { transform: scale(0.94); }
+.bottom-nav-item.activo .bottom-nav-icono { background: var(--primary-50); border-radius: 999px; padding: 2px 14px; }
+
+/* ---------- Portada: escenario a todo el ancho ---------- */
+
+.portada-escenario {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: -48px calc(50% - 50vw) 0;
+  padding: 0 max(20px, calc(50vw - 620px)) 12px;
+  background: linear-gradient(180deg, #dbe9ff 0%, #eef4ff 55%, var(--bg) 100%);
+  overflow: hidden;
+}
+html[data-tema='oscuro'] .portada-escenario { background: linear-gradient(180deg, #0f2a66 0%, #0d1d45 55%, var(--bg) 100%); }
+@media (max-width: 767px) { .portada-escenario { margin-top: -24px; } }
+/* El carrusel sale del contenedor y ocupa todo el ancho */
+.portada-escenario .slider-portada {
+  margin: 0 calc(-1 * max(20px, calc(50vw - 620px)));
+  border-radius: 0;
+  height: clamp(560px, 80vh, 700px);
+  box-shadow: none;
+}
+.portada-escenario .slide { padding-left: max(24px, calc(50vw - 600px)); padding-right: max(24px, calc(50vw - 600px)); padding-bottom: 150px; }
+.portada-escenario .slider-controles { left: max(24px, calc(50vw - 600px)); right: max(24px, calc(50vw - 600px)); bottom: 108px; }
+
+/* Las tarjetas suben sobre el pie del carrusel */
+.portada-escenario .accesos-findi { position: relative; z-index: 3; margin-top: -84px; }
+/* Franja de cifras */
+.cifras-findi {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-self: center;
+  width: min(880px, 100%);
+  padding: 18px 12px;
+  border: 1px solid var(--vidrio-borde);
+  border-radius: 999px;
+  background: var(--vidrio);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  box-shadow: 0 24px 48px -30px rgba(20, 35, 75, 0.45);
+}
+.cifra-findi { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 16px; }
+.cifra-findi + .cifra-findi { border-left: 1px solid var(--border); }
+.cifra-findi-icono { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid currentColor; }
+.cifra-findi-icono.naranja { color: var(--naranja); }
+.cifra-findi-icono.azul { color: var(--azul); }
+.cifra-findi-icono.marino { color: var(--marino); }
+html[data-tema='oscuro'] .cifra-findi-icono.marino { color: var(--amarillo); }
+html[data-tema='oscuro'] .cifra-findi-icono.azul { color: #4d90ff; }
+.cifra-findi strong { display: block; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.cifra-findi span { font-size: 13px; color: var(--text-muted); }
+@media (max-width: 720px) {
+  .cifras-findi { grid-template-columns: 1fr; border-radius: 24px; gap: 14px; padding: 18px; }
+  .cifra-findi { justify-content: flex-start; padding: 0; }
+  .cifra-findi + .cifra-findi { border-left: 0; border-top: 1px solid var(--border); padding-top: 14px; }
+}
+
+/* El buscador ya no se monta sobre el carrusel */
+.buscador-portada { margin-top: 8px; }
+
+/* ---------- Diapositiva de FINDI ---------- */
+
+.slide-findi .slide-titulo { text-shadow: 0 2px 24px rgba(4, 30, 90, 0.35); }
+.slide-findi .slide-texto { color: rgba(255, 255, 255, 0.92); }
+.slide-findi .btn-marino { background: var(--marino); border-color: rgba(255, 255, 255, 0.18); }
+
+/* FINDI sigue al cursor: el desplazamiento se suma a la flotación */
+.slide-findi-figura .findi-imagen { translate: var(--findi-x, 0) var(--findi-y, 0); }
+.slide-findi-figura .findi-globo { translate: calc(var(--findi-x, 0px) * -0.5) calc(var(--findi-y, 0px) * -0.5); }
+
+/* Destellos amarillos junto a FINDI */
+.findi-destellos { position: absolute; left: 4%; top: 24%; width: 40px; height: 60px; pointer-events: none; }
+.findi-destellos i { position: absolute; right: 0; width: 18px; height: 5px; border-radius: 4px; background: var(--amarillo); transform-origin: center; animation: destello 2.4s var(--suave) infinite; }
+/* Rayos separados que apuntan hacia FINDI, como en el diseño aprobado */
+.findi-destellos i:nth-child(1) { top: 6px; right: 6px; transform: rotate(35deg); }
+.findi-destellos i:nth-child(2) { top: 27px; right: 0; animation-delay: 0.15s; }
+.findi-destellos i:nth-child(3) { top: 48px; right: 6px; transform: rotate(-35deg); animation-delay: 0.3s; }
+@keyframes destello { 0%, 60%, 100% { opacity: 1; } 30% { opacity: 0.35; } }
+@media (max-width: 860px) { .findi-destellos { display: none; } }
+
+@media (max-width: 860px) {
+  .portada-escenario .slider-portada { height: 680px; }
+  .portada-escenario .slide { padding-bottom: 140px; }
+}
+@media (max-width: 640px) {
+  .portada-escenario .slider-portada { height: 640px; }
+  .portada-escenario .slide { padding: 24px 20px 128px; }
+  .portada-escenario .slider-controles { left: 20px; right: 16px; bottom: 76px; }
+  .portada-escenario .accesos-findi { margin-top: -56px; }
+}
+
+/* ---------- Así recuperas tu objeto ---------- */
+
+.proceso-recuperacion { display: flex; flex-direction: column; gap: 28px; scroll-margin-top: 96px; }
+.proceso-cabecera { display: flex; flex-direction: column; gap: 8px; max-width: 620px; }
+.proceso-cabecera h2 { margin: 0; font-size: clamp(26px, 3.2vw, 38px); font-weight: 800; letter-spacing: -0.035em; }
+.proceso-cabecera p { margin: 0; color: var(--text-muted); font-size: 16px; }
+.proceso-pasos { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin: 0; padding: 0; list-style: none; }
+/* Línea que une los cuatro pasos */
+.proceso-pasos::before { content: ''; position: absolute; top: 52px; left: 12%; right: 12%; height: 2px; background: linear-gradient(90deg, var(--amarillo), var(--naranja), var(--azul), var(--marino)); opacity: 0.35; }
+.proceso-paso {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 22px 26px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 24px 48px -36px rgba(20, 35, 75, 0.4);
+  transition: transform 0.45s var(--suave), box-shadow 0.45s var(--suave);
+}
+.proceso-paso:hover { transform: translateY(-4px); box-shadow: 0 30px 56px -32px rgba(20, 35, 75, 0.5); }
+.proceso-paso:hover .acceso-findi-icono { transform: scale(1.08) rotate(-4deg); }
+.proceso-numero { position: absolute; top: 18px; right: 20px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+.proceso-paso h3 { margin: 6px 0 0; font-size: 19px; }
+.proceso-paso p { margin: 0; color: var(--text-muted); font-size: 14.5px; line-height: 1.55; }
+.proceso-pasos > [data-reveal]:nth-child(2) { transition-delay: 0.08s; }
+.proceso-pasos > [data-reveal]:nth-child(3) { transition-delay: 0.16s; }
+.proceso-pasos > [data-reveal]:nth-child(4) { transition-delay: 0.24s; }
+@media (max-width: 1000px) { .proceso-pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .proceso-pasos::before { display: none; } }
+@media (max-width: 560px) { .proceso-pasos { grid-template-columns: 1fr; } }
+
+/* ---------- Respuesta al presionar (en todas las páginas) ---------- */
+
+.btn { transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.3s var(--suave), transform 0.3s var(--suave); }
+.btn:active:not(:disabled) { transform: scale(0.97); transition-duration: 0.1s; }
+.icono-btn { transition: background 0.2s, transform 0.25s var(--suave); }
+.icono-btn:active { transform: scale(0.92); }
+.chip-filtro:active, .chat-sugerencia:active { transform: scale(0.97); }
+
+/* ---------- Páginas ---------- */
+
+/* Entrada suave al cambiar de página */
+.vista { animation: vista-entrar 0.5s var(--suave) both; }
+@keyframes vista-entrar { from { opacity: 0; transform: translateY(10px); } }
+
+.pagina { gap: 28px; }
+.pagina-titulo { font-size: clamp(30px, 4vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.08; color: var(--text); }
+.seccion-header h2, .explorar-visual-cabecera h2 { font-size: clamp(22px, 2.6vw, 30px); font-weight: 800; letter-spacing: -0.03em; }
+
+/* Cabecera de "Explorar": banner con degradado suave en vez del recuadro gris */
+.pagina > .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  max-width: none;
+  padding: clamp(28px, 4vw, 48px);
+  border: 0;
+  border-radius: 28px;
+  background: linear-gradient(120deg, #0a3fb8 0%, var(--azul) 55%, #4f95ff 100%);
+  color: #fff;
+  box-shadow: 0 30px 60px -36px rgba(8, 60, 180, 0.7);
+}
+.pagina > .hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: -8%;
+  bottom: -120px;
+  width: 60%;
+  height: 200px;
+  border-radius: 50%;
+  border-top: 9px solid var(--amarillo);
+  box-shadow: 0 -9px 0 -4px var(--naranja);
+  transform: rotate(-5deg);
+}
+.pagina > .hero h1 { color: #fff; max-width: 640px; }
+.pagina > .hero p { color: rgba(255, 255, 255, 0.88); }
+.pagina > .hero .hero-etiqueta { color: var(--amarillo); }
+.pagina > .hero .hero-etiqueta::before { background: var(--amarillo); }
+
+/* Tarjetas y paneles: superficies limpias, esquinas amplias */
+.tarjeta, .buscador-card, .buscador-portada { border-radius: 24px; border-color: var(--border); box-shadow: 0 24px 48px -36px rgba(20, 35, 75, 0.35); }
+
+/* Campos: fondo gris claro que se ilumina al enfocar */
+.input, .portada-pregunta-input, select.input, textarea.input {
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.25s var(--suave), background-color 0.2s;
+}
+.input { height: 46px; background-color: var(--surface-2); border-color: transparent; }
+.input:hover:not(:disabled) { border-color: var(--border-strong); }
+.input:focus { background-color: var(--surface); border-color: var(--azul); box-shadow: 0 0 0 4px var(--primary-100); }
+textarea.input { height: auto; }
+
+/* Filtros "Todos / Perdidos / Encontrados" como control segmentado */
+.filtros-chips { display: inline-flex; align-self: flex-start; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface-2); }
+.filtros-chips .chip-filtro { border: 0; background: transparent; padding: 8px 18px; border-radius: 999px; font-weight: 600; color: var(--text-muted); box-shadow: none; }
+.filtros-chips .chip-filtro:hover { color: var(--text); }
+.filtros-chips .chip-filtro.activo { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px -2px rgba(20, 35, 75, 0.2); }
+html[data-tema='oscuro'] .filtros-chips .chip-filtro.activo { background: var(--surface-2); color: var(--text); }
+html[data-tema='oscuro'] .filtros-chips { background: rgba(255, 255, 255, 0.06); }
+
+/* Tarjetas de objetos: se elevan y la foto se acerca al pasar el mouse */
+.objeto-card {
+  border-radius: 22px;
+  border-color: var(--border);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 18px 40px -32px rgba(20, 35, 75, 0.4);
+  transition: transform 0.45s var(--suave), box-shadow 0.45s var(--suave), border-color 0.3s;
+}
+.objeto-card:hover, .objeto-card:focus-visible { transform: translateY(-6px); border-color: var(--primary-100); box-shadow: 0 30px 56px -30px rgba(20, 35, 75, 0.5); }
+.objeto-card:active { transform: scale(0.98); transition-duration: 0.12s; }
+.objeto-card-media img, .objeto-card-media .foto-referencial img { transition: transform 0.8s var(--suave); }
+.objeto-card:hover .objeto-card-media img { transform: scale(1.06); }
+.objeto-card-chip .chip { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.objeto-card-titulo { font-weight: 700; letter-spacing: -0.01em; }
+.objeto-card-ver { font-weight: 700; color: var(--azul); }
+html[data-tema='oscuro'] .objeto-card-ver { color: #8ab8ff; }
+.objeto-card:hover .objeto-card-ver .icono-enlace { transform: translateX(4px); }
+.icono-enlace { transition: transform 0.3s var(--suave); }
+
+/* Mosaico "¿Qué estás buscando?" */
+.categoria-visual > .foto-referencial { border-radius: 20px; overflow: hidden; box-shadow: 0 18px 36px -28px rgba(20, 35, 75, 0.5); transition: transform 0.45s var(--suave), box-shadow 0.45s var(--suave); }
+.categoria-visual:hover > .foto-referencial { transform: translateY(-4px); box-shadow: 0 28px 48px -28px rgba(20, 35, 75, 0.55); }
+.categoria-visual:active > .foto-referencial { transform: scale(0.97); }
+.categoria-visual > span { font-weight: 700; }
+
+/* Chips de tipo: perdido en naranja, encontrado en azul */
+.chip-perdido { background: var(--naranja-50); color: var(--naranja-texto); border-color: #ffd2a6; }
+.chip-encontrado { background: var(--primary-50); color: var(--azul-700); border-color: var(--primary-100); }
+html[data-tema='oscuro'] .chip-perdido { background: rgba(255, 133, 0, 0.16); color: #ffb366; border-color: rgba(255, 133, 0, 0.35); }
+html[data-tema='oscuro'] .chip-encontrado { background: rgba(77, 144, 255, 0.16); color: #8ab8ff; border-color: rgba(77, 144, 255, 0.35); }
+
+/* Estados vacíos más amables */
+.estado-vacio { border-radius: 24px; border-style: dashed; background: var(--surface); }
+.estado-vacio-icono { background: var(--amarillo-50); color: var(--marino); border-radius: 50%; }
+
+/* Listas de la cuenta: notificaciones, mis reportes y coincidencias */
+.lista-notificaciones > li, .lista-mis-publicaciones > li { transition: transform 0.35s var(--suave), box-shadow 0.35s var(--suave); }
+.lista-notificaciones > li:hover, .lista-mis-publicaciones > li:hover { transform: translateY(-2px); }
+
+/* ---------- Aparición al hacer scroll ---------- */
+
+[data-reveal] { opacity: 0; transform: translateY(28px) scale(0.985); transition: opacity 0.8s var(--suave), transform 0.8s var(--suave); }
+[data-reveal].visible { opacity: 1; transform: none; }
+/* Las tarjetas de una grilla aparecen en cascada */
+.grid-objetos > [data-reveal]:nth-child(2) { transition-delay: 0.06s; }
+.grid-objetos > [data-reveal]:nth-child(3) { transition-delay: 0.12s; }
+.grid-objetos > [data-reveal]:nth-child(4) { transition-delay: 0.18s; }
+.grid-objetos > [data-reveal]:nth-child(5) { transition-delay: 0.24s; }
+.grid-objetos > [data-reveal]:nth-child(n + 6) { transition-delay: 0.3s; }
+
+/* ---------- Accesibilidad ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .vista { animation: vista-fundido 0.25s ease both; }
+  @keyframes vista-fundido { from { opacity: 0; } }
+  [data-reveal] { transform: none; transition: opacity 0.3s ease; }
+  .navbar-pildora, .findi-destellos i { transition: none; animation: none; }
+  .objeto-card:hover, .acceso-findi:hover, .proceso-paso:hover, .categoria-visual:hover > .foto-referencial { transform: none; }
+  .objeto-card:hover .objeto-card-media img { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .navbar, .navbar.con-scroll, .bottom-nav, .acceso-findi, .cifras-findi { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .acceso-findi, .cifras-findi, .objeto-card { border-color: var(--text-muted); }
+}
+
+/* El escenario de la portada usa 100vw: se recorta lo que sobra a los lados */
+.app-shell { overflow-x: clip; }

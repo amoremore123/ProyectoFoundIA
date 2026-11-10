@@ -45,7 +45,7 @@ abstract class Sprint2Fixtures {
         try (var c = jdbc.getDataSource().getConnection(); var tablas = c.getMetaData().getTables(c.getCatalog(), null, "%", new String[]{"TABLE"})) {
             while (tablas.next()) existentes.add(tablas.getString("TABLE_NAME").toLowerCase(java.util.Locale.ROOT));
         }
-        for (String tabla : List.of("eventos_coincidencia", "avisos_coincidencia", "contactos", "reclamos", "notificaciones",
+        for (String tabla : List.of("eventos_coincidencia", "avisos_coincidencia", "recordatorios_objeto", "contactos", "reclamos", "notificaciones",
                 "preferencias_notificacion", "coincidencias", "reportes", "fotos", "objetos", "categorias", "usuarios")) {
             if (existentes.contains(tabla)) jdbc.update("DELETE FROM " + tabla);
         }

@@ -1,10 +1,8 @@
-# =====================================================================
 # Plataforma de Objetos Perdidos y Encontrados — infraestructura
 # Uso: docker compose up
 #   MySQL + API Spring Boot + API Django + Frontend usuario
 #   + Frontend admin + Mailpit (correo de pruebas)
-# =====================================================================
-
+# ==============================================================
 services:
   mysql:
     image: mysql:8.0
@@ -43,6 +41,27 @@ services:
       MAIL_PORT: "1025"
       MAIL_FROM: no-reply@foundia.dev
       UPLOAD_DIRECTORY: /app/uploads
+      # H45: el asistente usa el motor local si no se configura el proveedor.
+      ASISTENTE_CLAUDE_ENABLED: ${ASISTENTE_CLAUDE_ENABLED:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASISTENTE_CLAUDE_MODEL: ${ASISTENTE_CLAUDE_MODEL:-claude-sonnet-4-5}
+      ASISTENTE_CLAUDE_URL: ${ASISTENTE_CLAUDE_URL:-https://api.anthropic.com/v1/messages}
+      ASISTENTE_CLAUDE_TIMEOUT_MS: ${ASISTENTE_CLAUDE_TIMEOUT_MS:-8000}
+      ASISTENTE_LIMITE_POR_MINUTO: ${ASISTENTE_LIMITE_POR_MINUTO:-20}
+      # H53: recordatorios de objetos perdidos sin resolver (por defecto, diarios).
+      RECORDATORIOS_HABILITADOS: ${RECORDATORIOS_HABILITADOS:-true}
+      RECORDATORIOS_DIAS_SIN_RESOLVER: ${RECORDATORIOS_DIAS_SIN_RESOLVER:-7}
+      RECORDATORIOS_INTERVALO_MS: ${RECORDATORIOS_INTERVALO_MS:-86400000}
+      RECORDATORIOS_RETRASO_INICIAL_MS: ${RECORDATORIOS_RETRASO_INICIAL_MS:-300000}
+      # Fase 5: FINDI con IA (Groq u OpenAI). La clave se lee del archivo .env, que no se sube a Git
+      IA_URL: ${IA_URL:-https://api.groq.com/openai/v1}
+      IA_MODELO: ${IA_MODELO:-llama-3.1-8b-instant}
+      IA_API_KEY: ${IA_API_KEY:-}
+      # Fase 6: voz natural de FINDI (ElevenLabs). La clave y la voz se leen del archivo .env
+      VOZ_API_KEY: ${VOZ_API_KEY:-}
+      VOZ_ID: ${VOZ_ID:-}
+      VOZ_MODELO: ${VOZ_MODELO:-eleven_flash_v2_5}
+      VOZ_LIMITE_CARACTERES_DIA: ${VOZ_LIMITE_CARACTERES_DIA:-2000}
     ports:
       - "8081:8081"
     volumes:
@@ -83,6 +102,30 @@ services:
       mysql:
         condition: service_healthy
 
+  # H38: respaldo lógico programado. Escribe en su propio volumen y nunca
+  # monta mysql_data. Para una ejecución manual:
+  #   docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
+  respaldo:
+    build:
+      context: .
+      dockerfile: database/respaldo/Dockerfile
+    container_name: foundia-respaldo
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: objetos_perdidos_db
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      RESPALDO_DIR: /respaldos
+      RESPALDO_INTERVALO_SEGUNDOS: ${RESPALDO_INTERVALO_SEGUNDOS:-86400}
+      RESPALDO_RETENCION_DIAS: ${RESPALDO_RETENCION_DIAS:-7}
+    volumes:
+      - respaldos_data:/respaldos
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   frontend-usuario:
     build: ./frontend/usuario
     container_name: foundia-frontend-usuario
@@ -110,3 +153,4 @@ services:
 volumes:
   mysql_data:
   uploads_data:
+  respaldos_data:

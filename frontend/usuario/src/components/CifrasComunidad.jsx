@@ -1,21 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Icono from './Icono';
 import useContador from '../hooks/useContador';
 import { listarObjetos } from '../services/api';
 
-function Cifra({ valor, etiqueta }) {
-  const animado = useContador(valor);
+function Cifra({ valor, etiqueta, icono, color, visible }) {
+  // El contador empieza recién cuando la franja entra en pantalla
+  const animado = useContador(visible ? valor : 0, 1100);
   return (
-    <div>
-      <strong>{valor == null ? '—' : animado}</strong>
-      <span>{etiqueta}</span>
+    <div className="cifra-findi">
+      <span className={`cifra-findi-icono ${color}`} aria-hidden="true"><Icono nombre={icono} tamano={22} /></span>
+      <div>
+        <strong>{valor == null ? '—' : animado.toLocaleString('es-PE')}</strong>
+        <span>{etiqueta}</span>
+      </div>
     </div>
   );
 }
 
-// Actividad de la comunidad en números, con contadores animados.
-// Si la API no responde, la sección simplemente no se muestra.
+// Actividad de la comunidad en números, calculada con las publicaciones reales.
+// Si la API no responde, la franja simplemente no se muestra.
 export default function CifrasComunidad() {
   const [conteos, setConteos] = useState(null);
+  const [visible, setVisible] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
     let vigente = true;
@@ -23,30 +30,38 @@ export default function CifrasComunidad() {
       .then((data) => {
         if (!vigente) return;
         const lista = Array.isArray(data) ? data : data?.results || [];
-        const porTipo = (tipo) => lista.filter((objeto) => objeto.tipo === tipo).length;
         setConteos({
           total: lista.length,
-          perdidos: porTipo('PERDIDO'),
-          encontrados: porTipo('ENCONTRADO'),
+          esperando: lista.filter((objeto) => objeto.tipo === 'ENCONTRADO' && objeto.estado !== 'RECUPERADO').length,
           recuperados: lista.filter((objeto) => objeto.estado === 'RECUPERADO').length,
         });
       })
       .catch(() => {
-        // Las cifras son decorativas: sin datos no se muestran
+        // Las cifras son un complemento: sin datos no se muestran
       });
     return () => {
       vigente = false;
     };
   }, []);
 
+  useEffect(() => {
+    const nodo = ref.current;
+    if (!nodo) return undefined;
+    if (!('IntersectionObserver' in window)) { setVisible(true); return undefined; }
+    const observador = new IntersectionObserver(([entrada]) => {
+      if (entrada.isIntersecting) { setVisible(true); observador.disconnect(); }
+    }, { threshold: 0.4 });
+    observador.observe(nodo);
+    return () => observador.disconnect();
+  }, [conteos]);
+
   if (!conteos) return null;
 
   return (
-    <section className="portada-cifras" aria-label="Actividad de la comunidad">
-      <Cifra valor={conteos.total} etiqueta="Publicaciones de la comunidad" />
-      <Cifra valor={conteos.perdidos} etiqueta="Objetos reportados perdidos" />
-      <Cifra valor={conteos.encontrados} etiqueta="Objetos esperando a su dueño" />
-      <Cifra valor={conteos.recuperados} etiqueta="Casos ya recuperados" />
+    <section className="cifras-findi" aria-label="Actividad de la comunidad" ref={ref}>
+      <Cifra visible={visible} valor={conteos.total} etiqueta="Objetos registrados" icono="caja" color="naranja" />
+      <Cifra visible={visible} valor={conteos.esperando} etiqueta="Esperando a su dueño" icono="buscar" color="azul" />
+      <Cifra visible={visible} valor={conteos.recuperados} etiqueta="Objetos recuperados" icono="check" color="marino" />
     </section>
   );
 }

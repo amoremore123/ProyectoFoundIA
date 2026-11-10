@@ -12,7 +12,8 @@ function temaInicial() {
   } catch {
     // localStorage puede no estar disponible; seguimos con el sistema
   }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
+  // El panel usa marino y negro por defecto; el botón del menú permite pasar a claro
+  return 'oscuro';
 }
 
 export function TemaProvider({ children }) {

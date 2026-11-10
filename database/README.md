@@ -15,9 +15,12 @@ no hace falta crear una columna adicional para el contador del panel.
 
 | Archivo        | Descripción                                                        |
 | -------------- | ------------------------------------------------------------------ |
-| `script.sql`   | Instalación nueva: crea la base y sus 14 tablas, claves foráneas, índices y restricciones. Elimina tablas anteriores si se reimporta. |
+| `script.sql`   | Instalación nueva: crea la base y sus 20 tablas, claves foráneas, índices y restricciones. Elimina tablas anteriores si se reimporta. |
 | `seed.sql`     | Datos iniciales de desarrollo: categorías, usuarios de prueba y objetos de prueba. |
 | `migracion_h20_reclamos.sql` | Agrega la tabla de reclamos a bases ya existentes (H20). |
+| `migracion_h37_cierre_sesion.sql` | Agrega `usuarios.sesion_version` y `tokens_revocados` (H37). |
+| `migracion_h38_respaldos.sql` | Agrega la tabla `respaldos` para el historial de respaldos (H38). |
+| `migracion_h53_recordatorios.sql` | Agrega `preferencias_notificacion.recordatorios` y `recordatorios_objeto` (H53). |
 
 ## Cómo ejecutarlas
 
@@ -66,14 +69,21 @@ volumen existente no se actualiza automáticamente con esos archivos.
 7. `notificaciones`
 8. `reportes`
 9. `reclamos`
-10. `eventos_coincidencia`
-11. `preferencias_notificacion`
-12. `avisos_coincidencia`
-13. `solicitudes_eliminacion`
-14. `tokens_recuperacion_password`
+10. `secuencias_custodia`
+11. `custodias`
+12. `eventos_coincidencia`
+13. `preferencias_notificacion`
+14. `avisos_coincidencia`
+15. `recordatorios_objeto`
+16. `cambios_rol`
+17. `solicitudes_eliminacion`
+18. `tokens_recuperacion_password`
+19. `tokens_revocados`
+20. `respaldos`
 
 Para una base existente, comparar su esquema antes de elegir las migraciones.
-Además de H20, el Sprint 2 incluye cambios H22, H23, H24, H28, H33, H34 y H35.
+Además de H20, el Sprint 2 incluye cambios H22, H23, H24, H28, H33, H34 y H35;
+el Sprint 3 incluye H36, H37, H38, H41, H43 y H53.
 Aplicar solo los archivos correspondientes a cambios ausentes, sin recrear
 tablas ni rellenar consentimientos o recuperaciones históricos.
 

@@ -1,13 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icono from './Icono';
 import { useAsistente } from '../context/AsistenteContext';
-import { EXTRAS_HABILITADOS } from '../config/alcance';
+import { IMAGEN_FINDI } from '../config/findi';
 
-const INTERVALO = 6500;
+const INTERVALO = 7000;
 
+// La primera diapositiva presenta a FINDI; las demás usan fotografías del campus.
 const DIAPOSITIVAS = [
   {
+    id: 'findi',
+    findi: true,
+    etiqueta: 'FINDI',
+    titulo: <>¿Perdiste algo en <span>TECSUP</span>?</>,
+    texto: <>Reporta, busca y recupera tus objetos de forma rápida y segura con la ayuda de <strong>FINDI</strong>.</>,
+  },
+  {
+    id: 'campus',
     imagen: '/imagenes/tecsup-campus.png',
     posicion: 'center 45%',
     etiqueta: 'Comunidad Tecsup',
@@ -16,6 +25,7 @@ const DIAPOSITIVAS = [
     accion: { texto: 'Ver objetos encontrados', enlace: '/buscar?tipo=ENCONTRADO' },
   },
   {
+    id: 'mochila',
     imagen: '/imagenes/mochila-photo.jpg',
     posicion: 'center 60%',
     etiqueta: '¿Encontraste algo?',
@@ -24,14 +34,15 @@ const DIAPOSITIVAS = [
     accion: { texto: 'Publicar un objeto', enlace: '/publicar' },
   },
   {
+    id: 'llaves',
     imagen: '/imagenes/llaves-photo.jpg',
     posicion: 'center 50%',
-    etiqueta: 'Asistente con IA',
-    titulo: <>Cuéntanos qué perdiste <span>y te ayudamos.</span></>,
-    texto: 'Descríbelo con tus palabras y el asistente busca publicaciones parecidas.',
-    accion: { texto: 'Hablar con el asistente', asistente: true },
+    etiqueta: 'Asistente FINDI',
+    titulo: <>Cuéntale a FINDI qué perdiste <span>y te ayuda.</span></>,
+    texto: 'Descríbelo con tus palabras y FINDI busca publicaciones parecidas.',
+    accion: { texto: 'Hablar con FINDI', asistente: true },
   },
-].filter((diapositiva) => EXTRAS_HABILITADOS || !diapositiva.accion.asistente);
+];
 
 const movimientoReducido = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -46,6 +57,41 @@ export default function SliderPortada() {
   const total = DIAPOSITIVAS.length;
 
   const ir = useCallback((indice) => setActual((indice + total) % total), [total]);
+  const figuraRef = useRef(null);
+
+  // FINDI sigue al cursor con un desplazamiento suave (parallax). Cada cuadro avanza desde
+  // la posición actual hacia el objetivo, así el movimiento nunca salta aunque el cursor cambie.
+  useEffect(() => {
+    const figura = figuraRef.current;
+    if (!figura || movimientoReducido() || !window.matchMedia?.('(pointer: fine)').matches) return undefined;
+    const carrusel = figura.closest('.slider-portada');
+    let objetivo = { x: 0, y: 0 };
+    const actualPos = { x: 0, y: 0 };
+    let cuadro = 0;
+    const animar = () => {
+      actualPos.x += (objetivo.x - actualPos.x) * 0.08;
+      actualPos.y += (objetivo.y - actualPos.y) * 0.08;
+      figura.style.setProperty('--findi-x', `${actualPos.x.toFixed(2)}px`);
+      figura.style.setProperty('--findi-y', `${actualPos.y.toFixed(2)}px`);
+      cuadro = Math.abs(objetivo.x - actualPos.x) + Math.abs(objetivo.y - actualPos.y) > 0.05 ? requestAnimationFrame(animar) : 0;
+    };
+    const mover = (event) => {
+      const caja = carrusel.getBoundingClientRect();
+      objetivo = {
+        x: ((event.clientX - caja.left) / caja.width - 0.5) * 18,
+        y: ((event.clientY - caja.top) / caja.height - 0.5) * 12,
+      };
+      if (!cuadro) cuadro = requestAnimationFrame(animar);
+    };
+    const salir = () => { objetivo = { x: 0, y: 0 }; if (!cuadro) cuadro = requestAnimationFrame(animar); };
+    carrusel.addEventListener('pointermove', mover);
+    carrusel.addEventListener('pointerleave', salir);
+    return () => {
+      carrusel.removeEventListener('pointermove', mover);
+      carrusel.removeEventListener('pointerleave', salir);
+      cancelAnimationFrame(cuadro);
+    };
+  }, []);
 
   useEffect(() => {
     if (pausado || enFoco) return undefined;
@@ -67,39 +113,67 @@ export default function SliderPortada() {
         if (e.key === 'ArrowLeft') ir(actual - 1);
       }}
     >
-      {DIAPOSITIVAS.map((d, i) => (
-        <div
-          key={d.imagen}
-          className={`slide${i === actual ? ' activa' : ''}`}
-          role="group"
-          aria-roledescription="diapositiva"
-          aria-label={`${i + 1} de ${total}`}
-          aria-hidden={i !== actual}
-        >
-          <img className="slide-imagen" src={d.imagen} alt="" style={{ objectPosition: d.posicion }} loading={i === 0 ? 'eager' : 'lazy'} />
-          <div className="slide-velo" />
-          <div className="slide-contenido">
-            <span className="slide-etiqueta">{d.etiqueta}</span>
-            <p className="slide-titulo">{d.titulo}</p>
-            <p className="slide-texto">{d.texto}</p>
-            {d.accion.asistente ? (
-              <button type="button" className="btn slide-boton" onClick={() => abrir()} tabIndex={i === actual ? 0 : -1}>
-                {d.accion.texto} <Icono nombre="flechaDer" tamano={16} />
-              </button>
-            ) : (
-              <Link to={d.accion.enlace} className="btn slide-boton" tabIndex={i === actual ? 0 : -1}>
-                {d.accion.texto} <Icono nombre="flechaDer" tamano={16} />
-              </Link>
+      {DIAPOSITIVAS.map((d, i) => {
+        const activa = i === actual;
+        const foco = activa ? 0 : -1;
+        return (
+          <div
+            key={d.id}
+            className={`slide${d.findi ? ' slide-findi' : ''}${activa ? ' activa' : ''}`}
+            role="group"
+            aria-roledescription="diapositiva"
+            aria-label={`${i + 1} de ${total}`}
+            aria-hidden={!activa}
+          >
+            {d.imagen && (
+              <>
+                <img className="slide-imagen" src={d.imagen} alt="" style={{ objectPosition: d.posicion }} loading="lazy" />
+                <div className="slide-velo" />
+              </>
+            )}
+
+            <div className="slide-contenido">
+              <span className={d.findi ? 'chip-findi' : 'slide-etiqueta'}>
+                {d.findi && <Icono nombre="chispa" tamano={14} />} {d.etiqueta}
+              </span>
+              {d.findi ? <h1 className="slide-titulo">{d.titulo}</h1> : <p className="slide-titulo">{d.titulo}</p>}
+              <p className="slide-texto">{d.texto}</p>
+
+              {d.findi ? (
+                <div className="hero-findi-acciones">
+                  <Link to="/publicar" className="btn btn-amarillo" tabIndex={foco}><Icono nombre="mas" tamano={18} /> Reportar objeto</Link>
+                  <Link to="/buscar" className="btn btn-marino" tabIndex={foco}><Icono nombre="buscar" tamano={18} /> Buscar objeto</Link>
+                </div>
+              ) : d.accion.asistente ? (
+                <button type="button" className="btn slide-boton" onClick={() => abrir()} tabIndex={foco}>
+                  {d.accion.texto} <Icono nombre="flechaDer" tamano={16} />
+                </button>
+              ) : (
+                <Link to={d.accion.enlace} className="btn slide-boton" tabIndex={foco}>
+                  {d.accion.texto} <Icono nombre="flechaDer" tamano={16} />
+                </Link>
+              )}
+            </div>
+
+            {d.findi && (
+              <figure className="slide-findi-figura" ref={figuraRef}>
+                <span className="findi-destellos" aria-hidden="true"><i /><i /><i /></span>
+                <img className="findi-imagen" src={IMAGEN_FINDI} alt="FINDI, el asistente de FoundIA, saludando" width="742" height="772" />
+                <button type="button" className="findi-globo" onClick={() => abrir()} tabIndex={foco} aria-label="Hablar con FINDI">
+                  <span className="findi-globo-saludo">¡Hola! <span aria-hidden="true">👋</span></span>
+                  Soy <strong>FINDI</strong>, tu asistente inteligente. Puedo ayudarte a reportar, buscar y recuperar objetos en <strong>TECSUP</strong>.
+                </button>
+              </figure>
             )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="slider-controles">
         <div className="slider-puntos">
           {DIAPOSITIVAS.map((d, i) => (
             <button
-              key={d.imagen}
+              key={d.id}
               type="button"
               className={`slider-punto${i === actual ? ' activo' : ''}`}
               aria-label={`Ir a la diapositiva ${i + 1}`}

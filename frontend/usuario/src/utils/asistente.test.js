@@ -98,3 +98,24 @@ describe('Asistente FoundIA - interpretación de Claude (backend)', () => {
     expect(c.intencion).toBe('vacio');
   });
 });
+
+
+describe('Fase 5 - Intenciones nuevas de FINDI', () => {
+  it('detecta las preguntas por mis reportes y por cómo funciona, también sin IA', () => {
+    expect(interpretar('¿Cómo van mis reportes?', categorias).intencion).toBe('mis_reportes');
+    expect(interpretar('quiero ver el estado de mi publicación', categorias).intencion).toBe('mis_reportes');
+    expect(interpretar('¿Cómo funciona FoundIA?', categorias).intencion).toBe('como_funciona');
+    expect(interpretar('¿Cómo publico un objeto?', categorias).intencion).toBe('publicar');
+  });
+
+  it('acepta las intenciones nuevas que devuelve el backend', () => {
+    expect(adaptarInterpretacion({ intencion: 'mis_reportes', palabras: [] }, categorias)?.intencion).toBe('mis_reportes');
+    expect(adaptarInterpretacion({ intencion: 'como_funciona', palabras: [] }, categorias)?.intencion).toBe('como_funciona');
+  });
+
+  it('"cómo funciona" responde con los cuatro pasos', () => {
+    const res = responder('¿Cómo funciona FoundIA?', { categorias });
+    expect(res.texto).toContain('cuatro pasos');
+    expect(res.acciones[0].to).toBe('/#proceso-recuperacion');
+  });
+});

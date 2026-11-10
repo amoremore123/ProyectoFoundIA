@@ -35,9 +35,31 @@ usan el mismo MySQL. [Acuerdo y precauciones](docs/integracion/datos-locales-pru
 ([informe](docs/pruebas/integracion-sprint1-amore-2026-10-20.md)). En Android quedan
 pendientes los filtros de ubicación y fecha (H8–H10), la cámara (H2) y el reclamo (H20).
 
-Los extras del Sprint 1 siguen ocultos por defecto conservando su código (asistente,
-historial público y secciones adicionales de portada). Categorías (H26) y reportes
+Los demás extras del Sprint 1 siguen ocultos por defecto conservando su código
+(historial público y secciones adicionales de portada). Categorías (H26) y reportes
 (H28) ya no dependen de ese interruptor porque son historias del Sprint 2.
+
+### Trabajo local de Sprint 3: FINDI
+
+En la web de usuario, FINDI ya está visible sin activar los extras. Este trabajo
+local aún no representa una entrega integrada del Sprint 3.
+
+- Con Docker Compose, copia `.env.example` a `.env` en la raíz. Sin claves,
+  el chat usa la interpretación local y la lectura del navegador.
+- La interpretación externa opcional usa `IA_URL`, `IA_MODELO` e `IA_API_KEY`.
+  La voz opcional usa `VOZ_API_KEY`, `VOZ_ID`, `VOZ_MODELO` y
+  `VOZ_LIMITE_CARACTERES_DIA`. Las claves permanecen en el backend.
+- Si ejecutas Spring con Maven, exporta las variables en el entorno del proceso;
+  Spring no carga automáticamente el archivo `.env` de Compose.
+- Para verificar el chat: `npm test -- --maxWorkers=1` en `frontend/usuario`.
+  Para verificar la caché de voz: `mvn -Dtest=VozServiceTest test` en
+  `backend/springboot`.
+
+Se integró `dev/leonel` (`3942c88`) en el árbol de trabajo, pendiente de commit.
+H45 comparte un único endpoint: intenta el proveedor `IA_*`, después Claude
+opcional (`ASISTENTE_CLAUDE_ENABLED` y `ANTHROPIC_API_KEY`) y finalmente el motor
+local del servidor. La voz conserva su endpoint separado. Ver la
+[revisión de integración](docs/integracion/revision-findi-sprint3-20261110.md).
 
 Proyecto integrador: plataforma web y móvil para **reportar y buscar objetos
 perdidos o encontrados**. Los usuarios publican objetos (perdidos o
@@ -134,8 +156,10 @@ Boot, la API de Django y el frontend usuario.
 | API Django | http://localhost:8000 |
 | MySQL | localhost:3306 (`root` / `root`) |
 | Mailpit (correos de prueba) | http://localhost:8025 |
+| Respaldo programado (H38) | volumen `respaldos_data`, sin puerto |
 
-Para detener: `docker compose down` (con `-v` borra también los datos).
+Para detener: `docker compose down` (con `-v` borra también los datos y los
+respaldos guardados en `respaldos_data`).
 
 > **Recuperar contraseña (H35):** el enlace también llega a Mailpit. Vence en 30
 > minutos y sirve una sola vez. Para otro dominio, define `WEB_URL` en el servicio `api`.
@@ -293,12 +317,24 @@ Más usados:
 docker compose up --build     # levanta todo
 docker compose up -d          # en segundo plano
 docker compose logs -f api    # logs de Spring Boot
+docker compose logs -f respaldo  # logs del respaldo programado (H38)
 docker compose down           # detener
-docker compose down -v        # detener y borrar volúmenes (datos MySQL)
+docker compose down -v        # detener y borrar volúmenes (datos MySQL y respaldos)
 ```
 
 Contenedores: `mysql` (8.0), `api` (Spring Boot), `admin-api` (Django),
-`frontend-usuario` (Vite).
+`frontend-usuario` (Vite) y `respaldo` (volcado lógico de MySQL, H38).
+
+Respaldo manual y restauración aislada:
+
+```bash
+docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
+DB_NAME=foundia_restauracion_prueba RESPALDO_ARCHIVO=/ruta/archivo.sql.gz \
+  bash scripts/restaurar_respaldo.sh
+```
+
+Detalle, frecuencia, retención y guardas:
+[`docs/api/sprint3-h38.md`](docs/api/sprint3-h38.md).
 
 ## 14. Documentación
 

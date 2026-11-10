@@ -160,10 +160,21 @@ export const getDetalleCoincidencia = async (id, { signal } = {}) => {
   return data;
 };
 
-// Asistente con IA: el backend interpreta el mensaje con Claude (la API key vive solo en el servidor).
-// Es público y opcional: va sin token ni interceptores para que un error nunca cierre la sesión.
+// H45: interpretación y resumen propio opcional. Usa el token sin interceptores,
+// de modo que un error del asistente no cierre la sesión de toda la web.
 export const interpretarConIA = async (mensaje, { signal } = {}) => {
-  const { data } = await axios.post(`${API_URL}/api/asistente/interpretar`, { mensaje }, { signal, timeout: 12000 });
+  const token = localStorage.getItem('token');
+  const { data } = await axios.post(`${API_URL}/api/asistente/interpretar`, { mensaje }, {
+    signal, timeout: 20000,
+    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+  });
+  return data;
+};
+
+// Fase 6: audio MP3 de una respuesta de FINDI (ElevenLabs desde el backend; la clave nunca llega aquí).
+// Si falla (503 sin configurar, 429 límite), quien lo usa lee con la voz del navegador.
+export const obtenerVozFindi = async (texto, { signal } = {}) => {
+  const { data } = await axios.post(`${API_URL}/api/asistente/voz`, { texto }, { signal, timeout: 15000, responseType: 'blob' });
   return data;
 };
 

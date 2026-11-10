@@ -38,4 +38,15 @@ class UserPrincipalTest {
     void cuentaNoVerificadaDeshabilitada() {
         assertThat(UserPrincipal.from(usuario(EstadoUsuario.ACTIVO, false)).isEnabled()).isFalse();
     }
+
+    @Test
+    @DisplayName("H36: BIBLIOTECA recibe su propia autoridad y no la de ADMIN")
+    void bibliotecaNoHeredaAdmin() {
+        Usuario biblioteca = usuario(EstadoUsuario.ACTIVO, true);
+        biblioteca.setRol(com.proyectointegrador.entity.Rol.BIBLIOTECA);
+
+        assertThat(UserPrincipal.from(biblioteca).getAuthorities())
+                .extracting("authority")
+                .containsExactly("ROLE_BIBLIOTECA");
+    }
 }

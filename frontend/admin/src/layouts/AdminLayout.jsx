@@ -5,13 +5,16 @@ import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
 
+// Menú en el orden del diseño aprobado. Solo módulos que existen: no hay pantallas de
+// notificaciones ni configuración en el panel (el modo claro/oscuro está al pie del menú).
 const menu = [
   { to: '/', icono: 'panel', label: 'Dashboard', exact: true },
-  { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
-  { to: '/publicaciones', icono: 'caja', label: 'Publicaciones' },
-  // H26/H28 son historias del Sprint 2: ya no dependen del interruptor de extras
+  // H26/H28: denuncias de publicaciones
   { to: '/reportes', icono: 'bandera', label: 'Reportes' },
+  { to: '/publicaciones', icono: 'caja', label: 'Objetos' },
+  { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
   { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
+  { to: '/estadisticas', icono: 'grafico', label: 'Estadísticas' },
 ];
 
 export default function AdminLayout() {
@@ -31,7 +34,8 @@ export default function AdminLayout() {
     <div className="admin-shell">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <Logo tamano={32} />
+          {/* El menú es marino en ambos modos: siempre la versión clara del logo */}
+          <Logo tamano={32} claro />
           <span className="sidebar-badge">Admin · Tecsup</span>
         </div>
 

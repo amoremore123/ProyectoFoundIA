@@ -2,6 +2,9 @@
 // Uso: <Icono nombre="buscar" tamano={18} />
 const TRAZOS = {
   inicio: <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9" /><path d="M10 20v-6h4v6" /></>,
+  grafico: <><path d="M3 3v18h18" /><rect x="7" y="12" width="3" height="6" rx="1" /><rect x="12" y="8" width="3" height="10" rx="1" /><rect x="17" y="5" width="3" height="13" rx="1" /></>,
+  reloj: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  rayo: <><path d="M13 2 4 14h7l-1 8 9-12h-7Z" /></>,
   buscar: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
   mas: <><path d="M12 5v14" /><path d="M5 12h14" /></>,
   usuario: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,

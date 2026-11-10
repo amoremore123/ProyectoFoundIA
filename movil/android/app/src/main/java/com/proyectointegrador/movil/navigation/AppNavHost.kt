@@ -27,7 +27,10 @@ import com.proyectointegrador.movil.ui.viewmodel.SesionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.screens.*
-import com.proyectointegrador.movil.ui.sprint.*
+import com.proyectointegrador.movil.ui.screens.avisos.*
+import com.proyectointegrador.movil.ui.screens.coincidencias.*
+import com.proyectointegrador.movil.ui.screens.cuenta.*
+import com.proyectointegrador.movil.ui.screens.publicaciones.*
 
 @Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
     val vm:SesionViewModel=viewModel(factory=fabrica())

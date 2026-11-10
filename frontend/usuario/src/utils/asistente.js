@@ -90,7 +90,12 @@ export function interpretar(mensaje, categorias = []) {
   const tiene = (lista) => lista.some((v) => (v.includes(' ') ? texto.includes(v) : tokens.includes(v)));
 
   let intencion = 'buscar';
-  if (/\b(como|donde)\b.*\b(publico|publicar|reporto|reportar|subo|subir)\b/.test(texto) || /\bquiero (publicar|reportar)\b/.test(texto)) {
+  // Fase 5: preguntas por los propios reportes y por cómo funciona FoundIA (también sin IA)
+  if (/\bmis (reportes|publicaciones|objetos)\b/.test(texto) || /\b(estado|como va|como van)\b.*\b(reporte|reportes|publicacion|publicaciones)\b/.test(texto)) {
+    intencion = 'mis_reportes';
+  } else if (/\bcomo (funciona|recupero|puedo recuperar|se recupera)\b/.test(texto) && tokens.length <= 8) {
+    intencion = 'como_funciona';
+  } else if (/\b(como|donde)\b.*\b(publico|publicar|reporto|reportar|subo|subir)\b/.test(texto) || /\bquiero (publicar|reportar)\b/.test(texto)) {
     intencion = 'publicar';
   } else if (/\b(que puedes|que haces|como funciona|ayuda|quien eres)\b/.test(texto) && tokens.length <= 6) {
     intencion = 'ayuda';
@@ -131,7 +136,8 @@ export function interpretar(mensaje, categorias = []) {
   return { intencion, tipoBuscado, categoria, ubicacion, palabras, colores };
 }
 
-const INTENCIONES = ['buscar', 'publicar', 'ayuda', 'saludo', 'gracias', 'vacio'];
+// Igual que AsistenteService.INTENCIONES en el backend (Fase 5)
+const INTENCIONES = ['buscar', 'publicar', 'mis_reportes', 'como_funciona', 'ayuda', 'saludo', 'gracias', 'vacio'];
 const TIPOS = ['', 'PERDIDO', 'ENCONTRADO'];
 
 // Convierte la interpretación del backend (Claude) a la misma forma que `interpretar()`,
@@ -238,7 +244,7 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
 
   if (consulta.intencion === 'saludo') {
     return {
-      texto: '¡Hola! Soy el asistente de FoundIA. Cuéntame qué perdiste o encontraste, y si recuerdas dónde, mejor. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
+      texto: '¡Hola! Soy FINDI, el asistente de FoundIA. Cuéntame qué perdiste o encontraste, y si recuerdas dónde, mejor. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
       sugerencias: SUGERENCIAS,
     };
   }
@@ -251,6 +257,10 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
       sugerencias: SUGERENCIAS,
     };
   }
+  if (consulta.intencion === 'como_funciona') {
+    return { ...responderAcceso('como-funciona') };
+  }
+  // "mis_reportes" necesita la sesión y la API: lo resuelve ChatAsistente con GET /api/perfil/objetos
   if (consulta.intencion === 'publicar') {
     return {
       texto: 'Publicar es rápido: entra a “Publicar”, elige si lo perdiste o lo encontraste, describe el objeto, la categoría, el lugar y la fecha. FoundIA te avisará si aparece una coincidencia.',
@@ -305,6 +315,42 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
 }
 
 export const SUGERENCIAS_INICIALES = SUGERENCIAS;
+
+// Fase 4 - Accesos rápidos de FINDI. Son respuestas fijas: no consultan la IA ni inventan datos.
+// No hay acceso a "personal responsable" porque ese flujo no existe (el contacto es entre usuarios).
+export const ACCESOS_FINDI = [
+  { id: 'buscar', texto: 'Buscar un objeto perdido', icono: 'buscar' },
+  { id: 'reportar', texto: 'Reportar un objeto', icono: 'caja' },
+  { id: 'mis-reportes', texto: 'Consultar mis reportes', icono: 'lista' },
+  { id: 'como-funciona', texto: '¿Cómo funciona FoundIA?', icono: 'info' },
+];
+
+export function responderAcceso(id, { conSesion = false } = {}) {
+  switch (id) {
+    case 'buscar':
+      return {
+        texto: 'Cuéntame qué perdiste, de qué color es y dónde lo viste por última vez. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
+        sugerencias: SUGERENCIAS.slice(0, 2),
+        enfocar: true,
+      };
+    case 'reportar':
+      return {
+        texto: 'Para reportar un objeto indica si lo perdiste o lo encontraste, qué es, su categoría, el lugar y la fecha. Si puedes, agrega una foto sin datos personales. FoundIA te avisará si aparece una coincidencia.',
+        acciones: [{ texto: 'Ir a Reportar objeto', to: '/publicar' }],
+      };
+    case 'mis-reportes':
+      return conSesion
+        ? { texto: 'En “Mis reportes” ves tus publicaciones, su estado y puedes editarlas o eliminarlas.', acciones: [{ texto: 'Ver mis reportes', to: '/mis-publicaciones' }] }
+        : { texto: 'Para consultar tus reportes primero inicia sesión con tu cuenta de FoundIA.', acciones: [{ texto: 'Iniciar sesión', to: '/login' }] };
+    case 'como-funciona':
+      return {
+        texto: 'FoundIA funciona en cuatro pasos: 1) Reporta lo que perdiste o encontraste. 2) Te avisamos si hay una posible coincidencia. 3) Verifica con un contacto o un reclamo con un detalle que solo el dueño conoce. 4) Coordinen la entrega y confirma la recuperación.',
+        acciones: [{ texto: 'Ver el proceso completo', to: '/#proceso-recuperacion' }],
+      };
+    default:
+      return null;
+  }
+}
 
 // H46: palabras del dominio de FoundIA para elegir la mejor alternativa del dictado por voz
 export const VOCABULARIO = Array.from(new Set([...SINONIMOS.flat(), ...COLORES, ...LUGARES]));

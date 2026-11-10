@@ -184,7 +184,7 @@ export default function Perfil() {
 
       <div className="perfil-acciones">
         <Link to="/mis-publicaciones" className="btn btn-secundario btn-bloque">
-          <Icono nombre="lista" tamano={16} /> Mis publicaciones
+          <Icono nombre="lista" tamano={16} /> Mis reportes
         </Link>
         <Link to="/notificaciones" className="btn btn-secundario btn-bloque">
           <Icono nombre="campana" tamano={16} /> Notificaciones

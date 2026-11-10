@@ -6,9 +6,11 @@ import HistorialObjetos from '../components/HistorialObjetos';
 import GuiaCampus from '../components/GuiaCampus';
 import Icono from '../components/Icono';
 import Logo from '../components/Logo';
+import AccesosFindi from '../components/AccesosFindi';
 import SliderPortada from '../components/SliderPortada';
 import CarruselHorizontal from '../components/CarruselHorizontal';
 import PerfilComunidad from '../components/PerfilComunidad';
+import ProcesoRecuperacion from '../components/ProcesoRecuperacion';
 import PuntosCampus from '../components/PuntosCampus';
 import { useAsistente } from '../context/AsistenteContext';
 import { EXTRAS_HABILITADOS } from '../config/alcance';
@@ -25,12 +27,16 @@ export default function Portada() {
   };
 
   return <div className="portada">
-    <SliderPortada />
+    <div className="portada-escenario">
+      <SliderPortada />
+      <AccesosFindi />
+      <CifrasComunidad />
+    </div>
 
     <section className="buscador-portada" aria-labelledby="buscador-portada-titulo">
       <div className="buscador-portada-texto">
         <span className="visual-eyebrow">ESTUDIANTES Y PERSONAL TECSUP</span>
-        <h1 id="buscador-portada-titulo">Encuentra lo que perdiste en el campus</h1>
+        <h2 id="buscador-portada-titulo">Encuentra lo que perdiste en el campus</h2>
         <p>Tu mochila, tus apuntes o las llaves. Revisa las publicaciones de la comunidad o cuéntanos qué estás buscando.</p>
       </div>
       <form className="portada-pregunta" onSubmit={buscar}>
@@ -51,7 +57,6 @@ export default function Portada() {
       </div>
     </section>
 
-    {EXTRAS_HABILITADOS && <CifrasComunidad />}
 
     {EXTRAS_HABILITADOS && <CarruselHorizontal etiqueta="publicaciones">
       <HistorialObjetos resumen />
@@ -62,6 +67,7 @@ export default function Portada() {
     </CarruselHorizontal>
 
     {EXTRAS_HABILITADOS && <PerfilComunidad />}
+    <ProcesoRecuperacion />
     <PuntosCampus />
     <GuiaCampus />
 

@@ -1,5 +1,6 @@
 package com.proyectointegrador.security;
 
+import com.proyectointegrador.service.CierreSesionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,10 +19,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
+    private final CierreSesionService cierreSesionService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsServiceImpl userDetailsService,
+                                   CierreSesionService cierreSesionService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.cierreSesionService = cierreSesionService;
     }
 
     @Override
@@ -35,7 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String correo = jwtService.extractUsername(token);
                 if (correo != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
-                    if (jwtService.isTokenValid(token, userDetails)) {
+                    if (jwtService.isTokenValid(token, userDetails)
+                            && !cierreSesionService.estaRevocado(jwtService.extractJti(token))) {
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails, null, userDetails.getAuthorities());

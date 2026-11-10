@@ -1,6 +1,6 @@
 package com.proyectointegrador.movil
 import com.proyectointegrador.movil.model.*
-import com.proyectointegrador.movil.network.ApiService
+import com.proyectointegrador.movil.data.remote.ApiService
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

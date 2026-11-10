@@ -1,0 +1,7 @@
+# Contexto de la imagen de respaldo (H38): solo se necesita el script.
+.git
+.opencode
+**/node_modules
+**/target
+**/dist
+**/__pycache__

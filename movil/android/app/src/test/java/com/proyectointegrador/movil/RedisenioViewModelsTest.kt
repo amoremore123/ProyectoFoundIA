@@ -2,7 +2,7 @@ package com.proyectointegrador.movil
 import com.google.gson.Gson
 import com.proyectointegrador.movil.data.repository.*
 import com.proyectointegrador.movil.model.*
-import com.proyectointegrador.movil.network.ApiService
+import com.proyectointegrador.movil.data.remote.ApiService
 import com.proyectointegrador.movil.ui.viewmodel.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*

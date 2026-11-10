@@ -154,6 +154,18 @@ class ReclamoIntegrationTest {
     }
 
     @Test
+    @DisplayName("H43 - un objeto en custodia todavía se puede reclamar")
+    void reclamaObjetoEnCustodia() throws Exception {
+        encontrado.setEstado(EstadoObjeto.EN_CUSTODIA);
+        entityManager.flush();
+
+        mockMvc.perform(post("/api/objetos/{id}/reclamos", encontrado.getId()).with(autenticar(reclamante)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.objetoId").value(encontrado.getId()))
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+    }
+
+    @Test
     @DisplayName("Reclamo sin sesión, propio, sobre objeto perdido o inexistente no crea avisos")
     void reclamosSinAutorizacionOInvalidosNoNotifican() throws Exception {
         mockMvc.perform(post("/api/objetos/{id}/reclamos", encontrado.getId()))

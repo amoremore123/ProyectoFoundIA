@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import Usuario
+from .models import Usuario, TokenRevocado
 
 # Mismo default que usa Spring Boot en desarrollo; sobrescribir con JWT_SECRET.
 JWT_SECRET_DEFAULT = "foundia-dev-jwt-secret-cambiar-en-produccion-123456"
@@ -75,6 +75,20 @@ class JwtAuthentication(BaseAuthentication):
         elif usuario.password_actualizado_en:
             # Un sello presente pero inválido nunca se trata como token legado.
             raise AuthenticationFailed("Tu contraseña cambió. Inicia sesión de nuevo")
+
+        # H37: versión de sesión y revocación individual.
+        version = payload.get("ver", 0)
+        if isinstance(version, bool) or not isinstance(version, int) or version < 0:
+            raise AuthenticationFailed("Token inválido")
+        if version != (usuario.sesion_version or 0):
+            raise AuthenticationFailed("Tu sesión fue cerrada. Inicia sesión de nuevo")
+
+        jti = payload.get("jti")
+        if jti is not None:
+            if not isinstance(jti, str) or not jti or len(jti) > 64:
+                raise AuthenticationFailed("Token inválido")
+            if TokenRevocado.objects.filter(jti=jti).exists():
+                raise AuthenticationFailed("Tu sesión fue cerrada. Inicia sesión de nuevo")
 
         # DRF asigna request.user con el primer elemento de la tupla.
         request.user = usuario

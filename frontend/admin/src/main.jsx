@@ -5,6 +5,8 @@ import './index.css';
 import './styles/interaccion.css';
 import './styles/metricas.css';
 import './styles/gestion.css';
+import './styles/foundia.css';
+import './styles/panel.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

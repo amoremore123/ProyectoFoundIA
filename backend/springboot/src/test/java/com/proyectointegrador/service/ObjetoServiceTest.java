@@ -160,7 +160,7 @@ class ObjetoServiceTest {
     void listarPorCategoria() {
         when(categoriaRepository.existsById(3L)).thenReturn(true);
         when(objetoRepository.findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
-                3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO)))
+                3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.EN_CUSTODIA, EstadoObjeto.RECUPERADO)))
                 .thenReturn(List.of(objetoDeCategoria(3L, "Mochila negra")));
 
         List<ObjetoResponse> resultado = objetoService.porCategoria(3L);
@@ -169,7 +169,7 @@ class ObjetoServiceTest {
         assertThat(resultado.get(0).categoria().id()).isEqualTo(3L);
         assertThat(resultado.get(0).categoria().nombre()).isEqualTo("Mochila");
         verify(objetoRepository).findByCategoriaIdAndEstadoInOrderByFechaPublicacionDescIdDesc(
-                3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO));
+                3L, List.of(EstadoObjeto.ACTIVO, EstadoObjeto.EN_CUSTODIA, EstadoObjeto.RECUPERADO));
     }
 
     @Test

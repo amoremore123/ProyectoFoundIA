@@ -2,8 +2,8 @@ package com.proyectointegrador.movil.data.repository
 
 import com.proyectointegrador.movil.domain.*
 import com.proyectointegrador.movil.model.*
-import com.proyectointegrador.movil.network.ApiService
-import com.proyectointegrador.movil.network.Sesion
+import com.proyectointegrador.movil.data.remote.ApiService
+import com.proyectointegrador.movil.data.session.Sesion
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.*

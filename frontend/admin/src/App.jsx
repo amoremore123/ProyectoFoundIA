@@ -9,6 +9,7 @@ import Usuarios from './pages/Usuarios';
 import Publicaciones from './pages/Publicaciones';
 import Reportes from './pages/Reportes';
 import Categorias from './pages/Categorias';
+import Estadisticas from './pages/Estadisticas';
 
 function RutaProtegida({ children }) {
   const { token } = useAuth();
@@ -37,6 +38,7 @@ export default function App() {
                 {/* H28 y H26 (Sprint 2) */}
                 <Route path="/reportes" element={<Reportes />} />
                 <Route path="/categorias" element={<Categorias />} />
+                <Route path="/estadisticas" element={<Estadisticas />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

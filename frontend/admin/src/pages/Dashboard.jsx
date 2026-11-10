@@ -1,144 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { getDashboard, mensajeError } from '../services/api';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { getDashboard, getPublicaciones, getReportes, getUsuarios, mensajeError } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import Icono from '../components/Icono';
+import { DonaRecuperacion, GraficoMensual } from '../components/GraficosPanel';
 import useContador from '../hooks/useContador';
+import {
+  actividadReciente, esVisible, haceCuanto, porMes, porcentajeRecuperacion, recientes, variacionMensual,
+} from '../utils/resumenAdmin';
 
-function CifraValor({ valor }) {
+function Indicador({ etiqueta, valor, icono, color, nota }) {
   const animado = useContador(valor);
-  return <p className="metrica-valor">{valor == null ? '—' : animado}</p>;
-}
-
-function Tarjeta({ etiqueta, valor, icono, nota }) {
   return (
-    <div className="tarjeta metrica">
-      <span className="metrica-icono" aria-hidden="true">
-        <Icono nombre={icono} tamano={20} />
-      </span>
-      <div>
-        <CifraValor valor={valor} />
-        <p className="metrica-etiqueta">{etiqueta}</p>
-        {nota && <p className="metrica-nota">{nota}</p>}
+    <div className="indicador">
+      <span className={`indicador-icono ${color}`} aria-hidden="true"><Icono nombre={icono} tamano={22} /></span>
+      <div className="indicador-texto">
+        <p className="indicador-etiqueta">{etiqueta}</p>
+        <p className="indicador-valor">{valor == null ? '—' : animado.toLocaleString('es-PE')}</p>
+        {nota && <p className="indicador-nota">{nota}</p>}
       </div>
     </div>
   );
 }
 
-const formatoNumero = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 1 });
+const TIPO = { PERDIDO: 'Perdido', ENCONTRADO: 'Encontrado' };
+const ESTADO = { ACTIVO: 'Activo', RECUPERADO: 'Recuperado', OCULTO: 'Oculto', ELIMINADO: 'Eliminado' };
+const ICONO_ACTIVIDAD = { perdido: 'alerta', encontrado: 'buscar', recuperado: 'check', denuncia: 'bandera', usuario: 'usuarios' };
 
-// H30: hasta 48 horas se muestra en horas; desde ahí, en días.
-export function formatearDuracion(horas) {
-  if (horas == null) return '—';
-  if (horas < 1) return 'menos de 1 h';
-  if (horas < 48) return `${formatoNumero.format(horas)} h`;
-  return `${formatoNumero.format(horas / 24)} días`;
-}
+const ACCIONES = [
+  { to: '/reportes', icono: 'bandera', texto: 'Revisar denuncias', color: 'amarillo' },
+  { to: '/publicaciones', icono: 'caja', texto: 'Ver objetos', color: 'azul' },
+  { to: '/usuarios', icono: 'usuarios', texto: 'Gestionar usuarios', color: 'naranja' },
+  { to: '/estadisticas', icono: 'grafico', texto: 'Ver estadísticas', color: 'marino' },
+];
 
-function fechaCorta(iso) {
-  const [anio, mes, dia] = String(iso).split('-');
-  return `${dia}/${mes}/${anio}`;
-}
-
-function textoRango(rango) {
-  if (!rango?.desde && !rango?.hasta) return 'Todo el historial';
-  if (rango.desde && rango.hasta) return `Del ${fechaCorta(rango.desde)} al ${fechaCorta(rango.hasta)}`;
-  if (rango.desde) return `Desde el ${fechaCorta(rango.desde)}`;
-  return `Hasta el ${fechaCorta(rango.hasta)}`;
-}
-
-function plural(n, singular, varios) {
-  return `${n} ${n === 1 ? singular : varios}`;
-}
-
-// H31: ranking con barra proporcional al primero de la lista
-function Ranking({ id, titulo, icono, filas, vacio, pie }) {
-  const maximo = Math.max(1, ...filas.map((f) => f.total));
-  return (
-    <section className="tarjeta ranking" aria-labelledby={id}>
-      <h2 id={id} className="ranking-titulo">
-        <Icono nombre={icono} tamano={18} /> {titulo}
-      </h2>
-      {filas.length === 0 ? (
-        <p className="ranking-vacio">{vacio}</p>
-      ) : (
-        <ol className="ranking-lista">
-          {filas.map((f, i) => (
-            <li key={`${f.nombre}-${i}`} className="ranking-fila">
-              <div className="ranking-cabecera">
-                <span className="ranking-puesto" aria-hidden="true">{i + 1}</span>
-                <span className="ranking-nombre">{f.nombre}</span>
-                <span className="ranking-total">{plural(f.total, 'publicación', 'publicaciones')}</span>
-              </div>
-              <div className="ranking-barra" aria-hidden="true">
-                <span style={{ width: `${(f.total / maximo) * 100}%` }} />
-              </div>
-              <p className="ranking-detalle">
-                {plural(f.perdidos, 'perdido', 'perdidos')} · {plural(f.encontrados, 'encontrado', 'encontrados')}
-              </p>
-            </li>
-          ))}
-        </ol>
-      )}
-      {pie && <p className="ranking-pie">{pie}</p>}
-    </section>
-  );
-}
-
-function Recuperacion({ r }) {
-  const notas = [];
-  if (r.sinFecha > 0) {
-    notas.push(r.sinFecha === 1
-      ? '1 recuperación antigua no tiene fecha y no se incluye.'
-      : `${r.sinFecha} recuperaciones antiguas no tienen fecha y no se incluyen.`);
-  }
-  if (r.fechasIncoherentes > 0) {
-    notas.push(r.fechasIncoherentes === 1
-      ? '1 registro tiene fechas incoherentes y se excluye.'
-      : `${r.fechasIncoherentes} registros tienen fechas incoherentes y se excluyen.`);
-  }
-
-  return (
-    <section className="tarjeta recuperacion" aria-labelledby="titulo-recuperacion">
-      <div className="recuperacion-principal">
-        <span className="metrica-icono" aria-hidden="true">
-          <Icono nombre="calendario" tamano={20} />
-        </span>
-        <div>
-          <h2 id="titulo-recuperacion" className="metrica-etiqueta">Tiempo promedio de recuperación</h2>
-          {r.muestra > 0 ? (
-            <>
-              <p className="metrica-valor" data-testid="promedio-recuperacion">{formatearDuracion(r.promedioHoras)}</p>
-              <p className="metrica-nota">
-                Desde que se publica un objeto perdido hasta que se confirma su recuperación.
-                Basado en {plural(r.muestra, 'recuperación', 'recuperaciones')}.
-              </p>
-            </>
-          ) : (
-            <p className="recuperacion-vacia">Aún no hay recuperaciones con fecha en este periodo.</p>
-          )}
-        </div>
-      </div>
-      {r.muestra > 0 && (
-        <dl className="recuperacion-detalle">
-          <div><dt>Mediana</dt><dd>{formatearDuracion(r.medianaHoras)}</dd></div>
-          <div><dt>Más rápida</dt><dd>{formatearDuracion(r.minimoHoras)}</dd></div>
-          <div><dt>Más lenta</dt><dd>{formatearDuracion(r.maximoHoras)}</dd></div>
-        </dl>
-      )}
-      {notas.length > 0 && <p className="ranking-pie">{notas.join(' ')}</p>}
-    </section>
-  );
-}
-
-const SIN_FILTRO = { desde: '', hasta: '' };
-
-// H29/H30/H31 - Panel de indicadores con filtro de fechas (UTC, por fecha de publicación)
+// Panel general: indicadores reales de Django y listas (objetos, denuncias, usuarios) para
+// el gráfico mensual, los recientes y la actividad. Si una lista falla, el resto sigue visible.
 export default function Dashboard() {
-  const [datos, setDatos] = useState(null);
+  const { user } = useAuth();
+  const [resumen, setResumen] = useState(null);
+  const [listas, setListas] = useState({ objetos: [], reportes: [], usuarios: [], fallidas: [] });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [filtros, setFiltros] = useState(SIN_FILTRO);
-  const [aplicados, setAplicados] = useState(SIN_FILTRO);
-  const [errorFiltro, setErrorFiltro] = useState('');
   const peticion = useRef(null);
 
   const cargar = useCallback(async () => {
@@ -147,150 +50,153 @@ export default function Dashboard() {
     peticion.current = control;
     setCargando(true);
     setError('');
-    try {
-      const data = await getDashboard(aplicados, { signal: control.signal });
-      if (control.signal.aborted) return;
-      setDatos(data);
-    } catch (e) {
-      if (control.signal.aborted) return;
-      setError(mensajeError(e, 'No se pudo cargar el panel'));
-      setDatos(null);
-    } finally {
-      if (!control.signal.aborted) setCargando(false);
-    }
-  }, [aplicados]);
+    const [r, objetos, reportes, usuarios] = await Promise.allSettled([
+      getDashboard({}, { signal: control.signal }), getPublicaciones(), getReportes(), getUsuarios(),
+    ]);
+    if (control.signal.aborted) return;
+    if (r.status === 'fulfilled') setResumen(r.value);
+    else { setResumen(null); setError(mensajeError(r.reason, 'No se pudo cargar el panel')); }
+    const valor = (p) => (p.status === 'fulfilled' && Array.isArray(p.value) ? p.value : []);
+    setListas({
+      objetos: valor(objetos),
+      reportes: valor(reportes),
+      usuarios: valor(usuarios),
+      fallidas: [['objetos', objetos], ['denuncias', reportes], ['usuarios', usuarios]].filter(([, p]) => p.status === 'rejected').map(([n]) => n),
+    });
+    setCargando(false);
+  }, []);
 
   useEffect(() => {
     cargar();
     return () => peticion.current?.abort();
   }, [cargar]);
 
-  const aplicar = (e) => {
-    e.preventDefault();
-    if (filtros.desde && filtros.hasta && filtros.desde > filtros.hasta) {
-      setErrorFiltro('La fecha "desde" no puede ser posterior a "hasta".');
-      return;
-    }
-    setErrorFiltro('');
-    setAplicados({ ...filtros });
-  };
+  const serie = useMemo(() => porMes(listas.objetos), [listas.objetos]);
+  const variacion = variacionMensual(serie);
+  const actividad = useMemo(() => actividadReciente(listas), [listas]);
+  const objetosRecientes = useMemo(() => recientes(listas.objetos.filter(esVisible), 'fecha_publicacion', 5), [listas.objetos]);
 
-  const limpiar = () => {
-    setErrorFiltro('');
-    setFiltros(SIN_FILTRO);
-    setAplicados(SIN_FILTRO);
-  };
+  const o = resumen?.objetos;
+  const reportados = o ? o.perdidos + o.encontrados : null;
+  const porcentaje = o ? porcentajeRecuperacion(o.perdidos, o.recuperados) : null;
+  const notaMes = listas.fallidas.includes('objetos') ? null
+    : `${variacion.actual} este mes${variacion.porcentaje != null ? ` · ${variacion.porcentaje >= 0 ? '+' : ''}${variacion.porcentaje}% vs. mes anterior` : ''}`;
 
-  const generales = [
-    { etiqueta: 'Usuarios', valor: datos?.usuarios, icono: 'usuarios' },
-    { etiqueta: 'Objetos activos', valor: datos?.objetosActivos, icono: 'caja' },
-    // H29: las cuatro tarjetas históricas se conservan
-    { etiqueta: 'Reportes pendientes', valor: datos?.reportesPendientes, icono: 'bandera' },
-    { etiqueta: 'Categorías', valor: datos?.categorias, icono: 'etiqueta' },
+  const indicadores = [
+    { etiqueta: 'Objetos reportados', valor: reportados, icono: 'caja', color: 'amarillo', nota: notaMes },
+    { etiqueta: 'Objetos perdidos', valor: o?.perdidos, icono: 'alerta', color: 'naranja' },
+    { etiqueta: 'Objetos encontrados', valor: o?.encontrados, icono: 'buscar', color: 'azul' },
+    { etiqueta: 'Objetos recuperados', valor: o?.recuperados, icono: 'check', color: 'verde', nota: porcentaje != null ? `${porcentaje}% de los perdidos` : null },
+    { etiqueta: 'Denuncias pendientes', valor: resumen?.reportesPendientes, icono: 'bandera', color: 'naranja', nota: 'Por revisar' },
+    { etiqueta: 'Usuarios registrados', valor: resumen?.usuarios, icono: 'usuarios', color: 'azul' },
   ];
 
-  const periodo = datos?.objetos ? [
-    { etiqueta: 'Perdidos', valor: datos.objetos.perdidos, icono: 'alerta' },
-    { etiqueta: 'Encontrados', valor: datos.objetos.encontrados, icono: 'buscar' },
-    { etiqueta: 'Recuperados', valor: datos.objetos.recuperados, icono: 'check', nota: 'Parte de los perdidos' },
-    { etiqueta: 'Activos', valor: datos.objetos.activos, icono: 'caja' },
-  ] : [];
-
-  const hayFiltro = Boolean(aplicados.desde || aplicados.hasta || filtros.desde || filtros.hasta);
-
   return (
-    <div className="pagina">
-      <div>
-        <h1 className="pagina-titulo">Dashboard</h1>
-        <p className="pagina-subtitulo">Resumen de la actividad de FoundIA en Tecsup.</p>
-      </div>
-
-      <form className="tarjeta filtro-fechas" onSubmit={aplicar} noValidate aria-label="Filtrar por fecha de publicación">
-        <label className="campo">
-          <span className="campo-label">Desde</span>
-          <input
-            type="date"
-            className={`input ${errorFiltro ? 'input-error' : ''}`}
-            value={filtros.desde}
-            onChange={(e) => setFiltros((f) => ({ ...f, desde: e.target.value }))}
-          />
-        </label>
-        <label className="campo">
-          <span className="campo-label">Hasta</span>
-          <input
-            type="date"
-            className={`input ${errorFiltro ? 'input-error' : ''}`}
-            value={filtros.hasta}
-            onChange={(e) => setFiltros((f) => ({ ...f, hasta: e.target.value }))}
-          />
-        </label>
-        <div className="filtro-acciones">
-          <button type="submit" className="btn btn-primario" disabled={cargando}>Aplicar</button>
-          {hayFiltro && (
-            <button type="button" className="btn btn-fantasma" onClick={limpiar} disabled={cargando}>Limpiar</button>
-          )}
+    <div className="pagina panel">
+      <section className="panel-banner" aria-labelledby="panel-saludo">
+        <div className="panel-banner-texto">
+          <span className="panel-chip"><Icono nombre="chispa" tamano={14} /> FINDI</span>
+          <h1 id="panel-saludo">Hola, <span>{user?.nombre || 'Administrador'}</span></h1>
+          <p>Supervisa los objetos, las denuncias y los usuarios de FoundIA en Tecsup.</p>
         </div>
-        {errorFiltro && <p className="campo-error filtro-error" role="alert">{errorFiltro}</p>}
-        <p className="filtro-ayuda">Se filtra por fecha de publicación (hora UTC). Ocultos y eliminados no se cuentan.</p>
-      </form>
+        <img className="panel-banner-findi" src="/findi/findi.webp" alt="" width="742" height="772" />
+      </section>
 
       {error && (
         <div className="banner-error" role="alert">
           <Icono nombre="alerta" tamano={18} /> {error}
-          <button type="button" className="btn-fantasma btn-reintentar" onClick={cargar}>
-            Reintentar
-          </button>
+          <button type="button" className="btn-fantasma btn-reintentar" onClick={cargar}>Reintentar</button>
         </div>
       )}
 
       {cargando ? (
-        <div className="cargando" role="status">
-          <span className="spinner" aria-hidden="true" />
-          <span>Cargando...</span>
-        </div>
-      ) : datos && (
+        <div className="cargando" role="status"><span className="spinner" aria-hidden="true" /><span>Cargando...</span></div>
+      ) : (
         <>
-          <section className="dashboard-seccion" aria-labelledby="titulo-general">
-            <h2 id="titulo-general" className="seccion-titulo">General</h2>
-            <div className="grid-metricas">
-              {generales.map((t) => <Tarjeta key={t.etiqueta} {...t} />)}
-            </div>
-          </section>
-
-          {periodo.length > 0 && (
-            <section className="dashboard-seccion" aria-labelledby="titulo-periodo">
-              <h2 id="titulo-periodo" className="seccion-titulo">
-                Publicaciones · <span className="seccion-rango">{textoRango(datos.rango)}</span>
-              </h2>
-              <div className="grid-metricas">
-                {periodo.map((t) => <Tarjeta key={t.etiqueta} {...t} />)}
-              </div>
+          {resumen && (
+            <section aria-label="Indicadores generales" className="grid-indicadores">
+              {indicadores.map((i) => <Indicador key={i.etiqueta} {...i} />)}
             </section>
           )}
 
-          {datos.recuperacion && <Recuperacion r={datos.recuperacion} />}
-
-          {(datos.categoriasTop || datos.ubicacionesTop) && (
-            <div className="grid-rankings">
-              <Ranking
-                id="ranking-categorias"
-                titulo="Categorías con más reportes"
-                icono="etiqueta"
-                filas={datos.categoriasTop || []}
-                vacio="No hay publicaciones en este periodo."
-              />
-              <Ranking
-                id="ranking-ubicaciones"
-                titulo="Ubicaciones con más reportes"
-                icono="ubicacion"
-                filas={datos.ubicacionesTop || []}
-                vacio="No hay publicaciones con ubicación en este periodo."
-                pie={datos.sinUbicacion > 0
-                  ? `${plural(datos.sinUbicacion, 'publicación no indica', 'publicaciones no indican')} ubicación.`
-                  : ''}
-              />
-            </div>
+          {listas.fallidas.length > 0 && (
+            <p className="panel-aviso" role="status">No se pudieron cargar: {listas.fallidas.join(', ')}. Los demás datos están al día.</p>
           )}
+
+          <div className="panel-fila">
+            <section className="tarjeta panel-tarjeta panel-grafico" aria-labelledby="titulo-mensual">
+              <div className="panel-tarjeta-cabecera">
+                <h2 id="titulo-mensual"><Icono nombre="grafico" tamano={18} /> Objetos reportados por mes</h2>
+                <span className="panel-etiqueta">Últimos 6 meses</span>
+              </div>
+              <GraficoMensual serie={serie} />
+            </section>
+
+            <section className="tarjeta panel-tarjeta" aria-labelledby="titulo-recuperacion">
+              <div className="panel-tarjeta-cabecera"><h2 id="titulo-recuperacion"><Icono nombre="check" tamano={18} /> Recuperación</h2></div>
+              {o ? <DonaRecuperacion porcentaje={porcentaje} recuperados={o.recuperados} pendientes={Math.max(0, o.perdidos - o.recuperados)} /> : <p className="panel-vacio">Sin datos.</p>}
+            </section>
+
+            <section className="tarjeta panel-tarjeta" aria-labelledby="titulo-acciones">
+              <div className="panel-tarjeta-cabecera"><h2 id="titulo-acciones"><Icono nombre="rayo" tamano={18} /> Acciones rápidas</h2></div>
+              <div className="panel-acciones">
+                {ACCIONES.map((a) => (
+                  <Link key={a.to} to={a.to} className={`panel-accion ${a.color}`}>
+                    <Icono nombre={a.icono} tamano={18} /> {a.texto} <Icono nombre="flechaDer" tamano={16} className="panel-accion-flecha" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="panel-fila panel-fila-2">
+            <section className="tarjeta panel-tarjeta" aria-labelledby="titulo-recientes">
+              <div className="panel-tarjeta-cabecera">
+                <h2 id="titulo-recientes"><Icono nombre="caja" tamano={18} /> Objetos recientes</h2>
+                <Link to="/publicaciones" className="panel-enlace">Ver todos <Icono nombre="flechaDer" tamano={14} /></Link>
+              </div>
+              {objetosRecientes.length === 0 ? (
+                <p className="panel-vacio">Aún no hay objetos publicados.</p>
+              ) : (
+                <div className="tabla-contenedor">
+                  <table className="tabla panel-tabla">
+                    <thead><tr><th>Objeto</th><th>Tipo</th><th>Estado</th><th>Lugar</th><th>Publicado</th></tr></thead>
+                    <tbody>
+                      {objetosRecientes.map((obj) => (
+                        <tr key={obj.id}>
+                          <td><strong>{obj.nombre}</strong><span className="panel-sub">{obj.publicado_por}</span></td>
+                          <td><span className={`chip-tipo ${obj.tipo === 'PERDIDO' ? 'perdido' : 'encontrado'}`}>{TIPO[obj.tipo] || obj.tipo}</span></td>
+                          <td><span className={`chip-estado ${String(obj.estado).toLowerCase()}`}>{ESTADO[obj.estado] || obj.estado}</span></td>
+                          <td>{obj.ubicacion || '—'}</td>
+                          <td>{haceCuanto(obj.fecha_publicacion)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+
+            <section className="tarjeta panel-tarjeta" aria-labelledby="titulo-actividad">
+              <div className="panel-tarjeta-cabecera"><h2 id="titulo-actividad"><Icono nombre="reloj" tamano={18} /> Actividad reciente</h2></div>
+              {actividad.length === 0 ? (
+                <p className="panel-vacio">Todavía no hay actividad.</p>
+              ) : (
+                <ul className="actividad">
+                  {actividad.map((e) => (
+                    <li key={e.clave} className="actividad-item">
+                      <span className={`actividad-icono ${e.tipo}`} aria-hidden="true"><Icono nombre={ICONO_ACTIVIDAD[e.tipo]} tamano={16} /></span>
+                      <div className="actividad-texto">
+                        <strong>{e.titulo}</strong>
+                        {e.detalle && <span>{e.detalle}</span>}
+                      </div>
+                      <time className="actividad-tiempo" dateTime={e.fecha.toISOString()}>{haceCuanto(e.fecha)}</time>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
         </>
       )}
     </div>

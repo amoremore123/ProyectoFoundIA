@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.proyectointegrador.movil.data.local.*
 import com.proyectointegrador.movil.data.repository.*
-import com.proyectointegrador.movil.network.RetrofitClient
+import com.proyectointegrador.movil.data.remote.RetrofitClient
 import com.proyectointegrador.movil.ui.viewmodel.*
 
 class Contenedor(context:Context) {

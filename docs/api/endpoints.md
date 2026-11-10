@@ -134,6 +134,20 @@ Bloqueo: al **5.º intento fallido consecutivo** la cuenta se bloquea **15 minut
 (columna `bloqueado_hasta`). Mientras dure, se rechaza incluso la contraseña
 correcta. Un login exitoso reinicia el contador `intentos_fallidos`.
 
+### POST `/api/auth/logout`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Revoca únicamente el token usado.
+**Response** `200 OK`: `{ "mensaje": "Sesión cerrada" }`. Sin token: `401`.
+
+### POST `/api/auth/logout-all`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Incrementa `usuarios.sesion_version`
+e invalida todos los tokens de la cuenta, incluidos otros dispositivos.
+**Response** `200 OK`:
+`{ "mensaje": "Sesiones cerradas en todos los dispositivos" }`.
+
+Detalle de claims, compatibilidad y migración: `docs/api/sprint3-h37.md`.
+
 ---
 
 ## 2. Categorías — Spring Boot
@@ -528,6 +542,35 @@ Acciones que ofrece la pantalla "Mis publicaciones" (mismas reglas que la API de
 ]
 ```
 
+> **H53:** los recordatorios de objetos perdidos sin resolver llegan con
+> `tipo: "RECORDATORIO_OBJETO"` y `enlace: "/objeto/{id}"`. Se generan como
+> máximo una vez por objeto y mes UTC; el detalle está en
+> `docs/api/sprint3-h53.md`.
+
+### GET `/api/notificaciones/preferencias`  _(H24, H53)_
+
+**Response** `200 OK`
+
+```json
+{ "coincidencias": true, "contactos": true, "reclamos": true, "recordatorios": true }
+```
+
+### PUT `/api/notificaciones/preferencias`  _(H24, H53)_
+
+**Request**
+
+```json
+{ "coincidencias": true, "contactos": false, "reclamos": true, "recordatorios": true }
+```
+
+Los tres primeros booleanos son obligatorios. `recordatorios` es opcional: si
+no llega, se conserva el valor guardado (compatibilidad con los clientes de
+H24). Un cliente nuevo debe enviarlo para activar o desactivar los
+recordatorios. Los cambios solo afectan a avisos nuevos; el historial no se
+borra.
+
+**Response** `200 OK` con los cuatro valores guardados.
+
 ### PUT `/api/notificaciones/{id}/leida`
 
 **Response** `200 OK` — notificación marcada como leída · `404`
@@ -571,6 +614,17 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 
 **Errores**: `401` credenciales inválidas · `403` el usuario no es ADMIN
 
+### POST `/api/admin/auth/logout/`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Revoca el token actual.
+**Response** `200 OK`: `{ "mensaje": "Sesión cerrada" }`.
+
+### POST `/api/admin/auth/logout-all/`  _(H37)_
+
+Requiere `Authorization: Bearer <token>`. Invalida todos los tokens de la cuenta.
+**Response** `200 OK`:
+`{ "mensaje": "Sesiones cerradas en todos los dispositivos" }`.
+
 ### GET `/api/admin/dashboard/`
 
 **Response** `200 OK`
@@ -578,6 +632,39 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 ```json
 { "usuarios": 4, "objetosActivos": 6, "reportesPendientes": 0, "categorias": 8 }
 ```
+
+### GET `/api/admin/respaldos/`  _(H38)_
+
+Historial paginado de respaldos, más reciente primero. Solo ADMIN.
+
+```json
+{
+  "count": 1,
+  "results": [
+    {
+      "id": 12,
+      "nombreArchivo": "foundia_objetos_perdidos_db_20261109T030000Z.sql.gz",
+      "huellaSha256": "9f2c...64 caracteres...",
+      "tamanoBytes": 184320,
+      "estado": "COMPLETADO",
+      "iniciadoEn": "2026-11-09T03:00:00Z",
+      "finalizadoEn": "2026-11-09T03:00:04Z",
+      "mensaje": null
+    }
+  ]
+}
+```
+
+### GET `/api/admin/respaldos/{id}/`  _(H38)_
+
+Detalle de un respaldo. `404` si no existe.
+
+### GET `/api/admin/respaldos/ultimo/`  _(H38)_
+
+Devuelve `200 OK` con `{ "ultimo": { ... } }` o `{ "ultimo": null }` si todavía
+no se ejecutó ningún respaldo. Es un recurso de solo lectura: `POST`, `PUT`,
+`PATCH` y `DELETE` responden `405`. Detalle:
+`docs/api/sprint3-h38.md`.
 
 ### CRUDs  _(solo ADMIN)_
 
@@ -587,6 +674,7 @@ Las listas usan paginación DRF: `{ "count": 12, "results": [...] }`.
 | Categorías                       | `GET/POST /api/admin/categorias/` · `GET/PUT/PATCH/DELETE /api/admin/categorias/{id}/` | `PATCH { "estado": false }` para desactivar  |
 | Publicaciones (objetos) _(H15)_  | `GET /api/admin/publicaciones/` · `GET/PATCH /api/admin/publicaciones/{id}/` | Solo `PATCH { "estado": "ACTIVO" \| "OCULTO" \| "ELIMINADO" }` |
 | Reportes                         | `GET/POST /api/admin/reportes/` · `GET/PUT/PATCH/DELETE /api/admin/reportes/{id}/` | `PATCH { "estado": "RESUELTO", "fechaResolucion": "2026-10-04T12:00:00" }` |
+| Respaldos _(H38)_                | `GET /api/admin/respaldos/` · `GET /api/admin/respaldos/{id}/` · `GET /api/admin/respaldos/ultimo/` | Solo lectura; las filas las crea el servicio de respaldo |
 
 **Errores comunes**: `400` validación · `401` sin token · `403` no es ADMIN · `404` no existe · `405` método no permitido
 

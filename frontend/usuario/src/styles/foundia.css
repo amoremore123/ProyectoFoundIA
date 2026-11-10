@@ -1,0 +1,443 @@
+/* =====================================================================
+   FoundIA · Identidad visual con FINDI (Sprint 3)
+   Paleta del proyecto: amarillo #FFD400 · naranja #FF8500 · azul #0866F5
+   · marino #14234B · negro #191919.
+   Se carga al final: redefine las variables de color de las capas
+   anteriores y da estilo a FINDI (portada, chat y logo).
+   Reglas de contraste:
+   - Amarillo y naranja llevan texto marino, nunca blanco.
+   - El azul lleva texto blanco (5:1).
+   - Para texto naranja sobre blanco se usa --naranja-texto (5,2:1).
+   ===================================================================== */
+
+:root {
+  --amarillo: #ffd400;
+  --amarillo-700: #f2c200;
+  --amarillo-50: #fff9d9;
+  --naranja: #ff8500;
+  --naranja-50: #fff2e5;
+  --naranja-texto: #ad5300;
+  --azul: #0866f5;
+  --azul-700: #0552c7;
+  --marino: #14234b;
+  --marino-900: #0c1631;
+  --negro: #191919;
+  --suave: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --vidrio: rgba(255, 255, 255, 0.72);
+  --vidrio-borde: rgba(255, 255, 255, 0.65);
+
+  /* Variables que ya usan los componentes */
+  --primary: var(--azul);
+  --primary-700: var(--azul-700);
+  --primary-50: #eef4ff;
+  --primary-100: #d6e5fe;
+  --accent: var(--naranja);
+  --accent-50: var(--naranja-50);
+  --accent-strong: var(--naranja-texto);
+
+  --bg: #f6f8fc;
+  --surface: #ffffff;
+  --surface-2: #f1f4fa;
+  --border: #e3e8f2;
+  --border-strong: #cdd5e3;
+  --text: var(--negro);
+  --text-muted: #4a5468;
+  --text-soft: #5b6478;
+
+  --radio-sm: 10px;
+  --radio: 14px;
+  --radio-lg: 20px;
+
+  --sombra-xs: 0 1px 2px rgba(20, 35, 75, 0.05);
+  --sombra-sm: 0 1px 3px rgba(20, 35, 75, 0.08), 0 1px 2px rgba(20, 35, 75, 0.04);
+  --sombra-md: 0 18px 36px -18px rgba(20, 35, 75, 0.22), 0 4px 10px -4px rgba(20, 35, 75, 0.06);
+
+  /* Capa del slider anterior: se alinea con la paleta nueva */
+  --tecsup-azul: var(--azul);
+  --tecsup-noche: var(--marino);
+  --tecsup-cian: var(--azul);
+  --tecsup-cian-claro: var(--amarillo);
+}
+
+html[data-tema='oscuro'] {
+  --primary: #4d90ff;
+  --primary-700: #6ba3ff;
+  --primary-50: #172a57;
+  --primary-100: #22397a;
+  --accent: var(--naranja);
+  --accent-50: #3a2410;
+  --accent-strong: #ffa94d;
+
+  --bg: #0b1530;
+  --surface: var(--marino);
+  --surface-2: #1b2d5c;
+  --border: #263a6b;
+  --border-strong: #33497f;
+  --text: #f2f5fb;
+  --text-muted: #b4c0d9;
+  --text-soft: #98a6c4;
+  --vidrio: rgba(20, 35, 75, 0.68);
+  --vidrio-borde: rgba(255, 255, 255, 0.1);
+}
+
+html[data-tema='oscuro'] body {
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(8, 102, 245, 0.12), transparent 60%),
+    radial-gradient(900px 400px at -10% 0%, rgba(255, 212, 0, 0.05), transparent 60%),
+    var(--bg);
+}
+
+/* ---------- Base ---------- */
+
+/* Tipografía: Plus Jakarta Sans, geométrica y redondeada como en el diseño aprobado.
+   Títulos gruesos y compactos; texto de lectura con interlineado amplio. */
+:root { --fuente: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+body { font-family: var(--fuente); font-size: 15px; line-height: 1.6; font-feature-settings: normal; }
+h1, h2, h3, h4 { font-family: var(--fuente); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+h3, h4 { font-weight: 700; letter-spacing: -0.015em; }
+strong, b { font-weight: 700; }
+.visual-eyebrow, .hero-etiqueta { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-soft); }
+.navbar-links a { font-size: 14.5px; font-weight: 600; }
+.navbar-links a.active { font-weight: 700; }
+.bottom-nav-item { font-weight: 600; }
+.bottom-nav-item.activo .bottom-nav-label { font-weight: 700; }
+input, select, textarea, button { font-family: var(--fuente); }
+:focus-visible { outline-color: var(--azul); }
+html[data-tema='oscuro'] :focus-visible { outline-color: var(--amarillo); }
+
+.btn { border-radius: 12px; font-weight: 700; letter-spacing: -0.005em; }
+.btn-primario { background: var(--azul); color: #fff; }
+.btn-primario:hover:not(:disabled) { background: var(--azul-700); }
+.btn-primario:not(:disabled):hover { box-shadow: 0 10px 22px -10px rgba(8, 102, 245, 0.6); }
+
+html[data-tema='oscuro'] .btn-primario,
+html[data-tema='oscuro'] .chat-enviar,
+html[data-tema='oscuro'] .chat-burbuja-usuario,
+html[data-tema='oscuro'] .nivel-alta,
+html[data-tema='oscuro'] .perfil-avatar,
+html[data-tema='oscuro'] .sidebar-avatar,
+html[data-tema='oscuro'] .no-leida .notificacion-icono { background: var(--azul); }
+html[data-tema='oscuro'] .btn-primario:hover:not(:disabled) { background: var(--azul-700); }
+
+/* Acción principal de FINDI: amarillo con texto marino */
+.btn-amarillo { background: var(--amarillo); color: var(--marino); border-color: var(--amarillo); }
+.btn-amarillo:hover:not(:disabled) { background: var(--amarillo-700); box-shadow: 0 10px 22px -10px rgba(242, 194, 0, 0.7); }
+.btn-marino { background: var(--marino); color: #fff; border-color: var(--marino); box-shadow: 0 10px 22px -12px rgba(12, 22, 49, 0.8); }
+.btn-marino:hover:not(:disabled) { background: var(--marino-900); }
+
+/* ---------- Pantallas de acceso (login, registro) ---------- */
+
+@media (min-width: 1024px) {
+  .auth-panel {
+    background-color: var(--marino);
+    background-image:
+      radial-gradient(600px 400px at 100% 0%, rgba(8, 102, 245, 0.45), transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  }
+}
+.auth-panel-etiqueta, .auth-panel-texto h2 span { color: var(--amarillo); }
+.auth-beneficio-icono { color: var(--amarillo); }
+
+/* ---------- Carrusel de la portada ---------- */
+
+.slider-portada { box-shadow: 0 30px 60px -32px rgba(12, 22, 49, 0.6); }
+.slide-velo {
+  background:
+    linear-gradient(90deg, rgba(20, 35, 75, 0.95) 0%, rgba(20, 35, 75, 0.8) 42%, rgba(20, 35, 75, 0.2) 100%),
+    linear-gradient(0deg, rgba(20, 35, 75, 0.7) 0%, transparent 40%);
+}
+.slide-boton { background: var(--amarillo); color: var(--marino); }
+.slide-boton:hover { background: var(--amarillo-700); color: var(--marino); }
+.slider-punto.activo span, .slider-punto span { background: var(--amarillo); }
+.slider-boton { background: rgba(20, 35, 75, 0.5); }
+.slider-boton:hover { background: #fff; color: var(--marino); }
+.buscador-portada h2 { font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; letter-spacing: -0.03em; margin: 6px 0; }
+
+/* Diapositiva de FINDI: fondo marino-azul, texto a la izquierda y FINDI a la derecha */
+.slide-findi {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: 24px;
+  padding-bottom: clamp(88px, 9vw, 104px);
+  overflow: hidden;
+  isolation: isolate;
+  /* Como el diseño aprobado: azul intenso a la izquierda que se aclara hacia el campus */
+  background:
+    linear-gradient(100deg, #0a3fb8 0%, rgba(8, 102, 245, 0.92) 34%, rgba(64, 140, 255, 0.55) 62%, rgba(190, 220, 255, 0.15) 100%),
+    url('/imagenes/tecsup-campus.png') right 30% / cover no-repeat,
+    #0a3fb8;
+}
+
+/* Curvas decorativas en amarillo y naranja, como en el diseño aprobado */
+.slide-findi::before,
+.slide-findi::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.slide-findi::before { left: 30%; right: -15%; height: 260px; bottom: -205px; border-top: 12px solid var(--amarillo); transform: rotate(-5deg); }
+.slide-findi::after { left: 42%; right: -25%; height: 260px; bottom: -222px; border-top: 6px solid var(--naranja); transform: rotate(-5deg); opacity: 0.9; }
+
+.slide-titulo { font-weight: 800; letter-spacing: -0.028em; line-height: 1.05; }
+.slide-texto { font-size: 17.5px; line-height: 1.6; }
+.slide-etiqueta { font-weight: 700; letter-spacing: 0.1em; }
+.slide-findi .slide-titulo { font-size: clamp(38px, 5.2vw, 64px); }
+.slide-findi .slide-titulo span { display: inline; }
+.slide-texto strong { color: #fff; }
+
+.chip-findi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--amarillo);
+  border-radius: 999px;
+  background: rgba(20, 35, 75, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.chip-findi svg { color: var(--amarillo); }
+
+.hero-findi-acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-findi-acciones .btn { min-height: 48px; padding: 0 22px; font-size: 15px; }
+
+.slide-findi-figura { position: relative; height: 100%; min-height: 0; display: flex; align-items: flex-end; justify-content: center; margin: 0; opacity: 0; transform: translateY(18px); transition: opacity 0.7s var(--curva) 0.15s, transform 0.7s var(--curva) 0.15s; }
+.slide.activa .slide-findi-figura { opacity: 1; transform: none; }
+.slide-findi-figura img {
+  max-height: 100%;
+  width: auto;
+  max-width: min(100%, 400px);
+  object-fit: contain;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.35));
+  animation: findi-flotar 6s ease-in-out infinite;
+}
+
+.findi-globo {
+  position: absolute;
+  top: 4%;
+  right: 0;
+  max-width: 230px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--negro);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 24px 44px -20px rgba(4, 30, 90, 0.6);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.findi-globo:hover { transform: translateY(-2px); }
+.findi-globo strong { color: var(--azul); }
+/* Cola del globo apuntando hacia FINDI */
+.findi-globo::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  bottom: -9px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 0 0 6px 0;
+  transform: rotate(45deg) skew(8deg, 8deg);
+}
+.findi-globo:active { transform: scale(0.98); }
+.findi-globo-saludo { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 700; color: var(--marino); }
+
+@keyframes findi-flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* En pantallas medianas y celulares el texto va arriba y FINDI abajo, sin globo */
+@media (max-width: 860px) {
+  .slide-findi { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 8px; }
+  .findi-globo { display: none; }
+  .slide-findi-figura img { max-width: 70%; }
+}
+@media (max-width: 640px) {
+  .slider-portada { height: 600px; }
+  .slide-findi { padding: 24px 20px 104px; }
+  .slide-findi .hero-findi-acciones { flex-wrap: nowrap; gap: 8px; }
+  .slide-findi .hero-findi-acciones .btn { min-height: 44px; padding: 0 14px; font-size: 14px; white-space: nowrap; }
+  .slide-findi-figura img { max-width: 80%; }
+  /* Cuatro puntos y tres botones deben caber en 375 px */
+  .slider-punto { width: 28px; }
+  .slider-puntos { gap: 6px; }
+  .slider-controles { bottom: 40px; }
+}
+
+/* Accesos rápidos debajo del carrusel */
+.accesos-findi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.acceso-findi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--vidrio-borde);
+  border-radius: 20px;
+  background: var(--vidrio);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  color: var(--text);
+  box-shadow: 0 24px 48px -28px rgba(20, 35, 75, 0.45);
+  transition: transform 0.4s var(--suave), box-shadow 0.4s var(--suave), border-color 0.3s;
+}
+.acceso-findi:hover { transform: translateY(-4px); box-shadow: 0 30px 56px -28px rgba(20, 35, 75, 0.55); }
+.acceso-findi:active { transform: scale(0.98); transition-duration: 0.1s; }
+.acceso-findi-icono { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; box-shadow: 0 8px 18px -10px currentColor; transition: transform 0.4s var(--suave); }
+.acceso-findi:hover .acceso-findi-icono { transform: scale(1.08) rotate(-4deg); }
+.acceso-findi-icono.amarillo { background: var(--amarillo); color: var(--marino); }
+.acceso-findi-icono.azul { background: var(--azul); color: #fff; }
+.acceso-findi-icono.naranja { background: var(--naranja); color: var(--marino); }
+.acceso-findi-icono.marino { background: var(--marino); color: #fff; }
+html[data-tema='oscuro'] .acceso-findi-icono.marino { background: #2a4387; }
+.acceso-findi-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.acceso-findi-texto strong { font-size: 15px; }
+.acceso-findi-texto span { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+.acceso-findi-flecha { color: var(--text-soft); flex-shrink: 0; transition: transform 0.2s, color 0.2s; }
+.acceso-findi:hover .acceso-findi-flecha { color: var(--primary); transform: translateX(3px); }
+
+@media (max-width: 1000px) { .accesos-findi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .accesos-findi { grid-template-columns: 1fr; } }
+
+/* ---------- Chat de FINDI ---------- */
+
+/* Botón flotante: solo la foto de FINDI, con anillo amarillo y punto de "en línea" */
+.chat-lanzador,
+.chat-lanzador:not(.abierto) {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--marino);
+  color: #fff;
+  box-shadow: 0 16px 32px -12px rgba(12, 22, 49, 0.55), 0 0 0 3px var(--amarillo);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+}
+.chat-lanzador:hover { background: var(--marino); transform: translateY(-2px) scale(1.06); box-shadow: 0 22px 40px -14px rgba(12, 22, 49, 0.6), 0 0 0 3px var(--amarillo); }
+.chat-lanzador:active { transform: scale(0.94); transition-duration: 0.1s; }
+.chat-lanzador.abierto { width: 56px; height: 56px; }
+html[data-tema='oscuro'] .chat-lanzador, html[data-tema='oscuro'] .chat-lanzador:hover { background: var(--marino); }
+.chat-lanzador-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.chat-lanzador-estado { position: absolute; right: 3px; bottom: 3px; width: 14px; height: 14px; border-radius: 50%; background: #22c55e; border: 2.5px solid #fff; }
+html[data-tema='oscuro'] .chat-lanzador-estado { border-color: var(--bg); }
+@media (max-width: 520px) { .chat-lanzador, .chat-lanzador:not(.abierto) { width: 58px; height: 58px; } }
+
+.chat-avatar { width: 40px; height: 40px; padding: 0; border-radius: 50%; overflow: hidden; background: var(--marino); border: 2px solid var(--amarillo); }
+.chat-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.chat-cabecera { background: linear-gradient(120deg, var(--marino-900), var(--marino) 60%, #123a8f); border-bottom: 0; }
+.chat-cabecera-texto strong { color: #fff; font-size: 15px; }
+.chat-cabecera-texto span { color: rgba(255, 255, 255, 0.78); }
+.chat-cabecera .chat-cerrar { color: rgba(255, 255, 255, 0.85); }
+.chat-cabecera .chat-cerrar:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.chat-cabecera .chat-leer.activo { background: var(--amarillo); color: var(--marino); }
+
+.chat-burbuja { border-radius: 18px 18px 18px 6px; }
+.chat-burbuja-usuario { background: var(--azul); border-color: var(--azul); border-radius: 18px 18px 6px 18px; }
+
+.chat-sugerencias { flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+.chat-sugerencia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border-color: var(--border);
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.chat-sugerencia::after { content: '→'; color: var(--primary); }
+.chat-sugerencia:hover:not(:disabled) { background: var(--primary-50); }
+
+.chat-input, .chat-enviar, .chat-microfono { border-radius: 999px; }
+.chat-enviar { background: var(--azul); }
+.chat-fuente-ia { background: var(--amarillo-50); color: var(--marino); }
+html[data-tema='oscuro'] .chat-fuente-ia { background: rgba(255, 212, 0, 0.14); color: var(--amarillo); }
+
+/* ---------- Estados de FINDI (Fase 4) ----------
+   Indicadores externos alrededor del avatar original: anillo, etiqueta y punto. */
+
+.chat-avatar-marco { position: relative; display: inline-grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; }
+.chat-avatar-marco::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid transparent; transition: border-color 0.3s; }
+.chat-avatar-marco .chat-avatar { position: relative; }
+.chat-avatar-marco.estado-escuchando::before { border-color: #ef4444; animation: findi-latido 1.2s ease-in-out infinite; }
+.chat-avatar-marco.estado-pensando::before { border-color: rgba(255, 255, 255, 0.25); border-top-color: var(--amarillo); animation: findi-girar 0.9s linear infinite; }
+.chat-avatar-marco.estado-respondiendo::before { border-color: var(--azul); animation: findi-latido 1.6s ease-in-out infinite; }
+.chat-avatar-marco.estado-completada::before { border-color: #22c55e; }
+.chat-avatar-marco.estado-error::before { border-color: #ef4444; }
+.chat-saludo { position: absolute; right: -6px; top: -6px; font-size: 18px; transform-origin: 70% 70%; animation: findi-saludar 0.9s ease-in-out 3; }
+
+.chat-estado-linea { display: inline-flex; align-items: center; gap: 6px; }
+.chat-estado.estado-en-linea, .chat-estado.estado-saludando, .chat-estado.estado-completada { background: #22c55e; }
+.chat-estado.estado-pensando { background: var(--amarillo); }
+.chat-estado.estado-escuchando, .chat-estado.estado-error { background: #ef4444; }
+.chat-ondas { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+.chat-ondas b { width: 3px; height: 100%; border-radius: 2px; background: var(--amarillo); animation: findi-onda 0.9s ease-in-out infinite; }
+.chat-ondas b:nth-child(2) { animation-delay: 0.15s; }
+.chat-ondas b:nth-child(3) { animation-delay: 0.3s; }
+
+/* Punto del botón flotante según el estado */
+.chat-lanzador-estado.estado-pensando { background: var(--amarillo); }
+.chat-lanzador-estado.estado-escuchando, .chat-lanzador-estado.estado-error { background: #ef4444; }
+.chat-lanzador-estado.estado-respondiendo { background: var(--azul); }
+
+@keyframes findi-girar { to { transform: rotate(360deg); } }
+@keyframes findi-latido { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.6; } }
+@keyframes findi-saludar { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(18deg); } 75% { transform: rotate(-12deg); } }
+@keyframes findi-onda { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+
+/* Accesos rápidos de la bienvenida */
+.chat-accesos { display: flex; flex-direction: column; gap: 8px; }
+.chat-acceso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.chat-acceso:hover:not(:disabled) { background: var(--primary-50); border-color: var(--primary-100); transform: translateX(2px); }
+.chat-acceso:active:not(:disabled) { transform: scale(0.98); }
+.chat-acceso:disabled { opacity: 0.5; cursor: not-allowed; }
+.chat-acceso-icono { display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: var(--amarillo); color: var(--marino); }
+.chat-acceso:nth-child(2) .chat-acceso-icono { background: var(--naranja); }
+.chat-acceso:nth-child(3) .chat-acceso-icono { background: var(--azul); color: #fff; }
+.chat-acceso:nth-child(4) .chat-acceso-icono { background: var(--marino); color: #fff; }
+html[data-tema='oscuro'] .chat-acceso:nth-child(4) .chat-acceso-icono { background: #2a4387; }
+
+/* Reintentar tras un error de conexión */
+.chat-reintentar { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid currentColor; border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.chat-reintentar:hover:not(:disabled) { background: rgba(239, 68, 68, 0.08); }
+.chat-reintentar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Fase 6: aviso de voz del navegador y crédito a ElevenLabs */
+.chat-voz-aviso { color: var(--text-muted); font-weight: 500; }
+.chat-credito { margin: 0; padding: 0 12px 10px; background: var(--surface); font-size: 11.5px; color: var(--text-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-findi-figura img { animation: none; }
+  /* Los estados de FINDI se muestran solo con color y texto */
+  .chat-avatar-marco::before, .chat-saludo, .chat-ondas b { animation: none; }
+}

@@ -8,7 +8,7 @@ const preguntas = [
   ['¿Qué hago si perdí algo?', 'Revisa las publicaciones de objetos encontrados. Puedes buscar por nombre, categoría o ubicación. Si no aparece, publica tu objeto como perdido con la fecha y el último lugar donde lo viste.'],
   ['¿Qué hago si encontré un objeto?', 'Publica el objeto como encontrado e indica dónde y cuándo lo encontraste. Describe sus características sin mostrar datos personales de su dueño.'],
   ['¿La fotografía siempre corresponde al objeto?', 'Las fotos subidas por quien publica tienen prioridad. Cuando no hay una foto disponible, podemos mostrar una fotografía de referencia identificada como tal. Revisa siempre la descripción.'],
-  ['¿Dónde consulto mis publicaciones?', 'Entra a tu cuenta y abre “Mis publicaciones”. Para consultar las publicaciones de toda la comunidad, utiliza Buscar.'],
+  ['¿Dónde consulto mis publicaciones?', 'Entra a tu cuenta y abre “Mis reportes”. Para consultar las publicaciones de toda la comunidad, utiliza Buscar.'],
 ];
 
 export default function GuiaCampus() {

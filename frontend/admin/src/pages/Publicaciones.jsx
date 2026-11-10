@@ -91,7 +91,7 @@ export default function Publicaciones() {
   return (
     <div className="pagina">
       <div className="seccion-header">
-        <h1 className="pagina-titulo">Publicaciones</h1>
+        <h1 className="pagina-titulo">Objetos</h1>
         <span className="contador">{publicaciones.length} registros</span>
       </div>
 

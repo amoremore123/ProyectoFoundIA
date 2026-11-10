@@ -11,5 +11,6 @@ public class PreferenciaNotificacion {
     @Column(nullable=false) private boolean coincidencias=true;
     @Column(nullable=false) private boolean contactos=true;
     @Column(nullable=false) private boolean reclamos=true;
+    @Column(nullable=false) private boolean recordatorios=true;
     @Column(name="fecha_actualizacion", nullable=false) private LocalDateTime fechaActualizacion;
 }
