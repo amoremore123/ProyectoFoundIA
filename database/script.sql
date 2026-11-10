@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
 DROP TABLE IF EXISTS recordatorios_objeto;
 DROP TABLE IF EXISTS reclamos;
+DROP TABLE IF EXISTS disposiciones;
 DROP TABLE IF EXISTS custodias;
 DROP TABLE IF EXISTS secuencias_custodia;
 DROP TABLE IF EXISTS notificaciones;
@@ -257,11 +258,34 @@ CREATE TABLE custodias (
         REFERENCES objetos (id) ON DELETE RESTRICT,
     CONSTRAINT fk_custodias_recibido_por FOREIGN KEY (recibido_por_id)
         REFERENCES usuarios (id) ON DELETE RESTRICT,
-    CONSTRAINT chk_custodias_estado CHECK (estado IN ('EN_CUSTODIA', 'RETIRADO'))
+    CONSTRAINT chk_custodias_estado CHECK (estado IN ('EN_CUSTODIA', 'RETIRADO', 'DISPUESTO'))
 ) ENGINE = InnoDB;
 
 CREATE INDEX idx_custodias_estado ON custodias (estado);
 CREATE INDEX idx_custodias_recibido_por ON custodias (recibido_por_id);
+
+-- H54: acta de disposición final (donado o descartado) de un objeto no reclamado
+CREATE TABLE disposiciones (
+    id                BIGINT        NOT NULL AUTO_INCREMENT,
+    custodia_id       BIGINT        NOT NULL,
+    codigo_acta       VARCHAR(30)   NOT NULL,
+    destino           VARCHAR(20)   NOT NULL,
+    motivo            VARCHAR(1000) NOT NULL,
+    plazo_dias        INT           NOT NULL,
+    dias_en_custodia  INT           NOT NULL,
+    responsable_id    BIGINT        NOT NULL,
+    fecha_disposicion DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_disposiciones_custodia (custodia_id),
+    UNIQUE KEY uq_disposiciones_acta (codigo_acta),
+    CONSTRAINT fk_disposiciones_custodia FOREIGN KEY (custodia_id)
+        REFERENCES custodias (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_disposiciones_responsable FOREIGN KEY (responsable_id)
+        REFERENCES usuarios (id) ON DELETE RESTRICT,
+    CONSTRAINT chk_disposiciones_destino CHECK (destino IN ('DONADO', 'DESCARTADO'))
+) ENGINE = InnoDB;
+
+CREATE INDEX idx_disposiciones_fecha ON disposiciones (fecha_disposicion);
 
 -- =====================================================================
 -- 8. NOTIFICACIONES

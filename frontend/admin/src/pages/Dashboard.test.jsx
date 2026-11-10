@@ -7,6 +7,8 @@ import { getDashboard, getPublicaciones, getReportes, getUsuarios } from '../ser
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
   getDashboard: vi.fn(),
+  // H38: la tarjeta del respaldo pide su propio dato
+  getUltimoRespaldo: vi.fn(async () => null),
   getPublicaciones: vi.fn(),
   getReportes: vi.fn(),
   getUsuarios: vi.fn(),

@@ -2,9 +2,13 @@ package com.proyectointegrador.controller;
 
 import com.proyectointegrador.dto.AsistenteRequest;
 import com.proyectointegrador.dto.AsistenteResponse;
+import com.proyectointegrador.dto.SugerenciaPublicacionRequest;
+import com.proyectointegrador.dto.SugerenciaPublicacionResponse;
+import com.proyectointegrador.exception.InvalidCredentialsException;
 import com.proyectointegrador.security.AsistenteRateLimiter;
 import com.proyectointegrador.security.UserPrincipal;
 import com.proyectointegrador.service.AsistenteService;
+import com.proyectointegrador.service.SugerenciaPublicacionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +32,27 @@ public class AsistenteController {
 
     private final AsistenteService asistenteService;
     private final AsistenteRateLimiter rateLimiter;
+    private final SugerenciaPublicacionService sugerencias;
 
-    public AsistenteController(AsistenteService asistenteService, AsistenteRateLimiter rateLimiter) {
+    public AsistenteController(AsistenteService asistenteService, AsistenteRateLimiter rateLimiter,
+                               SugerenciaPublicacionService sugerencias) {
         this.asistenteService = asistenteService;
         this.rateLimiter = rateLimiter;
+        this.sugerencias = sugerencias;
+    }
+
+    /**
+     * H49: POST /api/asistente/sugerir-publicacion. Requiere sesión (Publicar también la pide).
+     * Devuelve una sugerencia y no guarda nada.
+     */
+    @PostMapping("/sugerir-publicacion")
+    public ResponseEntity<SugerenciaPublicacionResponse> sugerirPublicacion(
+            @Valid @RequestBody SugerenciaPublicacionRequest solicitud) {
+        Long usuarioId = usuarioActualId();
+        if (usuarioId == null) throw new InvalidCredentialsException("No autenticado");
+        String clave = "usuario:" + usuarioId;
+        rateLimiter.verificar(clave);
+        return ResponseEntity.ok(sugerencias.sugerir(solicitud, clave));
     }
 
     @PostMapping("/interpretar")

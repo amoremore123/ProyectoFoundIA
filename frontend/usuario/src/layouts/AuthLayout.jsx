@@ -58,7 +58,7 @@ export default function AuthLayout({ children }) {
         <p className="auth-panel-legal"><a href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad</a><a href="/terminos" target="_blank" rel="noopener noreferrer">Términos</a></p>
       </aside>
 
-      <main className="auth-contenido">{children}</main>
+      <main className="auth-contenido" id="contenido" tabIndex={-1}>{children}</main>
     </div>
   );
 }

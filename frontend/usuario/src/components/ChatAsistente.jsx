@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Icono from './Icono';
 import ChipTipo from './ChipTipo';
+import ConfirmarDialogo from './ConfirmarDialogo';
 import { useAsistente } from '../context/AsistenteContext';
 import { useAuth } from '../context/AuthContext';
 import { AVATAR_FINDI } from '../config/findi';
@@ -9,6 +10,7 @@ import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
 import { buscarObjetos, fotoUrl, getMisObjetos, interpretarConIA, listarCategorias, mensajeError } from '../services/api';
 import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso } from '../utils/asistente';
+import { accionesValidas, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
 const BIENVENIDA = {
   id: 'bienvenida',
@@ -30,7 +32,7 @@ const ETIQUETA_ESTADO = {
 
 const lista = (data) => (Array.isArray(data) ? data : data?.results || []);
 
-const ESTADO_REPORTE = { ACTIVO: 'Activo', RECUPERADO: 'Recuperado', OCULTO: 'Oculto', ELIMINADO: 'Eliminado' };
+const ESTADO_REPORTE = { ACTIVO: 'Activo', RECUPERADO: 'Recuperado', OCULTO: 'Oculto', ELIMINADO: 'Eliminado', EN_CUSTODIA: 'En custodia' };
 
 const AVISO_VOZ = 'Para entender tu voz, tu navegador envía el audio a su servicio de reconocimiento (Google en Chrome, Microsoft en Edge). FoundIA no guarda tu voz. Si prefieres, puedes escribir.';
 
@@ -55,6 +57,8 @@ export default function ChatAsistente() {
   const [leerRespuestas, setLeerRespuestas] = useState(false);
   const avisoVozMostrado = useRef(false);
   const [dictado, setDictado] = useState(false);
+  // H47: acción propuesta por FINDI que espera confirmación
+  const [accionPendiente, setAccionPendiente] = useState(null);
   // H46: lo dictado se escribe en la caja para revisarlo y corregirlo antes de enviar
   const voz = useVoz({
     alParcial: (parcial) => setTexto(parcial),
@@ -124,7 +128,10 @@ export default function ChatAsistente() {
         : responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta });
       // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
       const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
-      agregar({ de: 'bot', fuente, ...respuesta });
+      // H47: tarjetas y acciones del catálogo cerrado (se descarta lo que no se conoce)
+      const tarjetas = tarjetasValidas(ia?.tarjetas);
+      const accionesFindi = accionesValidas(ia?.acciones);
+      agregar({ de: 'bot', fuente, ...respuesta, tarjetas, accionesFindi });
       if (respuesta.resultados?.length) setCompletada(respuesta.resultados.length);
       if (leerRespuestas && abiertoRef.current) voz.leer(respuesta.texto);
     } catch (e) {
@@ -189,6 +196,16 @@ export default function ChatAsistente() {
     desplazarASeccion(ancla);
   };
 
+  // H47: nada se ejecuta sin confirmar; al aceptar solo se abre la pantalla con datos prellenados
+  const confirmarAccion = () => {
+    const a = accionPendiente;
+    setAccionPendiente(null);
+    if (!a) return;
+    cerrar();
+    if (a.tipo === 'PRELLENAR_PUBLICAR') navigate('/publicar', { state: { prellenar: datosPrellenado(a.datos) } });
+    else if (a.tipo === 'ABRIR_RECLAMO') navigate(a.destino, { state: { abrirReclamo: true } });
+  };
+
   const ultimoBot = [...mensajes].reverse().find((m) => m.de === 'bot');
   let estado = 'en-linea';
   if (voz.escuchando) estado = 'escuchando';
@@ -233,7 +250,7 @@ export default function ChatAsistente() {
     <>
       {abierto && (
         <section className="chat-panel" role="dialog" aria-label="FINDI, asistente de FoundIA">
-          <header className="chat-cabecera">
+          <div className="chat-cabecera">
             <span className={`chat-avatar-marco estado-${estado}`} data-estado={estado}>
               <span className="chat-avatar"><img src={AVATAR_FINDI} alt="" /></span>
               {estado === 'saludando' && <span className="chat-saludo" aria-hidden="true">👋</span>}
@@ -262,7 +279,7 @@ export default function ChatAsistente() {
             <button type="button" className="chat-cerrar" onClick={cerrar} aria-label="Cerrar asistente">
               <Icono nombre="cerrar" tamano={18} />
             </button>
-          </header>
+          </div>
 
           <div className="chat-mensajes" aria-live="polite">
             {mensajes.map((m) => (
@@ -326,6 +343,52 @@ export default function ChatAsistente() {
                         </li>
                       ))}
                     </ul>
+                  )}
+
+                  {m.tarjetas?.length > 0 && (
+                    <ul className="chat-tarjetas" aria-label="Tarjetas de FINDI">
+                      {m.tarjetas.map((t, i) => (
+                        <li key={`${t.tipo}-${i}`} className={`chat-tarjeta chat-tarjeta-${t.tipo.toLowerCase()}`}>
+                          {t.tipo === 'OBJETO' && (
+                            <Link to={t.enlace} className="chat-resultado" onClick={cerrar}>
+                              <span className="chat-resultado-media"><Icono nombre="caja" tamano={18} /></span>
+                              <span className="chat-resultado-info">
+                                <span className="chat-resultado-nombre">{t.titulo}</span>
+                                {t.datos?.ubicacion && (
+                                  <span className="chat-resultado-linea"><Icono nombre="ubicacion" tamano={12} /> {t.datos.ubicacion}</span>
+                                )}
+                                <span className="chat-resultado-pie">
+                                  {t.datos?.tipo && <ChipTipo tipo={t.datos.tipo} />}
+                                  <span className="chat-resultado-match">{ESTADO_REPORTE[t.datos?.estado] || t.datos?.estado}</span>
+                                </span>
+                              </span>
+                            </Link>
+                          )}
+                          {t.tipo === 'RECLAMOS' && (
+                            <Link to={t.enlace} className="chat-tarjeta-cifras" onClick={cerrar}>
+                              <strong><Icono nombre="bandeja" tamano={14} /> {t.titulo}</strong>
+                              <span>{t.datos?.pendientes ?? 0} pendientes · {t.datos?.aceptados ?? 0} aceptados · {t.datos?.retirados ?? 0} retirados · {t.datos?.rechazados ?? 0} rechazados</span>
+                            </Link>
+                          )}
+                          {t.tipo === 'QR_RETIRO' && (
+                            <Link to={t.enlace} className="chat-tarjeta-cifras" onClick={cerrar}>
+                              <strong><Icono nombre="check" tamano={14} /> {t.titulo}</strong>
+                              <span>{t.datos?.vigentes === 1 ? 'Tienes 1 QR listo para recoger tu objeto.' : `Tienes ${t.datos?.vigentes} QR listos para recoger tus objetos.`}</span>
+                            </Link>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {m.accionesFindi?.length > 0 && (
+                    <div className="chat-acciones" role="group" aria-label="Acciones propuestas por FINDI">
+                      {m.accionesFindi.map((a) => (
+                        <button key={a.tipo + a.destino} type="button" className="chat-accion" onClick={() => setAccionPendiente(a)}>
+                          {a.texto} <Icono nombre="flechaDer" tamano={14} />
+                        </button>
+                      ))}
+                    </div>
                   )}
 
                   {m.acciones?.length > 0 && (
@@ -411,6 +474,15 @@ export default function ChatAsistente() {
           {leerRespuestas && voz.proveedor === 'elevenlabs' && <p className="chat-credito">Voz de FINDI: ElevenLabs</p>}
         </section>
       )}
+
+      <ConfirmarDialogo
+        abierto={Boolean(accionPendiente)}
+        titulo="¿Continuar?"
+        mensaje={accionPendiente?.confirmacion || 'FINDI abrirá la pantalla con los datos que entendió. Podrás revisarlos antes de enviar nada.'}
+        textoConfirmar="Sí, continuar"
+        onConfirmar={confirmarAccion}
+        onCancelar={() => setAccionPendiente(null)}
+      />
 
       <button
         type="button"

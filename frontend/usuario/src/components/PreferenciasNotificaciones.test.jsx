@@ -34,7 +34,7 @@ describe('H24 - Preferencias de avisos', () => {
     fireEvent.click(casilla('Reclamos'));
     await act(async () => { fireEvent.click(botonGuardar()); });
 
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false, recordatorios: true });
     expect(screen.getByRole('status').textContent).toContain('Preferencias guardadas');
     expect(casilla('Reclamos').checked).toBe(false);
     expect(botonGuardar().disabled).toBe(true);
@@ -67,5 +67,16 @@ describe('H24 - Preferencias de avisos', () => {
     expect(screen.getByRole('alert')).toBeTruthy();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Reintentar' })); });
     expect(casilla('Reclamos').checked).toBe(true);
+  });
+
+  it('H53: permite apagar los recordatorios y los envía al guardar', async () => {
+    getPreferenciasNotificaciones.mockResolvedValueOnce({ ...TODAS, recordatorios: true });
+    guardarPreferenciasNotificaciones.mockResolvedValueOnce({ ...TODAS, recordatorios: false });
+    await renderizar();
+    expect(casilla('Recordatorios').checked).toBe(true);
+    fireEvent.click(casilla('Recordatorios'));
+    await act(async () => { fireEvent.click(botonGuardar()); });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ ...TODAS, recordatorios: false });
+    expect(casilla('Recordatorios').checked).toBe(false);
   });
 });

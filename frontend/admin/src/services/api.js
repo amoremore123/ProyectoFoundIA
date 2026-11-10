@@ -127,4 +127,138 @@ export const patchCategoria = async (id, payload) => {
   return data;
 };
 
+// H37: cierre de sesión en el servidor. El token va explícito porque la sesión local ya pudo borrarse.
+export const cerrarSesionServidor = async (token, { todos = false } = {}) => {
+  const { data } = await axios.post(
+    `${API_URL}/api/admin/auth/${todos ? 'logout-all' : 'logout'}/`,
+    null,
+    { headers: { Authorization: `Bearer ${token}` }, timeout: 8000 },
+  );
+  return data;
+};
+
+// H36: cambio de rol con confirmación y motivo; el historial lo guarda el servidor
+export const cambiarRolUsuario = async (id, { rol, motivo }) => {
+  const { data } = await api.patch(`/api/admin/usuarios/${id}/`, { rol, confirmar: true, motivo });
+  return data;
+};
+
+export const getCambiosRol = async (id) => {
+  const { data } = await api.get(`/api/admin/usuarios/${id}/cambios-rol/`);
+  return Array.isArray(data) ? data : data?.results || [];
+};
+
+// H38: último respaldo automático ({ ultimo: {...} | null })
+export const getUltimoRespaldo = async () => {
+  const { data } = await api.get('/api/admin/respaldos/ultimo/');
+  return data?.ultimo ?? null;
+};
+
+// Archivos (PDF/Excel): se piden con el token y se devuelven como Blob.
+// Si el servidor responde un error, el cuerpo JSON llega como Blob: se convierte para leer "detail".
+async function pedirArchivo(ruta, params) {
+  try {
+    const respuesta = await api.get(ruta, { params, responseType: 'blob' });
+    return respuesta.data;
+  } catch (e) {
+    const cuerpo = e?.response?.data;
+    if (cuerpo instanceof Blob && typeof cuerpo.text === 'function') {
+      try { e.response.data = JSON.parse(await cuerpo.text()); } catch { /* no era JSON */ }
+    }
+    throw e;
+  }
+}
+
+export function guardarArchivo(blob, nombre) {
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function abrirArchivo(blob) {
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank', 'noopener');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// H32: mismo nombre que pone el servidor (el panel no puede leer Content-Disposition por CORS)
+export function nombreExportacion({ desde, hasta } = {}, formato, hoy = new Date()) {
+  let rango;
+  if (desde && hasta) rango = `${desde}_${hasta}`;
+  else if (desde) rango = `desde-${desde}`;
+  else if (hasta) rango = `hasta-${hasta}`;
+  else rango = `completo-${hoy.toISOString().slice(0, 10)}`;
+  return `foundia-reporte_${rango}.${formato}`;
+}
+
+export const exportarReporte = async ({ desde, hasta } = {}, formato) => {
+  const params = {};
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  return pedirArchivo(`/api/admin/dashboard/exportar.${formato}`, params);
+};
+
+// Lista paginada de DRF con filtros: devuelve { count, results, next, previous }
+async function pagina(ruta, filtros = {}, numero = 1) {
+  const params = { page: numero };
+  Object.entries(filtros).forEach(([k, v]) => { if (v !== '' && v != null) params[k] = v; });
+  const { data } = await api.get(ruta, { params });
+  if (Array.isArray(data)) return { count: data.length, results: data, next: null, previous: null };
+  return { count: data?.count ?? 0, results: data?.results || [], next: data?.next || null, previous: data?.previous || null };
+}
+
+// H41: custodia (BIBLIOTECA y ADMIN)
+export const getCustodias = async (filtros, numero) => pagina('/api/admin/custodias/', filtros, numero);
+
+export const registrarCustodia = async ({ objetoId, observaciones }) => {
+  const { data } = await api.post('/api/admin/custodias/', { objetoId: Number(objetoId), observaciones });
+  return data;
+};
+
+export const getEtiquetaCustodia = async (id) => pedirArchivo(`/api/admin/custodias/${id}/etiqueta/`);
+export const getConstanciaCustodia = async (id) => pedirArchivo(`/api/admin/custodias/${id}/constancia/`);
+
+// H54: custodias que superaron el plazo, disposición con confirmación y acta
+export const getCustodiasVencidas = async () => {
+  const { data } = await api.get('/api/admin/custodias/vencidas/');
+  return data;
+};
+
+export const disponerCustodia = async (id, { destino, motivo }) => {
+  const { data } = await api.post(`/api/admin/custodias/${id}/disponer/`, { destino, motivo, confirmar: true });
+  return data;
+};
+
+export const getActaDisposicion = async (id) => pedirArchivo(`/api/admin/custodias/${id}/acta/`);
+
+export const verificarQrCustodia = async (token) => {
+  const { data } = await api.get('/api/admin/custodias/verificar/', { params: { token } });
+  return data;
+};
+
+// H43: bandeja de reclamos de custodia y QR de retiro
+export const getReclamosCustodia = async (filtros, numero) => pagina('/api/admin/reclamos/', filtros, numero);
+
+export const resolverReclamo = async (id, { decision, motivo }) => {
+  const { data } = await api.post(`/api/admin/reclamos/${id}/resolver/`, { decision, motivo });
+  return data;
+};
+
+export const getQrRetiro = async (id) => pedirArchivo(`/api/admin/reclamos/${id}/qr-retiro/`);
+
+export const verificarQrRetiro = async (token) => {
+  const { data } = await api.get('/api/admin/reclamos/verificar-qr/', { params: { token } });
+  return data;
+};
+
+export const registrarRetiro = async (token) => {
+  const { data } = await api.post('/api/admin/reclamos/retirar/', { token });
+  return data;
+};
+
 export default api;

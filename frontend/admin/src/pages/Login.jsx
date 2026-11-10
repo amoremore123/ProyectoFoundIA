@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import { mensajeError, statusDe } from '../services/api';
+import { inicioDe } from '../config/permisos';
 
 // H15: motivo por el que el panel cerró la sesión (lo envía el interceptor de la API).
 const MOTIVOS = {
@@ -26,14 +27,14 @@ export default function Login() {
     setError('');
     setEnviando(true);
     try {
-      await login(correo.trim(), password);
-      navigate('/', { replace: true });
+      const data = await login(correo.trim(), password);
+      navigate(inicioDe(data?.usuario), { replace: true });
     } catch (err) {
       const status = statusDe(err);
       if (status === 401) {
         setError('Correo o contraseña incorrectos.');
       } else if (status === 403) {
-        setError('No tienes permisos de administrador.');
+        setError('Tu cuenta no tiene acceso al panel (se requiere rol Administrador o Biblioteca).');
       } else {
         setError(mensajeError(err, 'No se pudo iniciar sesión'));
       }

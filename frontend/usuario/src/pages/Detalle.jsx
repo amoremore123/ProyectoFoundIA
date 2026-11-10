@@ -1,6 +1,6 @@
 import ImagenObjeto from '../components/ImagenObjeto';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
 import CompartirPublicacion from '../components/CompartirPublicacion';
 import ReportarPublicacion from '../components/ReportarPublicacion';
@@ -39,6 +39,9 @@ export default function Detalle() {
   const [reclamoError, setReclamoError] = useState('');
   const [reclamando, setReclamando] = useState(false);
   const [confirmarReclamo, setConfirmarReclamo] = useState(false);
+  // H47: FINDI puede abrir esta pantalla con el reclamo listo para confirmar (no lo envía)
+  const location = useLocation();
+  const reclamoDesdeFindi = useRef(Boolean(location.state?.abrirReclamo));
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -120,6 +123,15 @@ export default function Detalle() {
       vivo = false;
     };
   }, [id, reintentosCoincidencias]);
+
+  // H47: si se llegó desde FINDI, se abre el diálogo de confirmación del reclamo (solo si se puede reclamar)
+  useEffect(() => {
+    if (!reclamoDesdeFindi.current || !objeto) return;
+    reclamoDesdeFindi.current = false;
+    const usuario = sesion.user;
+    const ajeno = usuario && String(usuario.id) !== String(objeto.publicadoPor?.id);
+    if (sesion.token && ajeno && objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO') setConfirmarReclamo(true);
+  }, [objeto, sesion.token, sesion.user]);
 
   if (cargando) return <Cargando />;
 

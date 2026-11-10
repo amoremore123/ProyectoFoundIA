@@ -35,7 +35,10 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // H37: la sesión local se cierra al instante y el token se revoca en el servidor (mejor esfuerzo)
   const logout = () => {
+    const actual = localStorage.getItem('admin_token');
+    if (actual) api.cerrarSesionServidor(actual).catch(() => {});
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_usuario');
     setToken(null);

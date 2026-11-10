@@ -171,6 +171,12 @@ export const interpretarConIA = async (mensaje, { signal } = {}) => {
   return data;
 };
 
+// H49: sugerencia de categoría y descripción al publicar. Usa la instancia con sesión; no guarda nada.
+export const sugerirPublicacion = async ({ nombre, descripcion, tipo }) => {
+  const { data } = await api.post('/api/asistente/sugerir-publicacion', { nombre, descripcion, tipo }, { timeout: 20000 });
+  return data;
+};
+
 // Fase 6: audio MP3 de una respuesta de FINDI (ElevenLabs desde el backend; la clave nunca llega aquí).
 // Si falla (503 sin configurar, 429 límite), quien lo usa lee con la voz del navegador.
 export const obtenerVozFindi = async (texto, { signal } = {}) => {
@@ -235,8 +241,33 @@ export const getPreferenciasNotificaciones = async ({ signal } = {}) => {
   return data;
 };
 
-export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos }) => {
-  const { data } = await api.put('/api/notificaciones/preferencias', { coincidencias, contactos, reclamos });
+// H53: "recordatorios" es opcional en el contrato; si no llega, el servidor conserva el valor guardado
+export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos, recordatorios }) => {
+  const cuerpo = { coincidencias, contactos, reclamos };
+  if (typeof recordatorios === 'boolean') cuerpo.recordatorios = recordatorios;
+  const { data } = await api.put('/api/notificaciones/preferencias', cuerpo);
+  return data;
+};
+
+// H37: cierre seguro. Se envía el token explícitamente porque la sesión local ya pudo borrarse.
+export const cerrarSesionServidor = async (token, { todos = false } = {}) => {
+  const { data } = await axios.post(
+    `${API_URL}/api/auth/${todos ? 'logout-all' : 'logout'}`,
+    null,
+    { headers: { Authorization: `Bearer ${token}` }, timeout: 8000 },
+  );
+  return data;
+};
+
+// H25: historial propio paginado con filtro TODAS | NO_LEIDAS | LEIDAS
+export const getHistorialNotificaciones = async ({ estado = 'TODAS', pagina = 0, tamano = 20 } = {}) => {
+  const { data } = await api.get('/api/notificaciones/historial', { params: { estado, pagina, tamano } });
+  return data;
+};
+
+// H25: marca como leídos todos los avisos de la cuenta del token
+export const marcarTodasNotificacionesLeidas = async () => {
+  const { data } = await api.put('/api/notificaciones/leidas');
   return data;
 };
 

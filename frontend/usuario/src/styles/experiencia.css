@@ -310,6 +310,10 @@ html[data-tema='oscuro'] .chip-encontrado { background: rgba(77, 144, 255, 0.16)
 .lista-notificaciones > li, .lista-mis-publicaciones > li { transition: transform 0.35s var(--suave), box-shadow 0.35s var(--suave); }
 .lista-notificaciones > li:hover, .lista-mis-publicaciones > li:hover { transform: translateY(-2px); }
 
+/* H53: etiqueta de los recordatorios de objetos sin resolver */
+.notificacion-tipo.tipo-recordatorio { background: var(--naranja-50); color: var(--naranja-texto); }
+html[data-tema='oscuro'] .notificacion-tipo.tipo-recordatorio { background: rgba(255, 133, 0, 0.16); color: #ffb366; }
+
 /* ---------- Aparición al hacer scroll ---------- */
 
 [data-reveal] { opacity: 0; transform: translateY(28px) scale(0.985); transition: opacity 0.8s var(--suave), transform 0.8s var(--suave); }
@@ -340,3 +344,29 @@ html[data-tema='oscuro'] .chip-encontrado { background: rgba(77, 144, 255, 0.16)
 
 /* El escenario de la portada usa 100vw: se recorta lo que sobra a los lados */
 .app-shell { overflow-x: clip; }
+
+/* H25: barra de filtros del historial y "ver más" */
+.notificaciones-barra { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
+.notificaciones-barra .filtro-segmentos { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-mini { padding: 6px 12px; min-height: 36px; font-size: 13px; }
+.notificaciones-mas { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 14px; }
+
+/* H49: sugerencia de FINDI al publicar */
+.sugerencia-ia { display: flex; flex-direction: column; gap: 8px; }
+.sugerencia-ia-fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sugerencia-ia-tarjeta { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--primary-100, #dbe4ff); background: var(--surface-2); }
+.sugerencia-ia-tarjeta h3 { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 15px; }
+.sugerencia-ia-tarjeta p { margin: 0; }
+.sugerencia-ia-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* H47: tarjetas de FINDI en el chat */
+.chat-tarjetas { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.chat-tarjeta-cifras { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); text-decoration: none; font-size: 13px; }
+.chat-tarjeta-cifras strong { display: inline-flex; align-items: center; gap: 6px; }
+.chat-tarjeta-cifras:hover { border-color: var(--primary); }
+.chat-acciones button.chat-accion { cursor: pointer; font-family: inherit; border: 0; }
+
+/* H51: enlace para saltar al contenido (visible solo al recibir foco) */
+.saltar-contenido { position: absolute; left: 12px; top: -60px; z-index: 1000; padding: 10px 16px; border-radius: 10px; background: var(--marino, #0b1f4d); color: #fff; font-weight: 600; text-decoration: none; transition: top 0.15s ease; }
+.saltar-contenido:focus, .saltar-contenido:focus-visible { top: 12px; outline: 3px solid var(--naranja, #ff8500); outline-offset: 2px; }
+main#contenido:focus { outline: none; }

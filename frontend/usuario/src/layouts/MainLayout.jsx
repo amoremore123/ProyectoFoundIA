@@ -12,8 +12,10 @@ export default function MainLayout() {
   return (
     <AsistenteProvider>
       <div className={`app-shell${pathname === '/' ? ' portada-cristal' : ''}`}>
+        {/* H51: primer elemento enfocable para saltar el menú con el teclado */}
+        <a href="#contenido" className="saltar-contenido">Saltar al contenido</a>
         <Navbar />
-        <main className="contenido">
+        <main className="contenido" id="contenido" tabIndex={-1}>
           {/* La clave por ruta repite la entrada suave en cada cambio de página */}
           <div className="vista" key={pathname}>
             <Outlet />

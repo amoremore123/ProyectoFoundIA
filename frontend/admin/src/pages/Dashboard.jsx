@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Icono from '../components/Icono';
 import { DonaRecuperacion, GraficoMensual } from '../components/GraficosPanel';
 import useContador from '../hooks/useContador';
+import UltimoRespaldo from '../components/UltimoRespaldo';
 import {
   actividadReciente, esVisible, haceCuanto, porMes, porcentajeRecuperacion, recientes, variacionMensual,
 } from '../utils/resumenAdmin';
@@ -177,6 +178,9 @@ export default function Dashboard() {
               )}
             </section>
 
+            <div className="panel-columna">
+            <UltimoRespaldo />
+
             <section className="tarjeta panel-tarjeta" aria-labelledby="titulo-actividad">
               <div className="panel-tarjeta-cabecera"><h2 id="titulo-actividad"><Icono nombre="reloj" tamano={18} /> Actividad reciente</h2></div>
               {actividad.length === 0 ? (
@@ -196,6 +200,7 @@ export default function Dashboard() {
                 </ul>
               )}
             </section>
+            </div>
           </div>
         </>
       )}

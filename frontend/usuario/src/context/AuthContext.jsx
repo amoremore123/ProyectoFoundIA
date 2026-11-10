@@ -58,15 +58,31 @@ export function AuthProvider({ children }) {
     setUser(usuario);
   };
 
-  const logout = () => {
+  const borrarSesionLocal = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setToken(null);
     setUser(null);
   };
 
+  // H37: la sesión local se cierra al instante y el token se revoca en el servidor.
+  // Si el servidor no responde, la sesión de este navegador igual queda cerrada.
+  const logout = () => {
+    const actual = localStorage.getItem('token');
+    borrarSesionLocal();
+    if (actual) api.cerrarSesionServidor(actual).catch(() => {});
+  };
+
+  // H37: cierra la sesión en todos los dispositivos de la cuenta. Primero confirma con el
+  // servidor; si falla, se informa y la sesión sigue abierta para poder reintentar.
+  const logoutTodos = async () => {
+    const actual = localStorage.getItem('token');
+    if (actual) await api.cerrarSesionServidor(actual, { todos: true });
+    borrarSesionLocal();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, registrar, verificar, logout, actualizarUsuario }}>
+    <AuthContext.Provider value={{ user, token, login, registrar, verificar, logout, logoutTodos, actualizarUsuario }}>
       {children}
     </AuthContext.Provider>
   );

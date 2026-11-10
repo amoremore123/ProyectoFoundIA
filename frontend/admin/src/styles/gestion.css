@@ -18,3 +18,31 @@
 .resolver-opciones label { display: inline-flex; align-items: center; gap: 6px; color: var(--text); cursor: pointer; }
 .resolver-opciones input { accent-color: var(--primary); }
 .textarea { min-height: 84px; height: auto; padding-top: 10px; padding-bottom: 10px; resize: vertical; font: inherit; }
+
+/* H36: roles, cambio con motivo e historial */
+.chip-rol { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--primary-100); color: var(--text); }
+.chip-rol.rol-admin { background: rgba(255, 133, 0, 0.14); color: #b45309; }
+.chip-rol.rol-biblioteca { background: rgba(22, 163, 74, 0.12); color: #15803d; }
+.acciones-rol { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.historial-roles { max-width: 720px; }
+.historial-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.historial-cabecera h2 { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; }
+.historial-lista { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+
+/* H41/H43: custodia y reclamos de biblioteca */
+.custodia-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.custodia-fila .formulario { max-width: none; }
+.custodia-fila h2, .retiro-panel h2 { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; }
+.custodia-resultado { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.25); }
+.custodia-resultado.aviso { background: var(--amarillo-50); border-color: rgba(180, 83, 9, 0.25); }
+.custodia-resultado p { margin: 0; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.custodia-resultado .btn { align-self: flex-start; }
+.filtro-custodia { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.retiro-panel { max-width: 720px; }
+.retiro-fila { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.retiro-fila .campo { flex: 1 1 260px; }
+.busqueda-fila { display: flex; gap: 8px; max-width: 480px; }
+.busqueda-fila .input { flex: 1; }
+.paginacion { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
+.chip-estado.pendiente { background: var(--amarillo-50); color: #7a5b00; }
+.acta-boton { margin-left: 8px; }

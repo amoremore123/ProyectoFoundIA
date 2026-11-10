@@ -6,6 +6,8 @@ const OPCIONES = [
   { campo: 'coincidencias', etiqueta: 'Posibles coincidencias', ayuda: 'Cuando aparece un objeto encontrado parecido a uno que perdiste.' },
   { campo: 'contactos', etiqueta: 'Solicitudes de contacto', ayuda: 'Cuando el dueño de un objeto perdido quiere contactarte por algo que encontraste.' },
   { campo: 'reclamos', etiqueta: 'Reclamos', ayuda: 'Cuando alguien dice que un objeto que publicaste es suyo.' },
+  // H53: recordatorio cuando un objeto que perdiste sigue sin resolverse después de varios días
+  { campo: 'recordatorios', etiqueta: 'Recordatorios', ayuda: 'Cuando un objeto que perdiste sigue sin resolverse después de varios días.' },
 ];
 
 const iguales = (a, b) => Boolean(a && b) && OPCIONES.every(({ campo }) => a[campo] === b[campo]);

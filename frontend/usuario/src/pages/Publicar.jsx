@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import MensajeError from '../components/MensajeError';
 import Cargando from '../components/Cargando';
 import Icono from '../components/Icono';
+import SugerenciaPublicacion from '../components/SugerenciaPublicacion';
+import { datosPrellenado } from '../utils/tarjetasFindi';
 import {
   actualizarObjeto, crearObjeto, getMisObjetos, mensajeError, statusDe, subirFotoObjeto,
 } from '../services/api';
@@ -32,15 +34,19 @@ export const ESTADOS_EDITABLES = ['ACTIVO', 'RECUPERADO', 'OCULTO'];
 // H1/H3/H4 al publicar y H5/H14 al editar: un solo formulario con las mismas reglas.
 export default function Publicar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { mostrarToast } = useToast();
   const { id: idEditar } = useParams();
   const editando = Boolean(idEditar);
+  // H47: datos que FINDI propuso y la persona confirmó; solo prellenan, no publican
+  const prellenado = editando ? {} : datosPrellenado(location.state?.prellenar);
   const [cargandoEdicion, setCargandoEdicion] = useState(editando);
   const [errorEdicion, setErrorEdicion] = useState('');
   const [intentoEdicion, setIntentoEdicion] = useState(0);
 
-  const [tipo, setTipo] = useState('PERDIDO');
-  const [form, setForm] = useState(VACIO);
+  const [tipo, setTipo] = useState(prellenado.tipo || 'PERDIDO');
+  const [form, setForm] = useState(() => ({ ...VACIO, ...(prellenado.categoriaId ? { categoriaId: prellenado.categoriaId } : {}), ...(prellenado.ubicacion ? { ubicacion: prellenado.ubicacion } : {}) }));
+  const vinoDeFindi = Object.keys(prellenado).length > 0;
   const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
   const [errores, setErrores] = useState({});
   const [errorGeneral, setErrorGeneral] = useState('');
@@ -285,6 +291,11 @@ export default function Publicar() {
         <Icono nombre="flechaIzq" tamano={16} /> {editando ? 'Volver a mis publicaciones' : 'Volver'}
       </button>
       <h1 className="pagina-titulo">{editando ? 'Editar publicación' : 'Publicar objeto'}</h1>
+      {vinoDeFindi && (
+        <p className="aviso-accion aviso-ok" role="status">
+          <Icono nombre="chispa" tamano={16} /> FINDI completó algunos datos con lo que le contaste. Revísalos antes de publicar.
+        </p>
+      )}
       <p className="pagina-subtitulo">
         {editando
           ? 'Corrige los datos de tu publicación. Se aplican las mismas reglas que al publicar.'
@@ -368,6 +379,28 @@ export default function Publicar() {
           {errores.categoriaId && <span className="campo-error">{errores.categoriaId}</span>}
         </label>
         <MensajeError mensaje={errorCategorias} onReintentar={reintentarCategorias} />
+
+        {/* H49: sugerencia opcional; sin IA o si falla, el formulario funciona igual */}
+        {!editando && (
+          <SugerenciaPublicacion
+            nombre={form.nombre}
+            descripcion={form.descripcion}
+            tipo={tipo}
+            categorias={categorias}
+            onAplicar={({ categoriaId, descripcion }) => {
+              setForm((f) => ({
+                ...f,
+                ...(categoriaId ? { categoriaId } : {}),
+                ...(descripcion ? { descripcion } : {}),
+              }));
+              setErrores((er) => ({
+                ...er,
+                ...(categoriaId ? { categoriaId: undefined } : {}),
+                ...(descripcion ? { descripcion: undefined } : {}),
+              }));
+            }}
+          />
+        )}
 
         <label className="campo">
           <span className="campo-label">Ubicación *</span>

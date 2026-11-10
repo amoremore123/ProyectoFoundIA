@@ -4,6 +4,7 @@ import { useTema } from '../context/TemaContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
+import { puedeVer } from '../config/permisos';
 
 // Menú en el orden del diseño aprobado. Solo módulos que existen: no hay pantallas de
 // notificaciones ni configuración en el panel (el modo claro/oscuro está al pie del menú).
@@ -15,6 +16,11 @@ const menu = [
   { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
   { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
   { to: '/estadisticas', icono: 'grafico', label: 'Estadísticas' },
+  // H41/H43: biblioteca
+  { to: '/custodia', icono: 'qr', label: 'Custodia' },
+  { to: '/reclamos', icono: 'bandeja', label: 'Reclamos' },
+  // H54: objetos no reclamados
+  { to: '/vencidos', icono: 'reloj', label: 'Vencidos' },
 ];
 
 export default function AdminLayout() {
@@ -36,11 +42,11 @@ export default function AdminLayout() {
         <div className="sidebar-logo">
           {/* El menú es marino en ambos modos: siempre la versión clara del logo */}
           <Logo tamano={32} claro />
-          <span className="sidebar-badge">Admin · Tecsup</span>
+          <span className="sidebar-badge">{user?.rol === 'BIBLIOTECA' ? 'Biblioteca' : 'Admin'} · Tecsup</span>
         </div>
 
         <nav className="sidebar-menu">
-          {menu.map((item) => (
+          {menu.filter((item) => puedeVer(user, item.to)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

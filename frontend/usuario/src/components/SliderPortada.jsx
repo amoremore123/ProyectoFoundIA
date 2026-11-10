@@ -161,7 +161,7 @@ export default function SliderPortada() {
                 <div className="findi-escenario">
                   <span className="findi-estela" aria-hidden="true" />
                   <img className="findi-imagen" src={IMAGEN_FINDI_HERO} alt="FINDI, el asistente de FoundIA, presentando una búsqueda" width="900" height="952" />
-                  <button type="button" className="findi-globo" onClick={() => abrir()} tabIndex={foco} aria-label="Hablar con FINDI">
+                  <button type="button" className="findi-globo" onClick={() => abrir()} tabIndex={foco}>
                     <span className="findi-globo-saludo">¡Hola! <span aria-hidden="true">👋</span></span>
                     <span>Soy <strong>FINDI</strong>, tu asistente de FoundIA. ¿En qué puedo ayudarte?</span>
                   </button>

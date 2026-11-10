@@ -1,13 +1,13 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Perfil from './Perfil';
 import { AuthProvider } from '../context/AuthContext';
-import { actualizarPerfil, getPerfil } from '../services/api';
+import { actualizarPerfil, cerrarSesionServidor, getPerfil } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
-  ...await importOriginal(), getPerfil: vi.fn(), actualizarPerfil: vi.fn(),
+  ...await importOriginal(), getPerfil: vi.fn(), actualizarPerfil: vi.fn(), cerrarSesionServidor: vi.fn(),
   // H34: el perfil también consulta la solicitud de eliminación
   getSolicitudEliminacion: vi.fn(async () => ({ id: null, estado: 'SIN_SOLICITUD', fechaSolicitud: null, repetido: false, informacion: '' })),
 }));
@@ -157,5 +157,55 @@ describe('H13 - Pantalla Perfil', () => {
     expect(await screen.findByText(/No se pudo cargar tu perfil/)).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByDisplayValue('Ana')).toBeTruthy();
+  });
+});
+
+describe('H37 - Cerrar sesión en todos los dispositivos', () => {
+  function conLogin() {
+    return render(
+      <MemoryRouter initialEntries={['/perfil']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/login" element={<p>Pantalla de login</p>} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+  }
+
+  it('pide confirmación y Cancelar no llama al servidor', async () => {
+    const user = userEvent.setup();
+    conLogin();
+    await screen.findByDisplayValue('Ana');
+    await user.click(screen.getByRole('button', { name: /Cerrar sesión en todos los dispositivos/ }));
+    expect(screen.getByText('¿Cerrar la sesión en todos tus dispositivos?')).toBeTruthy();
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
+    expect(cerrarSesionServidor).not.toHaveBeenCalled();
+    expect(localStorage.getItem('token')).toBe('jwt-de-prueba');
+  });
+
+  it('al confirmar revoca en el servidor, borra la sesión local y va al login', async () => {
+    cerrarSesionServidor.mockResolvedValueOnce({ mensaje: 'ok' });
+    const user = userEvent.setup();
+    conLogin();
+    await screen.findByDisplayValue('Ana');
+    await user.click(screen.getByRole('button', { name: /Cerrar sesión en todos los dispositivos/ }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar en todos' }));
+    expect(await screen.findByText('Pantalla de login')).toBeTruthy();
+    expect(cerrarSesionServidor).toHaveBeenCalledWith('jwt-de-prueba', { todos: true });
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('si el servidor falla, la sesión sigue abierta y se muestra el error', async () => {
+    cerrarSesionServidor.mockRejectedValueOnce(new Error('sin red'));
+    const user = userEvent.setup();
+    conLogin();
+    await screen.findByDisplayValue('Ana');
+    await user.click(screen.getByRole('button', { name: /Cerrar sesión en todos los dispositivos/ }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar en todos' }));
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    expect(localStorage.getItem('token')).toBe('jwt-de-prueba');
+    expect(screen.queryByText('Pantalla de login')).toBeNull();
   });
 });

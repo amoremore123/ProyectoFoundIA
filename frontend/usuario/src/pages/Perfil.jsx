@@ -4,6 +4,7 @@ import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
 import SolicitudEliminacion from '../components/SolicitudEliminacion';
+import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { actualizarPerfil, getPerfil, mensajeError, statusDe } from '../services/api';
@@ -22,7 +23,10 @@ function campoDelError(mensaje = '') {
 // H13 - Edición del perfil propio. Las contraseñas solo viven en el formulario:
 // se borran al guardar o cancelar y nunca se guardan en el navegador.
 export default function Perfil() {
-  const { logout, actualizarUsuario } = useAuth();
+  const { logout, logoutTodos, actualizarUsuario } = useAuth();
+  const [confirmarTodos, setConfirmarTodos] = useState(false);
+  const [cerrandoTodos, setCerrandoTodos] = useState(false);
+  const [errorTodos, setErrorTodos] = useState('');
   const { mostrarToast } = useToast();
   const navigate = useNavigate();
 
@@ -106,6 +110,20 @@ export default function Perfil() {
   const cerrarSesion = () => {
     logout();
     navigate('/login', { replace: true });
+  };
+
+  // H37: cerrar la sesión en todos los dispositivos de la cuenta (pide confirmación)
+  const cerrarEnTodos = async () => {
+    setCerrandoTodos(true);
+    setErrorTodos('');
+    try {
+      await logoutTodos();
+      navigate('/login', { replace: true, state: { aviso: 'Cerraste la sesión en todos tus dispositivos.' } });
+    } catch (e) {
+      setErrorTodos(mensajeError(e, 'No se pudo cerrar la sesión en todos los dispositivos'));
+      setCerrandoTodos(false);
+      setConfirmarTodos(false);
+    }
   };
 
   if (cargando) return <Cargando />;
@@ -192,7 +210,22 @@ export default function Perfil() {
         <button type="button" className="btn btn-peligro btn-bloque" onClick={cerrarSesion}>
           <Icono nombre="salir" tamano={16} /> Cerrar sesión
         </button>
+        <button type="button" className="btn btn-fantasma btn-bloque" onClick={() => setConfirmarTodos(true)} disabled={cerrandoTodos}>
+          <Icono nombre="escudo" tamano={16} /> Cerrar sesión en todos los dispositivos
+        </button>
+        {errorTodos && <p className="campo-error" role="alert">{errorTodos}</p>}
       </div>
+
+      <ConfirmarDialogo
+        abierto={confirmarTodos}
+        titulo="¿Cerrar la sesión en todos tus dispositivos?"
+        mensaje="Se cerrará la sesión en este navegador, en otros navegadores y en la app. Tendrás que volver a iniciar sesión en cada uno."
+        textoConfirmar="Cerrar en todos"
+        peligro
+        procesando={cerrandoTodos}
+        onConfirmar={cerrarEnTodos}
+        onCancelar={() => setConfirmarTodos(false)}
+      />
 
       {/* H34: solicitud de eliminación de la cuenta */}
       <SolicitudEliminacion />

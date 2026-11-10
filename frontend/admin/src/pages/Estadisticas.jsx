@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import ExportarReporte from '../components/ExportarReporte';
 import { getDashboard, mensajeError } from '../services/api';
 import Icono from '../components/Icono';
 import useContador from '../hooks/useContador';
@@ -233,6 +234,12 @@ export default function Estadisticas() {
         </div>
         {errorFiltro && <p className="campo-error filtro-error" role="alert">{errorFiltro}</p>}
         <p className="filtro-ayuda">Se filtra por fecha de publicación (hora UTC). Ocultos y eliminados no se cuentan.</p>
+        {/* H32: se exporta el rango ya aplicado, con las mismas cifras de esta pantalla */}
+        <ExportarReporte
+          rango={aplicados}
+          deshabilitado={cargando || Boolean(error)}
+          vacio={Boolean(datos) && datos.objetos.perdidos + datos.objetos.encontrados === 0}
+        />
       </form>
 
       {error && (
