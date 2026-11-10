@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoriaViewSet,
+    CustodiaViewSet,
     DashboardView,
     LoginView,
     ObjetoViewSet,
@@ -13,6 +14,7 @@ from .views import (
 router = DefaultRouter()
 router.register("usuarios", UsuarioViewSet, basename="usuarios")
 router.register("publicaciones", ObjetoViewSet, basename="publicaciones")
+router.register("custodias", CustodiaViewSet, basename="custodias")
 # H26/H28 son API del Sprint 2, no extras opcionales del panel nativo.
 router.register("categorias", CategoriaViewSet, basename="categorias")
 router.register("reportes", ReporteViewSet, basename="reportes")

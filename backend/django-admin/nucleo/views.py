@@ -4,18 +4,35 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 import bcrypt
 import jwt
 from django.db import IntegrityError, transaction
+from django.db.models import Q
+from django.http import HttpResponse
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import ROL_CHOICES, CambioRol, Categoria, Objeto, Reporte, Usuario
+from .custodia import constancia_pdf, etiqueta_pdf, firmar_token_custodia, verificar_token_custodia
+from .models import (
+    ROL_CHOICES,
+    CambioRol,
+    Categoria,
+    Custodia,
+    Objeto,
+    Reporte,
+    SecuenciaCustodia,
+    Usuario,
+)
 from .authentication import get_jwt_secret, sello_credencial
-from .permissions import EsAdmin
+from .permissions import EsAdmin, EsBibliotecaOAdmin
 from .serializers import (
     CategoriaSerializer,
+    CustodiaCreateSerializer,
+    CustodiaObjetoSerializer,
+    CustodiaSerializer,
     LoginSerializer,
     ObjetoSerializer,
     ReporteSerializer,
@@ -304,6 +321,152 @@ class ObjetoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         objeto.estado = estado
         objeto.save(update_fields=["estado", "fecha_actualizacion"])
         return Response(ObjetoSerializer(objeto).data)
+
+
+def _siguiente_codigo_custodia(anio):
+    """H41: consecutivo por año, protegido con bloqueo de fila y reintento."""
+    for _ in range(5):
+        try:
+            with transaction.atomic():
+                secuencia, _ = SecuenciaCustodia.objects.select_for_update().get_or_create(
+                    anio=anio, defaults={"ultimo": 0})
+                secuencia.ultimo += 1
+                secuencia.save(update_fields=["ultimo"])
+                return f"FND-{anio}-{secuencia.ultimo:04d}"
+        except IntegrityError:
+            continue
+    raise IntegrityError("No se pudo generar el código único de custodia.")
+
+
+class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H41 - recepción de objetos en custodia.
+
+    GET  /api/admin/custodias/            lista con filtros q, estado, categoriaId, desde, hasta
+    POST /api/admin/custodias/            {"objetoId": 12, "observaciones": "..."}
+    GET  /api/admin/custodias/{id}/       detalle
+    GET  /api/admin/custodias/{id}/etiqueta/    PDF con QR y código (sin datos personales)
+    GET  /api/admin/custodias/{id}/constancia/  PDF de recepción
+    GET  /api/admin/custodias/verificar/?token=...  verifica el QR firmado
+
+    Solo BIBLIOTECA y ADMIN. El estado del objeto pasa a EN_CUSTODIA en la
+    misma transacción; nunca se registra dos veces el mismo objeto.
+    """
+
+    queryset = Custodia.objects.select_related(
+        "objeto", "objeto__categoria", "recibido_por"
+    ).order_by("-fecha_recepcion", "-id")
+    serializer_class = CustodiaSerializer
+    permission_classes = [IsAuthenticated, EsBibliotecaOAdmin]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        estado = self.request.query_params.get("estado")
+        if estado:
+            if estado not in ("EN_CUSTODIA", "RETIRADO"):
+                raise ValidationError({"estado": "Estado inválido; usa EN_CUSTODIA o RETIRADO."})
+            qs = qs.filter(estado=estado)
+        q = (self.request.query_params.get("q") or "").strip()
+        if q:
+            qs = qs.filter(Q(codigo__icontains=q) | Q(objeto__nombre__icontains=q))
+        categoria = self.request.query_params.get("categoriaId")
+        if categoria:
+            qs = qs.filter(objeto__categoria_id=categoria)
+        desde = self.request.query_params.get("desde")
+        if desde:
+            fecha = parse_date(desde)
+            if fecha is None:
+                raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
+            qs = qs.filter(fecha_recepcion__date__gte=fecha)
+        hasta = self.request.query_params.get("hasta")
+        if hasta:
+            fecha = parse_date(hasta)
+            if fecha is None:
+                raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
+            qs = qs.filter(fecha_recepcion__date__lte=fecha)
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        entrada = CustodiaCreateSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        objeto_id = entrada.validated_data["objetoId"]
+        observaciones = (entrada.validated_data.get("observaciones") or "").strip() or None
+
+        with transaction.atomic():
+            objeto = Objeto.objects.select_for_update().select_related("categoria").filter(
+                pk=objeto_id).first()
+            if objeto is None:
+                return Response({"detail": "Publicación no encontrada."},
+                                status=status.HTTP_404_NOT_FOUND)
+            if objeto.estado in ("ELIMINADO", "RECUPERADO"):
+                return Response(
+                    {"detail": "La publicación no está disponible para custodia."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if objeto.tipo != "ENCONTRADO":
+                return Response(
+                    {"detail": "Solo se reciben objetos de tipo ENCONTRADO."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if Custodia.objects.filter(objeto_id=objeto.id).exists():
+                return Response(
+                    {"detail": "La publicación ya está registrada en custodia."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            custodia = Custodia(
+                objeto=objeto,
+                codigo=_siguiente_codigo_custodia(timezone.localdate().year),
+                recibido_por=request.user,
+                fecha_recepcion=timezone.now().replace(microsecond=0),
+                observaciones=observaciones,
+                estado="EN_CUSTODIA",
+            )
+            custodia.token_qr = firmar_token_custodia(custodia)
+            custodia.save()
+            objeto.estado = "EN_CUSTODIA"
+            objeto.save(update_fields=["estado", "fecha_actualizacion"])
+
+        return Response(CustodiaSerializer(custodia).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="etiqueta")
+    def etiqueta(self, request, pk=None):
+        custodia = self.get_object()
+        respuesta = HttpResponse(etiqueta_pdf(custodia), content_type="application/pdf")
+        respuesta["Content-Disposition"] = (
+            f'inline; filename="etiqueta-{custodia.codigo}.pdf"')
+        return respuesta
+
+    @action(detail=True, methods=["get"], url_path="constancia")
+    def constancia(self, request, pk=None):
+        custodia = self.get_object()
+        respuesta = HttpResponse(constancia_pdf(custodia), content_type="application/pdf")
+        respuesta["Content-Disposition"] = (
+            f'attachment; filename="constancia-{custodia.codigo}.pdf"')
+        return respuesta
+
+    @action(detail=False, methods=["get"], url_path="verificar")
+    def verificar(self, request):
+        token = (request.query_params.get("token") or "").strip()
+        if not token:
+            return Response({"detail": "Falta el token del QR."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            datos = verificar_token_custodia(token)
+        except jwt.InvalidTokenError:
+            return Response({"detail": "El token del QR no es válido."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        custodia = Custodia.objects.select_related("objeto", "objeto__categoria").filter(
+            codigo=datos["sub"], objeto_id=datos.get("objeto")).first()
+        if custodia is None:
+            return Response({"detail": "No existe una custodia con ese token."},
+                            status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            "valido": True,
+            "codigo": custodia.codigo,
+            "estado": custodia.estado,
+            "objeto": CustodiaObjetoSerializer(custodia.objeto).data,
+            "fechaRecepcion": custodia.fecha_recepcion.isoformat(),
+        })
 
 
 class ReporteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

@@ -57,7 +57,8 @@ public class BusquedaService {
 
         Specification<Objeto> filtros = (root, query, cb) -> {
             var condiciones = new ArrayList<Predicate>();
-            condiciones.add(root.get("estado").in(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO));
+            condiciones.add(root.get("estado").in(
+                    EstadoObjeto.ACTIVO, EstadoObjeto.EN_CUSTODIA, EstadoObjeto.RECUPERADO));
             if (f.q() != null && !f.q().isBlank()) {
                 String texto = like(f.q());
                 condiciones.add(cb.or(

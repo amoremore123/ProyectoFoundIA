@@ -23,6 +23,8 @@ DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS preferencias_notificacion;
 DROP TABLE IF EXISTS avisos_coincidencia;
 DROP TABLE IF EXISTS reclamos;
+DROP TABLE IF EXISTS custodias;
+DROP TABLE IF EXISTS secuencias_custodia;
 DROP TABLE IF EXISTS notificaciones;
 DROP TABLE IF EXISTS contactos;
 DROP TABLE IF EXISTS coincidencias;
@@ -99,7 +101,7 @@ CREATE TABLE objetos (
         ON DELETE RESTRICT,
     CONSTRAINT chk_objetos_tipo CHECK (tipo IN ('PERDIDO', 'ENCONTRADO')),
     CONSTRAINT chk_objetos_estado
-        CHECK (estado IN ('ACTIVO', 'RECUPERADO', 'OCULTO', 'ELIMINADO')),
+        CHECK (estado IN ('ACTIVO', 'EN_CUSTODIA', 'RECUPERADO', 'OCULTO', 'ELIMINADO')),
     CONSTRAINT chk_objetos_coordenadas CHECK (
         (latitud  IS NULL OR (latitud  >= -90   AND latitud  <= 90)) AND
         (longitud IS NULL OR (longitud >= -180  AND longitud <= 180))
@@ -214,6 +216,37 @@ CREATE TABLE reclamos (
 ) ENGINE = InnoDB;
 
 CREATE INDEX idx_reclamos_usuario ON reclamos (usuario_id);
+
+-- =====================================================================
+-- 7.1 CUSTODIA (H41)
+-- =====================================================================
+-- Consecutivo por año para el código FND-YYYY-####.
+CREATE TABLE secuencias_custodia (
+    anio   INT NOT NULL PRIMARY KEY,
+    ultimo INT NOT NULL DEFAULT 0
+) ENGINE = InnoDB;
+
+CREATE TABLE custodias (
+    id               BIGINT       NOT NULL AUTO_INCREMENT,
+    objeto_id        BIGINT       NOT NULL,
+    codigo           VARCHAR(20)  NOT NULL,
+    token_qr         VARCHAR(500) NOT NULL,
+    recibido_por_id  BIGINT       NOT NULL,
+    fecha_recepcion  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observaciones    TEXT         NULL,
+    estado           VARCHAR(20)  NOT NULL DEFAULT 'EN_CUSTODIA',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_custodias_objeto (objeto_id),
+    UNIQUE KEY uq_custodias_codigo (codigo),
+    CONSTRAINT fk_custodias_objeto FOREIGN KEY (objeto_id)
+        REFERENCES objetos (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_custodias_recibido_por FOREIGN KEY (recibido_por_id)
+        REFERENCES usuarios (id) ON DELETE RESTRICT,
+    CONSTRAINT chk_custodias_estado CHECK (estado IN ('EN_CUSTODIA', 'RETIRADO'))
+) ENGINE = InnoDB;
+
+CREATE INDEX idx_custodias_estado ON custodias (estado);
+CREATE INDEX idx_custodias_recibido_por ON custodias (recibido_por_id);
 
 -- =====================================================================
 -- 8. NOTIFICACIONES

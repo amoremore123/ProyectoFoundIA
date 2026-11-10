@@ -31,7 +31,9 @@ import java.time.ZoneOffset;
 @Service
 public class ObjetoService {
 
-    private static final List<EstadoObjeto> ESTADOS_PUBLICOS = List.of(EstadoObjeto.ACTIVO, EstadoObjeto.RECUPERADO);
+    // H41: un objeto en custodia sigue visible y su detalle informa el estado.
+    private static final List<EstadoObjeto> ESTADOS_PUBLICOS = List.of(
+            EstadoObjeto.ACTIVO, EstadoObjeto.EN_CUSTODIA, EstadoObjeto.RECUPERADO);
     private static final Sort ORDEN_PUBLICACION = Sort.by(Sort.Direction.DESC, "fechaPublicacion", "id");
 
     private final ObjetoRepository objetoRepository;

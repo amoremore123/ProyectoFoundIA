@@ -6,10 +6,12 @@ from .models import (
     Categoria,
     Coincidencia,
     Contacto,
+    Custodia,
     Foto,
     Notificacion,
     Objeto,
     Reporte,
+    SecuenciaCustodia,
     Usuario,
 )
 
@@ -62,6 +64,18 @@ class ContactoAdmin(admin.ModelAdmin):
 class NotificacionAdmin(admin.ModelAdmin):
     list_display = ("id", "usuario", "titulo", "tipo", "leida", "fecha_creacion")
     list_filter = ("leida", "tipo")
+
+
+@admin.register(Custodia)
+class CustodiaAdmin(admin.ModelAdmin):
+    list_display = ("id", "codigo", "objeto", "estado", "recibido_por", "fecha_recepcion")
+    list_filter = ("estado",)
+    search_fields = ("codigo", "objeto__nombre")
+
+
+@admin.register(SecuenciaCustodia)
+class SecuenciaCustodiaAdmin(admin.ModelAdmin):
+    list_display = ("anio", "ultimo")
 
 
 @admin.register(Reporte)

@@ -66,6 +66,11 @@ ESTADO_REPORTE_CHOICES = [
     ("RECHAZADO", "RECHAZADO"),
 ]
 
+ESTADO_CUSTODIA_CHOICES = [
+    ("EN_CUSTODIA", "EN_CUSTODIA"),
+    ("RETIRADO", "RETIRADO"),
+]
+
 
 class Usuario(models.Model):
     # DRF/DRF auth necesitan request.user.is_authenticated (no es un campo BD).
@@ -274,6 +279,48 @@ class CambioRol(models.Model):
 
     def __str__(self):
         return f"{self.usuario_id}: {self.rol_anterior} -> {self.rol_nuevo}"
+
+
+class SecuenciaCustodia(models.Model):
+    """H41: consecutivo por año para el código FND-YYYY-#### sin repetidos."""
+
+    anio = models.IntegerField(primary_key=True)
+    ultimo = models.IntegerField(default=0)
+
+    class Meta:
+        managed = False
+        db_table = "secuencias_custodia"
+
+    def __str__(self):
+        return f"{self.anio}: {self.ultimo}"
+
+
+class Custodia(models.Model):
+    """H41: recepción de un objeto con código único, token QR firmado y constancia."""
+
+    objeto = models.OneToOneField(
+        Objeto, on_delete=models.DO_NOTHING, db_column="objeto_id",
+        related_name="custodia",
+    )
+    codigo = models.CharField(max_length=20, unique=True)
+    token_qr = models.CharField(max_length=500)
+    recibido_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="recibido_por_id",
+        related_name="custodias_recibidas",
+    )
+    fecha_recepcion = models.DateTimeField(default=timezone.now, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
+    estado = models.CharField(
+        max_length=20, choices=ESTADO_CUSTODIA_CHOICES, default="EN_CUSTODIA"
+    )
+
+    class Meta:
+        managed = False
+        db_table = "custodias"
+        ordering = ["-fecha_recepcion", "-id"]
+
+    def __str__(self):
+        return f"{self.codigo} ({self.estado})"
 
 
 class Reporte(models.Model):

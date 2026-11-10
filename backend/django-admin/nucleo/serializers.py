@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Categoria, Notificacion, Objeto, Reporte, Usuario
+from .models import Categoria, Custodia, Notificacion, Objeto, Reporte, Usuario
 
 
 class LoginSerializer(serializers.Serializer):
@@ -95,6 +95,62 @@ class ReporteSerializer(serializers.ModelSerializer):
             "resuelto_por",
         ]
         read_only_fields = fields
+
+
+class CustodiaObjetoSerializer(serializers.ModelSerializer):
+    """H41: datos del objeto para la bandeja de custodia, sin datos del autor."""
+
+    categoria = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Objeto
+        fields = ["id", "nombre", "descripcion", "ubicacion", "fecha_objeto", "tipo", "estado", "categoria"]
+
+    def get_categoria(self, obj) -> str:
+        return obj.categoria.nombre if obj.categoria else ""
+
+
+class CustodiaSerializer(serializers.ModelSerializer):
+    objeto = CustodiaObjetoSerializer(read_only=True)
+    recibidoPor = serializers.SerializerMethodField()
+    fechaRecepcion = serializers.DateTimeField(source="fecha_recepcion", read_only=True)
+    tokenQr = serializers.CharField(source="token_qr", read_only=True)
+    etiquetaUrl = serializers.SerializerMethodField()
+    constanciaUrl = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Custodia
+        fields = [
+            "id", "codigo", "objeto", "recibidoPor", "fechaRecepcion",
+            "observaciones", "estado", "tokenQr", "etiquetaUrl", "constanciaUrl",
+        ]
+        read_only_fields = fields
+
+    def get_recibidoPor(self, obj) -> dict:
+        return {
+            "id": obj.recibido_por_id,
+            "nombre": f"{obj.recibido_por.nombre} {obj.recibido_por.apellido}".strip(),
+        }
+
+    def get_etiquetaUrl(self, obj) -> str:
+        return f"/api/admin/custodias/{obj.pk}/etiqueta/"
+
+    def get_constanciaUrl(self, obj) -> str:
+        return f"/api/admin/custodias/{obj.pk}/constancia/"
+
+
+class CustodiaCreateSerializer(serializers.Serializer):
+    objetoId = serializers.IntegerField()
+    observaciones = serializers.CharField(
+        required=False, allow_blank=True, max_length=1000, trim_whitespace=True
+    )
+
+    def validate(self, attrs):
+        if set(self.initial_data) - {"objetoId", "observaciones"}:
+            raise serializers.ValidationError(
+                "Solo se admiten objetoId y observaciones; el responsable y la fecha los registra el servidor."
+            )
+        return attrs
 
 
 class NotificacionSerializer(serializers.ModelSerializer):
