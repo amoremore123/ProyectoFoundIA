@@ -44,6 +44,13 @@ public class Reclamo {
     @Column(name = "fecha_reclamo", nullable = false, updatable = false)
     private LocalDateTime fechaReclamo;
 
+    // H43/H45: estado del QR de retiro, sin exponer el token en el asistente.
+    @Column(name = "qr_retiro_expira")
+    private LocalDateTime qrRetiroExpira;
+
+    @Column(name = "qr_retiro_usado_en")
+    private LocalDateTime qrRetiroUsadoEn;
+
     @PrePersist
     void prePersist() {
         if (fechaReclamo == null) {

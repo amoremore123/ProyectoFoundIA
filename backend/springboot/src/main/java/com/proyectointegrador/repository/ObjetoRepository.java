@@ -28,4 +28,8 @@ public interface ObjetoRepository extends JpaRepository<Objeto, Long>, JpaSpecif
 
     @EntityGraph(attributePaths = {"usuario", "categoria", "fotos"})
     List<Objeto> findByTipoAndCategoriaIdAndEstado(TipoObjeto tipo, Long categoriaId, EstadoObjeto estado);
+
+    long countByUsuarioId(Long usuarioId);
+
+    long countByUsuarioIdAndEstado(Long usuarioId, EstadoObjeto estado);
 }

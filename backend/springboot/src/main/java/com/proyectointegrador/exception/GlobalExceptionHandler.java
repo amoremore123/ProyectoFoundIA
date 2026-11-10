@@ -65,6 +65,14 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
+    @ExceptionHandler(LimiteAsistenteException.class)
+    public ResponseEntity<ApiError> handleLimiteAsistente(LimiteAsistenteException ex, HttpServletRequest request) {
+        ApiError body = ApiError.of(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getSegundosRestantes()))
+                .body(body);
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
