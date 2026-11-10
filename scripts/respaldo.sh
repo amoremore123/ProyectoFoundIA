@@ -67,7 +67,7 @@ escapar_cnf() {
 } >"$CNF"
 chmod 600 "$CNF"
 
-mysql_cmd=(mysql --defaults-extra-file="$CNF" --connect-timeout=10 --batch --skip-column-names)
+mysql_cmd=(mysql --defaults-extra-file="$CNF" --connect-timeout=10 --batch --skip-column-names --database="$DB_NAME")
 
 sanitizar_mensaje() {
     # Quita saltos de línea y barras invertidas, duplica comillas y limita a 500.
