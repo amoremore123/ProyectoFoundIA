@@ -2,9 +2,10 @@
 
 > Estado de esta entrega: detección programada, generación de la notificación
 > in-app, preferencia y migración SQL implementadas y probadas en Spring Boot
-> con H2. La visualización en la web (Yajaira) y en Android (Amore) queda en
-> sus capas; el contrato ya está disponible. La migración no se ejecutó contra
-> un MySQL real en este equipo porque el daemon de Docker no estaba disponible.
+> con H2. Verificadas contra MySQL 8.0.46 con Docker el 2026-11-10: la migración
+> es idempotente y el scheduler real generó los recordatorios sin duplicarlos.
+> La visualización en la web (Yajaira) y en Android (Amore) queda en sus capas;
+> el contrato ya está disponible.
 
 ## Cuándo un objeto está sin resolver
 
@@ -140,6 +141,16 @@ recordatorio del periodo actual.
 
 También se ejecutó `PreferenciasIntegrationTest` (**14 pruebas**) para
 comprobar que el contrato de H24 sigue funcionando.
+
+- **Verificación real con Docker/MySQL 8.0.46 (2026-11-10):**
+  `database/migracion_h53_recordatorios.sql` se ejecutó dos veces sin error
+  sobre una base nueva (20 tablas y una sola columna `recordatorios`).
+  El scheduler, con `RECORDATORIOS_RETRASO_INICIAL_MS=15000` e intervalo de
+  60 s, generó 3 avisos para los objetos `PERDIDO` + `ACTIVO` del seed
+  (ids 2, 4 y 5) en el periodo `2026-11`; el segundo ciclo mantuvo 3 filas y
+  3 notificaciones. `GET/PUT /api/notificaciones/preferencias` devolvió
+  `true`, `false`, conservó `false` con el body de tres campos de H24 y volvió
+  a `true` al reactivarlo.
 
 ## Tareas de otras capas
 
