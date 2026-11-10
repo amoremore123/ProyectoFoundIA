@@ -10,6 +10,7 @@ from .models import (
     Foto,
     Notificacion,
     Objeto,
+    Reclamo,
     Reporte,
     SecuenciaCustodia,
     Usuario,
@@ -76,6 +77,13 @@ class CustodiaAdmin(admin.ModelAdmin):
 @admin.register(SecuenciaCustodia)
 class SecuenciaCustodiaAdmin(admin.ModelAdmin):
     list_display = ("anio", "ultimo")
+
+
+@admin.register(Reclamo)
+class ReclamoAdmin(admin.ModelAdmin):
+    list_display = ("id", "objeto", "usuario", "estado", "fecha_reclamo", "resuelto_por", "fecha_resolucion")
+    list_filter = ("estado",)
+    search_fields = ("objeto__nombre", "usuario__correo")
 
 
 @admin.register(Reporte)

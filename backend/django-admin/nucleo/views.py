@@ -1,6 +1,8 @@
 import os
 from datetime import datetime, timedelta, timezone as dt_timezone
 
+import hmac
+
 import bcrypt
 import jwt
 from django.db import IntegrityError, transaction
@@ -21,13 +23,21 @@ from .models import (
     CambioRol,
     Categoria,
     Custodia,
+    Notificacion,
     Objeto,
+    Reclamo,
     Reporte,
     SecuenciaCustodia,
     Usuario,
 )
 from .authentication import get_jwt_secret, sello_credencial
 from .permissions import EsAdmin, EsBibliotecaOAdmin
+from .reclamos_custodia import (
+    fecha_expiracion_retiro,
+    generar_token_retiro,
+    qr_retiro_pdf,
+    token_retiro_vigente,
+)
 from .serializers import (
     CategoriaSerializer,
     CustodiaCreateSerializer,
@@ -35,7 +45,10 @@ from .serializers import (
     CustodiaSerializer,
     LoginSerializer,
     ObjetoSerializer,
+    ReclamoResolucionSerializer,
+    ReclamoSerializer,
     ReporteSerializer,
+    RetiroSerializer,
     UsuarioSerializer,
 )
 
@@ -467,6 +480,236 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
             "objeto": CustodiaObjetoSerializer(custodia.objeto).data,
             "fechaRecepcion": custodia.fecha_recepcion.isoformat(),
         })
+
+
+def _notificar_reclamo(usuario, titulo, mensaje, enlace=None):
+    """H43: el aviso queda en la bandeja de notificaciones que ya lee Spring."""
+    Notificacion.objects.create(
+        usuario=usuario, titulo=titulo, mensaje=mensaje, tipo="RECLAMO", enlace=enlace,
+    )
+
+
+def _estado_qr_retiro(reclamo, ahora=None):
+    ahora = ahora or timezone.now()
+    if not reclamo.qr_retiro_token:
+        return "SIN_QR"
+    if reclamo.qr_retiro_usado_en:
+        return "USADO"
+    if not reclamo.qr_retiro_expira or reclamo.qr_retiro_expira <= ahora:
+        return "VENCIDO"
+    if reclamo.estado != "ACEPTADO":
+        return "NO_VIGENTE"
+    return "VIGENTE"
+
+
+class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H43 - bandeja de reclamos de custodia y QR de retiro.
+
+    GET  /api/admin/reclamos/                 bandeja de objetos con custodia
+    GET  /api/admin/reclamos/{id}/            detalle con respuesta de verificación
+    POST /api/admin/reclamos/{id}/resolver/   {"decision": "ACEPTADO"|"RECHAZADO", "motivo": "..."}
+    GET  /api/admin/reclamos/{id}/qr-retiro/  PDF del QR de retiro
+    GET  /api/admin/reclamos/verificar-qr/?token=...  valida sin consumir
+    POST /api/admin/reclamos/retirar/         {"token": "..."} consume el QR una sola vez
+
+    Solo BIBLIOTECA y ADMIN. Aceptar un reclamo rechaza los rivales pendientes
+    del mismo objeto y genera un QR de retiro válido 7 días.
+    """
+
+    queryset = Reclamo.objects.select_related(
+        "objeto", "objeto__categoria", "usuario", "resuelto_por"
+    ).filter(objeto__custodia__isnull=False).order_by("-fecha_reclamo", "-id")
+    serializer_class = ReclamoSerializer
+    permission_classes = [IsAuthenticated, EsBibliotecaOAdmin]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        estado = self.request.query_params.get("estado")
+        if estado:
+            if estado not in ("PENDIENTE", "ACEPTADO", "RECHAZADO", "RETIRADO"):
+                raise ValidationError({"estado": "Estado inválido."})
+            qs = qs.filter(estado=estado)
+        q = (self.request.query_params.get("q") or "").strip()
+        if q:
+            qs = qs.filter(
+                Q(objeto__nombre__icontains=q)
+                | Q(usuario__nombre__icontains=q)
+                | Q(usuario__apellido__icontains=q)
+                | Q(usuario__correo__icontains=q)
+            )
+        objeto_id = self.request.query_params.get("objetoId")
+        if objeto_id:
+            qs = qs.filter(objeto_id=objeto_id)
+        desde = self.request.query_params.get("desde")
+        if desde:
+            fecha = parse_date(desde)
+            if fecha is None:
+                raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
+            qs = qs.filter(fecha_reclamo__date__gte=fecha)
+        hasta = self.request.query_params.get("hasta")
+        if hasta:
+            fecha = parse_date(hasta)
+            if fecha is None:
+                raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
+            qs = qs.filter(fecha_reclamo__date__lte=fecha)
+        return qs
+
+    @action(detail=True, methods=["post"], url_path="resolver")
+    def resolver(self, request, pk=None):
+        entrada = ReclamoResolucionSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        decision = entrada.validated_data["decision"]
+        motivo = entrada.validated_data["motivo"].strip()
+
+        with transaction.atomic():
+            reclamo = Reclamo.objects.select_for_update().select_related(
+                "objeto", "usuario").filter(pk=pk).first()
+            if reclamo is None:
+                return Response({"detail": "Reclamo no encontrado."},
+                                status=status.HTTP_404_NOT_FOUND)
+            if reclamo.estado != "PENDIENTE":
+                return Response(
+                    {"detail": "El reclamo ya fue resuelto; no se puede resolver dos veces."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            # Bloquea el objeto y los reclamos rivales para que dos aceptaciones no compitan.
+            objeto = Objeto.objects.select_for_update().get(pk=reclamo.objeto_id)
+            rivales = list(Reclamo.objects.select_for_update().filter(
+                objeto_id=objeto.id, estado="PENDIENTE").exclude(pk=reclamo.pk))
+            if decision == "ACEPTADO" and Reclamo.objects.filter(
+                    objeto_id=objeto.id, estado__in=("ACEPTADO", "RETIRADO")
+            ).exclude(pk=reclamo.pk).exists():
+                return Response(
+                    {"detail": "Ya existe otro reclamo aceptado para este objeto."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            ahora = timezone.now().replace(microsecond=0)
+            reclamo.estado = decision
+            reclamo.motivo_resolucion = motivo
+            reclamo.resuelto_por = request.user
+            reclamo.fecha_resolucion = ahora
+            if decision == "ACEPTADO":
+                reclamo.qr_retiro_token = generar_token_retiro()
+                reclamo.qr_retiro_expira = fecha_expiracion_retiro()
+                reclamo.qr_retiro_usado_en = None
+            reclamo.save(update_fields=[
+                "estado", "motivo_resolucion", "resuelto_por", "fecha_resolucion",
+                "qr_retiro_token", "qr_retiro_expira", "qr_retiro_usado_en",
+            ])
+
+            if decision == "ACEPTADO":
+                for rival in rivales:
+                    rival.estado = "RECHAZADO"
+                    rival.motivo_resolucion = "Se aceptó otro reclamo para este objeto."
+                    rival.resuelto_por = request.user
+                    rival.fecha_resolucion = ahora
+                    rival.save(update_fields=[
+                        "estado", "motivo_resolucion", "resuelto_por", "fecha_resolucion"])
+                    _notificar_reclamo(
+                        rival.usuario,
+                        "Reclamo rechazado",
+                        f"Tu reclamo por «{objeto.nombre}» fue rechazado porque se aceptó "
+                        "otro reclamo para el mismo objeto.",
+                        f"/objetos/{objeto.id}",
+                    )
+                mensaje = (
+                    f"Tu reclamo por «{objeto.nombre}» fue aceptado. Acércate a la biblioteca "
+                    "con tu documento de identidad para retirar el objeto. El QR de retiro "
+                    "vence en 7 días."
+                )
+                titulo = "Reclamo aceptado"
+            else:
+                mensaje = f"Tu reclamo por «{objeto.nombre}» fue rechazado. Motivo: {motivo}"
+                titulo = "Reclamo rechazado"
+
+            _notificar_reclamo(reclamo.usuario, titulo, mensaje, f"/objetos/{objeto.id}")
+
+        return Response(ReclamoSerializer(reclamo).data)
+
+    @action(detail=True, methods=["get"], url_path="qr-retiro")
+    def qr_retiro(self, request, pk=None):
+        reclamo = self.get_object()
+        if not token_retiro_vigente(reclamo):
+            return Response(
+                {"detail": "El QR de retiro no está vigente, ya fue usado o el reclamo no fue aceptado."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        respuesta = HttpResponse(qr_retiro_pdf(reclamo), content_type="application/pdf")
+        respuesta["Content-Disposition"] = (
+            f'attachment; filename="retiro-reclamo-{reclamo.id}.pdf"')
+        return respuesta
+
+    @action(detail=False, methods=["get"], url_path="verificar-qr")
+    def verificar_qr(self, request):
+        token = (request.query_params.get("token") or "").strip()
+        if not token:
+            return Response({"detail": "Falta el token del QR."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        reclamo = Reclamo.objects.select_related(
+            "objeto", "objeto__categoria", "usuario", "resuelto_por"
+        ).filter(qr_retiro_token=token).first()
+        if reclamo is None:
+            return Response({"detail": "El QR de retiro no es válido."},
+                            status=status.HTTP_404_NOT_FOUND)
+        estado_qr = _estado_qr_retiro(reclamo)
+        return Response({
+            "valido": estado_qr == "VIGENTE",
+            "estadoQr": estado_qr,
+            "reclamo": ReclamoSerializer(reclamo).data,
+        })
+
+    @action(detail=False, methods=["post"], url_path="retirar")
+    def retirar(self, request):
+        entrada = RetiroSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        token = entrada.validated_data["token"]
+
+        with transaction.atomic():
+            reclamo = Reclamo.objects.select_for_update().select_related(
+                "objeto", "usuario").filter(qr_retiro_token=token).first()
+            if reclamo is None or not hmac.compare_digest(reclamo.qr_retiro_token, token):
+                return Response({"detail": "El QR de retiro no es válido."},
+                                status=status.HTTP_404_NOT_FOUND)
+            if reclamo.estado != "ACEPTADO":
+                return Response(
+                    {"detail": "El reclamo no está aceptado o ya fue retirado."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            if reclamo.qr_retiro_usado_en is not None:
+                return Response({"detail": "Este QR de retiro ya fue usado."},
+                                status=status.HTTP_409_CONFLICT)
+            if not reclamo.qr_retiro_expira or reclamo.qr_retiro_expira <= timezone.now():
+                return Response({"detail": "El QR de retiro está vencido."},
+                                status=status.HTTP_409_CONFLICT)
+
+            objeto = Objeto.objects.select_for_update().get(pk=reclamo.objeto_id)
+            if objeto.estado != "EN_CUSTODIA":
+                return Response(
+                    {"detail": "El objeto no está en custodia; no se puede registrar el retiro."},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            custodia = Custodia.objects.select_for_update().filter(objeto_id=objeto.id).first()
+            ahora = timezone.now().replace(microsecond=0)
+            reclamo.estado = "RETIRADO"
+            reclamo.qr_retiro_usado_en = ahora
+            reclamo.save(update_fields=["estado", "qr_retiro_usado_en"])
+            if custodia is not None:
+                custodia.estado = "RETIRADO"
+                custodia.save(update_fields=["estado"])
+            objeto.estado = "RECUPERADO"
+            objeto.fecha_recuperacion = ahora
+            objeto.save(update_fields=["estado", "fecha_recuperacion", "fecha_actualizacion"])
+
+            _notificar_reclamo(
+                reclamo.usuario,
+                "Retiro registrado",
+                f"El retiro de «{objeto.nombre}» quedó registrado en la biblioteca.",
+                f"/objetos/{objeto.id}",
+            )
+
+        return Response(ReclamoSerializer(reclamo).data)
 
 
 class ReporteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

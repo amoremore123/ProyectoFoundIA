@@ -71,6 +71,13 @@ ESTADO_CUSTODIA_CHOICES = [
     ("RETIRADO", "RETIRADO"),
 ]
 
+ESTADO_RECLAMO_CHOICES = [
+    ("PENDIENTE", "PENDIENTE"),
+    ("ACEPTADO", "ACEPTADO"),
+    ("RECHAZADO", "RECHAZADO"),
+    ("RETIRADO", "RETIRADO"),
+]
+
 
 class Usuario(models.Model):
     # DRF/DRF auth necesitan request.user.is_authenticated (no es un campo BD).
@@ -245,6 +252,7 @@ class Notificacion(models.Model):
     titulo = models.CharField(max_length=150)
     mensaje = models.TextField()
     tipo = models.CharField(max_length=50, null=True, blank=True)
+    enlace = models.CharField(max_length=500, null=True, blank=True)
     leida = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(default=timezone.now, blank=True)
 
@@ -321,6 +329,41 @@ class Custodia(models.Model):
 
     def __str__(self):
         return f"{self.codigo} ({self.estado})"
+
+
+class Reclamo(models.Model):
+    """H43: bandeja de reclamos de custodia y QR de retiro de un solo uso."""
+
+    objeto = models.ForeignKey(
+        Objeto, on_delete=models.DO_NOTHING, db_column="objeto_id",
+        related_name="reclamos",
+    )
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+        related_name="reclamos",
+    )
+    estado = models.CharField(
+        max_length=20, choices=ESTADO_RECLAMO_CHOICES, default="PENDIENTE"
+    )
+    fecha_reclamo = models.DateTimeField(default=timezone.now, blank=True)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id",
+        related_name="reclamos_resueltos", null=True, blank=True,
+    )
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    motivo_resolucion = models.TextField(null=True, blank=True)
+    qr_retiro_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    qr_retiro_expira = models.DateTimeField(null=True, blank=True)
+    qr_retiro_usado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "reclamos"
+        unique_together = [("objeto", "usuario")]
+        ordering = ["-fecha_reclamo", "-id"]
+
+    def __str__(self):
+        return f"Reclamo {self.id} ({self.estado})"
 
 
 class Reporte(models.Model):

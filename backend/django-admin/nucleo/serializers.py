@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Categoria, Custodia, Notificacion, Objeto, Reporte, Usuario
+from .models import Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Usuario
 
 
 class LoginSerializer(serializers.Serializer):
@@ -151,6 +151,67 @@ class CustodiaCreateSerializer(serializers.Serializer):
                 "Solo se admiten objetoId y observaciones; el responsable y la fecha los registra el servidor."
             )
         return attrs
+
+
+class ReclamoSerializer(serializers.ModelSerializer):
+    objeto = CustodiaObjetoSerializer(read_only=True)
+    reclamante = serializers.SerializerMethodField()
+    resueltoPor = serializers.SerializerMethodField()
+    fechaReclamo = serializers.DateTimeField(source="fecha_reclamo", read_only=True)
+    fechaResolucion = serializers.DateTimeField(source="fecha_resolucion", read_only=True)
+    motivoResolucion = serializers.CharField(source="motivo_resolucion", read_only=True)
+    qrRetiroExpira = serializers.DateTimeField(source="qr_retiro_expira", read_only=True)
+    qrRetiroUsadoEn = serializers.DateTimeField(source="qr_retiro_usado_en", read_only=True)
+    qrRetiroVigente = serializers.SerializerMethodField()
+    qrRetiroUrl = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reclamo
+        fields = [
+            "id", "objeto", "reclamante", "estado", "fechaReclamo",
+            "resueltoPor", "fechaResolucion", "motivoResolucion",
+            "qrRetiroExpira", "qrRetiroUsadoEn", "qrRetiroVigente", "qrRetiroUrl",
+        ]
+        read_only_fields = fields
+
+    def get_reclamante(self, obj) -> dict:
+        return {
+            "id": obj.usuario_id,
+            "nombre": f"{obj.usuario.nombre} {obj.usuario.apellido}".strip(),
+        }
+
+    def get_resueltoPor(self, obj):
+        if not obj.resuelto_por_id:
+            return None
+        return {
+            "id": obj.resuelto_por_id,
+            "nombre": f"{obj.resuelto_por.nombre} {obj.resuelto_por.apellido}".strip(),
+        }
+
+    def get_qrRetiroVigente(self, obj) -> bool:
+        from .reclamos_custodia import token_retiro_vigente
+        return token_retiro_vigente(obj)
+
+    def get_qrRetiroUrl(self, obj):
+        if obj.estado != "ACEPTADO" or not obj.qr_retiro_token:
+            return None
+        return f"/api/admin/reclamos/{obj.pk}/qr-retiro/"
+
+
+class ReclamoResolucionSerializer(serializers.Serializer):
+    decision = serializers.ChoiceField(choices=("ACEPTADO", "RECHAZADO"))
+    motivo = serializers.CharField(max_length=1000, allow_blank=False, trim_whitespace=True)
+
+    def validate(self, attrs):
+        if set(self.initial_data) != {"decision", "motivo"}:
+            raise serializers.ValidationError(
+                "Solo se admiten decision y motivo; el responsable y la fecha los registra el servidor."
+            )
+        return attrs
+
+
+class RetiroSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=64, allow_blank=False, trim_whitespace=True)
 
 
 class NotificacionSerializer(serializers.ModelSerializer):

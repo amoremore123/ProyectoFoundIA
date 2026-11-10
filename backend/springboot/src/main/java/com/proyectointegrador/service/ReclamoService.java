@@ -33,8 +33,12 @@ public class ReclamoService {
     public ReclamoResponse reclamar(Long objetoId, Long usuarioId) {
         var objeto = objetoRepository.findByIdForUpdate(objetoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Objeto no encontrado con id " + objetoId));
-        if (objeto.getEstado() != EstadoObjeto.ACTIVO || objeto.getTipo() != TipoObjeto.ENCONTRADO) {
-            throw new ReclamoInvalidoException("Solo se puede reclamar un objeto encontrado que siga activo");
+        // H43: un objeto EN_CUSTODIA se puede reclamar; la biblioteca resuelve la bandeja.
+        boolean reclamable = objeto.getEstado() == EstadoObjeto.ACTIVO
+                || objeto.getEstado() == EstadoObjeto.EN_CUSTODIA;
+        if (!reclamable || objeto.getTipo() != TipoObjeto.ENCONTRADO) {
+            throw new ReclamoInvalidoException(
+                    "Solo se puede reclamar un objeto encontrado que siga activo o en custodia");
         }
         if (objeto.getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("No puedes reclamar tu propia publicación");
