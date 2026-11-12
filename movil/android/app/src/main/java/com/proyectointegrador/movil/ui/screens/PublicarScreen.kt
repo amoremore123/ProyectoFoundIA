@@ -26,9 +26,16 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
+@Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",categoriaInicial:Long=0,ubicacionInicial:String="",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
  val estado by viewModel.estado.collectAsStateWithLifecycle();val f by viewModel.form.collectAsStateWithLifecycle();val accion by viewModel.accion.collectAsStateWithLifecycle();val evento by viewModel.evento.collectAsStateWithLifecycle()
- LaunchedEffect(Unit){if(f.nombre.isBlank()&&tipoInicial in listOf("PERDIDO","ENCONTRADO"))viewModel.editar("tipo",tipoInicial)}
+ LaunchedEffect(estado.datos) {
+  if (f.nombre.isBlank() && f.paso == 0 && f.publicadoId == null) {
+   if (tipoInicial in listOf("PERDIDO", "ENCONTRADO")) viewModel.editar("tipo", tipoInicial)
+   if (ubicacionInicial.isNotBlank() && f.ubicacion.isBlank()) viewModel.editar("ubicacion", ubicacionInicial)
+   if (f.categoriaId == null && estado.datos?.datos?.any { it.id == categoriaInicial && it.estado } == true)
+    viewModel.categoria(categoriaInicial)
+  }
+ }
  val sugerencia by viewModel.sugerencia.collectAsStateWithLifecycle()
  sugerencia?.let { propuesta ->
   var propuestaTexto by remember(propuesta) { mutableStateOf(propuesta.descripcion.orEmpty()) }

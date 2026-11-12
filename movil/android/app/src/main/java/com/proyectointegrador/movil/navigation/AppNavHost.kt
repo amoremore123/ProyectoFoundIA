@@ -103,8 +103,14 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("pareja/{id}") {ParejaScreen(it.arguments?.getString("id").orEmpty(),volver,propios={
                     if(sesion.autenticado) abrir("propios") else abrir("perfil")
                 })}
-                composable("publicar?tipo={tipo}",arguments=listOf(navArgument("tipo"){defaultValue="PERDIDO"})){entradaPublicar->
-                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),onPublicado={abrir("detalle/$it")})
+                composable("publicar?tipo={tipo}&categoria={categoria}&ubicacion={ubicacion}",arguments=listOf(
+                    navArgument("tipo"){defaultValue="PERDIDO"},
+                    navArgument("categoria"){type=NavType.LongType;defaultValue=0L},
+                    navArgument("ubicacion"){defaultValue=""}
+                )){entradaPublicar->
+                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),
+                        categoriaInicial=entradaPublicar.arguments?.getLong("categoria") ?: 0L,
+                        ubicacionInicial=entradaPublicar.arguments?.getString("ubicacion").orEmpty(),onPublicado={abrir("detalle/$it")})
                     else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
                 }
                 composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}

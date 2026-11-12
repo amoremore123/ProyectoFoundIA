@@ -3,6 +3,7 @@ package com.proyectointegrador.movil.ui.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.net.Uri
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.speech.RecognitionListener
@@ -26,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.proyectointegrador.movil.di.fabrica
+import com.proyectointegrador.movil.model.PropuestaFindi
+import com.proyectointegrador.movil.model.TarjetaFindi
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.*
 
@@ -197,6 +200,19 @@ import com.proyectointegrador.movil.ui.viewmodel.*
 }
 
 @Composable private fun BurbujaFindi(m: MensajeFindi, vm: AsistenteViewModel, abrir: (String) -> Unit, leer: (String) -> Unit) {
+    var pendiente by remember(m.id) { mutableStateOf<PropuestaFindi?>(null) }
+    pendiente?.let { propuesta ->
+        AlertDialog(
+            onDismissRequest = { pendiente = null },
+            title = { Text("Confirmar acción") },
+            text = { Text(propuesta.confirmacion.orEmpty()) },
+            confirmButton = { TextButton(onClick = {
+                pendiente = null
+                rutaPropuesta(propuesta)?.let(abrir)
+            }) { Text("Continuar") } },
+            dismissButton = { TextButton(onClick = { pendiente = null }) { Text("Cancelar") } }
+        )
+    }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (m.propio) Arrangement.End else Arrangement.Start) {
         if (!m.propio) { AvatarFindi(Modifier.size(30.dp)); Spacer(Modifier.width(10.dp)) }
         Surface(shape = if (m.propio) RoundedCornerShape(20.dp, 20.dp, 5.dp, 20.dp) else RoundedCornerShape(5.dp, 20.dp, 20.dp, 20.dp),
@@ -215,10 +231,61 @@ import com.proyectointegrador.movil.ui.viewmodel.*
                         }
                     }
                 }
-                m.respuesta?.accion?.let { a -> TextButton(onClick = { abrir(a.ruta) }) { Text(a.texto) } }
+                m.respuesta?.tarjetas.orEmpty().forEach { TarjetaDeFindi(it, abrir) }
+                val propuestas = m.respuesta?.propuestas.orEmpty().filter { rutaPropuesta(it) != null }
+                propuestas.forEach { propuesta ->
+                    OutlinedButton(onClick = { pendiente = propuesta }) { Text(propuesta.texto) }
+                }
+                if (propuestas.isEmpty()) m.respuesta?.accion?.let { a -> TextButton(onClick = { abrir(a.ruta) }) { Text(a.texto) } }
                 m.respuesta?.fuente?.let { fuente -> Text(if (fuente in listOf("ia", "claude")) "Interpretado con IA" else "Interpretación local", style = MaterialTheme.typography.labelSmall) }
                 m.reintentar?.let { texto -> TextButton(onClick = { vm.enviar(texto, repetir = true) }, enabled = !vm.estado.value.pensando) { Text("Reintentar") } }
             }
+        }
+    }
+}
+
+private fun rutaPropuesta(propuesta: PropuestaFindi): String? {
+    if (!propuesta.requiereConfirmacion || propuesta.confirmacion.isNullOrBlank()) return null
+    val datos = propuesta.datos
+    return when (propuesta.tipo) {
+        "PRELLENAR_PUBLICAR" -> if (propuesta.destino == "/publicar") {
+            val tipo = datos?.tipo?.takeIf { it in listOf("PERDIDO", "ENCONTRADO") } ?: "PERDIDO"
+            val categoria = datos?.categoriaId?.takeIf { it > 0 } ?: 0
+            val ubicacion = Uri.encode(datos?.ubicacion.orEmpty().take(255))
+            "publicar?tipo=$tipo&categoria=$categoria&ubicacion=$ubicacion"
+        } else null
+        "ABRIR_RECLAMO" -> datos?.objetoId?.takeIf { it > 0 && propuesta.destino == "/objeto/$it" }
+            ?.let { "detalle/$it" }
+        else -> null
+    }
+}
+
+@Composable
+private fun TarjetaDeFindi(tarjeta: TarjetaFindi, abrir: (String) -> Unit) {
+    val datos = tarjeta.datos ?: return
+    val ruta: String
+    val detalle: String
+    when (tarjeta.tipo) {
+        "OBJETO" -> {
+            val id = datos.id?.takeIf { it > 0 } ?: return
+            if (tarjeta.enlace != "/objeto/$id") return
+            ruta = "detalle/$id"
+            detalle = listOfNotNull(datos.tipo, datos.estado, datos.ubicacion, datos.categoria).joinToString(" · ")
+        }
+        "RECLAMOS", "QR_RETIRO" -> {
+            if (tarjeta.enlace != "/mis-publicaciones") return
+            ruta = "propios"
+            detalle = if (tarjeta.tipo == "QR_RETIRO") "QR vigentes: " + (datos.vigentes ?: 0)
+                else listOf("Pendientes" to datos.pendientes, "Aceptados" to datos.aceptados,
+                    "Retirados" to datos.retirados, "Rechazados" to datos.rechazados)
+                    .joinToString(" · ") { (etiqueta, valor) -> etiqueta + ": " + (valor ?: 0) }
+        }
+        else -> return
+    }
+    OutlinedCard(onClick = { abrir(ruta) }, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text(tarjeta.titulo, style = MaterialTheme.typography.titleSmall)
+            Text(detalle, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
