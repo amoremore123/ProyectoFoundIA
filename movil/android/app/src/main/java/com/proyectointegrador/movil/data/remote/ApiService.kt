@@ -61,6 +61,7 @@ interface ApiService {
     @GET("api/legal/documentos") suspend fun documentos(): Documentos
     @PUT("api/perfil") suspend fun actualizarPerfil(@Body datos:PerfilRequest):Usuario
     @GET("api/perfil") suspend fun perfil(): Usuario
+    @POST("api/perfil/invitaciones") suspend fun crearInvitacion(): EnlaceInvitacion
     @GET("api/perfil/objetos") suspend fun propios(): List<Objeto>
     @GET("api/objetos/{id}/reclamos/custodia")
     suspend fun miReclamoCustodia(@Path("id") id: Long): ReclamoCustodia

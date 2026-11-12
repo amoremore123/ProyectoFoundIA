@@ -1,4 +1,6 @@
 package com.proyectointegrador.movil.ui.screens.cuenta
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
@@ -88,7 +90,21 @@ import com.proyectointegrador.movil.ui.components.*
 @Composable fun CuentaScreen(abrir:(String)->Unit,vm:PerfilViewModel=viewModel(factory=fabrica())) {
  val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
  LaunchedEffect(Unit){vm.recargar()}
+ val invitacion by vm.evento.collectAsStateWithLifecycle()
+ val contexto = LocalContext.current
+ var errorInvitacion by remember { mutableStateOf(false) }
+ LaunchedEffect(invitacion) {
+  invitacion?.let { url ->
+   vm.consumirEvento()
+   val compartir = Intent(Intent.ACTION_SEND).apply {
+    type = "text/plain"
+    putExtra(Intent.EXTRA_TEXT, url)
+   }
+   errorInvitacion = runCatching { contexto.startActivity(Intent.createChooser(compartir, "Invitar a FoundIA")) }.isFailure
+  }
+ }
  Pagina("Mi perfil") {
+  if (errorInvitacion) AvisoEstado("No se pudo abrir el selector para compartir.", true)
   Consulta(estado,vm::recargar) {usuario,_->
    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(DegradadoMarca)) {
     Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -104,6 +120,9 @@ import com.proyectointegrador.movil.ui.components.*
     FilaCuenta("Mis publicaciones","Lo que perdiste y encontraste",Simbolos.Caja){abrir("propios")}
     HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
     FilaCuenta("Notificaciones","Novedades de tus coincidencias",Simbolos.Avisos){abrir("avisos")}
+   }
+   OutlinedButton(onClick = vm::invitar, enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth()) {
+    Text("Invitar a alguien a FoundIA")
    }
    Panel("Tu cuenta") {
     FilaCuenta("Editar perfil","Nombre y apellidos",Simbolos.Perfil){abrir("editar-perfil")}
