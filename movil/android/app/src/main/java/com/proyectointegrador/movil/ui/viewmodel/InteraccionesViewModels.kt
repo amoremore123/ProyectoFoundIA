@@ -97,12 +97,30 @@ class AvisosViewModel(private val repo: CuentaRepository) : AccionViewModel() {
 }
 class ReclamoCustodiaViewModel(private val repo: CuentaRepository, private val id: Long) :
     CargaViewModel<ReclamoCustodia>({ repo.miReclamoCustodia(id) }) {
+    private val _qr = MutableStateFlow<QrRetiroPropio?>(null)
+    val qr = _qr.asStateFlow()
+
+    fun verQr() = ejecutar { _qr.value = repo.qrRetiroPropio(id) }
+    fun ocultarQr() { _qr.value = null }
+
     fun reclamar(respuesta: String) {
         if (estado.value.datos?.estado != "SIN_RECLAMO" || respuesta.trim().length !in 3..500) return
         ejecutar {
             val resultado = repo.reclamarCustodia(id, respuesta.trim())
             actualizar(resultado)
             informar(if (resultado.repetido) "Ya existe tu reclamo." else "Tu reclamo fue enviado a la biblioteca.")
+        }
+    }
+}
+
+class RetiroViewModel(private val repo: CuentaRepository) : CargaViewModel<Usuario>({ repo.perfil() }) {
+    fun entregar(token: String, etiqueta: String) {
+        if (estado.value.datos?.rol != "BIBLIOTECA" || token.length !in 1..64 || etiqueta.length !in 1..500) return
+        ejecutar {
+            val retiro = repo.registrarRetiro(token, etiqueta)
+            if (retiro.estado != "RETIRADO") throw ErrorDatos("No se confirmó el retiro.")
+            informar("Entrega registrada. El objeto quedó como recuperado.")
+            emitirEvento("retirado")
         }
     }
 }

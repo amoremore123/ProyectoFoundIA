@@ -97,6 +97,9 @@ import com.proyectointegrador.movil.ui.components.*
      Text(usuario.correo,style=MaterialTheme.typography.bodyMedium,color=Color(0xFFD0E1FF));Text("COMUNIDAD TECSUP",style=MaterialTheme.typography.labelSmall,color=Cielo)
     }
    }
+   if (usuario.rol == "BIBLIOTECA") Panel("Modo bibliotecario") {
+    FilaCuenta("Registrar entrega", "Escanea la etiqueta y el QR de retiro", Simbolos.Caja) { abrir("retiro") }
+   }
    Panel("Tu actividad") {
     FilaCuenta("Mis publicaciones","Lo que perdiste y encontraste",Simbolos.Caja){abrir("propios")}
     HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)

@@ -34,7 +34,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 
 /** Datos privados solo en memoria: no se escriben en Room. */
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
-                       private val sesion:AlmacenSesion = SesionCifrada) {
+                       private val sesion:AlmacenSesion = SesionCifrada,
+                       private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -80,6 +81,15 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         ParejaDatos(pareja,usuario)
     }
+    suspend fun qrRetiroPropio(id: Long) = privada { api.qrRetiroPropio(id) }
+
+    suspend fun registrarRetiro(token: String, etiqueta: String) = privada {
+        val servicio = biblioteca ?: throw ErrorDatos("La API de biblioteca no está configurada.")
+        val retiro = servicio.retirar(RetiroCustodia(token, etiqueta))
+        publicaciones.invalidar()
+        retiro
+    }
+
     suspend fun miReclamoCustodia(id: Long) = privada { api.miReclamoCustodia(id) }
     suspend fun reclamarCustodia(id: Long, respuesta: String) = privada {
         api.reclamarCustodia(id, RespuestaCustodia(respuesta))

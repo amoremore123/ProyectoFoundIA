@@ -118,6 +118,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {
+                    composable("retiro") { RetiroScreen(volver) }
                     composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                         ReclamoCustodiaScreen(it.arguments!!.getLong("id"), volver)
                     }

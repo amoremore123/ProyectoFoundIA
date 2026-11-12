@@ -41,6 +41,15 @@ object RetrofitClient {
             .create(ApiService::class.java)
     }
 
+    val biblioteca: BibliotecaApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(com.proyectointegrador.movil.BuildConfig.ADMIN_API_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(BibliotecaApi::class.java)
+    }
+
     /** Convierte rutas relativas ("/uploads/...") a URL absolutas. */
     fun urlAbsoluta(url: String?): String? {
         if (url.isNullOrBlank()) return null

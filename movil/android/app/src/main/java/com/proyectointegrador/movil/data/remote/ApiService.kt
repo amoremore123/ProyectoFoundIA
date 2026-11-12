@@ -65,6 +65,9 @@ interface ApiService {
     @GET("api/objetos/{id}/reclamos/custodia")
     suspend fun miReclamoCustodia(@Path("id") id: Long): ReclamoCustodia
 
+    @GET("api/objetos/{id}/reclamos/custodia/qr-retiro")
+    suspend fun qrRetiroPropio(@Path("id") id: Long): QrRetiroPropio
+
     @POST("api/objetos/{id}/reclamos/custodia")
     suspend fun reclamarCustodia(@Path("id") id: Long, @Body datos: RespuestaCustodia): ReclamoCustodia
 

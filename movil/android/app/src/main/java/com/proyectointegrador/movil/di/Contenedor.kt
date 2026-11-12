@@ -13,7 +13,7 @@ class Contenedor(context:Context) {
     val experiencia=ExperienciaRepository(PreferenciasLocales(context))
     val base=FoundIADatabase.abrir(context)
     val publicaciones:PublicacionesRepository=ApiPublicacionesRepository(RetrofitClient.api,RoomCachePublica(base))
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones)
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca)
     val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {
@@ -43,6 +43,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)
             PreferenciasViewModel::class.java->PreferenciasViewModel(c.cuenta)
             EliminacionViewModel::class.java->EliminacionViewModel(c.cuenta)
+            RetiroViewModel::class.java->RetiroViewModel(c.cuenta)
             ReclamoCustodiaViewModel::class.java->ReclamoCustodiaViewModel(c.cuenta,objetoId)
             ReporteViewModel::class.java->ReporteViewModel(c.cuenta,objetoId)
             DetalleAccionesViewModel::class.java->DetalleAccionesViewModel(c.publicaciones,c.cuenta,objetoId)
