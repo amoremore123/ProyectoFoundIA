@@ -43,6 +43,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)
             PreferenciasViewModel::class.java->PreferenciasViewModel(c.cuenta)
             EliminacionViewModel::class.java->EliminacionViewModel(c.cuenta)
+            ReclamoCustodiaViewModel::class.java->ReclamoCustodiaViewModel(c.cuenta,objetoId)
             ReporteViewModel::class.java->ReporteViewModel(c.cuenta,objetoId)
             DetalleAccionesViewModel::class.java->DetalleAccionesViewModel(c.publicaciones,c.cuenta,objetoId)
             else->throw IllegalArgumentException("ViewModel no registrado: ${modelClass.simpleName}")

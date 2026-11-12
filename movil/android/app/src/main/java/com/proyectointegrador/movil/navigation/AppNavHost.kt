@@ -98,19 +98,29 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver,entrar={recuperacion=null;abrir("perfil")},apertura=aperturaRecuperacion)}
                 composable("detalle/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                     DetalleScreen(objetoId=it.arguments!!.getLong("id"),onBack=volver,onObjetoClick={abrir("detalle/$it")},
-                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")})
+                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")},
+                        onReclamo={if (sesion.autenticado) abrir("reclamo-custodia/$it") else abrir("perfil")})
                 }
                 composable("pareja/{id}") {ParejaScreen(it.arguments?.getString("id").orEmpty(),volver,propios={
                     if(sesion.autenticado) abrir("propios") else abrir("perfil")
                 })}
-                composable("publicar?tipo={tipo}",arguments=listOf(navArgument("tipo"){defaultValue="PERDIDO"})){entradaPublicar->
-                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),onPublicado={abrir("detalle/$it")})
+                composable("publicar?tipo={tipo}&categoria={categoria}&ubicacion={ubicacion}",arguments=listOf(
+                    navArgument("tipo"){defaultValue="PERDIDO"},
+                    navArgument("categoria"){type=NavType.LongType;defaultValue=0L},
+                    navArgument("ubicacion"){defaultValue=""}
+                )){entradaPublicar->
+                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),
+                        categoriaInicial=entradaPublicar.arguments?.getLong("categoria") ?: 0L,
+                        ubicacionInicial=entradaPublicar.arguments?.getString("ubicacion").orEmpty(),onPublicado={abrir("detalle/$it")})
                     else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
                 }
-                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir={abrir("pareja/$it")}) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
+                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {
+                    composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                        ReclamoCustodiaScreen(it.arguments!!.getLong("id"), volver)
+                    }
                     composable("editar-perfil"){EditarPerfilScreen(volver)}
                     composable("seguridad"){EditarPerfilScreen(volver,seguridad=true)}
                     composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")})}

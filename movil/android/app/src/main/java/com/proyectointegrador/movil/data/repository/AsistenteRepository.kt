@@ -13,7 +13,7 @@ class ApiAsistenteRepository(private val api: ApiService) : AsistenteRepository 
     override suspend fun responder(mensaje: String): RespuestaFindi = llamadaApi {
         val r = api.interpretarFindi(ConsultaFindi(mensaje))
         val texto = Normalizer.normalize(mensaje.lowercase(Locale.ROOT), Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")
-        when {
+        val base = when {
             r.intencion == "mis_reportes" || texto.contains("mis reportes") || texto.contains("mis publicaciones") ->
                 RespuestaFindi(r.resumenPropio ?: "En Mis reportes puedes consultar tus publicaciones y su estado. Inicia sesión si aún no lo has hecho.", accion = AccionFindi("Consultar mis reportes", "propios"))
             r.intencion == "como_funciona" || texto.contains("como funciona") -> RespuestaFindi(PROCESO_FINDI)
@@ -31,6 +31,7 @@ class ApiAsistenteRepository(private val api: ApiService) : AsistenteRepository 
             r.intencion == "gracias" -> RespuestaFindi("¡Para eso estoy! Si necesitas otra búsqueda, cuéntame.")
             else -> RespuestaFindi("Puedo ayudarte a buscar un objeto, reportarlo y consultar tus reportes. Cuéntame qué perdiste y cómo es.")
         }
+        base.copy(tarjetas = r.tarjetas.orEmpty(), propuestas = r.acciones.orEmpty())
     }
 }
 

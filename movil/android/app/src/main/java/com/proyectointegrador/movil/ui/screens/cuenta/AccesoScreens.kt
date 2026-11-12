@@ -112,7 +112,13 @@ import com.proyectointegrador.movil.ui.components.*
    Panel{FilaCuenta("Solicitar eliminación","Revisa el estado de tu solicitud",Simbolos.Escudo){abrir("eliminacion")}}
   }
   EstadoAccion(accion)
-  OutlinedButton(onClick=vm::salir,enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth().heightIn(min=52.dp)){Icon(Simbolos.Salir,null,Modifier.size(18.dp));Spacer(Modifier.width(10.dp));Text("Cerrar sesión")}
+  var confirmarCierreGlobal by remember { mutableStateOf(false) }
+  if (confirmarCierreGlobal) {
+   Confirmacion("Cerrar en todos los dispositivos", "Tendrás que iniciar sesión otra vez en cada dispositivo.",
+    accion, { confirmarCierreGlobal = false }, { vm.salir(todos = true) })
+  }
+  TextButton(onClick={confirmarCierreGlobal = true},enabled=!accion.ocupada) { Text("Cerrar en todos los dispositivos") }
+  OutlinedButton(onClick={vm.salir()},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth().heightIn(min=52.dp)){Icon(Simbolos.Salir,null,Modifier.size(18.dp));Spacer(Modifier.width(10.dp));Text("Cerrar sesión")}
  }
 }
 @Composable private fun FilaCuenta(titulo:String,detalle:String,icono:ImageVector,accion:()->Unit) {

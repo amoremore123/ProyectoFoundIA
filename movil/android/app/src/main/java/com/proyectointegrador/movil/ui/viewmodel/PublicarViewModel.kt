@@ -11,6 +11,32 @@ data class FormPublicacion(val tipo:String="PERDIDO",val nombre:String="",val de
     val ubicacion:String="",val fecha:String="",val foto:String?=null,val paso:Int=0,val publicadoId:Long?=null,val errores:Map<String,String> = emptyMap())
 class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:PublicacionesRepository,private val fotos:FotografiasRepository?=null):CargaViewModel<Lectura<List<Categoria>>>({publicaciones.categorias()}) {
     private val _form=MutableStateFlow(FormPublicacion());val form=_form.asStateFlow()
+    private val _sugerencia = MutableStateFlow<SugerenciaFindi?>(null)
+    val sugerencia = _sugerencia.asStateFlow()
+
+    fun pedirSugerencia() {
+        val f = _form.value
+        if (f.publicadoId != null || f.nombre.isBlank() && f.descripcion.isBlank()) return
+        ejecutar {
+            val resultado = cuenta.sugerirPublicacion(
+                SolicitudSugerencia(f.nombre.trim(), f.descripcion.trim().take(1000), f.tipo)
+            )
+            if (resultado.categoria == null && resultado.descripcion.isNullOrBlank()) {
+                informar("FINDI no encontró una sugerencia. Puedes continuar con tus datos.")
+            } else _sugerencia.value = resultado
+        }
+    }
+
+    fun descartarSugerencia() { _sugerencia.value = null }
+
+    fun aplicarSugerencia(descripcion: String) {
+        val resultado = _sugerencia.value ?: return
+        val id = resultado.categoria?.id
+        if (id != null && estado.value.datos?.datos?.any { it.id == id && it.estado } == true) categoria(id)
+        if (descripcion.isNotBlank()) editar("descripcion", descripcion.trim().take(500))
+        descartarSugerencia()
+    }
+
     fun paso(valor:Int){if(!accion.value.ocupada)_form.value=_form.value.copy(paso=valor.coerceIn(0,5))}
     fun foto(uri:String?){if(!accion.value.ocupada&&_form.value.publicadoId==null)_form.value=_form.value.copy(foto=uri)}
     fun terminarSinFoto(){_form.value.publicadoId?.let {emitirEvento(it.toString())}}
