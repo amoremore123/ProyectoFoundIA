@@ -401,6 +401,7 @@ class Reclamo(models.Model):
         max_length=20, choices=ESTADO_RECLAMO_CHOICES, default="PENDIENTE"
     )
     fecha_reclamo = models.DateTimeField(default=timezone.now, blank=True)
+    respuesta_verificacion = models.CharField(max_length=500, null=True, blank=True)
     resuelto_por = models.ForeignKey(
         Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id",
         related_name="reclamos_resueltos", null=True, blank=True,

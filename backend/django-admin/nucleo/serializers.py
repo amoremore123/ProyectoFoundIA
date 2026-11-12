@@ -174,6 +174,7 @@ class ReclamoSerializer(serializers.ModelSerializer):
     reclamante = serializers.SerializerMethodField()
     resueltoPor = serializers.SerializerMethodField()
     fechaReclamo = serializers.DateTimeField(source="fecha_reclamo", read_only=True)
+    respuestaVerificacion = serializers.CharField(source="respuesta_verificacion", read_only=True)
     fechaResolucion = serializers.DateTimeField(source="fecha_resolucion", read_only=True)
     motivoResolucion = serializers.CharField(source="motivo_resolucion", read_only=True)
     qrRetiroExpira = serializers.DateTimeField(source="qr_retiro_expira", read_only=True)
@@ -186,7 +187,7 @@ class ReclamoSerializer(serializers.ModelSerializer):
         fields = [
             "id", "objeto", "reclamante", "estado", "fechaReclamo",
             "resueltoPor", "fechaResolucion", "motivoResolucion",
-            "qrRetiroExpira", "qrRetiroUsadoEn", "qrRetiroVigente", "qrRetiroUrl",
+            "qrRetiroExpira", "qrRetiroUsadoEn", "qrRetiroVigente", "qrRetiroUrl", "respuestaVerificacion",
         ]
         read_only_fields = fields
 

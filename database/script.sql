@@ -208,6 +208,7 @@ CREATE TABLE reclamos (
     usuario_id        BIGINT      NOT NULL,
     estado            VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
     fecha_reclamo     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    respuesta_verificacion VARCHAR(500) NULL,
     -- H43: resolución auditada y QR de retiro de un solo uso.
     resuelto_por_id   BIGINT      NULL,
     fecha_resolucion  DATETIME    NULL,
