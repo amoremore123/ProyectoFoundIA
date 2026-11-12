@@ -39,7 +39,7 @@ public class NotificacionService {
     @Transactional(readOnly = true)
     public List<NotificacionResponse> novedadesReclamos(Long usuarioId, java.time.LocalDateTime desde, long despuesDe) {
         if (despuesDe < 0) throw new SolicitudInvalidaException("El cursor no puede ser negativo.");
-        if (!preferencias.permite(usuarioId, "RECLAMO_RECIBIDO")) return List.of();
+        if (!preferencias.obtener(usuarioId).reclamos()) return List.of();
         return notificacionRepository
                 .findByUsuarioIdAndTipoAndLeidaFalseAndFechaCreacionGreaterThanEqualAndIdGreaterThanOrderByIdAsc(
                         usuarioId, "RECLAMO", desde, despuesDe, PageRequest.of(0, TAMANO_MAXIMO))
