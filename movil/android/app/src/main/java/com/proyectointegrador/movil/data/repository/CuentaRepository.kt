@@ -104,6 +104,16 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(sesion.autenticado) cerrarSesion("Tu contraseña se actualizó. Inicia sesión de nuevo.")
         else publicaciones.invalidar()
     }
+    suspend fun salir(todos: Boolean) {
+        val revision = sesion.revision
+        try {
+            privada { if (todos) api.revocarTodasLasSesiones() else api.revocarSesion() }
+        } catch (error: ErrorDatos) {
+            if (error.estadoHttp != 401) throw error
+        }
+        if (revision == sesion.revision) cerrarSesion()
+    }
+
     suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
         try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }

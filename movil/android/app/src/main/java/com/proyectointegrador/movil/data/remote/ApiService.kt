@@ -50,6 +50,8 @@ interface ApiService {
     @PUT("api/objetos/{id}") suspend fun editar(@Path("id") id:Long,@Body datos:PublicacionRequest):Objeto
     @DELETE("api/objetos/{id}") suspend fun eliminar(@Path("id") id:Long):retrofit2.Response<Unit>
     @POST("api/auth/login") suspend fun login(@Body datos: Login): Acceso
+    @POST("api/auth/logout") suspend fun revocarSesion(): Mensaje
+    @POST("api/auth/logout-all") suspend fun revocarTodasLasSesiones(): Mensaje
     @POST("api/auth/register") suspend fun registrar(@Body datos: Registro): Mensaje
     @POST("api/auth/verificar") suspend fun verificar(@Body datos: Verificacion): Acceso
     @POST("api/auth/reenviar-codigo") suspend fun reenviar(@Body datos: Correo): Mensaje

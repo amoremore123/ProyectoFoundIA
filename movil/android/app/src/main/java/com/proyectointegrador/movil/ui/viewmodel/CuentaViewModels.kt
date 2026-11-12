@@ -76,7 +76,7 @@ class VerificacionViewModel(private val repo:CuentaRepository,private val reloj:
     }
 }
 class PerfilViewModel(private val repo:CuentaRepository):CargaViewModel<Usuario>({repo.perfil()}) {
-    fun salir(){ejecutar {repo.cerrarSesion()}}
+    fun salir(todos: Boolean = false) { ejecutar { repo.salir(todos) } }
 }
 class RecuperarViewModel(private val repo:CuentaRepository):AccionViewModel() {
     private val _correo=MutableStateFlow("");val correo=_correo.asStateFlow()
