@@ -1,5 +1,9 @@
 package com.proyectointegrador.movil.ui.screens.avisos
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,7 +17,17 @@ import com.proyectointegrador.movil.ui.viewmodel.*
 
 @Composable fun PreferenciasScreen(volver:()->Unit,vm:PreferenciasViewModel=viewModel(factory=fabrica())) {
     val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val edicion by vm.edicion.collectAsStateWithLifecycle()
+    var avisoPermiso by remember { mutableStateOf<String?>(null) }
+    val solicitarAvisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        avisoPermiso = if (concedido) "Notificaciones del sistema habilitadas." else "Puedes seguir leyendo tus avisos dentro de FoundIA."
+    }
     Pagina("Preferencias de avisos",volver) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            OutlinedButton(onClick = { solicitarAvisos.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
+                Text("Permitir avisos de reclamo en el dispositivo")
+            }
+            avisoPermiso?.let { AvisoEstado(it) }
+        }
         Consulta(estado,vm::recargarPreferencias) { actuales,_ ->
             val preferencias=edicion?:actuales
             Text("Los cambios afectan a los avisos nuevos; el historial se conserva.")

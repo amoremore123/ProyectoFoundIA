@@ -20,6 +20,12 @@ enum class FiltroAvisos { TODAS, NO_LEIDAS, LEIDAS }
 data class HistorialAvisos(val contenido: List<Aviso>, val pagina: Int, val totalPaginas: Int, val noLeidas: Int)
 data class AvisosLeidos(val actualizadas: Int, val noLeidas: Int)
 
+data class QrRetiroPropio(val token: String, val expira: String)
+data class RetiroCustodia(val token: String, val etiqueta: String)
+data class ResultadoRetiro(val id: Long, val estado: String)
+
+data class EnlaceInvitacion(val url: String)
+
 data class RespuestaCustodia(val respuesta: String)
 data class ReclamoCustodia(val id: Long?, val estado: String, val repetido: Boolean = false)
 

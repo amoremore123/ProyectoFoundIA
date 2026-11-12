@@ -9,5 +9,6 @@ class FoundiaApplication:Application() {
         super.onCreate()
         Sesion.iniciar(this)
         Inyeccion.iniciar(this)
+        com.proyectointegrador.movil.data.avisos.programarAvisosReclamo(this)
     }
 }

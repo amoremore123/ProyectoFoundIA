@@ -37,7 +37,7 @@ import com.proyectointegrador.movil.ui.components.*
      Row(horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically){Icon(if(aviso.tipo.contains("COINCIDENCIA"))Simbolos.Chispa else if(aviso.tipo.contains("CONTACTO"))Simbolos.Correo else Simbolos.Avisos,null,tint=MaterialTheme.colorScheme.primary);Text(aviso.titulo,Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);if(!aviso.leida)Badge()}
      Text(aviso.mensaje,style=MaterialTheme.typography.bodyMedium)
      Text(listOfNotNull(aviso.fechaCreacion?.replace("T"," ")?.take(16),if(aviso.leida)"Leída" else "Sin leer").joinToString(" · "),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-     if(rutaDeAviso(aviso.enlace)!=null)TextButton(enabled=!accion.ocupada,onClick={vm.abrir(aviso.id)}){Text(if(aviso.tipo=="RECORDATORIO_OBJETO")"Ver publicación" else "Ver detalle");Spacer(Modifier.width(8.dp));Icon(Simbolos.Flecha,null,Modifier.size(16.dp))}
+     if(rutaDeAviso(aviso.enlace, aviso.tipo)!=null)TextButton(enabled=!accion.ocupada,onClick={vm.abrir(aviso.id)}){Text(if(aviso.tipo=="RECORDATORIO_OBJETO")"Ver publicación" else "Ver detalle");Spacer(Modifier.width(8.dp));Icon(Simbolos.Flecha,null,Modifier.size(16.dp))}
      if(!aviso.leida)OutlinedButton(enabled=!accion.ocupada,onClick={vm.leer(aviso.id)}){Text("Marcar como leída")}
     }
    }}

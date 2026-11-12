@@ -16,6 +16,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import com.proyectointegrador.movil.R
 
 val AzulNoche=Color(0xFF14234B)
@@ -61,7 +63,7 @@ object Simbolos {
  Column(Modifier.fillMaxWidth().padding(top=12.dp,bottom=8.dp)) {
   Row(verticalAlignment=Alignment.CenterVertically) {
    if(volver!=null) IconButton(onClick=volver){Icon(Simbolos.Volver,"Volver")}
-   Column(Modifier.weight(1f)){Text(titulo,style=MaterialTheme.typography.headlineMedium);subtitulo?.let {Text(it,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
+   Column(Modifier.weight(1f)){Text(titulo,Modifier.semantics { heading() },style=MaterialTheme.typography.headlineMedium);subtitulo?.let {Text(it,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
    accion?.invoke()
   }
  }
@@ -73,7 +75,7 @@ object Simbolos {
 }
 @Composable fun Panel(titulo:String?=null,contenido:@Composable ColumnScope.()->Unit) {
  Surface(shape=RoundedCornerShape(22.dp),color=MaterialTheme.colorScheme.surface,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),modifier=Modifier.fillMaxWidth()) {
-  Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){titulo?.let {Text(it,style=MaterialTheme.typography.titleMedium)};contenido()}
+  Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){titulo?.let {Text(it,Modifier.semantics { heading() },style=MaterialTheme.typography.titleMedium)};contenido()}
  }
 }
 @Composable fun AvisoEstado(texto:String,error:Boolean=false) {

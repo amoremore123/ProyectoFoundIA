@@ -34,7 +34,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 
 /** Datos privados solo en memoria: no se escriben en Room. */
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
-                       private val sesion:AlmacenSesion = SesionCifrada) {
+                       private val sesion:AlmacenSesion = SesionCifrada,
+                       private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -62,6 +63,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun reenviar(correo:String)=llamadaApi {api.reenviar(Correo(correo.trim()))}
     suspend fun actualizarPerfil(datos:PerfilRequest)=privada {api.actualizarPerfil(datos)}
     suspend fun perfil()=privada {api.perfil()}
+    suspend fun crearInvitacion() = privada { api.crearInvitacion() }
     suspend fun propios()=privada {api.propios()}
     suspend fun sugerirPublicacion(datos: SolicitudSugerencia) = privada { api.sugerirPublicacion(datos) }
     suspend fun publicar(datos:PublicacionRequest)=privada {val respuesta=api.publicar(datos);publicaciones.invalidar();respuesta}
@@ -80,6 +82,15 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         ParejaDatos(pareja,usuario)
     }
+    suspend fun qrRetiroPropio(id: Long) = privada { api.qrRetiroPropio(id) }
+
+    suspend fun registrarRetiro(token: String, etiqueta: String) = privada {
+        val servicio = biblioteca ?: throw ErrorDatos("La API de biblioteca no está configurada.")
+        val retiro = servicio.retirar(RetiroCustodia(token, etiqueta))
+        publicaciones.invalidar()
+        retiro
+    }
+
     suspend fun miReclamoCustodia(id: Long) = privada { api.miReclamoCustodia(id) }
     suspend fun reclamarCustodia(id: Long, respuesta: String) = privada {
         api.reclamarCustodia(id, RespuestaCustodia(respuesta))
@@ -90,6 +101,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
     suspend fun avisos()=privada {api.avisos()}.also {avisos->synchronized(noLeidos){noLeidos.clear();noLeidos.addAll(avisos.filter {!it.leida}.map {it.id});_sinLeer.value=noLeidos.size}}
     suspend fun leer(id:Long)=privada {api.leer(id)}.also {aviso->synchronized(noLeidos){if(aviso.leida)noLeidos.remove(id) else noLeidos.add(id);_sinLeer.value=noLeidos.size}}
+    suspend fun novedadesReclamos(desde: String, despuesDe: Long) = privada { api.novedadesReclamos(desde, despuesDe) }
+
     suspend fun historialAvisos(filtro: FiltroAvisos, pagina: Int) = privada {
         api.historialAvisos(filtro.name, pagina)
     }

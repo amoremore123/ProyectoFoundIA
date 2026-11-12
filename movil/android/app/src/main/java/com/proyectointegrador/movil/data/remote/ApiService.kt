@@ -61,9 +61,13 @@ interface ApiService {
     @GET("api/legal/documentos") suspend fun documentos(): Documentos
     @PUT("api/perfil") suspend fun actualizarPerfil(@Body datos:PerfilRequest):Usuario
     @GET("api/perfil") suspend fun perfil(): Usuario
+    @POST("api/perfil/invitaciones") suspend fun crearInvitacion(): EnlaceInvitacion
     @GET("api/perfil/objetos") suspend fun propios(): List<Objeto>
     @GET("api/objetos/{id}/reclamos/custodia")
     suspend fun miReclamoCustodia(@Path("id") id: Long): ReclamoCustodia
+
+    @GET("api/objetos/{id}/reclamos/custodia/qr-retiro")
+    suspend fun qrRetiroPropio(@Path("id") id: Long): QrRetiroPropio
 
     @POST("api/objetos/{id}/reclamos/custodia")
     suspend fun reclamarCustodia(@Path("id") id: Long, @Body datos: RespuestaCustodia): ReclamoCustodia
@@ -73,6 +77,9 @@ interface ApiService {
     @POST("api/coincidencias/{id}/descartar") suspend fun descartar(@Path("id") id: String): EstadoPareja
     @POST("api/coincidencias/{id}/confirmar") suspend fun recuperar(@Path("id") id: String, @Body datos: ConfirmarRecuperacion): Recuperacion
     @GET("api/notificaciones") suspend fun avisos(): List<Aviso>
+    @GET("api/notificaciones/reclamos/novedades")
+    suspend fun novedadesReclamos(@Query("desde") desde: String, @Query("despuesDe") despuesDe: Long): List<Aviso>
+
     @GET("api/notificaciones/historial")
     suspend fun historialAvisos(@Query("estado") estado: String, @Query("pagina") pagina: Int): HistorialAvisos
 

@@ -15,6 +15,8 @@ fun ReclamoCustodiaScreen(id: Long, volver: () -> Unit,
     vm: ReclamoCustodiaViewModel = viewModel(key = "reclamo-$id", factory = fabrica(objetoId = id))) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     val accion by vm.accion.collectAsStateWithLifecycle()
+    val qr by vm.qr.collectAsStateWithLifecycle()
+    qr?.let { MostrarQrRetiro(it, vm::ocultarQr) }
     var respuesta by remember { mutableStateOf("") }
     var confirmar by remember { mutableStateOf(false) }
 
@@ -38,6 +40,9 @@ fun ReclamoCustodiaScreen(id: Long, volver: () -> Unit,
                     else -> "Pendiente de revisión"
                 }
                 Panel("Estado de tu reclamo") { Text(mensaje) }
+                if (reclamo.estado == "ACEPTADO") OutlinedButton(onClick = vm::verQr, enabled = !accion.ocupada) {
+                    Text("Mostrar QR de retiro")
+                }
                 TextButton(onClick = vm::recargar, enabled = !accion.ocupada) { Text("Actualizar") }
             }
         }

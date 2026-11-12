@@ -32,7 +32,7 @@ import com.proyectointegrador.movil.ui.screens.coincidencias.*
 import com.proyectointegrador.movil.ui.screens.cuenta.*
 import com.proyectointegrador.movil.ui.screens.publicaciones.*
 
-@Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
+@Composable fun AppNavHost(enlace:Uri?=null, abrirAvisos:Boolean=false, consumirAvisos:()->Unit={}, consumirEnlace:()->Unit={}) {
     val vm:SesionViewModel=viewModel(factory=fabrica())
     val sesion by vm.estado.collectAsStateWithLifecycle()
     val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
@@ -50,7 +50,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
         val fondoOscuro=MaterialTheme.colorScheme.background.luminance()<.25f
         SideEffect { generateSequence(contexto){(it as? ContextWrapper)?.baseContext}.filterIsInstance<Activity>().firstOrNull()?.let {activity->
             val controlador=WindowInsetsControllerCompat(activity.window,activity.window.decorView)
-            controlador.isAppearanceLightStatusBars=!(fondoOscuro||ruta in listOf("bienvenida","inicio","asistente")||(!sesion.autenticado&&ruta in listOf("perfil","avisos","publicar?tipo={tipo}")))
+            controlador.isAppearanceLightStatusBars=!(fondoOscuro||ruta in listOf("bienvenida","inicio","asistente")||(!sesion.autenticado&&(ruta in listOf("perfil","avisos")||ruta?.startsWith("publicar?")==true)))
             controlador.isAppearanceLightNavigationBars=!fondoOscuro
         }}
         var recuperacion by remember {mutableStateOf<String?>(null)}
@@ -62,12 +62,13 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
             nav.navigate("nueva-clave") {popUpTo(nav.graph.startDestinationId){inclusive=false};launchSingleTop=true};consumirEnlace()
         } }
         fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
+        LaunchedEffect(abrirAvisos) { if (abrirAvisos) { abrir(if (sesion.autenticado) "avisos" else "perfil"); consumirAvisos() } }
         val volver:()->Unit={nav.popBackStack();Unit}
         LaunchedEffect(evento){evento?.let {experiencia.consumirEvento();nav.navigate(it){popUpTo(nav.graph.startDestinationId){inclusive=true};launchSingleTop=true}}}
         LaunchedEffect(ruta,sesion.revision){if(ruta=="inicio"||ruta=="avisos")comunidad.recargar()}
         val etiquetasCompactas=LocalConfiguration.current.screenWidthDp<360&&LocalDensity.current.fontScale>1.1f
         val pestanas=listOf("inicio" to "Inicio","propios" to "Reportes","asistente" to "FINDI","buscar" to "Buscar","perfil" to "Perfil")
-        val principal=ruta in listOf("inicio","buscar","publicar?tipo={tipo}","avisos","perfil","propios")
+        val principal=ruta in listOf("inicio","buscar","avisos","perfil","propios") || ruta?.startsWith("publicar?")==true
         Scaffold(contentWindowInsets=WindowInsets(0),bottomBar={if(principal) Surface(shadowElevation=12.dp,color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)) {
             NavigationBar(containerColor=androidx.compose.ui.graphics.Color.Transparent,tonalElevation=0.dp) {
                 pestanas.forEachIndexed {indice,(destino,texto)->
@@ -76,7 +77,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                         onClick={nav.navigate(if(destino=="propios"&&!sesion.autenticado)"perfil" else destino){popUpTo(nav.graph.startDestinationId){saveState=true};restoreState=destino!="asistente";launchSingleTop=true}},
                         icon={if(destino=="asistente") Surface(color=AmarilloFindi,shape=RoundedCornerShape(50)){Icon(iconos[indice],texto,Modifier.padding(9.dp).size(23.dp),tint=MarinoFindi)}
                             else if(destino=="avisos"&&actividad.sinLeer>0) BadgedBox(badge={Badge{Text(actividad.sinLeer.toString())}}){Icon(iconos[indice],texto,Modifier.size(23.dp))}
-                            else Icon(iconos[indice],texto,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=1,softWrap=false,modifier=Modifier.wrapContentWidth(unbounded=true))})
+                            else Icon(iconos[indice],texto,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=2,textAlign=androidx.compose.ui.text.style.TextAlign.Center)})
                 }
             }
         }}) { padding ->
@@ -118,6 +119,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {
+                    composable("retiro") { RetiroScreen(volver) }
                     composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                         ReclamoCustodiaScreen(it.arguments!!.getLong("id"), volver)
                     }
