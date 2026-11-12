@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import com.proyectointegrador.movil.domain.rutaDeAviso
+import com.proyectointegrador.movil.model.FiltroAvisos
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.di.fabrica
@@ -19,8 +20,17 @@ import com.proyectointegrador.movil.ui.components.*
  Pagina("Tus novedades",volver) {
   Text("Cada aviso puede acercarte a lo que buscas.",color=MaterialTheme.colorScheme.onSurfaceVariant)
   EstadoAccion(accion)
-  Consulta(estado,vm::recargar){avisos,recargar->
-   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("${avisos.count {!it.leida}} sin leer",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);TextButton(onClick=recargar,enabled=!accion.ocupada){Text("Actualizar")}}
+  val filtro by vm.filtro.collectAsStateWithLifecycle()
+  Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+   listOf(FiltroAvisos.TODAS to "Todas", FiltroAvisos.NO_LEIDAS to "Sin leer", FiltroAvisos.LEIDAS to "Leídas").forEach { (opcion, titulo) ->
+    FilterChip(selected=filtro==opcion, onClick={vm.filtrar(opcion)}, enabled=!accion.ocupada, label={Text(titulo)})
+   }
+  }
+  if(!estado.cargando && estado.datos==null) OutlinedButton(onClick=vm::recargar, enabled=!accion.ocupada){Text("Reintentar")}
+  Consulta(estado,vm::recargar){historial,recargar->
+   val avisos=historial.contenido
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("${historial.noLeidas} sin leer",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);TextButton(onClick=recargar,enabled=!accion.ocupada){Text("Actualizar")}}
+   if(historial.noLeidas>0) OutlinedButton(onClick=vm::leerTodos, enabled=!accion.ocupada){Text("Marcar todas como leídas")}
    if(avisos.isEmpty())Vacio("Todo al día","Cuando haya novedades de tus objetos, las encontrarás aquí.",Simbolos.Avisos)
    avisos.forEach {aviso->Surface(color=if(aviso.leida)MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,shape=RoundedCornerShape(22.dp),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),modifier=Modifier.fillMaxWidth()) {
     Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -31,6 +41,7 @@ import com.proyectointegrador.movil.ui.components.*
      if(!aviso.leida)OutlinedButton(enabled=!accion.ocupada,onClick={vm.leer(aviso.id)}){Text("Marcar como leída")}
     }
    }}
+   if(historial.pagina+1<historial.totalPaginas) OutlinedButton(onClick=vm::verMas, enabled=!accion.ocupada){Text("Ver más avisos")}
   }
  }
 }

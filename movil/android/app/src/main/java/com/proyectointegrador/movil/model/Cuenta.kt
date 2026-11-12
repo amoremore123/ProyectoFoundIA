@@ -15,6 +15,11 @@ data class Documentos(val version: String, val estado: String, val terminos: Str
 data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true, val recordatorios: Boolean? = null)
 data class Aviso(val id: Long, val titulo: String, val mensaje: String, val tipo: String, val leida: Boolean,
     val fechaCreacion: String?, val enlace: String?)
+enum class FiltroAvisos { TODAS, NO_LEIDAS, LEIDAS }
+
+data class HistorialAvisos(val contenido: List<Aviso>, val pagina: Int, val totalPaginas: Int, val noLeidas: Int)
+data class AvisosLeidos(val actualizadas: Int, val noLeidas: Int)
+
 data class Pareja(val id: String, val perdido: Objeto, val encontrado: Objeto, val porcentaje: Double,
     val nivel: String, val criterios: Map<String,Int>)
 data class EstadoPareja(val id: String, val estado: String, val repetido: Boolean)

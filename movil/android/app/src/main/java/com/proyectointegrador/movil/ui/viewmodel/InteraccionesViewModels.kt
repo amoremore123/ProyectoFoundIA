@@ -32,13 +32,67 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
         }
     }
 }
-class AvisosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Aviso>>({repo.avisos()}) {
-    fun abrir(id:Long){val aviso=estado.value.datos?.find {it.id==id}?:return
-        val destino=rutaDeAviso(aviso.enlace)?:return
-        ejecutar {if(!aviso.leida){val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})};emitirEvento(destino)}
+class AvisosViewModel(private val repo: CuentaRepository) : AccionViewModel() {
+    private val _estado = MutableStateFlow(EstadoConsulta<HistorialAvisos>())
+    val estado = _estado.asStateFlow()
+    private val _filtro = MutableStateFlow(FiltroAvisos.TODAS)
+    val filtro = _filtro.asStateFlow()
+
+    init { recargar() }
+
+    fun filtrar(nuevo: FiltroAvisos) {
+        if (accion.value.ocupada || nuevo == _filtro.value) return
+        _filtro.value = nuevo
+        recargar()
     }
-    fun leer(id:Long){if(estado.value.datos?.any {it.id==id}!=true)return
-        ejecutar {val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})}
+
+    fun recargar() {
+        if (accion.value.ocupada) return
+        _estado.value = EstadoConsulta()
+        ejecutar { cargarPrimeraPagina() }
+    }
+
+    private suspend fun cargarPrimeraPagina() {
+        try {
+            _estado.value = EstadoConsulta(repo.historialAvisos(_filtro.value, 0), false)
+        } finally {
+            if (_estado.value.cargando) _estado.value = EstadoConsulta(cargando = false)
+        }
+    }
+
+    fun verMas() {
+        val actual = _estado.value.datos ?: return
+        val siguiente = actual.pagina + 1
+        if (siguiente >= actual.totalPaginas) return
+        ejecutar {
+            val nueva = repo.historialAvisos(_filtro.value, siguiente)
+            _estado.value = EstadoConsulta(
+                nueva.copy(contenido = (actual.contenido + nueva.contenido).distinctBy { it.id }),
+                false
+            )
+        }
+    }
+
+    fun leerTodos() = ejecutar {
+        repo.leerTodosLosAvisos()
+        cargarPrimeraPagina()
+    }
+
+    fun abrir(id: Long) {
+        val aviso = _estado.value.datos?.contenido?.find { it.id == id } ?: return
+        val destino = rutaDeAviso(aviso.enlace) ?: return
+        ejecutar {
+            if (!aviso.leida) {
+                repo.leer(id)
+                cargarPrimeraPagina()
+            }
+            emitirEvento(destino)
+        }
+    }
+
+    fun leer(id: Long) = ejecutar {
+        repo.leer(id)
+        cargarPrimeraPagina()
     }
 }
 class PreferenciasViewModel(private val repo:CuentaRepository):CargaViewModel<Preferencias>({repo.preferencias()}) {

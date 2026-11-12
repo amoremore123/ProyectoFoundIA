@@ -62,6 +62,11 @@ interface ApiService {
     @POST("api/coincidencias/{id}/descartar") suspend fun descartar(@Path("id") id: String): EstadoPareja
     @POST("api/coincidencias/{id}/confirmar") suspend fun recuperar(@Path("id") id: String, @Body datos: ConfirmarRecuperacion): Recuperacion
     @GET("api/notificaciones") suspend fun avisos(): List<Aviso>
+    @GET("api/notificaciones/historial")
+    suspend fun historialAvisos(@Query("estado") estado: String, @Query("pagina") pagina: Int): HistorialAvisos
+
+    @PUT("api/notificaciones/leidas") suspend fun leerTodosLosAvisos(): AvisosLeidos
+
     @PUT("api/notificaciones/{id}/leida") suspend fun leer(@Path("id") id: Long): Aviso
     @GET("api/notificaciones/preferencias") suspend fun preferencias(): Preferencias
     @PUT("api/notificaciones/preferencias") suspend fun guardarPreferencias(@Body datos: Preferencias): Preferencias

@@ -84,6 +84,14 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
     suspend fun avisos()=privada {api.avisos()}.also {avisos->synchronized(noLeidos){noLeidos.clear();noLeidos.addAll(avisos.filter {!it.leida}.map {it.id});_sinLeer.value=noLeidos.size}}
     suspend fun leer(id:Long)=privada {api.leer(id)}.also {aviso->synchronized(noLeidos){if(aviso.leida)noLeidos.remove(id) else noLeidos.add(id);_sinLeer.value=noLeidos.size}}
+    suspend fun historialAvisos(filtro: FiltroAvisos, pagina: Int) = privada {
+        api.historialAvisos(filtro.name, pagina)
+    }
+
+    suspend fun leerTodosLosAvisos() = privada { api.leerTodosLosAvisos() }.also {
+        synchronized(noLeidos) { noLeidos.clear(); _sinLeer.value = it.noLeidas }
+    }
+
     suspend fun preferencias()=privada {api.preferencias()}
     suspend fun guardarPreferencias(datos:Preferencias)=privada {api.guardarPreferencias(datos)}
     suspend fun eliminacion()=privada {api.eliminacion()}
