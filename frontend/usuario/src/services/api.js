@@ -58,8 +58,8 @@ export const login = async (correo, password) => {
   return data;
 };
 
-export const register = async (datos) => {
-  const { data } = await api.post('/api/auth/register', datos);
+export const register = async ({ invitacion, ...datos }) => {
+  const { data } = await api.post('/api/auth/register', datos, invitacion ? { params: { invitacion } } : undefined);
   return data;
 };
 
