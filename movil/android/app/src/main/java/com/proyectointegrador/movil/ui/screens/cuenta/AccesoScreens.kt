@@ -63,6 +63,7 @@ import com.proyectointegrador.movil.ui.components.*
      AvisoEstado(avisoDocumentos(docs))
      Text("Versión ${docs.version}")
      FuentesLegales(docs)
+   EnlacesLegalesFoundia()
     TextButton(onClick={leer=docs.terminos}){Text("Leer términos de uso")}
     TextButton(onClick={leer=docs.privacidad}){Text("Leer política de privacidad")}
     Row(Modifier.toggleable(value=f.acepta,role=Role.Checkbox,enabled=!accion.ocupada,onValueChange=vm::aceptar),verticalAlignment=Alignment.CenterVertically) {
