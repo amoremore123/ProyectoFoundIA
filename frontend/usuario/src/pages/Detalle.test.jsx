@@ -183,12 +183,17 @@ describe('H20 - reclamo de un objeto encontrado', () => {
     expect(screen.queryByRole('button', { name: 'Reclamar este objeto' })).toBeNull();
   });
 
-  it('H43: permite confirmar el reclamo de un hallazgo ajeno en custodia', async () => {
+  it('H42: pide una respuesta antes de confirmar el reclamo en custodia', async () => {
     getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
     renderizar(true);
-    fireEvent.click(await screen.findByRole('button', { name: 'Reclamar este objeto' }));
+    const reclamar = await screen.findByRole('button', { name: 'Reclamar este objeto' });
+    expect(reclamar.disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(/Qué detalle del objeto/), {
+      target: { value: 'Llavero azul por dentro' },
+    });
+    fireEvent.click(reclamar);
     expect(reclamarObjeto).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Sí, reclamar' }));
-    await waitFor(() => expect(reclamarObjeto).toHaveBeenCalledWith(hallazgoAjeno.id));
+    await waitFor(() => expect(reclamarObjeto).toHaveBeenCalledWith(hallazgoAjeno.id, 'Llavero azul por dentro'));
   });
 });
