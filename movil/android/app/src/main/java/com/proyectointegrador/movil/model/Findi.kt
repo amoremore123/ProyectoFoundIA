@@ -1,5 +1,8 @@
 package com.proyectointegrador.movil.model
 
+data class SolicitudSugerencia(val nombre: String, val descripcion: String, val tipo: String)
+data class SugerenciaFindi(val categoria: ObjetoCategoria?, val descripcion: String?, val origen: String)
+
 data class ConsultaFindi(val mensaje: String)
 data class InterpretacionFindi(
     val intencion: String? = null, val tipoBuscado: String? = null,

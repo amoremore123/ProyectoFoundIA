@@ -29,6 +29,26 @@ import java.util.*
 @Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
  val estado by viewModel.estado.collectAsStateWithLifecycle();val f by viewModel.form.collectAsStateWithLifecycle();val accion by viewModel.accion.collectAsStateWithLifecycle();val evento by viewModel.evento.collectAsStateWithLifecycle()
  LaunchedEffect(Unit){if(f.nombre.isBlank()&&tipoInicial in listOf("PERDIDO","ENCONTRADO"))viewModel.editar("tipo",tipoInicial)}
+ val sugerencia by viewModel.sugerencia.collectAsStateWithLifecycle()
+ sugerencia?.let { propuesta ->
+  var propuestaTexto by remember(propuesta) { mutableStateOf(propuesta.descripcion.orEmpty()) }
+  AlertDialog(
+   onDismissRequest = viewModel::descartarSugerencia,
+   title = { Text("Sugerencia de FINDI") },
+   text = {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+     Text("Revisa la sugerencia antes de aplicarla.")
+     propuesta.categoria?.nombre?.let { Text("Categoría sugerida: " + it) }
+     if (propuesta.descripcion != null) OutlinedTextField(
+      value = propuestaTexto, onValueChange = { propuestaTexto = it.take(500) },
+      label = { Text("Descripción sugerida") }
+     )
+    }
+   },
+   confirmButton = { TextButton(onClick = { viewModel.aplicarSugerencia(propuestaTexto) }) { Text("Aplicar") } },
+   dismissButton = { TextButton(onClick = viewModel::descartarSugerencia) { Text("Descartar") } }
+  )
+ }
  val desplazamiento=rememberScrollState()
  LaunchedEffect(f.paso,f.errores){desplazamiento.animateScrollTo(0)}
  val selector=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let {viewModel.foto(it.toString())}}
@@ -64,6 +84,10 @@ import java.util.*
      }}}
     1->{CampoPublicacion("Nombre del objeto",f.nombre,{viewModel.editar("nombre",it)},f.errores["nombre"])
      CampoPublicacion("Descríbelo: color, marca, detalles…",f.descripcion,{viewModel.editar("descripcion",it)},f.errores["descripcion"],3)
+     OutlinedButton(onClick = viewModel::pedirSugerencia,
+      enabled = !accion.ocupada && f.publicadoId == null && (f.nombre.isNotBlank() || f.descripcion.isNotBlank())) {
+      Text("Pedir una sugerencia a FINDI")
+     }
      Text("Categoría",style=MaterialTheme.typography.titleSmall);estado.datos?.aviso?.let {AvisoEstado(it)}
      Column {estado.datos?.datos.orEmpty().filter {it.estado}.forEach {c->FilterChip(f.categoriaId==c.id,{viewModel.categoria(c.id)},{Text(c.nombre?:"Categoría")})}}
      f.errores["categoria"]?.let {AvisoEstado(it,true)}

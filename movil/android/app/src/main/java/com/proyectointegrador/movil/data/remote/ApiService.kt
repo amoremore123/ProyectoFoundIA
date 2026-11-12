@@ -18,6 +18,9 @@ interface ApiService {
     @POST("api/asistente/interpretar")
     suspend fun interpretarFindi(@Body datos: ConsultaFindi): InterpretacionFindi
 
+    @POST("api/asistente/sugerir-publicacion")
+    suspend fun sugerirPublicacion(@Body datos: SolicitudSugerencia): SugerenciaFindi
+
     @GET("api/objetos")
     suspend fun listarObjetos(
         @Query("tipo") tipo: String? = null,
