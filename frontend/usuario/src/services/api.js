@@ -135,8 +135,11 @@ export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
   return data;
 };
 
-export const reclamarObjeto = async (id) => {
-  const { data } = await api.post(`/api/objetos/${id}/reclamos`);
+export const reclamarObjeto = async (id, respuesta) => {
+  const ruta = '/api/objetos/' + id + '/reclamos';
+  const { data } = respuesta === undefined
+    ? await api.post(ruta)
+    : await api.post(ruta + '/custodia', { respuesta });
   return data;
 };
 

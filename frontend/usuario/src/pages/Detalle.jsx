@@ -36,6 +36,7 @@ export default function Detalle() {
   const [erroresContacto, setErroresContacto] = useState({});
   const [contactandoId, setContactandoId] = useState(null);
   const [reclamo, setReclamo] = useState('');
+  const [respuestaCustodia, setRespuestaCustodia] = useState('');
   const [reclamoError, setReclamoError] = useState('');
   const [reclamando, setReclamando] = useState(false);
   const [confirmarReclamo, setConfirmarReclamo] = useState(false);
@@ -86,7 +87,9 @@ export default function Detalle() {
     setReclamoError('');
     setReclamando(true);
     try {
-      const respuesta = await reclamarObjeto(objeto.id);
+      const respuesta = objeto.estado === 'EN_CUSTODIA'
+        ? await reclamarObjeto(objeto.id, respuestaCustodia.trim())
+        : await reclamarObjeto(objeto.id);
       setReclamo(respuesta.repetido ? 'repetido' : 'enviado');
     } catch (errorReclamo) {
       setReclamoError(mensajeError(errorReclamo, 'No se pudo enviar el reclamo'));
@@ -98,6 +101,7 @@ export default function Detalle() {
 
   useEffect(() => {
     setIndiceFoto(0);
+    setRespuestaCustodia('');
     cargar();
   }, [cargar]);
 
@@ -130,7 +134,7 @@ export default function Detalle() {
     reclamoDesdeFindi.current = false;
     const usuario = sesion.user;
     const ajeno = usuario && String(usuario.id) !== String(objeto.publicadoPor?.id);
-    if (sesion.token && ajeno && objeto.tipo === 'ENCONTRADO' && ['ACTIVO', 'EN_CUSTODIA'].includes(objeto.estado)) setConfirmarReclamo(true);
+    if (sesion.token && ajeno && objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO') setConfirmarReclamo(true);
   }, [objeto, sesion.token, sesion.user]);
 
   if (cargando) return <Cargando />;
@@ -202,21 +206,29 @@ export default function Detalle() {
 
           {puedeReclamar && (reclamo ? (
             <p role="status" className="aviso-accion aviso-ok">
-              {reclamo === 'repetido'
+              {objeto.estado === 'EN_CUSTODIA'
+                ? 'Tu reclamo está en la bandeja de la biblioteca.'
+                : reclamo === 'repetido'
                 ? 'Ya habías enviado este reclamo. Quien lo publicó ya fue avisado.'
                 : 'Reclamo enviado. Quien lo publicó recibió un aviso para coordinar la entrega contigo.'}
             </p>
           ) : (
             <div className="reclamo-objeto">
               <p className="nota-suave">
-                ¿Es tuyo? Al reclamarlo, avisamos a quien lo encontró para que coordine la entrega contigo.
-                Tu correo no se comparte.
+                {objeto.estado === 'EN_CUSTODIA'
+                  ? 'La biblioteca revisará una respuesta de verificación antes de la entrega.'
+                  : '¿Es tuyo? Al reclamarlo, avisamos a quien lo encontró para que coordine la entrega contigo. Tu correo no se comparte.'}
               </p>
+              {objeto.estado === 'EN_CUSTODIA' && <label className="campo">
+                <span>¿Qué detalle del objeto solo tú podrías reconocer?</span>
+                <textarea className="input" rows={3} maxLength={500} value={respuestaCustodia}
+                  onChange={(e) => setRespuestaCustodia(e.target.value)} disabled={reclamando} />
+              </label>}
               {reclamoError && <MensajeError mensaje={reclamoError} />}
               <button
                 type="button"
                 className="btn btn-secundario btn-bloque"
-                disabled={reclamando}
+                disabled={reclamando || (objeto.estado === 'EN_CUSTODIA' && respuestaCustodia.trim().length < 3)}
                 onClick={() => { setReclamoError(''); setConfirmarReclamo(true); }}
               >
                 Reclamar este objeto
@@ -322,7 +334,7 @@ export default function Detalle() {
       <ConfirmarDialogo
         abierto={confirmarReclamo}
         titulo="¿Reclamar este objeto?"
-        mensaje={`Avisaremos a quien publicó "${objeto.nombre}" que crees que es tuyo, para que coordine la entrega contigo. Tu correo no se comparte.`}
+        mensaje={objeto.estado === "EN_CUSTODIA" ? "Tu respuesta se enviará a la biblioteca para su revisión." : `Avisaremos a quien publicó "${objeto.nombre}" que crees que es tuyo, para que coordine la entrega contigo. Tu correo no se comparte.`}
         textoConfirmar="Sí, reclamar"
         procesando={reclamando}
         onConfirmar={reclamar}
