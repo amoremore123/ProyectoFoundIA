@@ -39,6 +39,12 @@ public class ReclamoController {
         return reclamoService.miReclamoCustodia(objetoId, usuarioActual().getId());
     }
 
+    @GetMapping("/custodia/qr-retiro")
+    public ResponseEntity<ReclamoService.QrPropio> qrPropio(@PathVariable Long objetoId) {
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(reclamoService.qrPropio(objetoId, usuarioActual().getId()));
+    }
+
     @PostMapping("/custodia")
     public ResponseEntity<ReclamoResponse> reclamarCustodia(@PathVariable Long objetoId,
             @Valid @RequestBody RespuestaCustodia datos) {

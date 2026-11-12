@@ -133,10 +133,13 @@ export default function Reclamos() {
     }
   };
 
+  const [etiqueta, setEtiqueta] = useState('');
+
   const retirar = async () => {
     setRetirando(true);
     try {
-      await registrarRetiro(verificacion.token);
+      await registrarRetiro(verificacion.token, etiqueta.trim());
+      setEtiqueta('');
       mostrarToast('Retiro registrado: el objeto quedó como recuperado.', 'exito');
       setToken('');
       setVerificacion(null);
@@ -183,7 +186,13 @@ export default function Reclamos() {
               <p className="nota-tabla">Reclamo #{reclamoQr.id} · {reclamoQr.objeto?.nombre} · {reclamoQr.reclamante?.nombre}</p>
             )}
             {qrVigente && (
-              <button type="button" className="btn btn-primario" onClick={() => setConfirmarRetiro(true)} disabled={retirando}>
+              <label className="campo">
+                <span className="campo-label">Etiqueta QR de custodia</span>
+                <input className="input" value={etiqueta} onChange={(e) => setEtiqueta(e.target.value)} autoComplete="off" disabled={retirando} />
+              </label>
+            )}
+            {qrVigente && (
+              <button type="button" className="btn btn-primario" onClick={() => setConfirmarRetiro(true)} disabled={retirando || !etiqueta.trim()}>
                 Entregar objeto
               </button>
             )}
@@ -210,6 +219,7 @@ export default function Reclamos() {
           <p className="nota-tabla">
             {seleccionado.objeto?.nombre} (#{seleccionado.objeto?.id}) · reclamado por {seleccionado.reclamante?.nombre} el {fechaHora(seleccionado.fechaReclamo)}
           </p>
+          {seleccionado.respuestaVerificacion && <p className="nota-tabla">Respuesta de verificación: {seleccionado.respuestaVerificacion}</p>}
           {seleccionado.objeto?.descripcion && <p className="nota-tabla">Descripción registrada: «{seleccionado.objeto.descripcion}»</p>}
           <fieldset className="resolver-opciones">
             <legend className="campo-label">Decisión</legend>

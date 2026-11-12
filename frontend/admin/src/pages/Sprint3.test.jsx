@@ -229,9 +229,11 @@ describe('H43 - reclamos de custodia', () => {
     registrarRetiro.mockResolvedValue({});
     fireEvent.change(screen.getByPlaceholderText(/Escanea el QR que muestra/), { target: { value: 'tok-2' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Verificar' })); });
+    expect(screen.getByRole('button', { name: 'Entregar objeto' }).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText('Etiqueta QR de custodia'), { target: { value: 'etiqueta-2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Entregar objeto' }));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sí, entregar' })); });
-    expect(registrarRetiro).toHaveBeenCalledWith('tok-2');
+    expect(registrarRetiro).toHaveBeenCalledWith('tok-2', 'etiqueta-2');
   });
 
   it('un fallo de carga se distingue del vacío', async () => {

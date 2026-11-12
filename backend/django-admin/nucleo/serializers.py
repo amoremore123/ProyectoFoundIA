@@ -229,6 +229,7 @@ class ReclamoResolucionSerializer(serializers.Serializer):
 
 class RetiroSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=64, allow_blank=False, trim_whitespace=True)
+    etiqueta = serializers.CharField(max_length=500, allow_blank=False, trim_whitespace=True)
 
 
 class NotificacionSerializer(serializers.ModelSerializer):

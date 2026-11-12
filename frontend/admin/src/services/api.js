@@ -256,8 +256,8 @@ export const verificarQrRetiro = async (token) => {
   return data;
 };
 
-export const registrarRetiro = async (token) => {
-  const { data } = await api.post('/api/admin/reclamos/retirar/', { token });
+export const registrarRetiro = async (token, etiqueta) => {
+  const { data } = await api.post('/api/admin/reclamos/retirar/', { token, etiqueta });
   return data;
 };
 

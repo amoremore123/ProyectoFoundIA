@@ -39,6 +39,21 @@ public class ReclamoService {
         return new ReclamoResponse(null, objetoId, "SIN_RECLAMO", null, false);
     }
 
+    @Transactional(readOnly = true)
+    public QrPropio qrPropio(Long objetoId, Long usuarioId) {
+        Reclamo reclamo = reclamoRepository.findByObjetoIdAndUsuarioId(objetoId, usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reclamo no encontrado"));
+        if (!"ACEPTADO".equals(reclamo.getEstado()) || reclamo.getQrRetiroToken() == null
+                || reclamo.getQrRetiroUsadoEn() != null || reclamo.getQrRetiroExpira() == null
+                || !reclamo.getQrRetiroExpira().isAfter(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC))
+                || reclamo.getObjeto().getEstado() != EstadoObjeto.EN_CUSTODIA) {
+            throw new ReclamoInvalidoException("El QR de retiro ya no está disponible");
+        }
+        return new QrPropio(reclamo.getQrRetiroToken(), reclamo.getQrRetiroExpira());
+    }
+
+    public record QrPropio(String token, java.time.LocalDateTime expira) {}
+
     @Transactional
     public ReclamoResponse reclamarCustodia(Long objetoId, Long usuarioId, String respuesta) {
         return registrar(objetoId, usuarioId, respuesta);
