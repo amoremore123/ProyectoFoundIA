@@ -34,8 +34,8 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
 }
 class AvisosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Aviso>>({repo.avisos()}) {
     fun abrir(id:Long){val aviso=estado.value.datos?.find {it.id==id}?:return
-        val par=parejaDeEnlace(aviso.enlace)?:return
-        ejecutar {if(!aviso.leida){val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})};emitirEvento(par)}
+        val destino=rutaDeAviso(aviso.enlace)?:return
+        ejecutar {if(!aviso.leida){val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})};emitirEvento(destino)}
     }
     fun leer(id:Long){if(estado.value.datos?.any {it.id==id}!=true)return
         ejecutar {val respuesta=repo.leer(id);actualizar(estado.value.datos.orEmpty().map {if(it.id==id)respuesta else it})}
@@ -44,7 +44,7 @@ class AvisosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Avi
 class PreferenciasViewModel(private val repo:CuentaRepository):CargaViewModel<Preferencias>({repo.preferencias()}) {
     private val _edicion=MutableStateFlow<Preferencias?>(null);val edicion=_edicion.asStateFlow()
     fun editar(indice:Int,valor:Boolean){val actual=_edicion.value?:estado.value.datos?:return
-        _edicion.value=when(indice){0->actual.copy(coincidencias=valor);1->actual.copy(contactos=valor);else->actual.copy(reclamos=valor)}
+        _edicion.value=when(indice){0->actual.copy(coincidencias=valor);1->actual.copy(contactos=valor);2->actual.copy(reclamos=valor);else->actual.copy(recordatorios=valor)}
     }
     fun cancelar(){_edicion.value=null}
     fun recargarPreferencias(){cancelar();recargar()}

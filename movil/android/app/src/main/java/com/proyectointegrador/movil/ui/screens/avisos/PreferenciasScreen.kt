@@ -18,10 +18,10 @@ import com.proyectointegrador.movil.ui.viewmodel.*
             val preferencias=edicion?:actuales
             Text("Los cambios afectan a los avisos nuevos; el historial se conserva.")
             Panel("Lo que quieres recibir") {
-            listOf("Nuevas coincidencias","Solicitudes de contacto","Reclamos de objetos").forEachIndexed { indice,texto ->
+            listOf("Nuevas coincidencias","Solicitudes de contacto","Reclamos de objetos","Recordatorios de objetos sin resolver").forEachIndexed { indice,texto ->
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                     Text(texto,Modifier.weight(1f))
-                    Switch(checked=when(indice){0->preferencias.coincidencias;1->preferencias.contactos;else->preferencias.reclamos},
+                    Switch(checked=when(indice){0->preferencias.coincidencias;1->preferencias.contactos;2->preferencias.reclamos;else->preferencias.recordatorios?:true},
                         enabled=!accion.ocupada,onCheckedChange={vm.editar(indice,it)})
                 }
             }

@@ -107,7 +107,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                     if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),onPublicado={abrir("detalle/$it")})
                     else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
                 }
-                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir={abrir("pareja/$it")}) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
+                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {

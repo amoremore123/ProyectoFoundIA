@@ -12,7 +12,7 @@ data class FuenteLegal(val id: String, val titulo: String, val url: String, val 
     val sha256Original: String, val sha256Texto: String)
 data class Documentos(val version: String, val estado: String, val terminos: String, val privacidad: String, val sha256: String,
     val aviso: String? = null, val fuentes: List<FuenteLegal>? = null)
-data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true)
+data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true, val recordatorios: Boolean? = null)
 data class Aviso(val id: Long, val titulo: String, val mensaje: String, val tipo: String, val leida: Boolean,
     val fechaCreacion: String?, val enlace: String?)
 data class Pareja(val id: String, val perdido: Objeto, val encontrado: Objeto, val porcentaje: Double,
