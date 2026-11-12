@@ -18,20 +18,24 @@ import com.proyectointegrador.movil.ui.theme.FoundIATheme
 
 class MainActivity : ComponentActivity() {
     private var enlace by mutableStateOf<Uri?>(null)
+    private var abrirAvisos by mutableStateOf(false)
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         enlace=intent.data
+        abrirAvisos = intent.getBooleanExtra("avisosReclamo", false)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enlace=intent?.data
+        abrirAvisos = intent?.getBooleanExtra("avisosReclamo", false) == true
         enableEdgeToEdge()
         setContent {
             val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
             val ajustes by experiencia.estado.collectAsStateWithLifecycle()
             FoundIATheme(tema=ajustes.tema) {
-                AppNavHost(enlace) {enlace=null}
+                AppNavHost(enlace, abrirAvisos, { abrirAvisos = false }) { enlace = null }
             }
         }
     }

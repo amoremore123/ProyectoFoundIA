@@ -32,7 +32,7 @@ import com.proyectointegrador.movil.ui.screens.coincidencias.*
 import com.proyectointegrador.movil.ui.screens.cuenta.*
 import com.proyectointegrador.movil.ui.screens.publicaciones.*
 
-@Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
+@Composable fun AppNavHost(enlace:Uri?=null, abrirAvisos:Boolean=false, consumirAvisos:()->Unit={}, consumirEnlace:()->Unit={}) {
     val vm:SesionViewModel=viewModel(factory=fabrica())
     val sesion by vm.estado.collectAsStateWithLifecycle()
     val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
@@ -62,6 +62,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
             nav.navigate("nueva-clave") {popUpTo(nav.graph.startDestinationId){inclusive=false};launchSingleTop=true};consumirEnlace()
         } }
         fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
+        LaunchedEffect(abrirAvisos) { if (abrirAvisos) { abrir(if (sesion.autenticado) "avisos" else "perfil"); consumirAvisos() } }
         val volver:()->Unit={nav.popBackStack();Unit}
         LaunchedEffect(evento){evento?.let {experiencia.consumirEvento();nav.navigate(it){popUpTo(nav.graph.startDestinationId){inclusive=true};launchSingleTop=true}}}
         LaunchedEffect(ruta,sesion.revision){if(ruta=="inicio"||ruta=="avisos")comunidad.recargar()}

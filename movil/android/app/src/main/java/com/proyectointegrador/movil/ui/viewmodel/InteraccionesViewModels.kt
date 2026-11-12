@@ -80,7 +80,7 @@ class AvisosViewModel(private val repo: CuentaRepository) : AccionViewModel() {
 
     fun abrir(id: Long) {
         val aviso = _estado.value.datos?.contenido?.find { it.id == id } ?: return
-        val destino = rutaDeAviso(aviso.enlace) ?: return
+        val destino = rutaDeAviso(aviso.enlace, aviso.tipo) ?: return
         ejecutar {
             if (!aviso.leida) {
                 repo.leer(id)
