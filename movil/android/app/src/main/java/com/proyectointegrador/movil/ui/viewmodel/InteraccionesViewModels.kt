@@ -95,6 +95,18 @@ class AvisosViewModel(private val repo: CuentaRepository) : AccionViewModel() {
         cargarPrimeraPagina()
     }
 }
+class ReclamoCustodiaViewModel(private val repo: CuentaRepository, private val id: Long) :
+    CargaViewModel<ReclamoCustodia>({ repo.miReclamoCustodia(id) }) {
+    fun reclamar(respuesta: String) {
+        if (estado.value.datos?.estado != "SIN_RECLAMO" || respuesta.trim().length !in 3..500) return
+        ejecutar {
+            val resultado = repo.reclamarCustodia(id, respuesta.trim())
+            actualizar(resultado)
+            informar(if (resultado.repetido) "Ya existe tu reclamo." else "Tu reclamo fue enviado a la biblioteca.")
+        }
+    }
+}
+
 class PreferenciasViewModel(private val repo:CuentaRepository):CargaViewModel<Preferencias>({repo.preferencias()}) {
     private val _edicion=MutableStateFlow<Preferencias?>(null);val edicion=_edicion.asStateFlow()
     fun editar(indice:Int,valor:Boolean){val actual=_edicion.value?:estado.value.datos?:return

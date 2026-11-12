@@ -98,7 +98,8 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver,entrar={recuperacion=null;abrir("perfil")},apertura=aperturaRecuperacion)}
                 composable("detalle/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                     DetalleScreen(objetoId=it.arguments!!.getLong("id"),onBack=volver,onObjetoClick={abrir("detalle/$it")},
-                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")})
+                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")},
+                        onReclamo={if (sesion.autenticado) abrir("reclamo-custodia/$it") else abrir("perfil")})
                 }
                 composable("pareja/{id}") {ParejaScreen(it.arguments?.getString("id").orEmpty(),volver,propios={
                     if(sesion.autenticado) abrir("propios") else abrir("perfil")
@@ -117,6 +118,9 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {
+                    composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                        ReclamoCustodiaScreen(it.arguments!!.getLong("id"), volver)
+                    }
                     composable("editar-perfil"){EditarPerfilScreen(volver)}
                     composable("seguridad"){EditarPerfilScreen(volver,seguridad=true)}
                     composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")})}

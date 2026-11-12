@@ -62,6 +62,12 @@ interface ApiService {
     @PUT("api/perfil") suspend fun actualizarPerfil(@Body datos:PerfilRequest):Usuario
     @GET("api/perfil") suspend fun perfil(): Usuario
     @GET("api/perfil/objetos") suspend fun propios(): List<Objeto>
+    @GET("api/objetos/{id}/reclamos/custodia")
+    suspend fun miReclamoCustodia(@Path("id") id: Long): ReclamoCustodia
+
+    @POST("api/objetos/{id}/reclamos/custodia")
+    suspend fun reclamarCustodia(@Path("id") id: Long, @Body datos: RespuestaCustodia): ReclamoCustodia
+
     @POST("api/contactos") suspend fun contactar(@Body datos:ContactoRequest):ContactoResultado
     @GET("api/coincidencias/{id}") suspend fun pareja(@Path("id") id: String): Pareja
     @POST("api/coincidencias/{id}/descartar") suspend fun descartar(@Path("id") id: String): EstadoPareja

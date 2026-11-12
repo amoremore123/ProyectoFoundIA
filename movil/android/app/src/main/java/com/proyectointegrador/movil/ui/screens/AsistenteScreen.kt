@@ -255,7 +255,7 @@ private fun rutaPropuesta(propuesta: PropuestaFindi): String? {
             "publicar?tipo=$tipo&categoria=$categoria&ubicacion=$ubicacion"
         } else null
         "ABRIR_RECLAMO" -> datos?.objetoId?.takeIf { it > 0 && propuesta.destino == "/objeto/$it" }
-            ?.let { "detalle/$it" }
+            ?.let { "reclamo-custodia/$it" }
         else -> null
     }
 }

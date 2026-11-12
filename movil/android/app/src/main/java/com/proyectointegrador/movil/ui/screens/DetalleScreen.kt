@@ -14,7 +14,7 @@ import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
 
-@Composable fun DetalleScreen(objetoId:Long,onBack:()->Unit,onObjetoClick:(Long)->Unit,onComparar:(String)->Unit={},onReportar:(Long)->Unit={},onAcceso:()->Unit={},viewModel:ObjetosViewModel=viewModel(factory=fabrica())) {
+@Composable fun DetalleScreen(objetoId:Long,onBack:()->Unit,onObjetoClick:(Long)->Unit,onComparar:(String)->Unit={},onReportar:(Long)->Unit={},onAcceso:()->Unit={},onReclamo:(Long)->Unit={},viewModel:ObjetosViewModel=viewModel(factory=fabrica())) {
  val objeto by viewModel.detalle.collectAsStateWithLifecycle();val coincidencias by viewModel.coincidencias.collectAsStateWithLifecycle();val cargando by viewModel.cargandoDetalle.collectAsStateWithLifecycle();val error by viewModel.errorDetalle.collectAsStateWithLifecycle();val aviso by viewModel.avisoDetalle.collectAsStateWithLifecycle()
  LaunchedEffect(objetoId){viewModel.cargarDetalle(objetoId)}
  Surface(color=MaterialTheme.colorScheme.background,modifier=Modifier.fillMaxSize()) {
@@ -26,7 +26,10 @@ import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
     objeto!=null->{val o=objeto!!
      item{if(o.fotosSeguras.size>1)LazyRow(horizontalArrangement=Arrangement.spacedBy(12.dp)){items(o.fotosSeguras,key={it.id}){foto->FotoObjeto(o.copy(fotos=listOf(foto)),Modifier.width(280.dp).height(260.dp).clip(RoundedCornerShape(26.dp)))}} else FotoObjeto(o,Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(26.dp)))}
      item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically){TipoChip(o.tipoSeguro);Text(o.estado?:"Sin estado",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Spacer(Modifier.height(10.dp));Text(o.nombre,style=MaterialTheme.typography.headlineLarge);o.categoria?.nombre?.let {Text(it,style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}}
-     if (o.estado == "EN_CUSTODIA") item { AvisoEstado("En custodia en la biblioteca") }
+     if (o.estado == "EN_CUSTODIA") item {
+      AvisoEstado("En custodia en la biblioteca")
+      BotonPrincipal("Reclamar o consultar mi reclamo", { onReclamo(o.id) })
+     }
      aviso?.let {item{AvisoEstado(it);TextButton(onClick={viewModel.cargarDetalle(objetoId)}){Text("Actualizar publicación")}}}
      item{Panel {FilaDato(Simbolos.Lugar,o.ubicacion?:"Sin ubicación");HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);FilaDato(Simbolos.Fecha,o.fechaObjeto?:"Sin fecha");FilaDato(Simbolos.Perfil,o.publicadoPor?.nombreCompleto?:"Comunidad Tecsup")}}
      item{Text("Los detalles importan",style=MaterialTheme.typography.titleLarge);Spacer(Modifier.height(10.dp));Text(o.descripcion?.ifBlank {"Sin descripción"}?:"Sin descripción",style=MaterialTheme.typography.bodyLarge)}

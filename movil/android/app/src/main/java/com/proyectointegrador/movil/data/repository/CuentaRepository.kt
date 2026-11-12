@@ -80,6 +80,11 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         ParejaDatos(pareja,usuario)
     }
+    suspend fun miReclamoCustodia(id: Long) = privada { api.miReclamoCustodia(id) }
+    suspend fun reclamarCustodia(id: Long, respuesta: String) = privada {
+        api.reclamarCustodia(id, RespuestaCustodia(respuesta))
+    }
+
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
     suspend fun descartar(id:String)=privada {val respuesta=api.descartar(id);publicaciones.invalidar();respuesta}
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}

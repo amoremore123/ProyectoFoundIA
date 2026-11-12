@@ -20,6 +20,9 @@ enum class FiltroAvisos { TODAS, NO_LEIDAS, LEIDAS }
 data class HistorialAvisos(val contenido: List<Aviso>, val pagina: Int, val totalPaginas: Int, val noLeidas: Int)
 data class AvisosLeidos(val actualizadas: Int, val noLeidas: Int)
 
+data class RespuestaCustodia(val respuesta: String)
+data class ReclamoCustodia(val id: Long?, val estado: String, val repetido: Boolean = false)
+
 data class Pareja(val id: String, val perdido: Objeto, val encontrado: Objeto, val porcentaje: Double,
     val nivel: String, val criterios: Map<String,Int>)
 data class EstadoPareja(val id: String, val estado: String, val repetido: Boolean)
