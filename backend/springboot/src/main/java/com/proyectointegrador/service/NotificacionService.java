@@ -1,10 +1,16 @@
 package com.proyectointegrador.service;
 
+import com.proyectointegrador.dto.HistorialNotificacionesResponse;
+import com.proyectointegrador.dto.MarcarTodasResponse;
 import com.proyectointegrador.dto.NotificacionResponse;
 import com.proyectointegrador.entity.Notificacion;
 import com.proyectointegrador.entity.Usuario;
 import com.proyectointegrador.exception.ResourceNotFoundException;
+import com.proyectointegrador.exception.SolicitudInvalidaException;
 import com.proyectointegrador.repository.NotificacionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +32,47 @@ public class NotificacionService {
         return notificacionRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId).stream()
                 .map(NotificacionResponse::from)
                 .toList();
+    }
+
+    public static final int TAMANO_MAXIMO = 50;
+
+    /**
+     * H25: historial propio con filtro TODAS, LEIDAS o NO_LEIDAS. Consultar no cambia ningún aviso.
+     */
+    @Transactional(readOnly = true)
+    public HistorialNotificacionesResponse historial(Long usuarioId, String estado, int pagina, int tamano) {
+        String filtro = estado == null || estado.isBlank() ? "TODAS" : estado.trim().toUpperCase();
+        if (!filtro.equals("TODAS") && !filtro.equals("LEIDAS") && !filtro.equals("NO_LEIDAS")) {
+            throw new SolicitudInvalidaException("Filtro inválido; usa TODAS, LEIDAS o NO_LEIDAS.");
+        }
+        if (pagina < 0) {
+            throw new SolicitudInvalidaException("La página empieza en 0.");
+        }
+        if (tamano < 1 || tamano > TAMANO_MAXIMO) {
+            throw new SolicitudInvalidaException("El tamaño de página va de 1 a " + TAMANO_MAXIMO + ".");
+        }
+        var orden = PageRequest.of(pagina, tamano, Sort.by(Sort.Order.desc("fechaCreacion"), Sort.Order.desc("id")));
+        Page<Notificacion> resultado = switch (filtro) {
+            case "LEIDAS" -> notificacionRepository.findByUsuarioIdAndLeida(usuarioId, Boolean.TRUE, orden);
+            case "NO_LEIDAS" -> notificacionRepository.findByUsuarioIdAndLeida(usuarioId, Boolean.FALSE, orden);
+            default -> notificacionRepository.findByUsuarioId(usuarioId, orden);
+        };
+        return new HistorialNotificacionesResponse(
+                resultado.getContent().stream().map(NotificacionResponse::from).toList(),
+                resultado.getNumber(),
+                resultado.getSize(),
+                resultado.getTotalElements(),
+                resultado.getTotalPages(),
+                filtro,
+                notificacionRepository.countByUsuarioIdAndLeidaFalse(usuarioId)
+        );
+    }
+
+    /** H25: marca como leídos solo los avisos de la cuenta autenticada. Repetirlo no cambia nada. */
+    @Transactional
+    public MarcarTodasResponse marcarTodasLeidas(Long usuarioId) {
+        int actualizadas = notificacionRepository.marcarTodasLeidas(usuarioId);
+        return new MarcarTodasResponse(actualizadas, notificacionRepository.countByUsuarioIdAndLeidaFalse(usuarioId));
     }
 
     @Transactional
