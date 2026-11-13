@@ -31,3 +31,18 @@ export function datosPrellenado(datos) {
   if (typeof datos.ubicacion === 'string' && datos.ubicacion.trim()) salida.ubicacion = datos.ubicacion.trim().slice(0, 255);
   return salida;
 }
+
+// H47: si FINDI muestra la tarjeta de la publicación que la persona mencionó (#12),
+// la búsqueda por palabras no debe contradecirla con «No encontré publicaciones…»
+// ni proponer publicar el objeto como si no existiera.
+export function ajustarATarjetaObjeto(respuesta, tarjetas) {
+  const objetos = (tarjetas || []).filter((t) => t.tipo === 'OBJETO');
+  if (!objetos.length || respuesta?.resultados?.length || !respuesta?.consulta) return respuesta;
+  return {
+    ...respuesta,
+    texto: objetos.length === 1
+      ? `Esta es la publicación que mencionaste: «${objetos[0].titulo}».`
+      : 'Estas son las publicaciones que mencionaste:',
+    acciones: (respuesta.acciones || []).filter((a) => a.to !== '/publicar'),
+  };
+}

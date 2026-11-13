@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ChatAsistente from './ChatAsistente';
 import { AsistenteProvider } from '../context/AsistenteContext';
 import { buscarObjetos, interpretarConIA, listarCategorias } from '../services/api';
-import { accionesValidas, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
+import { accionesValidas, ajustarATarjetaObjeto, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
@@ -60,6 +60,20 @@ describe('H47 - catálogo de tarjetas y acciones en la web', () => {
     expect(datosPrellenado({ tipo: 'OTRO', categoriaId: 'abc' })).toEqual({});
   });
 
+  it('solo cambia el texto cuando hay tarjeta de objeto y la búsqueda no encontró nada', () => {
+    const sinResultados = { texto: 'No encontré publicaciones…', acciones: [{ texto: 'Publicar ahora', to: '/publicar' }, { texto: 'Ver búsqueda completa', to: '/buscar?q=x' }], consulta: {} };
+    const tarjeta = [{ tipo: 'OBJETO', titulo: 'Gafas de sol' }];
+    expect(ajustarATarjetaObjeto(sinResultados, tarjeta)).toMatchObject({
+      texto: 'Esta es la publicación que mencionaste: «Gafas de sol».',
+      acciones: [{ texto: 'Ver búsqueda completa', to: '/buscar?q=x' }],
+    });
+    expect(ajustarATarjetaObjeto(sinResultados, [{ tipo: 'RECLAMOS', titulo: 'Tus reclamos' }])).toBe(sinResultados);
+    const conResultados = { ...sinResultados, resultados: [{}] };
+    expect(ajustarATarjetaObjeto(conResultados, tarjeta)).toBe(conResultados);
+    const saludo = { texto: '¡Hola!' };
+    expect(ajustarATarjetaObjeto(saludo, tarjeta)).toBe(saludo);
+  });
+
   it('pide confirmación antes de abrir Publicar y Cancelar no navega', async () => {
     interpretarConIA.mockResolvedValue({
       ...BASE,
@@ -87,6 +101,10 @@ describe('H47 - catálogo de tarjetas y acciones en la web', () => {
     const tarjetas = await screen.findByRole('list', { name: 'Tarjetas de FINDI' });
     expect(within(tarjetas).getByText('Mochila azul')).toBeTruthy();
     expect(within(tarjetas).getByText('En custodia')).toBeTruthy();
+    // El texto no contradice la tarjeta ni propone publicar un objeto que ya existe
+    expect(screen.getByText('Esta es la publicación que mencionaste: «Mochila azul».')).toBeTruthy();
+    expect(screen.queryByText(/No encontré publicaciones/)).toBeNull();
+    expect(screen.queryByRole('link', { name: /Publicar ahora/ })).toBeNull();
     await user.click(screen.getByRole('button', { name: /Reclamar este objeto/ }));
     await user.click(screen.getByRole('button', { name: 'Sí, continuar' }));
     expect(await screen.findByText('Detalle: {"abrirReclamo":true}')).toBeTruthy();

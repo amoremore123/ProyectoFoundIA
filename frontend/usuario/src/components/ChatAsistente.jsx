@@ -10,7 +10,7 @@ import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
 import { buscarObjetos, fotoUrl, getMisObjetos, interpretarConIA, listarCategorias, mensajeError } from '../services/api';
 import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso } from '../utils/asistente';
-import { accionesValidas, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
+import { accionesValidas, ajustarATarjetaObjeto, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
 const BIENVENIDA = {
   id: 'bienvenida',
@@ -123,13 +123,13 @@ export default function ChatAsistente() {
           && consulta?.intencion !== local.intencion) consulta = null;
       // Fase 5: "mis reportes" se responde con tus publicaciones reales (requiere sesión)
       const intencion = (consulta || local).intencion;
-      const respuesta = intencion === 'mis_reportes'
-        ? await responderMisReportes()
-        : responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta });
-      // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
-      const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
       // H47: tarjetas y acciones del catálogo cerrado (se descarta lo que no se conoce)
       const tarjetas = tarjetasValidas(ia?.tarjetas);
+      const respuesta = intencion === 'mis_reportes'
+        ? await responderMisReportes()
+        : ajustarATarjetaObjeto(responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta }), tarjetas);
+      // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
+      const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
       const accionesFindi = accionesValidas(ia?.acciones);
       agregar({ de: 'bot', fuente, ...respuesta, tarjetas, accionesFindi });
       if (respuesta.resultados?.length) setCompletada(respuesta.resultados.length);
