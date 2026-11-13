@@ -141,10 +141,13 @@ html[data-tema='oscuro'] .eliminacion-chip { color: #fdb022; background: rgba(25
   line-height: 1.7;
   color: var(--text-muted);
 }
-.legal-pagina-texto h3 { margin: 4px 0 10px; font-size: 20px; color: var(--text); }
-.legal-pagina-texto h4 { margin: 18px 0 6px; font-size: 16px; color: var(--text); }
+.legal-pagina-texto h2 { margin: 4px 0 10px; font-size: 20px; color: var(--text); }
+.legal-pagina-texto h3 { margin: 18px 0 6px; font-size: 16px; color: var(--text); }
 .legal-pagina-texto p { margin: 0 0 10px; }
 .legal-pagina-enlaces { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; font-weight: 600; }
 .legal-enlaces-registro { display: flex; flex-wrap: wrap; gap: 14px; margin: 0; font-size: 13px; }
+/* H51: en oscuro el azul base sobre la tarjeta del registro quedaba en 4,28:1; el tono claro llega a 5,3:1 */
+html[data-tema='oscuro'] .legal-fuentes a,
+html[data-tema='oscuro'] .legal-enlaces-registro a { color: var(--primary-700); }
 .auth-panel-legal { display: flex; gap: 14px; margin: 0; font-size: 12.5px; }
 .auth-panel-legal a { color: inherit; text-decoration: underline; }

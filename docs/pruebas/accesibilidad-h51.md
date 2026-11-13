@@ -104,10 +104,50 @@ ruta con `?auditar=1`, fijar 375 × 812 y pulsar **Ejecutar auditoría H51**.
 Cambiar el tema desde la interfaz y repetir. El módulo `src/qa/accesibilidad.js`
 solo se importa en desarrollo con ese parámetro; no entra en el build de producción.
 
+## Lighthouse y revisión manual — 13/11/2026
+
+**Lighthouse 13.6.0** (categoría Accesibilidad, móvil emulado, Chrome headless) sobre las 12
+pantallas principales, en modo claro y oscuro: 24 pasadas. Las pantallas con sesión usan la
+cuenta de Ana de `seed.sql` y la API real. Script reproducible:
+[`scripts/lighthouse-h51.mjs`](../../scripts/lighthouse-h51.mjs) (Lighthouse se instala aparte,
+no es dependencia del proyecto).
+
+| | Antes | Después |
+| --- | --- | --- |
+| Pasadas con 100 | 19 / 24 | **24 / 24** |
+| Peor puntaje | 96 | 100 |
+
+Evidencia: [antes](sprint3-evidencias/lighthouse-h51-antes.json) y
+[después](sprint3-evidencias/lighthouse-h51.json).
+
+### Hallazgos y correcciones
+
+| Hallazgo | Dónde | Medición | Corrección |
+| --- | --- | --- | --- |
+| `heading-order`: después del h1 venía un h3 | `/privacidad` y `/terminos`, claro y oscuro | — | `TextoLegal` recibe el nivel inicial; la página pública usa h2/h3 y el registro sigue en h3/h4. Prueba en `Legal.test.jsx`. |
+| `color-contrast`: chip «Activo» | Mis publicaciones (y donde se use `.estado-activo`) | 4,50:1 claro · 4,48:1 oscuro | Texto con `--primary-700`: **6,2:1** claro · **5,5:1** oscuro. |
+| `color-contrast`: enlaces legales del registro | `/registro`, oscuro | 4,28:1 | Tono claro `--primary-700` en oscuro: **5,3:1**. |
+| Contador de notificaciones (manual; Lighthouse no lo marcó) | Cabecera, oscuro | 2,53:1 (blanco sobre salmón) | Número en marino: **6,06:1**. |
+
+### Revisión manual de los contrastes `incomplete` de axe
+
+axe había dejado como «incompletos» los textos sobre superficies translúcidas (h1, contadores,
+ayudas, menú inferior, selector, etiqueta de imagen) en Perfil, Notificaciones, Publicar,
+Mis publicaciones y Detalle. Se midió cada uno en el navegador, componiendo las capas de fondo
+con su transparencia: **100 textos revisados, todos cumplen su mínimo (4,5:1, o 3:1 en texto
+grande)**, salvo el contador ya corregido. En los 34 textos con degradado o imagen de fondo se
+tomó el color sólido de la capa base; el menor de ellos dio 5,5:1 (menú inferior, oscuro), con
+margen sobre el mínimo, pero un degradado no se puede certificar solo con este cálculo.
+
+### Reajuste a 320 px (WCAG 1.4.10)
+
+Las 12 pantallas, en claro y oscuro, a 320 px de ancho: **sin scroll horizontal y sin textos
+fuera de la pantalla** (se excluyen los carruseles con desplazamiento propio). Observación:
+por debajo de 320 px (p. ej. 286 px) la tarjeta de «Mis publicaciones» corta la ubicación y
+la fecha; está fuera del mínimo de WCAG y queda como mejora.
+
 ## Pendiente
 
-- Revisión manual de los contrastes `incomplete`, lector de pantalla y ampliación nativa.
-- Lighthouse en Chrome como segunda opinión: no ejecutado; la herramienta no está instalada
-  en la caché local (`npx --offline --no-install lighthouse --version`: `ENOTCACHED`).
-  Esta pasada de axe usa el navegador integrado.
+- Prueba con un lector de pantalla real (NVDA en Windows o TalkBack con el navegador del
+  teléfono) y con la ampliación nativa del teléfono: requiere una persona y el dispositivo.
 - Android (TalkBack y texto al 130 %) es la capa de Amore.

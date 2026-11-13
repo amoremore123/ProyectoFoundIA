@@ -1,0 +1,200 @@
+{
+  "fecha": "2026-11-13T23:01:01.443Z",
+  "lighthouse": "13.6.0",
+  "dispositivo": "móvil emulado (configuración por defecto de Lighthouse)",
+  "web": "http://localhost:5173",
+  "filas": [
+    {
+      "ruta": "/",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/login",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/registro",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/explorar",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/buscar",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/privacidad",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/recuperar-password",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/perfil",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/notificaciones",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/publicar",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/mis-publicaciones",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/objeto/1",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/login",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/registro",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/explorar",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/buscar",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/privacidad",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/recuperar-password",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/perfil",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/notificaciones",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/publicar",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/mis-publicaciones",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/objeto/1",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    }
+  ]
+}

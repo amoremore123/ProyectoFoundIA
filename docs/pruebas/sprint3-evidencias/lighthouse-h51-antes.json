@@ -1,0 +1,243 @@
+{
+  "fecha": "2026-11-13T22:50:04.436Z",
+  "lighthouse": "13.6.0",
+  "dispositivo": "móvil emulado (configuración por defecto de Lighthouse)",
+  "web": "http://localhost:5173",
+  "filas": [
+    {
+      "ruta": "/",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/login",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/registro",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/explorar",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/buscar",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/privacidad",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 98,
+      "fallas": [
+        {
+          "id": "heading-order",
+          "titulo": "Heading elements are not in a sequentially-descending order",
+          "nodos": [
+            "div.vista > div.pagina > article.legal-pagina-texto > h3"
+          ]
+        }
+      ],
+      "manuales": 10
+    },
+    {
+      "ruta": "/recuperar-password",
+      "tema": "claro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/perfil",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/notificaciones",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/publicar",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/mis-publicaciones",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 96,
+      "fallas": [
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "nodos": [
+            "li.tarjeta > div.mis-publicacion-info > div.coincidencia-top > span.chip-estado"
+          ]
+        }
+      ],
+      "manuales": 10
+    },
+    {
+      "ruta": "/objeto/1",
+      "tema": "claro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/login",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/registro",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 96,
+      "fallas": [
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "nodos": [
+            "div.legal-fuentes > ul > li > a",
+            "div.legal-fuentes > ul > li > a",
+            "form.auth-tarjeta > section.legal > p.legal-enlaces-registro > a",
+            "form.auth-tarjeta > section.legal > p.legal-enlaces-registro > a"
+          ]
+        }
+      ],
+      "manuales": 10
+    },
+    {
+      "ruta": "/explorar",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/buscar",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/privacidad",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 98,
+      "fallas": [
+        {
+          "id": "heading-order",
+          "titulo": "Heading elements are not in a sequentially-descending order",
+          "nodos": [
+            "div.vista > div.pagina > article.legal-pagina-texto > h3"
+          ]
+        }
+      ],
+      "manuales": 10
+    },
+    {
+      "ruta": "/recuperar-password",
+      "tema": "oscuro",
+      "conSesion": false,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/perfil",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/notificaciones",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/publicar",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    },
+    {
+      "ruta": "/mis-publicaciones",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 96,
+      "fallas": [
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "nodos": [
+            "li.tarjeta > div.mis-publicacion-info > div.coincidencia-top > span.chip-estado"
+          ]
+        }
+      ],
+      "manuales": 10
+    },
+    {
+      "ruta": "/objeto/1",
+      "tema": "oscuro",
+      "conSesion": true,
+      "puntaje": 100,
+      "fallas": [],
+      "manuales": 10
+    }
+  ]
+}

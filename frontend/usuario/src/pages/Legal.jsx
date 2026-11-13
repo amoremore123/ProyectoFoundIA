@@ -61,7 +61,7 @@ export default function Legal({ tipo }) {
       {estado === 'ok' && (
         <>
           <article className="legal-pagina-texto" aria-label={pagina.titulo}>
-            <TextoLegal texto={documentos[pagina.campo]} />
+            <TextoLegal texto={documentos[pagina.campo]} nivel={2} />
           </article>
         </>
       )}
