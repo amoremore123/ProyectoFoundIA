@@ -44,7 +44,7 @@ class AsistenteControllerTest {
         servicio = mock(AsistenteService.class);
         voz = mock(VozService.class);
         limite = mock(AsistenteRateLimiter.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new AsistenteController(servicio, limite), new VozController(voz))
+        mockMvc = MockMvcBuilders.standaloneSetup(new AsistenteController(servicio, limite, mock(com.proyectointegrador.service.SugerenciaPublicacionService.class)), new VozController(voz))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
     }
 
