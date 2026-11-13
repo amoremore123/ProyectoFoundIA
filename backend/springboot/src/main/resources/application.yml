@@ -77,3 +77,13 @@ app:
     api-key: ${IA_API_KEY:}
     timeout-ms: ${IA_TIMEOUT_MS:8000}
     limite-por-minuto: ${IA_LIMITE_POR_MINUTO:15}
+  # Fase 6 - Voz natural de FINDI con ElevenLabs. Sin VOZ_API_KEY o VOZ_ID el endpoint responde 503
+  # y la web lee con la voz del navegador. El tope diario protege el cupo gratuito.
+  voz:
+    url: ${VOZ_URL:https://api.elevenlabs.io/v1}
+    api-key: ${VOZ_API_KEY:}
+    voz-id: ${VOZ_ID:}
+    modelo: ${VOZ_MODELO:eleven_flash_v2_5}
+    timeout-ms: ${VOZ_TIMEOUT_MS:10000}
+    limite-por-minuto: ${VOZ_LIMITE_POR_MINUTO:10}
+    limite-caracteres-dia: ${VOZ_LIMITE_CARACTERES_DIA:2000}
