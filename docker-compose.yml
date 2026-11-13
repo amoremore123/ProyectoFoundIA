@@ -1,10 +1,8 @@
-# =====================================================================
 # Plataforma de Objetos Perdidos y Encontrados — infraestructura
 # Uso: docker compose up
 #   MySQL + API Spring Boot + API Django + Frontend usuario
 #   + Frontend admin + Mailpit (correo de pruebas)
-# =====================================================================
-
+# ==============================================================
 services:
   mysql:
     image: mysql:8.0
@@ -47,12 +45,18 @@ services:
       ASISTENTE_CLAUDE_ENABLED: ${ASISTENTE_CLAUDE_ENABLED:-false}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ASISTENTE_CLAUDE_MODEL: ${ASISTENTE_CLAUDE_MODEL:-claude-sonnet-4-5}
+      ASISTENTE_CLAUDE_URL: ${ASISTENTE_CLAUDE_URL:-https://api.anthropic.com/v1/messages}
+      ASISTENTE_CLAUDE_TIMEOUT_MS: ${ASISTENTE_CLAUDE_TIMEOUT_MS:-8000}
       ASISTENTE_LIMITE_POR_MINUTO: ${ASISTENTE_LIMITE_POR_MINUTO:-20}
       # H53: recordatorios de objetos perdidos sin resolver (por defecto, diarios).
       RECORDATORIOS_HABILITADOS: ${RECORDATORIOS_HABILITADOS:-true}
       RECORDATORIOS_DIAS_SIN_RESOLVER: ${RECORDATORIOS_DIAS_SIN_RESOLVER:-7}
       RECORDATORIOS_INTERVALO_MS: ${RECORDATORIOS_INTERVALO_MS:-86400000}
       RECORDATORIOS_RETRASO_INICIAL_MS: ${RECORDATORIOS_RETRASO_INICIAL_MS:-300000}
+      # Fase 5: FINDI con IA (Groq u OpenAI). La clave se lee del archivo .env, que no se sube a Git
+      IA_URL: ${IA_URL:-https://api.groq.com/openai/v1}
+      IA_MODELO: ${IA_MODELO:-llama-3.1-8b-instant}
+      IA_API_KEY: ${IA_API_KEY:-}
     ports:
       - "8081:8081"
     volumes:

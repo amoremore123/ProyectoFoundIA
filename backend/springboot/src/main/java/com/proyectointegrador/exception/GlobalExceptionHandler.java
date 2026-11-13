@@ -65,6 +65,11 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
+    @ExceptionHandler(AsistenteNoDisponibleException.class)
+    public ResponseEntity<ApiError> asistenteNoDisponible(AsistenteNoDisponibleException ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(LimiteAsistenteException.class)
     public ResponseEntity<ApiError> handleLimiteAsistente(LimiteAsistenteException ex, HttpServletRequest request) {
         ApiError body = ApiError.of(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request.getRequestURI());

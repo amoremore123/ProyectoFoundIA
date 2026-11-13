@@ -7,6 +7,7 @@ import com.proyectointegrador.repository.CategoriaRepository;
 import com.proyectointegrador.repository.ObjetoRepository;
 import com.proyectointegrador.repository.ReclamoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -30,19 +31,23 @@ public class AsistenteService {
     private final CategoriaRepository categoriaRepository;
     private final ObjetoRepository objetoRepository;
     private final ReclamoRepository reclamoRepository;
+    private final InterpretadorIaCompatible compatible;
 
+    @Autowired
     public AsistenteService(AsistenteMotorLocal motorLocal,
                             ClaudeAsistenteClient clienteIa,
                             AsistenteIaValidator validador,
                             CategoriaRepository categoriaRepository,
                             ObjetoRepository objetoRepository,
-                            ReclamoRepository reclamoRepository) {
+                            ReclamoRepository reclamoRepository,
+                            InterpretadorIaCompatible compatible) {
         this.motorLocal = motorLocal;
         this.clienteIa = clienteIa;
         this.validador = validador;
         this.categoriaRepository = categoriaRepository;
         this.objetoRepository = objetoRepository;
         this.reclamoRepository = reclamoRepository;
+        this.compatible = compatible;
     }
 
     @Transactional(readOnly = true)
@@ -51,8 +56,13 @@ public class AsistenteService {
                 .filter(c -> Boolean.TRUE.equals(c.getEstado()))
                 .toList();
 
-        Optional<InterpretacionAsistente> deIa = clienteIa.interpretar(mensaje, categorias)
-                .flatMap(cruda -> validador.validar(cruda, categorias));
+        Optional<InterpretacionAsistente> deIa = compatible.intentarInterpretar(mensaje, categorias);
+        String fuente = deIa.isPresent() ? "ia" : "local";
+        if (deIa.isEmpty()) {
+            deIa = clienteIa.interpretar(mensaje, categorias)
+                    .flatMap(cruda -> validador.validar(cruda, categorias));
+            if (deIa.isPresent()) fuente = "claude";
+        }
         InterpretacionAsistente interpretacion = deIa
                 .orElseGet(() -> motorLocal.interpretar(mensaje, categorias));
 
@@ -69,7 +79,7 @@ public class AsistenteService {
                 interpretacion.ubicacion(),
                 interpretacion.palabras(),
                 interpretacion.colores(),
-                deIa.isPresent() ? "claude" : "local",
+                fuente,
                 datosPropios == null ? null : resumenTexto(datosPropios),
                 datosPropios);
     }

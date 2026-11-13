@@ -42,7 +42,8 @@ Respuesta `200`:
   encontró algo) o `""`.
 - `categoria.id` siempre pertenece al catálogo activo; puede ser `null`.
 - `palabras` y `colores` van en singular, sin tildes y sin datos personales.
-- `fuente`: `local` o `claude`. Indica qué motor produjo la interpretación.
+- `fuente`: `local`, `claude` o `ia` (proveedor compatible con OpenAI).
+  Indica qué motor produjo la interpretación.
 - `datosPropios`, `resumenPropio`: solo con sesión. Son **cifras**, no nombres,
   correos, teléfonos ni tokens de QR. Sin sesión se omiten.
 
@@ -61,6 +62,17 @@ pérdida/hallazgo y categorías reales de la base. Se usa cuando:
 - la respuesta no pasa la validación.
 
 ## Proveedor de IA (opcional)
+
+Integración web del 10/11/2026: se conserva el proveedor compatible con OpenAI
+configurado con `IA_URL`, `IA_MODELO` e `IA_API_KEY`. Tiene prioridad si devuelve
+una interpretación válida; ante ausencia, error o respuesta inválida se intenta
+Claude y luego el motor local del servidor. Ambos proveedores comparten el
+límite del controlador H45. El proveedor compatible también reconoce las
+intenciones web `mis_reportes` y `como_funciona`.
+
+`POST /api/asistente/voz` permanece en `VozController`, con sus propios límites
+y caché. No se duplica el endpoint de interpretación ni se envían datos propios
+a los proveedores externos. Las variables de ejemplo están en `.env.example`.
 
 Variables de entorno (nunca en Git):
 

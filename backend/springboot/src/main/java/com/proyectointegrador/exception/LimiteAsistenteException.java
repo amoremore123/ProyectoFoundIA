@@ -5,6 +5,10 @@ public class LimiteAsistenteException extends RuntimeException {
 
     private final long segundosRestantes;
 
+    public LimiteAsistenteException(long segundosRestantes) {
+        this("Hiciste muchas consultas seguidas a FINDI. Espera un momento e inténtalo de nuevo.", segundosRestantes);
+    }
+
     public LimiteAsistenteException(String mensaje, long segundosRestantes) {
         super(mensaje);
         this.segundosRestantes = segundosRestantes;
