@@ -117,12 +117,13 @@ class CustodiaSerializer(serializers.ModelSerializer):
     tokenQr = serializers.CharField(source="token_qr", read_only=True)
     etiquetaUrl = serializers.SerializerMethodField()
     constanciaUrl = serializers.SerializerMethodField()
+    disposicion = serializers.SerializerMethodField()
 
     class Meta:
         model = Custodia
         fields = [
             "id", "codigo", "objeto", "recibidoPor", "fechaRecepcion",
-            "observaciones", "estado", "tokenQr", "etiquetaUrl", "constanciaUrl",
+            "observaciones", "estado", "tokenQr", "etiquetaUrl", "constanciaUrl", "disposicion",
         ]
         read_only_fields = fields
 
@@ -137,6 +138,21 @@ class CustodiaSerializer(serializers.ModelSerializer):
 
     def get_constanciaUrl(self, obj) -> str:
         return f"/api/admin/custodias/{obj.pk}/constancia/"
+
+    def get_disposicion(self, obj):
+        # H54: resumen del acta si el objeto ya se dispuso
+        try:
+            d = obj.disposicion
+        except Exception:  # RelatedObjectDoesNotExist
+            return None
+        return {
+            "codigoActa": d.codigo_acta,
+            "destino": d.destino,
+            "motivo": d.motivo,
+            "fecha": d.fecha_disposicion,
+            "responsable": f"{d.responsable.nombre} {d.responsable.apellido}".strip(),
+            "actaUrl": f"/api/admin/custodias/{obj.pk}/acta/",
+        }
 
 
 class CustodiaCreateSerializer(serializers.Serializer):

@@ -69,6 +69,13 @@ ESTADO_REPORTE_CHOICES = [
 ESTADO_CUSTODIA_CHOICES = [
     ("EN_CUSTODIA", "EN_CUSTODIA"),
     ("RETIRADO", "RETIRADO"),
+    # H54: disposición final de un objeto no reclamado
+    ("DISPUESTO", "DISPUESTO"),
+]
+
+DESTINO_DISPOSICION_CHOICES = [
+    ("DONADO", "DONADO"),
+    ("DESCARTADO", "DESCARTADO"),
 ]
 
 ESTADO_RECLAMO_CHOICES = [
@@ -350,6 +357,33 @@ class Custodia(models.Model):
 
     def __str__(self):
         return f"{self.codigo} ({self.estado})"
+
+
+class Disposicion(models.Model):
+    """H54: acta de disposición final (donado o descartado). Una por custodia; nada se borra."""
+
+    custodia = models.OneToOneField(
+        Custodia, on_delete=models.DO_NOTHING, db_column="custodia_id",
+        related_name="disposicion",
+    )
+    codigo_acta = models.CharField(max_length=30, unique=True)
+    destino = models.CharField(max_length=20, choices=DESTINO_DISPOSICION_CHOICES)
+    motivo = models.CharField(max_length=1000)
+    plazo_dias = models.IntegerField()
+    dias_en_custodia = models.IntegerField()
+    responsable = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="responsable_id",
+        related_name="disposiciones",
+    )
+    fecha_disposicion = models.DateTimeField(default=timezone.now, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "disposiciones"
+        ordering = ["-fecha_disposicion", "-id"]
+
+    def __str__(self):
+        return f"{self.codigo_acta} ({self.destino})"
 
 
 class Reclamo(models.Model):

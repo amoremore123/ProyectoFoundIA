@@ -19,11 +19,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .custodia import constancia_pdf, etiqueta_pdf, firmar_token_custodia, verificar_token_custodia
+from .disposicion import (
+    DESTINOS, MOTIVO_MAX, MOTIVO_MIN, acta_pdf, codigo_acta, dias_en_custodia, limite_vencimiento, plazo_dias,
+)
 from .models import (
     ROL_CHOICES,
     CambioRol,
     Categoria,
     Custodia,
+    Disposicion,
     Notificacion,
     Objeto,
     Reclamo,
@@ -457,8 +461,8 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
         qs = super().get_queryset()
         estado = self.request.query_params.get("estado")
         if estado:
-            if estado not in ("EN_CUSTODIA", "RETIRADO"):
-                raise ValidationError({"estado": "Estado inválido; usa EN_CUSTODIA o RETIRADO."})
+            if estado not in ("EN_CUSTODIA", "RETIRADO", "DISPUESTO"):
+                raise ValidationError({"estado": "Estado inválido; usa EN_CUSTODIA, RETIRADO o DISPUESTO."})
             qs = qs.filter(estado=estado)
         q = (self.request.query_params.get("q") or "").strip()
         if q:
@@ -537,6 +541,100 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
         respuesta = HttpResponse(constancia_pdf(custodia), content_type="application/pdf")
         respuesta["Content-Disposition"] = (
             f'attachment; filename="constancia-{custodia.codigo}.pdf"')
+        return respuesta
+
+    # H54 ---------------------------------------------------------------
+    @action(detail=False, methods=["get"], url_path="vencidas")
+    def vencidas(self, request):
+        """Custodias EN_CUSTODIA que ya superaron el plazo, de la más antigua a la más reciente."""
+        ahora = timezone.now()
+        lista = (Custodia.objects.select_related("objeto", "objeto__categoria", "recibido_por")
+                 .filter(estado="EN_CUSTODIA", fecha_recepcion__lte=limite_vencimiento(ahora))
+                 .order_by("fecha_recepcion", "id")[:200])
+        resultados = []
+        for c in lista:
+            datos = CustodiaSerializer(c).data
+            datos.pop("tokenQr", None)
+            datos["diasEnCustodia"] = dias_en_custodia(c, ahora)
+            datos["reclamosPendientes"] = Reclamo.objects.filter(objeto_id=c.objeto_id, estado="PENDIENTE").count()
+            # Con un reclamo aceptado el dueño está por recoger el objeto: no se puede disponer
+            datos["bloqueada"] = Reclamo.objects.filter(objeto_id=c.objeto_id, estado="ACEPTADO").exists()
+            resultados.append(datos)
+        return Response({"plazoDias": plazo_dias(), "total": len(resultados), "resultados": resultados})
+
+    @action(detail=True, methods=["post"], url_path="disponer")
+    def disponer(self, request, pk=None):
+        datos = request.data if isinstance(request.data, dict) else {}
+        if set(datos.keys()) - {"destino", "motivo", "confirmar"}:
+            return Response({"detail": "Solo se admiten destino, motivo y confirmar; el responsable y la fecha los registra el servidor."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if datos.get("confirmar") is not True:
+            return Response({"detail": "Debes confirmar la disposición con confirmar=true."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        destino = datos.get("destino")
+        if destino not in DESTINOS:
+            return Response({"detail": "Destino inválido; usa DONADO o DESCARTADO."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        motivo = (datos.get("motivo") or "").strip() if isinstance(datos.get("motivo"), str) else ""
+        if len(motivo) < MOTIVO_MIN or len(motivo) > MOTIVO_MAX:
+            return Response({"detail": f"El motivo debe tener entre {MOTIVO_MIN} y {MOTIVO_MAX} caracteres."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        ahora = timezone.now().replace(microsecond=0)
+        with transaction.atomic():
+            custodia = (Custodia.objects.select_for_update().select_related("objeto", "objeto__categoria")
+                        .filter(pk=pk).first())
+            if custodia is None:
+                return Response({"detail": "Custodia no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+            if custodia.estado == "DISPUESTO" or Disposicion.objects.filter(custodia_id=custodia.id).exists():
+                return Response({"detail": "Este objeto ya tiene una disposición registrada."},
+                                status=status.HTTP_409_CONFLICT)
+            if custodia.estado != "EN_CUSTODIA":
+                return Response({"detail": "El objeto ya no está en custodia."}, status=status.HTTP_409_CONFLICT)
+            if custodia.fecha_recepcion > limite_vencimiento(ahora):
+                faltan = plazo_dias() - dias_en_custodia(custodia, ahora)
+                return Response({"detail": f"El plazo de custodia aún no vence: faltan {max(1, faltan)} días."},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if Reclamo.objects.filter(objeto_id=custodia.objeto_id, estado="ACEPTADO").exists():
+                return Response({"detail": "Hay un reclamo aceptado: el dueño está por retirar el objeto."},
+                                status=status.HTTP_409_CONFLICT)
+
+            disposicion = Disposicion.objects.create(
+                custodia=custodia, codigo_acta=codigo_acta(custodia), destino=destino, motivo=motivo,
+                plazo_dias=plazo_dias(), dias_en_custodia=dias_en_custodia(custodia, ahora),
+                responsable=request.user, fecha_disposicion=ahora,
+            )
+            custodia.estado = "DISPUESTO"
+            custodia.save(update_fields=["estado"])
+            objeto = custodia.objeto
+            objeto.estado = "OCULTO"
+            objeto.save(update_fields=["estado", "fecha_actualizacion"])
+            # Los reclamos que seguían pendientes se cierran con aviso a cada persona
+            for reclamo in Reclamo.objects.select_for_update().select_related("usuario").filter(
+                    objeto_id=objeto.id, estado="PENDIENTE"):
+                reclamo.estado = "RECHAZADO"
+                reclamo.resuelto_por = request.user
+                reclamo.fecha_resolucion = ahora
+                reclamo.motivo_resolucion = "El objeto cumplió el plazo de custodia sin ser retirado."
+                reclamo.save(update_fields=["estado", "resuelto_por", "fecha_resolucion", "motivo_resolucion"])
+                _notificar_reclamo(reclamo.usuario, "Reclamo cerrado",
+                                   f"El objeto «{objeto.nombre}» cumplió el plazo de custodia y se cerró tu reclamo.")
+
+        custodia.refresh_from_db()
+        return Response(CustodiaSerializer(custodia).data | {"actaUrl": f"/api/admin/custodias/{custodia.pk}/acta/"},
+                        status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="acta")
+    def acta(self, request, pk=None):
+        custodia = self.get_object()
+        disposicion = Disposicion.objects.select_related(
+            "custodia", "custodia__objeto", "custodia__objeto__categoria", "responsable").filter(
+            custodia_id=custodia.id).first()
+        if disposicion is None:
+            return Response({"detail": "Este objeto no tiene acta de disposición."},
+                            status=status.HTTP_404_NOT_FOUND)
+        respuesta = HttpResponse(acta_pdf(disposicion), content_type="application/pdf")
+        respuesta["Content-Disposition"] = f'attachment; filename="{disposicion.codigo_acta}.pdf"'
         return respuesta
 
     @action(detail=False, methods=["get"], url_path="verificar")
