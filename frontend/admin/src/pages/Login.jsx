@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
+import EnlacesLegales from '../components/EnlacesLegales';
 import { mensajeError, statusDe } from '../services/api';
 import { inicioDe } from '../config/permisos';
 
@@ -102,6 +103,8 @@ export default function Login() {
           <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando}>
             {enviando ? 'Entrando...' : 'Entrar'}
           </button>
+
+          <EnlacesLegales className="login-legales" />
         </form>
       </div>
     </div>
