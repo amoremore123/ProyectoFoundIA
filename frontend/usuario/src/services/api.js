@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+// VITE_API_URL=auto (solo para probar desde el celular en la red local): usa el mismo host
+// con el que se abrió la web y el puerto de la API, así un cambio de IP no obliga a reiniciar.
+function urlApi(valor) {
+  if (valor === 'auto' && typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:8081`;
+  }
+  return valor || 'http://localhost:8081';
+}
+
+export const API_URL = urlApi(import.meta.env.VITE_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,

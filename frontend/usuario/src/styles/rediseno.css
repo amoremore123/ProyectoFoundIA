@@ -423,6 +423,65 @@ html[data-tema='oscuro'] .notificacion-tipo.tipo-reclamo { color: #f6c069; }
 .foto-opcion:active { transform: scale(0.98); }
 .foto-entrada:focus-visible + .foto-opcion { outline: 2px solid var(--primary); outline-offset: 2px; border-color: var(--primary); }
 html[data-tema='oscuro'] .foto-entrada:focus-visible + .foto-opcion { outline-color: var(--amarillo); }
+button.foto-opcion { width: 100%; font: inherit; font-weight: 600; }
+button.foto-opcion:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-color: var(--primary); }
+html[data-tema='oscuro'] button.foto-opcion:focus-visible { outline-color: var(--amarillo); }
+button.foto-opcion:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 html[data-tema='oscuro'] .foto-opcion .icono { color: var(--primary-700); }
 .foto-entrada:disabled + .foto-opcion { opacity: .55; cursor: not-allowed; transform: none; }
 @media (prefers-reduced-motion: reduce) { .foto-opcion { transition: none; } .foto-opcion:active { transform: none; } }
+
+/* ---------- H52: cámara dentro de la página ---------- */
+/* El visor ocupa el espacio que queda; el video se ajusta a él (nunca lo estira),
+   así el botón de captura siempre está a la vista, en vertical y en horizontal. */
+.camara-fondo { padding: 0; }
+.camara-vivo {
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(560px, 100%); height: min(760px, 100dvh);
+  border-radius: var(--radio-lg); overflow: hidden; background: #050b1a; color: #fff;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+}
+.camara-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
+.camara-cabecera h2 { margin: 0; font-size: 17px; font-weight: 650; color: #fff; }
+.camara-cerrar {
+  display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: #ffffff1a; color: #fff; cursor: pointer;
+}
+.camara-cerrar:hover { background: #ffffff2e; }
+.camara-visor { position: relative; min-height: 0; overflow: hidden; background: #000; }
+.camara-video, .camara-captura { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.camara-video[hidden] { display: none; }
+.camara-estado { position: absolute; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); margin: 0; padding: 12px 14px; border-radius: 12px; background: #000000b3; font-size: 14px; line-height: 1.5; text-align: center; color: #fff; }
+.camara-error { color: #ffd6d2; }
+.camara-destello { position: absolute; inset: 0; background: #fff; pointer-events: none; animation: camara-destello .35s ease-out forwards; }
+@keyframes camara-destello { from { opacity: .85; } to { opacity: 0; } }
+.camara-acciones { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
+.camara-acciones .btn { flex: 1 1 0; }
+.camara-acciones .btn-secundario { background: #ffffff14; border-color: #ffffff33; color: #fff; }
+.camara-disparador {
+  display: grid; place-items: center; flex: 0 0 auto; width: 72px; height: 72px; padding: 0; border: 4px solid #fff;
+  border-radius: 50%; background: transparent; cursor: pointer; touch-action: manipulation;
+}
+.camara-disparador span { width: 56px; height: 56px; border-radius: 50%; background: #fff; transition: transform .12s; }
+.camara-disparador:active span { transform: scale(0.9); }
+.camara-disparador:disabled { opacity: .45; cursor: not-allowed; }
+.camara-vivo button:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 3px; }
+/* Celular en vertical: pantalla completa */
+@media (max-width: 640px) {
+  .camara-vivo { width: 100%; height: 100dvh; border-radius: 0; }
+}
+/* Celular en horizontal: video a la izquierda y botones en una columna a la derecha */
+@media (orientation: landscape) and (max-height: 640px) {
+  .camara-vivo {
+    width: 100%; height: 100dvh; border-radius: 0;
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr);
+  }
+  .camara-cabecera { grid-column: 1 / -1; padding: 8px 16px; }
+  .camara-visor { grid-row: 2; grid-column: 1; }
+  .camara-acciones {
+    grid-row: 2; grid-column: 2; flex-direction: column; justify-content: center; width: 132px;
+    padding: 12px calc(12px + env(safe-area-inset-right)) 12px 12px;
+  }
+  .camara-acciones .btn { flex: 0 0 auto; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .camara-disparador span { transition: none; } .camara-destello { animation: none; opacity: 0; } }

@@ -124,3 +124,94 @@ describe('H52 - Reducir la foto de la cámara antes de subirla', () => {
     await waitFor(() => expect(screen.queryByText(/no debe superar los 5 MiB/)).toBeNull());
   });
 });
+
+describe('H52 - Cámara dentro de la página (sin abrir la app de cámara)', () => {
+  function simularCamara({ falla } = {}) {
+    const detener = vi.fn();
+    const stream = { getTracks: () => [{ stop: detener }] };
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn(() => (falla ? Promise.reject(Object.assign(new Error('x'), { name: falla })) : Promise.resolve(stream))) },
+    });
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(1280);
+    vi.spyOn(HTMLVideoElement.prototype, 'videoHeight', 'get').mockReturnValue(960);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn() });
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((cb) => cb(new Blob(['jpg'], { type: 'image/jpeg' })));
+    URL.createObjectURL = vi.fn(() => 'blob:captura');
+    URL.revokeObjectURL = vi.fn();
+    return { detener };
+  }
+
+  afterEach(() => {
+    delete window.isSecureContext;
+    delete navigator.mediaDevices;
+  });
+
+  it('captura, permite repetir y usa la foto sin salir de la página', async () => {
+    const { detener } = simularCamara();
+    const user = userEvent.setup();
+    renderizar();
+    // Con HTTPS «Tomar foto» es un botón que abre la cámara aquí mismo (no una entrada de archivo)
+    await user.click(screen.getByRole('button', { name: 'Tomar foto' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Tomar foto' });
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith(expect.objectContaining({ audio: false }));
+    const disparador = await screen.findByRole('button', { name: 'Capturar foto' });
+    await waitFor(() => expect(disparador.disabled).toBe(false));
+
+    await user.click(disparador);
+    expect(screen.getByRole('img', { name: 'Foto tomada, lista para revisar' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Repetir' }));
+    await user.click(screen.getByRole('button', { name: 'Capturar foto' }));
+    await user.click(screen.getByRole('button', { name: 'Usar esta foto' }));
+
+    expect(dialogo.isConnected).toBe(false);
+    expect(await screen.findByText(/^Seleccionada: foto-\d+\.jpg$/)).toBeTruthy();
+    expect(detener).toHaveBeenCalled(); // la cámara se apaga al terminar
+  });
+
+  it('si se niega el permiso, explica cómo seguir y deja elegir de la galería', async () => {
+    simularCamara({ falla: 'NotAllowedError' });
+    const user = userEvent.setup();
+    renderizar();
+    await user.click(screen.getByRole('button', { name: 'Tomar foto' }));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/No diste permiso para usar la cámara/);
+    await user.click(screen.getByRole('button', { name: 'Volver al formulario' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByLabelText('Elegir archivo')).toBeTruthy();
+  });
+
+  it('cerrar con Escape apaga la cámara', async () => {
+    const { detener } = simularCamara();
+    const user = userEvent.setup();
+    renderizar();
+    await user.click(screen.getByRole('button', { name: 'Tomar foto' }));
+    await screen.findByRole('dialog', { name: 'Tomar foto' });
+    await waitFor(() => expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled());
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() => expect(detener).toHaveBeenCalled());
+  });
+});
+
+describe('H52 - La cámara nunca ignora un toque en silencio', () => {
+  it('si el video aún no tiene imagen, avisa que la cámara se está preparando', async () => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }] })) },
+    });
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(0);
+    const user = userEvent.setup();
+    renderizar();
+    await user.click(screen.getByRole('button', { name: 'Tomar foto' }));
+    const disparador = await screen.findByRole('button', { name: 'Capturar foto' });
+    await waitFor(() => expect(disparador.disabled).toBe(false));
+    await user.click(disparador);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/todavía se está preparando/);
+    delete window.isSecureContext;
+    delete navigator.mediaDevices;
+  });
+});

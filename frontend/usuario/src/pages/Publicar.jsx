@@ -4,6 +4,7 @@ import MensajeError from '../components/MensajeError';
 import Cargando from '../components/Cargando';
 import Icono from '../components/Icono';
 import SugerenciaPublicacion from '../components/SugerenciaPublicacion';
+import CamaraEnVivo, { camaraEnVivoDisponible } from '../components/CamaraEnVivo';
 import { datosPrellenado } from '../utils/tarjetasFindi';
 import {
   actualizarObjeto, crearObjeto, getMisObjetos, mensajeError, statusDe, subirFotoObjeto,
@@ -61,6 +62,9 @@ export default function Publicar() {
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [errorFoto, setErrorFoto] = useState('');
   const [preparandoFoto, setPreparandoFoto] = useState(false);
+  // H52: con HTTPS la foto se toma dentro de la página (sin abrir la app de cámara)
+  const [camaraVivo] = useState(camaraEnVivoDisponible);
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
   const [vistaPrevia, setVistaPrevia] = useState('');
   const [progresoFoto, setProgresoFoto] = useState(null); // null = sin subida en curso
   const entradaFoto = useRef(null);
@@ -149,9 +153,8 @@ export default function Publicar() {
     }
   };
 
-  const seleccionarFoto = async (e) => {
-    const entrada = e.target;
-    const original = entrada.files?.[0] || null;
+  // Valida y guarda la foto venga de la galería, de la app de cámara o de la cámara en vivo
+  const aceptarFoto = async (original, entrada = null) => {
     setErrorFoto('');
     if (!original) {
       return;
@@ -160,19 +163,27 @@ export default function Publicar() {
     setPreparandoFoto(true);
     const archivo = await reducirFoto(original);
     setPreparandoFoto(false);
-    if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
+    const rechazar = (mensaje) => {
       setArchivoFoto(null);
-      setErrorFoto('Elige una imagen JPEG o PNG.');
-      entrada.value = '';
+      setErrorFoto(mensaje);
+      if (entrada) entrada.value = '';
+    };
+    if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
+      rechazar('Elige una imagen JPEG o PNG.');
       return;
     }
     if (archivo.size > MAX_FOTO_BYTES) {
-      setArchivoFoto(null);
-      setErrorFoto('La imagen no debe superar los 5 MiB.');
-      entrada.value = '';
+      rechazar('La imagen no debe superar los 5 MiB.');
       return;
     }
     setArchivoFoto(archivo);
+  };
+
+  const seleccionarFoto = (e) => aceptarFoto(e.target.files?.[0] || null, e.target);
+
+  const fotoDeCamara = (archivo) => {
+    setCamaraAbierta(false);
+    aceptarFoto(archivo);
   };
 
   const usarMiUbicacion = async () => {
@@ -500,27 +511,45 @@ export default function Publicar() {
               <Icono nombre="imagen" tamano={22} />
               <span>Elegir archivo</span>
             </label>
-            <input
-              id="foto-camara"
-              ref={entradaCamara}
-              type="file"
-              className="foto-entrada"
-              accept="image/*"
-              capture="environment"
-              aria-describedby="foto-ayuda camara-ayuda"
-              onChange={seleccionarFoto}
-              disabled={enviando}
-            />
-            <label className="foto-opcion" htmlFor="foto-camara">
-              <Icono nombre="camara" tamano={22} />
-              <span>Tomar foto</span>
-            </label>
+            {camaraVivo ? (
+              <button
+                type="button"
+                className="foto-opcion"
+                aria-describedby="foto-ayuda camara-ayuda"
+                onClick={() => setCamaraAbierta(true)}
+                disabled={enviando}
+              >
+                <Icono nombre="camara" tamano={22} />
+                <span>Tomar foto</span>
+              </button>
+            ) : (
+              <>
+                {/* Sin HTTPS no hay cámara en vivo: se abre la app de cámara con la entrada de archivo */}
+                <input
+                  id="foto-camara"
+                  ref={entradaCamara}
+                  type="file"
+                  className="foto-entrada"
+                  accept="image/*"
+                  capture="environment"
+                  aria-describedby="foto-ayuda camara-ayuda"
+                  onChange={seleccionarFoto}
+                  disabled={enviando}
+                />
+                <label className="foto-opcion" htmlFor="foto-camara">
+                  <Icono nombre="camara" tamano={22} />
+                  <span>Tomar foto</span>
+                </label>
+              </>
+            )}
           </div>
           <span id="foto-ayuda" className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
           <span id="camara-ayuda" className="nota-suave">
-            En el celular, «Tomar foto» abre la cámara trasera; en una computadora abre el selector
-            de archivos. Revisa la foto antes de publicar.
+            {camaraVivo
+              ? '«Tomar foto» abre la cámara aquí mismo: captura, revisa y repite si hace falta.'
+              : 'En el celular, «Tomar foto» abre la cámara trasera; en una computadora abre el selector de archivos. Revisa la foto antes de publicar.'}
           </span>
+          <CamaraEnVivo abierto={camaraAbierta} onCapturar={fotoDeCamara} onCerrar={() => setCamaraAbierta(false)} />
           {preparandoFoto && <span className="nota-suave" role="status">Preparando la foto…</span>}
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
 

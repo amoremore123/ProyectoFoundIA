@@ -20,8 +20,11 @@
 .portada-demo { box-shadow: 0 24px 60px -24px #254c8466; }
 .demo-resultado-media { overflow: hidden; }
 .demo-resultado-media .ilustracion-objeto { min-width: 42px; }
-.detalle-foto-principal { height: 430px; }
-.detalle-foto-principal > img { object-fit: contain; }
+/* La foto llena el recuadro (vertical u horizontal), centrada, sin franjas vacías a los lados */
+.detalle-media { display: flex; flex-direction: column; }
+.detalle-foto-principal { position: relative; flex: 1 1 auto; min-height: 430px; height: auto; overflow: hidden; }
+/* Absoluta: la foto se adapta al recuadro y nunca lo agranda con su propia altura */
+.detalle-foto-principal > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .detalle-foto-principal .ilustracion-objeto { min-height: 430px; }
 .galeria-controles { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px; }
 .galeria-controles button { width: 60px; height: 60px; border: 2px solid transparent; border-radius: 10px; overflow: hidden; padding: 2px; background: white; cursor: pointer; }
@@ -34,7 +37,7 @@
   .explorar-visual-cabecera { align-items: start; }
   .visual-eyebrow { font-size: 9px; letter-spacing: .06em; }
   .categoria-visual > span { font-size: 12px; }
-  .detalle-foto-principal { height: 320px; }
+  .detalle-foto-principal { min-height: 320px; }
   .detalle-foto-principal .ilustracion-objeto { min-height: 320px; }
 }
 @media (prefers-reduced-motion: reduce) {
