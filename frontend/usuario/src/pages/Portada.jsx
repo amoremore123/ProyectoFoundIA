@@ -5,7 +5,6 @@ import ExplorarVisual from '../components/ExplorarVisual';
 import HistorialObjetos from '../components/HistorialObjetos';
 import GuiaCampus from '../components/GuiaCampus';
 import Icono from '../components/Icono';
-import Logo from '../components/Logo';
 import AccesosFindi from '../components/AccesosFindi';
 import SliderPortada from '../components/SliderPortada';
 import CarruselHorizontal from '../components/CarruselHorizontal';
@@ -14,6 +13,7 @@ import ProcesoRecuperacion from '../components/ProcesoRecuperacion';
 import PuntosCampus from '../components/PuntosCampus';
 import { useAsistente } from '../context/AsistenteContext';
 import { EXTRAS_HABILITADOS } from '../config/alcance';
+import { AVATAR_FINDI } from '../config/findi';
 
 export default function Portada() {
   const { abrir } = useAsistente();
@@ -72,15 +72,11 @@ export default function Portada() {
     <GuiaCampus />
 
     <section className="ayuda-campus" aria-labelledby="titulo-ayuda">
+      <img className="ayuda-campus-findi" src={AVATAR_FINDI} alt="" width={72} height={72} loading="lazy" />
       <div><h2 id="titulo-ayuda">¿Encontraste algo?</h2><p>Publica dónde lo encontraste y cómo es. Alguien en Tecsup podría estar buscándolo.</p></div>
-      <Link to="/publicar" className="btn btn-primario">Publicar objeto <Icono nombre="flechaDer" tamano={16} /></Link>
+      <Link to="/publicar" className="btn btn-amarillo">Publicar objeto <Icono nombre="flechaDer" tamano={16} /></Link>
     </section>
 
-    <footer className="portada-footer">
-      <div className="portada-footer-marca"><Logo tamano={28} /><p>Objetos perdidos y encontrados en la comunidad Tecsup.</p></div>
-      <nav className="portada-footer-links" aria-label="Enlaces del sitio"><Link to={EXTRAS_HABILITADOS ? '/historial' : '/explorar'}>{EXTRAS_HABILITADOS ? 'Historial' : 'Publicaciones'}</Link><Link to="/buscar">Buscar</Link><a href="#como-funciona">Cómo funciona</a><a href="#preguntas-frecuentes">Preguntas frecuentes</a><Link to="/privacidad">Privacidad</Link><Link to="/terminos">Términos</Link><Link to="/cookies">Cookies</Link></nav>
-      <p className="portada-footer-legal">© 2026 FoundIA · Proyecto integrador Tecsup</p>
-    </footer>
   </div>;
 }
 

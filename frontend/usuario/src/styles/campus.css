@@ -149,16 +149,11 @@ h1, h2, h3 { font-family: var(--fuente); }
 .historial-contador { color: var(--text-muted); font-size: 13px; }
 .historial-mas { align-self: center; }
 .estado-recuperado { color: #21633b; font-size: 12px; font-weight: 600; }
-.ayuda-campus { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 32px; background: #eef3f8; border-radius: 8px; }
-.ayuda-campus h2 { font-size: 24px; margin-bottom: 8px; }
-.ayuda-campus p { max-width: 580px; font-size: 14px; }
-.ayuda-campus .btn { flex-shrink: 0; }
 @media (max-width: 640px) {
   .portada-hero h1 { font-size: 34px; line-height: 1.2; }
   .portada-hero-texto > p { font-size: 15px; }
   .campus-hero-imagen { height: 240px; }
   .portada-acciones { font-size: 13px; }
-  .ayuda-campus { padding: 24px; align-items: start; flex-direction: column; }
   .historial-filtros { gap: 4px 12px; }
 }
 
@@ -175,22 +170,58 @@ h1, h2, h3 { font-family: var(--fuente); }
 .guia-pasos a, .guia-pasos button { margin-top: auto; color: var(--primary); font: inherit; font-size: 14px; font-weight: 600; }
 .guia-pasos button { padding: 0; background: none; border: none; cursor: pointer; text-align: left; }
 .guia-pasos a:hover, .guia-pasos button:hover, .inicio-seccion-cabecera > a:hover { text-decoration: underline; }
-.consejos-campus { display: grid; grid-template-columns: .85fr 1.15fr; gap: 56px; background: #f0f2ee; padding: 40px; border-radius: 8px; }
-.consejos-intro { display: flex; flex-direction: column; align-items: start; gap: 18px; }
-.consejos-lista { margin: 0; display: grid; gap: 20px; }
-.consejos-lista div { border-bottom: 1px solid #d8ddd5; padding-bottom: 18px; }
-.consejos-lista div:last-child { border-bottom: 0; padding-bottom: 0; }
-.consejos-lista dt { font-size: 15px; color: var(--text); font-weight: 600; margin-bottom: 6px; }
-.consejos-lista dd { margin: 0; font-size: 14px; line-height: 1.75; }
+/* Consejos para publicar: intro a la izquierda, cuatro consejos con ícono en 2 × 2 */
+.consejos-campus {
+  display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; align-items: start;
+  padding: 48px; border: 1px solid var(--border); border-radius: var(--radio-lg); background: var(--primary-50);
+}
+.consejos-intro { display: flex; flex-direction: column; align-items: start; gap: 18px; position: sticky; top: 104px; }
+.consejos-intro p { max-width: 38ch; }
+.consejos-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 36px; }
+.consejo { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 16px; row-gap: 6px; align-content: start; padding-top: 22px; border-top: 1px solid var(--border-strong); }
+.consejo-icono {
+  grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: 12px; background: var(--surface); color: var(--primary);
+  box-shadow: 0 1px 2px rgba(20, 35, 75, 0.06), 0 4px 12px -6px rgba(20, 35, 75, 0.18);
+}
+.consejo h3 { margin: 0; font-size: 16px; font-weight: 650; line-height: 1.35; color: var(--text); }
+.consejo p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-muted); }
 .inicio-faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: 56px; align-items: start; }
 .inicio-faq .faq-lista { min-width: 0; }
 .inicio-faq summary { font-size: 15px; }
 .inicio-seccion-cabecera > a { font-size: 14px; font-weight: 600; margin-top: 8px; }
 #como-funciona, #preguntas-frecuentes { scroll-margin-top: 90px; }
-.portada-footer-links { max-width: 480px; }
 @media (max-width: 760px) {
   .guia-pasos { grid-template-columns: 1fr; gap: 24px; }
   .guia-pasos li { gap: 10px; }
   .consejos-campus, .inicio-faq { grid-template-columns: 1fr; gap: 28px; }
-  .consejos-campus { padding: 26px 22px; }
+  .consejos-campus { padding: 28px 22px; }
+  .consejos-intro { position: static; }
+}
+
+/* Consejos: una columna cuando el panel no da para dos */
+@media (min-width: 761px) and (max-width: 1080px) { .consejos-lista { grid-template-columns: 1fr; gap: 24px; } }
+@media (max-width: 560px) { .consejos-lista { grid-template-columns: 1fr; gap: 22px; } }
+html[data-tema='oscuro'] .consejos-campus { background: var(--primary-50); border-color: var(--border); }
+html[data-tema='oscuro'] .consejo { border-top-color: var(--border); }
+html[data-tema='oscuro'] .consejo-icono { background: var(--surface); color: var(--primary-700); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 14px -8px rgba(0, 0, 0, 0.6); }
+html[data-tema='oscuro'] .consejos-intro .btn-secundario { border-color: var(--border-strong); }
+
+/* «¿Encontraste algo?»: el llamado final de la portada, con FINDI y el amarillo de la marca */
+.ayuda-campus {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px 28px;
+  padding: 32px 40px; border-radius: var(--radio-lg); background: var(--marino); color: #fff;
+  box-shadow: 0 18px 40px -24px rgba(20, 35, 75, 0.55);
+}
+.ayuda-campus-findi { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: #1f3570; border: 3px solid var(--amarillo); }
+.ayuda-campus h2 { margin: 0 0 6px; font-size: clamp(22px, 2.4vw, 28px); font-weight: 650; letter-spacing: -.02em; color: #fff; }
+.ayuda-campus p { max-width: 56ch; margin: 0; font-size: 15px; line-height: 1.6; color: #c9d4ee; }
+.ayuda-campus .btn { flex-shrink: 0; }
+.ayuda-campus .btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+html[data-tema='oscuro'] .ayuda-campus { background: #163a86; box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.7); }
+html[data-tema='oscuro'] .ayuda-campus p { color: #d6dff3; }
+@media (max-width: 640px) {
+  .ayuda-campus { grid-template-columns: auto minmax(0, 1fr); padding: 24px; }
+  .ayuda-campus-findi { width: 56px; height: 56px; }
+  .ayuda-campus .btn { grid-column: 1 / -1; justify-self: stretch; justify-content: center; }
 }

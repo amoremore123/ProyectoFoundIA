@@ -336,6 +336,7 @@ html[data-tema='oscuro'] .punto-campus::before { background: linear-gradient(120
 .mis-publicacion-titulo { overflow-wrap: anywhere; }
 /* En «Mis publicaciones» la ubicación y la fecha se leen completas: bajan de línea en vez de cortarse */
 .mis-publicacion-info .objeto-card-linea { flex-wrap: wrap; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.mis-publicacion-info .linea-dato { display: inline-flex; align-items: center; gap: 6px; }
 /* Pantallas muy angostas (menos de 360 px, o texto ampliado): foto más chica para dar ancho al texto */
 @media (max-width: 359px) {
   .mis-publicacion-card { grid-template-columns: 64px 1fr; gap: 12px; }

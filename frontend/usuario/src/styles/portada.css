@@ -249,23 +249,46 @@
 .portada-cta p { max-width: 460px; }
 .portada-cta-botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
 
-.portada-footer {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-top: -24px;
-  padding: 32px 0 8px;
-  border-top: 1px solid var(--border);
-  font-size: 14px;
+/* Pie de la portada a todo el ancho: marca, columnas de enlaces y copyright.
+   Degradado marino de la marca en ambos temas, con un brillo azul que lo une al header. */
+.pie-sitio {
+  position: relative; overflow: hidden; color: #fff;
+  border-top: 1px solid #ffffff1a;
+  background:
+    radial-gradient(60% 120% at 100% 0%, #0866f540 0%, transparent 60%),
+    radial-gradient(50% 90% at 0% 100%, #ffd40012 0%, transparent 60%),
+    linear-gradient(160deg, #14234b 0%, #101c3d 60%, #0b1530 100%);
 }
-
-@media (min-width: 768px) { .portada-footer { grid-template-columns: 1fr auto; align-items: start; } }
-
-.portada-footer-marca { display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
-.portada-footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
-.portada-footer-links a { color: var(--text-muted); font-weight: 500; }
-.portada-footer-links a:hover { color: var(--primary); }
-.portada-footer-legal { grid-column: 1 / -1; font-size: 12px; color: var(--text-soft); }
+.pie-sitio-interior {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 40px 48px;
+  max-width: 1240px; margin: 0 auto; padding: 64px 20px 32px;
+}
+.pie-sitio-marca { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.pie-sitio-logo { display: inline-flex; border-radius: 6px; }
+.pie-sitio-logo .logo-img { width: auto; }
+.pie-sitio-marca p { max-width: 32ch; margin: 0; font-size: 14px; line-height: 1.7; color: #c9d4ee; }
+.pie-sitio-titulo { margin: 0 0 18px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; }
+.pie-sitio-grupo ul { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pie-sitio-grupo a {
+  color: #c9d4ee; font-size: 14px; text-decoration: underline; text-decoration-color: transparent;
+  text-underline-offset: 4px; transition: color .2s, text-decoration-color .2s;
+}
+.pie-sitio-grupo a:hover { color: #fff; text-decoration-color: var(--amarillo); }
+.pie-sitio a:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 3px; border-radius: 4px; }
+.pie-sitio-legal {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+  margin-top: 16px; padding: 24px 96px 0 0; /* a la derecha queda el botón flotante de FINDI */
+  border-top: 1px solid #ffffff1f; font-size: 13px; color: #aebbd8;
+}
+@media (max-width: 900px) {
+  .pie-sitio-interior { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 48px; }
+  .pie-sitio-marca { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .pie-sitio-interior { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; padding-bottom: 96px; }
+  .pie-sitio-legal { flex-direction: column; padding-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .pie-sitio-grupo a { transition: none; } }
 
 /* =====================================================================
    Chat del asistente IA

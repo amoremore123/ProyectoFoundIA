@@ -131,7 +131,9 @@ export default function MisPublicaciones() {
                   )}
                   <p className="objeto-card-linea"><Icono nombre="ubicacion" tamano={14} /> {obj.ubicacion || 'Sin ubicación'}</p>
                   <p className="objeto-card-linea">
-                    <Icono nombre="calendario" tamano={14} /> {fechaCorta(obj.fechaObjeto)} · <Icono nombre="etiqueta" tamano={14} /> {obj.categoria?.nombre || '—'}
+                    {/* Cada ícono va con su texto: si la línea no alcanza, baja el par completo */}
+                    <span className="linea-dato"><Icono nombre="calendario" tamano={14} /> {fechaCorta(obj.fechaObjeto)} ·</span>
+                    <span className="linea-dato"><Icono nombre="etiqueta" tamano={14} /> {obj.categoria?.nombre || '—'}</span>
                   </p>
                   {NOTAS_ESTADO[obj.estado] && <p className="nota-suave" role="status">{NOTAS_ESTADO[obj.estado]}</p>}
                 </div>
