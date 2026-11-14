@@ -68,6 +68,7 @@ export default function Legal({ tipo }) {
 
       <nav className="legal-pagina-enlaces" aria-label="Documentos legales">
         <Link to={pagina.otra.ruta}>Ver {pagina.otra.texto}</Link>
+        <Link to="/cookies">Cookies y almacenamiento</Link>
         <Link to="/">Volver al inicio</Link>
       </nav>
     </div>

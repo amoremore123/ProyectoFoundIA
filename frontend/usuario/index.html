@@ -12,7 +12,9 @@
       // Aplica el tema guardado antes de pintar para evitar destellos claros.
       (function () {
         try {
-          var t = localStorage.getItem('foundia-tema');
+          // El tema guardado solo cuenta si se permitió recordar preferencias (aviso de cookies)
+          var t = localStorage.getItem('foundia-almacenamiento') === 'preferencias'
+            ? localStorage.getItem('foundia-tema') : null;
           if (t !== 'claro' && t !== 'oscuro') {
             t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
           }

@@ -151,3 +151,43 @@ html[data-tema='oscuro'] .legal-fuentes a,
 html[data-tema='oscuro'] .legal-enlaces-registro a { color: var(--primary-700); }
 .auth-panel-legal { display: flex; gap: 14px; margin: 0; font-size: 12.5px; }
 .auth-panel-legal a { color: inherit; text-decoration: underline; }
+
+/* ---------- Aviso de cookies y página /cookies ---------- */
+.aviso-cookies {
+  position: fixed; z-index: 45;
+  left: 12px; right: 84px; bottom: calc(80px + env(safe-area-inset-bottom));
+  max-width: 440px; padding: 16px 18px;
+  border: 1px solid var(--border-strong); border-radius: var(--radio);
+  background: var(--surface); color: var(--text); box-shadow: var(--sombra-md);
+  animation: aviso-cookies-entrada .25s ease-out;
+}
+@media (min-width: 768px) { .aviso-cookies { left: 24px; right: auto; bottom: 24px; } }
+.aviso-cookies-titulo { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
+.aviso-cookies-texto { margin: 0 0 12px; font-size: 13.5px; line-height: 1.55; color: var(--text-muted); }
+.aviso-cookies-texto a { color: var(--primary); font-weight: 600; }
+html[data-tema='oscuro'] .aviso-cookies-texto a { color: var(--primary-700); }
+.aviso-cookies-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.aviso-cookies-acciones .btn { flex: 1 1 150px; }
+@keyframes aviso-cookies-entrada { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .aviso-cookies { animation: none; } }
+
+.cookies-pagina .legal-pagina-texto h2 { margin-top: 22px; }
+.cookies-tabla-envoltura { margin: 8px 0 4px; border: 1px solid var(--border); border-radius: var(--radio-sm); overflow: hidden; }
+.cookies-tabla { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+.cookies-tabla th, .cookies-tabla td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.cookies-tabla thead th { background: var(--surface-2); color: var(--text); font-weight: 700; }
+.cookies-tabla tbody tr:last-child > * { border-bottom: 0; }
+.cookies-tabla code { font-size: 13px; color: var(--text); white-space: nowrap; }
+/* En pantallas angostas cada fila es una tarjeta: se lee sin desplazarse de lado */
+@media (max-width: 640px) {
+  .cookies-tabla thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .cookies-tabla, .cookies-tabla tbody, .cookies-tabla tr, .cookies-tabla th, .cookies-tabla td { display: block; }
+  .cookies-tabla tr { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .cookies-tabla tbody tr:last-child { border-bottom: 0; }
+  .cookies-tabla th, .cookies-tabla td { padding: 2px 0; border: 0; }
+  .cookies-tabla td::before { content: attr(data-etiqueta) ': '; font-weight: 600; color: var(--text); }
+}
+.cookies-terceros { padding-left: 20px; }
+.cookies-terceros li + li { margin-top: 8px; }
+.cookies-pagina .aviso-cookies-acciones { margin: 8px 0 12px; max-width: 480px; }
+.cookies-pagina .aviso-cookies-acciones .btn[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
