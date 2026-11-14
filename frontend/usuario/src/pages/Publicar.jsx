@@ -446,37 +446,47 @@ export default function Publicar() {
           {avisoUbicacion && <span className="campo-error">{avisoUbicacion}</span>}
         </div>
 
-        <div className="campo">
-          <label className="campo-label" htmlFor="foto-objeto">
+        <fieldset className="campo campo-foto">
+          <legend className="campo-label">
             {editando ? 'Agregar otra foto (opcional)' : 'Foto (opcional)'}
-          </label>
-          <input
-            id="foto-objeto"
-            ref={entradaFoto}
-            type="file"
-            className="input"
-            accept="image/jpeg,image/png"
-            aria-label="Foto (opcional)"
-            aria-describedby="foto-ayuda"
-            onChange={seleccionarFoto}
-            disabled={enviando}
-          />
+          </legend>
+          {/* H2/H52: dos maneras de elegir la foto. Cada entrada de archivo queda oculta a la
+              vista pero accesible; su etiqueta es el botón visible con su ícono. */}
+          <div className="foto-opciones">
+            <input
+              id="foto-objeto"
+              ref={entradaFoto}
+              type="file"
+              className="foto-entrada"
+              accept="image/jpeg,image/png"
+              aria-describedby="foto-ayuda"
+              onChange={seleccionarFoto}
+              disabled={enviando}
+            />
+            <label className="foto-opcion" htmlFor="foto-objeto">
+              <Icono nombre="imagen" tamano={22} />
+              <span>Elegir archivo</span>
+            </label>
+            <input
+              id="foto-camara"
+              ref={entradaCamara}
+              type="file"
+              className="foto-entrada"
+              accept="image/*"
+              capture="environment"
+              aria-describedby="foto-ayuda camara-ayuda"
+              onChange={seleccionarFoto}
+              disabled={enviando}
+            />
+            <label className="foto-opcion" htmlFor="foto-camara">
+              <Icono nombre="camara" tamano={22} />
+              <span>Tomar foto</span>
+            </label>
+          </div>
           <span id="foto-ayuda" className="nota-suave">JPEG o PNG · máximo 5 MiB</span>
-          <label className="campo-label" htmlFor="foto-camara">Tomar foto con la cámara</label>
-          <input
-            id="foto-camara"
-            ref={entradaCamara}
-            type="file"
-            className="input"
-            accept="image/*"
-            capture="environment"
-            aria-describedby="foto-ayuda camara-ayuda"
-            onChange={seleccionarFoto}
-            disabled={enviando}
-          />
           <span id="camara-ayuda" className="nota-suave">
-            En un celular compatible se abrirá la cámara trasera. Revisa la foto antes de publicar.
-            Si cancelas o no puedes usar la cámara, puedes elegir una imagen de tu galería.
+            En el celular, «Tomar foto» abre la cámara trasera; en una computadora abre el selector
+            de archivos. Revisa la foto antes de publicar.
           </span>
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
 
@@ -509,7 +519,7 @@ export default function Publicar() {
               </div>
             </div>
           )}
-        </div>
+        </fieldset>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
           {enviando

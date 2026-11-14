@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -58,7 +58,12 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     const user = userEvent.setup();
     renderizar();
     await rellenar(user);
-    const camara = screen.getByLabelText('Tomar foto con la cámara');
+    // Las dos opciones forman un grupo con nombre y cada una tiene su texto visible como nombre
+    const grupo = screen.getByRole('group', { name: 'Foto (opcional)' });
+    const archivo = within(grupo).getByLabelText('Elegir archivo');
+    expect(archivo.getAttribute('type')).toBe('file');
+    expect(archivo.hasAttribute('capture')).toBe(false);
+    const camara = within(grupo).getByLabelText('Tomar foto');
     expect(camara.getAttribute('accept')).toBe('image/*');
     expect(camara.getAttribute('capture')).toBe('environment');
     const foto = new File(['captura'], 'camara.jpg', { type: 'image/jpeg' });
@@ -74,7 +79,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
 
   it('H52: rechaza HEIC y capturas mayores a 5 MiB sin publicar', async () => {
     renderizar();
-    const camara = screen.getByLabelText('Tomar foto con la cámara');
+    const camara = screen.getByLabelText('Tomar foto');
     fireEvent.change(camara, { target: { files: [new File(['heic'], 'foto.heic', { type: 'image/heic' })] } });
     expect(await screen.findByText('Elige una imagen JPEG o PNG.')).toBeTruthy();
     fireEvent.change(camara, { target: { files: [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'foto.jpg', { type: 'image/jpeg' })] } });
@@ -356,7 +361,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     const foto = new File(['png de prueba'], 'mochila.png', { type: 'image/png' });
     renderizar();
     await rellenar(user);
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), { target: { files: [foto] } });
 
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     await screen.findByText('Detalle de prueba');
@@ -371,7 +376,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     subirFotoObjeto.mockRejectedValueOnce(new Error('sin conexión'));
     renderizar();
     await rellenar(user);
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [foto] } });
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), { target: { files: [foto] } });
 
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
     expect(await screen.findByText(/La publicación quedó guardada, pero no se pudo subir la foto/)).toBeTruthy();
@@ -384,7 +389,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
 
   it('valida tipo y tamaño antes de enviar una foto', async () => {
     renderizar();
-    const entrada = screen.getByLabelText('Foto (opcional)');
+    const entrada = screen.getByLabelText('Elegir archivo');
     fireEvent.change(entrada, {
       target: { files: [new File(['texto'], 'nota.txt', { type: 'text/plain' })] },
     });
@@ -399,7 +404,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
   it('acepta una imagen de exactamente 5 MiB (el límite)', async () => {
     renderizar();
     const limite = new File([new Uint8Array(5 * 1024 * 1024)], 'limite.png', { type: 'image/png' });
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), { target: { files: [limite] } });
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), { target: { files: [limite] } });
     expect(await screen.findByText('Seleccionada: limite.png')).toBeTruthy();
     expect(screen.queryByText('La imagen no debe superar los 5 MiB.')).toBeNull();
   });
@@ -411,7 +416,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     URL.revokeObjectURL = vi.fn();
     const revocar = URL.revokeObjectURL;
     renderizar();
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), {
       target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
     });
 
@@ -433,7 +438,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     }));
     renderizar();
     await rellenar(user);
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), {
       target: { files: [new File(['png'], 'mochila.png', { type: 'image/png' })] },
     });
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
@@ -450,7 +455,7 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     subirFotoObjeto.mockRejectedValueOnce({ response: { status: 400, data: { mensaje: 'Formato de imagen no admitido' } } });
     renderizar();
     await rellenar(user);
-    fireEvent.change(screen.getByLabelText('Foto (opcional)'), {
+    fireEvent.change(screen.getByLabelText('Elegir archivo'), {
       target: { files: [new File(['falso'], 'falsa.png', { type: 'image/png' })] },
     });
     await user.click(screen.getByRole('button', { name: 'PUBLICAR OBJETO' }));
