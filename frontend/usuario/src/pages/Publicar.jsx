@@ -181,6 +181,17 @@ export default function Publicar() {
 
   const seleccionarFoto = (e) => aceptarFoto(e.target.files?.[0] || null, e.target);
 
+  // Buscar con una foto (chat de FINDI): «Publicar con esta foto» llega con la foto ya adjunta
+  const fotoDelChat = !editando && location.state?.fotoAdjunta instanceof Blob ? location.state.fotoAdjunta : null;
+  const fotoDelChatUsada = useRef(false);
+  useEffect(() => {
+    if (fotoDelChat && !fotoDelChatUsada.current) {
+      fotoDelChatUsada.current = true;
+      aceptarFoto(fotoDelChat);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fotoDelChat]);
+
   const fotoDeCamara = (archivo) => {
     setCamaraAbierta(false);
     aceptarFoto(archivo);
@@ -334,6 +345,11 @@ export default function Publicar() {
         <p className="aviso-accion aviso-ok" role="status">
           <Icono nombre="info" tamano={16} /> Recuperamos lo que estabas escribiendo. Si tomaste una foto, vuelve a elegirla.
           <button type="button" className="btn-enlace" onClick={empezarDeNuevo}>Empezar de nuevo</button>
+        </p>
+      )}
+      {fotoDelChat && (
+        <p className="aviso-accion aviso-ok" role="status">
+          <Icono nombre="camara" tamano={16} /> Adjuntamos la foto que usaste en FINDI. Completa los datos y revísala antes de publicar.
         </p>
       )}
       {vinoDeFindi && (

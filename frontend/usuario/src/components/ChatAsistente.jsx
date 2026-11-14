@@ -3,12 +3,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Icono from './Icono';
 import ChipTipo from './ChipTipo';
 import ConfirmarDialogo from './ConfirmarDialogo';
+import MiniaturaChat from './MiniaturaChat';
+import CamaraEnVivo, { camaraEnVivoDisponible } from './CamaraEnVivo';
 import { useAsistente } from '../context/AsistenteContext';
 import { useAuth } from '../context/AuthContext';
 import { AVATAR_FINDI } from '../config/findi';
 import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
-import { buscarObjetos, fotoUrl, getMisObjetos, interpretarConIA, listarCategorias, mensajeError } from '../services/api';
+import { buscarObjetos, buscarPorFoto, getMisObjetos, interpretarConIA, listarCategorias, mensajeError, statusDe } from '../services/api';
+import { archivoADataUrl, reducirFoto } from '../utils/fotos';
 import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso } from '../utils/asistente';
 import { accionesValidas, ajustarATarjetaObjeto, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
@@ -59,6 +62,12 @@ export default function ChatAsistente() {
   const [dictado, setDictado] = useState(false);
   // H47: acción propuesta por FINDI que espera confirmación
   const [accionPendiente, setAccionPendiente] = useState(null);
+  // Buscar con una foto: cámara en la página (o galería), aviso de privacidad la primera vez
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
+  const [avisoFoto, setAvisoFoto] = useState(false);
+  const avisoFotoAceptado = useRef(false);
+  const entradaFotoChat = useRef(null);
+  const [camaraVivo] = useState(camaraEnVivoDisponible);
   // H46: lo dictado se escribe en la caja para revisarlo y corregirlo antes de enviar
   const voz = useVoz({
     alParcial: (parcial) => setTexto(parcial),
@@ -124,10 +133,13 @@ export default function ChatAsistente() {
       // Fase 5: "mis reportes" se responde con tus publicaciones reales (requiere sesión)
       const intencion = (consulta || local).intencion;
       // H47: tarjetas y acciones del catálogo cerrado (se descarta lo que no se conoce)
-      const tarjetas = tarjetasValidas(ia?.tarjetas);
+      const objetosPublicos = lista(datos);
+      const tarjetas = tarjetasValidas(ia?.tarjetas).map((t) => (t.tipo === 'OBJETO' && t.datos?.id
+        ? { ...t, objeto: objetosPublicos.find((o) => o.id === t.datos.id) }
+        : t));
       const respuesta = intencion === 'mis_reportes'
         ? await responderMisReportes()
-        : ajustarATarjetaObjeto(responder(limpio, { objetos: lista(datos), categorias: categoriasRef.current, consulta }), tarjetas);
+        : ajustarATarjetaObjeto(responder(limpio, { objetos: objetosPublicos, categorias: categoriasRef.current, consulta }), tarjetas);
       // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
       const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
       const accionesFindi = accionesValidas(ia?.acciones);
@@ -145,6 +157,70 @@ export default function ChatAsistente() {
       setPensando(false);
     }
   }, [pensando, leerRespuestas, voz.leer, auth?.token]);
+
+  // ---------- Buscar con una foto ----------
+  const abrirSelectorFoto = () => {
+    if (camaraVivo) setCamaraAbierta(true);
+    else entradaFotoChat.current?.click();
+  };
+
+  const pedirFoto = () => {
+    if (pensando) return;
+    // La foto sale del navegador hacia el proveedor de IA: se avisa antes de la primera vez
+    if (!avisoFotoAceptado.current) { setAvisoFoto(true); return; }
+    abrirSelectorFoto();
+  };
+
+  const buscarConFoto = async (archivo) => {
+    if (!archivo || pensando) return;
+    setCamaraAbierta(false);
+    if (!archivo.type?.startsWith('image/')) {
+      agregar({ de: 'bot', error: true, texto: 'Elige una foto (JPEG o PNG) del objeto.' });
+      return;
+    }
+    const vista = typeof URL.createObjectURL === 'function' ? URL.createObjectURL(archivo) : '';
+    agregar({ de: 'usuario', texto: 'Busca objetos como este', foto: vista });
+    setPensando(true);
+    const publicarConFoto = { texto: 'Publicar con esta foto', to: '/publicar', state: { fotoAdjunta: archivo } };
+    try {
+      if (!categoriasRef.current) categoriasRef.current = lista(await listarCategorias());
+      // Más liviana para la IA: máx. 1024 px en JPEG
+      const reducida = await reducirFoto(archivo, 1024);
+      const [datos, r] = await Promise.all([buscarObjetos({ q: '' }), buscarPorFoto(await archivoADataUrl(reducida))]);
+      const consulta = adaptarInterpretacion({
+        intencion: 'buscar', tipoBuscado: '', categoria: r.categoria, ubicacion: '',
+        palabras: r.palabras || [], colores: r.colores || [],
+      }, categoriasRef.current);
+      if (!consulta || consulta.intencion !== 'buscar') {
+        agregar({
+          de: 'bot',
+          texto: 'No reconocí un objeto en la foto. Prueba con otra más cercana y con buena luz, o descríbelo con palabras.',
+          acciones: [publicarConFoto],
+        });
+        return;
+      }
+      const respuesta = responder('', { objetos: lista(datos), categorias: categoriasRef.current, consulta });
+      const veo = r.descripcion ? `En tu foto veo: ${r.descripcion}. ` : '';
+      agregar({
+        de: 'bot', fuente: 'ia', ...respuesta,
+        texto: `${veo}${respuesta.texto}`,
+        acciones: [...(respuesta.acciones || []).filter((a) => a.to !== '/publicar'), publicarConFoto],
+      });
+      if (respuesta.resultados?.length) setCompletada(respuesta.resultados.length);
+    } catch (e) {
+      const limite = statusDe(e) === 429;
+      agregar({
+        de: 'bot',
+        error: true,
+        texto: limite
+          ? 'Hiciste varias búsquedas con foto seguidas. Espera un minuto o describe el objeto con palabras.'
+          : 'No pude analizar la foto ahora. Describe el objeto con palabras o publícalo con esta foto.',
+        acciones: [publicarConFoto],
+      });
+    } finally {
+      setPensando(false);
+    }
+  };
 
   // Mensaje enviado desde otra página (p. ej. el buscador de la portada)
   useEffect(() => {
@@ -285,6 +361,7 @@ export default function ChatAsistente() {
             {mensajes.map((m) => (
               <div key={m.id} className={`chat-fila ${m.de === 'usuario' ? 'chat-fila-usuario' : ''}`}>
                 <div className={`chat-burbuja ${m.de === 'usuario' ? 'chat-burbuja-usuario' : ''} ${m.error ? 'chat-burbuja-error' : ''}`}>
+                  {m.foto && <img className="chat-foto-enviada" src={m.foto} alt="Foto enviada para buscar" />}
                   <p>{m.texto}</p>
                   {m.reintentar && (
                     <button type="button" className="chat-reintentar" onClick={() => preguntar(m.reintentar, { repetir: true })} disabled={pensando}>
@@ -303,13 +380,10 @@ export default function ChatAsistente() {
                   {m.resultados?.length > 0 && (
                     <ul className="chat-resultados">
                       {m.resultados.map(({ objeto, porcentaje }) => {
-                        const foto = objeto.fotos?.length ? fotoUrl(objeto.fotos[0]) : '';
                         return (
                           <li key={objeto.id}>
                             <Link to={`/objeto/${objeto.id}`} className="chat-resultado" onClick={cerrar}>
-                              <span className="chat-resultado-media">
-                                {foto ? <img src={foto} alt="" loading="lazy" /> : <Icono nombre="caja" tamano={18} />}
-                              </span>
+                              <MiniaturaChat objeto={objeto} />
                               <span className="chat-resultado-info">
                                 <span className="chat-resultado-nombre">{objeto.nombre}</span>
                                 <span className="chat-resultado-linea">
@@ -332,6 +406,7 @@ export default function ChatAsistente() {
                       {m.misReportes.map((objeto) => (
                         <li key={objeto.id}>
                           <Link to={`/objeto/${objeto.id}`} className="chat-resultado" onClick={cerrar}>
+                            <MiniaturaChat objeto={objeto} />
                             <span className="chat-resultado-info">
                               <span className="chat-resultado-nombre">{objeto.nombre}</span>
                               <span className="chat-resultado-pie">
@@ -351,7 +426,7 @@ export default function ChatAsistente() {
                         <li key={`${t.tipo}-${i}`} className={`chat-tarjeta chat-tarjeta-${t.tipo.toLowerCase()}`}>
                           {t.tipo === 'OBJETO' && (
                             <Link to={t.enlace} className="chat-resultado" onClick={cerrar}>
-                              <span className="chat-resultado-media"><Icono nombre="caja" tamano={18} /></span>
+                              <MiniaturaChat objeto={t.objeto || { nombre: t.titulo, categoria: t.datos?.categoria }} />
                               <span className="chat-resultado-info">
                                 <span className="chat-resultado-nombre">{t.titulo}</span>
                                 {t.datos?.ubicacion && (
@@ -394,7 +469,7 @@ export default function ChatAsistente() {
                   {m.acciones?.length > 0 && (
                     <div className="chat-acciones">
                       {m.acciones.map((a) => (
-                        <Link key={a.to} to={a.to} className="chat-accion" onClick={(event) => irAAccion(event, a.to)}>
+                        <Link key={a.to} to={a.to} state={a.state} className="chat-accion" onClick={(event) => irAAccion(event, a.to)}>
                           {a.texto} <Icono nombre="flechaDer" tamano={14} />
                         </Link>
                       ))}
@@ -448,6 +523,25 @@ export default function ChatAsistente() {
               aria-label="Escribe tu mensaje al asistente"
               maxLength={300}
             />
+            <button
+              type="button"
+              className="chat-microfono chat-foto"
+              onClick={pedirFoto}
+              disabled={pensando}
+              aria-label="Buscar con una foto"
+              title="Buscar con una foto"
+            >
+              <Icono nombre="camara" tamano={18} />
+            </button>
+            <input
+              ref={entradaFotoChat}
+              type="file"
+              accept="image/jpeg,image/png"
+              className="foto-entrada"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; buscarConFoto(f); }}
+            />
             {voz.soportaDictado && (
               <button
                 type="button"
@@ -475,6 +569,21 @@ export default function ChatAsistente() {
         </section>
       )}
 
+      <ConfirmarDialogo
+        abierto={avisoFoto}
+        titulo="Buscar con una foto"
+        mensaje="FINDI enviará la foto a su proveedor de IA solo para reconocer el objeto. No se guarda ni se publica. Evita fotos con documentos, rostros u otros datos personales."
+        textoConfirmar="Entendido, continuar"
+        onConfirmar={() => { avisoFotoAceptado.current = true; setAvisoFoto(false); abrirSelectorFoto(); }}
+        onCancelar={() => setAvisoFoto(false)}
+      />
+      <CamaraEnVivo
+        abierto={camaraAbierta}
+        titulo="Foto del objeto"
+        onCapturar={buscarConFoto}
+        onCerrar={() => setCamaraAbierta(false)}
+        onElegirArchivo={() => { setCamaraAbierta(false); entradaFotoChat.current?.click(); }}
+      />
       <ConfirmarDialogo
         abierto={Boolean(accionPendiente)}
         titulo="¿Continuar?"

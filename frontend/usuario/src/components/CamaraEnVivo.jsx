@@ -21,7 +21,8 @@ const MENSAJES = {
   NotReadableError: 'Otra aplicación está usando la cámara. Ciérrala e inténtalo de nuevo, o elige una foto de tu galería.',
 };
 
-export default function CamaraEnVivo({ abierto, onCapturar, onCerrar }) {
+// titulo: encabezado del visor. onElegirArchivo: si llega, muestra «Galería» para elegir una foto guardada.
+export default function CamaraEnVivo({ abierto, onCapturar, onCerrar, titulo = 'Tomar foto', onElegirArchivo }) {
   const video = useRef(null);
   const flujo = useRef(null);
   const caja = useRef(null);
@@ -122,7 +123,7 @@ export default function CamaraEnVivo({ abierto, onCapturar, onCerrar }) {
     <div className="dialogo-fondo camara-fondo">
       <div ref={caja} className="camara-vivo" role="dialog" aria-modal="true" aria-labelledby="camara-titulo" onKeyDown={teclas}>
         <div className="camara-cabecera">
-          <h2 id="camara-titulo">{estado === 'capturada' ? 'Revisa la foto' : 'Tomar foto'}</h2>
+          <h2 id="camara-titulo">{estado === 'capturada' ? 'Revisa la foto' : titulo}</h2>
           <button ref={botonCerrar} type="button" className="camara-cerrar" onClick={onCerrar} aria-label="Cerrar la cámara">
             <Icono nombre="cerrar" tamano={20} />
           </button>
@@ -146,11 +147,21 @@ export default function CamaraEnVivo({ abierto, onCapturar, onCerrar }) {
               <button type="button" className="btn btn-primario" onClick={usar}>Usar esta foto</button>
             </>
           ) : estado === 'error' ? (
-            <button type="button" className="btn btn-secundario" onClick={onCerrar}>Volver al formulario</button>
+            <>
+              {onElegirArchivo && <button type="button" className="btn btn-primario" onClick={() => { detener(); onElegirArchivo(); }}>Elegir de la galería</button>}
+              <button type="button" className="btn btn-secundario" onClick={onCerrar}>{onElegirArchivo ? 'Cancelar' : 'Volver al formulario'}</button>
+            </>
           ) : (
+            <>
+            {onElegirArchivo && (
+              <button type="button" className="camara-galeria" onClick={() => { detener(); onElegirArchivo(); }} aria-label="Elegir de la galería">
+                <Icono nombre="imagen" tamano={22} />
+              </button>
+            )}
             <button type="button" className="camara-disparador" onClick={tomar} disabled={estado !== 'lista'} aria-label={estado === 'procesando' ? 'Procesando la foto' : 'Capturar foto'}>
               <span aria-hidden="true" />
             </button>
+            </>
           )}
         </div>
       </div>

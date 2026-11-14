@@ -171,6 +171,17 @@ export const getDetalleCoincidencia = async (id, { signal } = {}) => {
 
 // H45: interpretación y resumen propio opcional. Usa el token sin interceptores,
 // de modo que un error del asistente no cierre la sesión de toda la web.
+// Buscar con una foto en el chat: la IA describe el objeto y la web busca en las publicaciones.
+// La foto (data URL JPEG/PNG reducida) no se guarda en el servidor.
+export const buscarPorFoto = async (imagen, { signal } = {}) => {
+  const token = localStorage.getItem('token');
+  const { data } = await axios.post(`${API_URL}/api/asistente/buscar-por-foto`, { imagen }, {
+    signal, timeout: 30000,
+    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+  });
+  return data;
+};
+
 export const interpretarConIA = async (mensaje, { signal } = {}) => {
   const token = localStorage.getItem('token');
   const { data } = await axios.post(`${API_URL}/api/asistente/interpretar`, { mensaje }, {

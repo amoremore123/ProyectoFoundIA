@@ -6,7 +6,7 @@ export const LADO_MAXIMO = 1920;
 const CALIDAD = 0.85;
 const UMBRAL_BYTES = 1.5 * 1024 * 1024; // las fotos livianas y chicas no se tocan
 
-export async function reducirFoto(archivo) {
+export async function reducirFoto(archivo, ladoMaximo = LADO_MAXIMO) {
   if (!archivo || !archivo.type?.startsWith('image/')) return archivo;
   if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') return archivo;
   let imagen;
@@ -17,7 +17,7 @@ export async function reducirFoto(archivo) {
     return archivo;
   }
   try {
-    const escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));
+    const escala = Math.min(1, ladoMaximo / Math.max(imagen.width, imagen.height));
     const yaSirve = escala === 1 && archivo.size <= UMBRAL_BYTES && ['image/jpeg', 'image/png'].includes(archivo.type);
     if (yaSirve) return archivo;
     const lienzo = document.createElement('canvas');
@@ -35,4 +35,14 @@ export async function reducirFoto(archivo) {
   } finally {
     imagen.close?.();
   }
+}
+
+// Convierte un archivo en data URL (data:image/jpeg;base64,...) para enviarlo como JSON
+export function archivoADataUrl(archivo) {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(String(lector.result));
+    lector.onerror = () => reject(lector.error || new Error('No se pudo leer la foto'));
+    lector.readAsDataURL(archivo);
+  });
 }

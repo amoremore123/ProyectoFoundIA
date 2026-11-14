@@ -19,6 +19,7 @@ const TERCEROS = [
   { quien: 'Google Fonts', cuando: 'Al abrir la web, para cargar la tipografía.', recibe: 'Tu dirección IP y datos técnicos del navegador.' },
   { quien: 'OpenStreetMap (Nominatim)', cuando: 'Solo si pulsas «Usar mi ubicación».', recibe: 'Las coordenadas para obtener el nombre del lugar.' },
   { quien: 'Reconocimiento de voz del navegador', cuando: 'Solo si usas el micrófono con FINDI y das permiso.', recibe: 'El audio que dictas, procesado por el proveedor de tu navegador.' },
+  { quien: 'Groq (inteligencia artificial), a través de nuestro servidor', cuando: 'Solo si escribes a FINDI, pides una sugerencia al publicar o buscas con una foto.', recibe: 'El texto (sin correos ni teléfonos) o la foto reducida del objeto. No se guarda.' },
   { quien: 'ElevenLabs, a través de nuestro servidor', cuando: 'Solo si activas la lectura en voz alta de FINDI.', recibe: 'El texto de la respuesta de FINDI, sin tus datos de cuenta.' },
 ];
 

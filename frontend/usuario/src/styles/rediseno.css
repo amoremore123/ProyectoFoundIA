@@ -465,6 +465,10 @@ html[data-tema='oscuro'] .foto-opcion .icono { color: var(--primary-700); }
 .camara-disparador span { width: 56px; height: 56px; border-radius: 50%; background: #fff; transition: transform .12s; }
 .camara-disparador:active span { transform: scale(0.9); }
 .camara-disparador:disabled { opacity: .45; cursor: not-allowed; }
+/* Galería al lado del disparador (búsqueda por foto en el chat) */
+.camara-galeria { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #ffffff1f; color: #fff; cursor: pointer; }
+.camara-galeria:hover { background: #ffffff33; }
+.camara-acciones:has(.camara-galeria) { gap: 28px; }
 .camara-vivo button:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 3px; }
 /* Celular en vertical: pantalla completa */
 @media (max-width: 640px) {
