@@ -83,7 +83,7 @@ describe('Aviso de cookies y almacenamiento local', () => {
     const user = userEvent.setup();
     renderizar(<><Cookies /><AvisoCookies /></>);
     expect(screen.getByRole('heading', { level: 1, name: 'Cookies y almacenamiento' })).toBeTruthy();
-    for (const dato of ['token', 'usuario', CLAVE_CONSENTIMIENTO, CLAVE_TEMA]) {
+    for (const dato of ['token', 'usuario', CLAVE_CONSENTIMIENTO, 'foundia-borrador-publicar', CLAVE_TEMA]) {
       expect(screen.getByRole('rowheader', { name: dato })).toBeTruthy();
     }
     expect(screen.getByRole('status').textContent).toBe('Todavía no elegiste una opción.');

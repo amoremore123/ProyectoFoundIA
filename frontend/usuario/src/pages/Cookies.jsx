@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   CLAVE_CONSENTIMIENTO, CLAVE_TEMA, EVENTO_CONSENTIMIENTO, OPCIONES, guardarConsentimiento, leerConsentimiento,
 } from '../utils/almacenamiento';
+import { CLAVE_BORRADOR } from '../utils/borradorPublicar';
 
 // Política de cookies y almacenamiento local: pública, se lee sin iniciar sesión.
 // Lo que dice esta página debe coincidir con lo que la web guarda (ver utils/almacenamiento.js).
@@ -10,6 +11,7 @@ const GUARDADO = [
   { nombre: 'token', para: 'Mantener tu sesión iniciada en este navegador.', tipo: 'Esencial', dura: 'Hasta que cierres sesión o venza.' },
   { nombre: 'usuario', para: 'Mostrar tu nombre e iniciales mientras tienes la sesión abierta.', tipo: 'Esencial', dura: 'Hasta que cierres sesión.' },
   { nombre: CLAVE_CONSENTIMIENTO, para: 'Recordar la opción que elegiste en este aviso.', tipo: 'Esencial', dura: 'Hasta que la cambies o borres los datos del navegador.' },
+  { nombre: CLAVE_BORRADOR, para: 'Recuperar lo que escribiste en Publicar si el navegador recarga la página (por ejemplo, al volver de la cámara).', tipo: 'Esencial', dura: 'Solo en esa pestaña; se borra al publicar o al cerrarla.' },
   { nombre: CLAVE_TEMA, para: 'Recordar si prefieres el modo claro u oscuro.', tipo: 'Preferencia', dura: 'Solo si eliges «Recordar mis preferencias».' },
 ];
 
@@ -44,8 +46,8 @@ export default function Cookies() {
       <div className="legal-pagina-texto">
         <p>
           FoundIA <strong>no usa cookies propias</strong>, ni de publicidad ni de seguimiento, y no usa
-          herramientas de analítica. Para funcionar guarda unos pocos datos en el almacenamiento local de
-          tu navegador; no salen de tu dispositivo salvo el token, que se envía a nuestro servidor para
+          herramientas de analítica. Para funcionar guarda unos pocos datos en el almacenamiento de tu
+          navegador; no salen de tu dispositivo salvo el token, que se envía a nuestro servidor para
           identificar tu sesión.
         </p>
 

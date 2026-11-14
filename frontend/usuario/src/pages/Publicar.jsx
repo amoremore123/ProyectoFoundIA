@@ -12,6 +12,8 @@ import useCategorias from '../hooks/useCategorias';
 import { MAX_DESCRIPCION, largoEnCaracteres } from '../utils/validaciones';
 import { obtenerUbicacionActual } from '../services/geolocalizacion';
 import { useToast } from '../context/ToastContext';
+import { borrarBorrador, guardarBorrador, leerBorrador } from '../utils/borradorPublicar';
+import { reducirFoto } from '../utils/fotos';
 
 const VACIO = {
   nombre: '',
@@ -44,15 +46,21 @@ export default function Publicar() {
   const [errorEdicion, setErrorEdicion] = useState('');
   const [intentoEdicion, setIntentoEdicion] = useState(0);
 
-  const [tipo, setTipo] = useState(prellenado.tipo || 'PERDIDO');
-  const [form, setForm] = useState(() => ({ ...VACIO, ...(prellenado.categoriaId ? { categoriaId: prellenado.categoriaId } : {}), ...(prellenado.ubicacion ? { ubicacion: prellenado.ubicacion } : {}) }));
   const vinoDeFindi = Object.keys(prellenado).length > 0;
+  // H52: si el navegador recargó la página (por ejemplo, al volver de la cámara), se recupera lo escrito
+  const [borrador] = useState(() => (editando || vinoDeFindi ? null : leerBorrador()));
+  const [avisoBorrador, setAvisoBorrador] = useState(Boolean(borrador));
+  const [tipo, setTipo] = useState(prellenado.tipo || borrador?.tipo || 'PERDIDO');
+  const [form, setForm] = useState(() => (borrador
+    ? { ...VACIO, ...borrador.form }
+    : { ...VACIO, ...(prellenado.categoriaId ? { categoriaId: prellenado.categoriaId } : {}), ...(prellenado.ubicacion ? { ubicacion: prellenado.ubicacion } : {}) }));
   const { categorias, cargandoCategorias, errorCategorias, reintentarCategorias } = useCategorias();
   const [errores, setErrores] = useState({});
   const [errorGeneral, setErrorGeneral] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [errorFoto, setErrorFoto] = useState('');
+  const [preparandoFoto, setPreparandoFoto] = useState(false);
   const [vistaPrevia, setVistaPrevia] = useState('');
   const [progresoFoto, setProgresoFoto] = useState(null); // null = sin subida en curso
   const entradaFoto = useRef(null);
@@ -66,6 +74,18 @@ export default function Publicar() {
   useEffect(() => () => {
     solicitudUbicacion.current += 1;
   }, []);
+
+  // H52: el borrador se guarda mientras se escribe una publicación nueva (no al editar)
+  useEffect(() => {
+    if (!editando && !publicacionCreada) guardarBorrador(tipo, form);
+  }, [editando, publicacionCreada, tipo, form]);
+
+  const empezarDeNuevo = () => {
+    borrarBorrador();
+    setForm({ ...VACIO });
+    setTipo('PERDIDO');
+    setAvisoBorrador(false);
+  };
 
   // H2: vista previa de la foto elegida, para comprobar que es la del objeto antes de publicar.
   useEffect(() => {
@@ -129,22 +149,27 @@ export default function Publicar() {
     }
   };
 
-  const seleccionarFoto = (e) => {
-    const archivo = e.target.files?.[0] || null;
+  const seleccionarFoto = async (e) => {
+    const entrada = e.target;
+    const original = entrada.files?.[0] || null;
     setErrorFoto('');
-    if (!archivo) {
+    if (!original) {
       return;
     }
+    // H52: las fotos de la cámara se reducen antes de validar (máx. 1920 px, JPEG)
+    setPreparandoFoto(true);
+    const archivo = await reducirFoto(original);
+    setPreparandoFoto(false);
     if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
       setArchivoFoto(null);
       setErrorFoto('Elige una imagen JPEG o PNG.');
-      e.target.value = '';
+      entrada.value = '';
       return;
     }
     if (archivo.size > MAX_FOTO_BYTES) {
       setArchivoFoto(null);
       setErrorFoto('La imagen no debe superar los 5 MiB.');
-      e.target.value = '';
+      entrada.value = '';
       return;
     }
     setArchivoFoto(archivo);
@@ -229,6 +254,8 @@ export default function Publicar() {
         };
         creado = editando ? await actualizarObjeto(idEditar, payload) : await crearObjeto(payload);
         setPublicacionCreada(creado);
+        // La publicación ya existe: el borrador no debe ofrecerse de nuevo
+        if (!editando) borrarBorrador();
       }
       if (archivoFoto) {
         setProgresoFoto(0);
@@ -292,6 +319,12 @@ export default function Publicar() {
         <Icono nombre="flechaIzq" tamano={16} /> {editando ? 'Volver a mis publicaciones' : 'Volver'}
       </button>
       <h1 className="pagina-titulo">{editando ? 'Editar publicación' : 'Publicar objeto'}</h1>
+      {avisoBorrador && (
+        <p className="aviso-accion aviso-ok" role="status">
+          <Icono nombre="info" tamano={16} /> Recuperamos lo que estabas escribiendo. Si tomaste una foto, vuelve a elegirla.
+          <button type="button" className="btn-enlace" onClick={empezarDeNuevo}>Empezar de nuevo</button>
+        </p>
+      )}
       {vinoDeFindi && (
         <p className="aviso-accion aviso-ok" role="status">
           <Icono nombre="chispa" tamano={16} /> FINDI completó algunos datos con lo que le contaste. Revísalos antes de publicar.
@@ -488,6 +521,7 @@ export default function Publicar() {
             En el celular, «Tomar foto» abre la cámara trasera; en una computadora abre el selector
             de archivos. Revisa la foto antes de publicar.
           </span>
+          {preparandoFoto && <span className="nota-suave" role="status">Preparando la foto…</span>}
           {errorFoto && <span className="campo-error" role="alert">{errorFoto}</span>}
 
           {archivoFoto && (
@@ -521,7 +555,7 @@ export default function Publicar() {
           )}
         </fieldset>
 
-        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando}>
+        <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || ubicando || preparandoFoto}>
           {enviando
             ? 'Guardando...'
             : publicacionCreada && archivoFoto

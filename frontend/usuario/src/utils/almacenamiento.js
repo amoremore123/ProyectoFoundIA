@@ -3,6 +3,7 @@
 //   - token y usuario: la sesión. Esencial: sin ellos no se puede iniciar sesión.
 //   - foundia-almacenamiento: esta misma elección. Esencial: evita volver a preguntar.
 //   - foundia-tema: el modo claro u oscuro. Preferencia: solo si la persona lo permite.
+//   - foundia-borrador-publicar (sessionStorage): lo escrito en Publicar. Esencial y temporal (H52).
 export const CLAVE_CONSENTIMIENTO = 'foundia-almacenamiento';
 export const CLAVE_TEMA = 'foundia-tema';
 export const EVENTO_CONSENTIMIENTO = 'foundia-almacenamiento';

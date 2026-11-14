@@ -5,5 +5,6 @@ export default mergeConfig(viteConfig, defineConfig({
   test: {
     environment: 'jsdom',
     clearMocks: true,
+    setupFiles: ['./src/test/setup.js'],
   },
 }));
