@@ -56,7 +56,22 @@ class ClienteIaCompatibleOpenAiTest {
         assertThat(cliente.completarJson("instrucciones", "hola")).isEqualTo("{\"intencion\":\"saludo\"}");
         assertThat(autorizacion.get()).isEqualTo("Bearer clave-falsa");
         assertThat(cuerpo.get()).contains("\"model\":\"modelo-prueba\"", "\"json_object\"", "hola")
-                .doesNotContain("clave-falsa");
+                .doesNotContain("clave-falsa")
+                // Solo los modelos gpt-oss aceptan reasoning_effort
+                .doesNotContain("reasoning_effort");
+    }
+
+    @Test
+    @DisplayName("Con gpt-oss pide razonamiento bajo y deja margen de tokens para el JSON")
+    void gptOssConRazonamientoBajo() throws IOException {
+        AtomicReference<String> autorizacion = new AtomicReference<>();
+        AtomicReference<String> cuerpo = new AtomicReference<>();
+        String url = iniciar(0, "{\"choices\":[{\"message\":{\"content\":\"{\\\"intencion\\\":\\\"saludo\\\"}\"}}]}", autorizacion, cuerpo);
+
+        ClienteIaCompatibleOpenAi cliente = new ClienteIaCompatibleOpenAi(RestClient.builder(), url, "openai/gpt-oss-20b", "clave-falsa", 2000);
+
+        assertThat(cliente.completarJson("instrucciones", "hola")).isEqualTo("{\"intencion\":\"saludo\"}");
+        assertThat(cuerpo.get()).contains("\"reasoning_effort\":\"low\"", "\"max_tokens\":600");
     }
 
     @Test

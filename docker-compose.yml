@@ -55,7 +55,8 @@ services:
       RECORDATORIOS_RETRASO_INICIAL_MS: ${RECORDATORIOS_RETRASO_INICIAL_MS:-300000}
       # Fase 5: FINDI con IA (Groq u OpenAI). La clave se lee del archivo .env, que no se sube a Git
       IA_URL: ${IA_URL:-https://api.groq.com/openai/v1}
-      IA_MODELO: ${IA_MODELO:-llama-3.1-8b-instant}
+      IA_MODELO: ${IA_MODELO:-openai/gpt-oss-20b}
+      IA_MODELO_VISION: ${IA_MODELO_VISION:-qwen/qwen3.8-27b}
       IA_API_KEY: ${IA_API_KEY:-}
       # Fase 6: voz natural de FINDI (ElevenLabs). La clave y la voz se leen del archivo .env
       VOZ_API_KEY: ${VOZ_API_KEY:-}
