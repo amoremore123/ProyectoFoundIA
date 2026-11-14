@@ -47,6 +47,8 @@ public class SecurityConfig {
                         // H45: interpretación pública, con resumen propio cuando hay sesión.
                         .requestMatchers(HttpMethod.POST, "/api/asistente/interpretar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/asistente/voz").permitAll()
+                        // Buscar con una foto en el chat de FINDI (la foto no se guarda)
+                        .requestMatchers(HttpMethod.POST, "/api/asistente/buscar-por-foto").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/objetos", "/api/objetos/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/objetos", "/api/objetos/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/objetos", "/api/objetos/**").authenticated()

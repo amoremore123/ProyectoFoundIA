@@ -1,7 +1,8 @@
 {
-  "fecha": "2026-11-13T18:21:41.552Z",
+  "fecha": "2026-11-14T15:35:09.485Z",
   "api": "http://localhost:8081",
   "fuentes": [
+    "ia",
     "local"
   ],
   "resumen": {
@@ -11,9 +12,9 @@
       "tasa": 85
     },
     "api": {
-      "aciertos": 16,
+      "aciertos": 17,
       "total": 20,
-      "tasa": 80
+      "tasa": 85
     }
   },
   "filas": [
@@ -36,8 +37,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 172,
-        "fuente": "local",
+        "ms": 1973,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Celular",
@@ -65,8 +66,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 24,
-        "fuente": "local",
+        "ms": 571,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "PERDIDO",
         "categoria": "Llaves",
@@ -96,16 +97,14 @@
       },
       "api": {
         "status": 200,
-        "ms": 20,
-        "fuente": "local",
+        "ms": 800,
+        "fuente": "ia",
         "intencion": "buscar",
-        "tipoBuscado": "",
+        "tipoBuscado": "ENCONTRADO",
         "categoria": "Laptop",
         "ubicacion": "laboratorio 3",
-        "acierto": false,
-        "fallos": [
-          "tipoBuscado"
-        ]
+        "acierto": true,
+        "fallos": []
       }
     },
     {
@@ -127,8 +126,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 32,
-        "fuente": "local",
+        "ms": 634,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Mochila",
@@ -156,8 +155,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 20,
-        "fuente": "local",
+        "ms": 1354,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "PERDIDO",
         "categoria": "Documento",
@@ -185,8 +184,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 17,
-        "fuente": "local",
+        "ms": 771,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Documento",
@@ -216,15 +215,15 @@
       },
       "api": {
         "status": 200,
-        "ms": 24,
-        "fuente": "local",
-        "intencion": "buscar",
+        "ms": 988,
+        "fuente": "ia",
+        "intencion": "vacio",
         "tipoBuscado": "PERDIDO",
-        "categoria": null,
+        "categoria": "Ropa",
         "ubicacion": "patio",
         "acierto": false,
         "fallos": [
-          "categoria"
+          "intencion"
         ]
       }
     },
@@ -247,8 +246,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 16,
-        "fuente": "local",
+        "ms": 539,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Accesorio",
@@ -276,8 +275,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 38,
-        "fuente": "local",
+        "ms": 733,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "PERDIDO",
         "categoria": "Accesorio",
@@ -305,8 +304,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 20,
-        "fuente": "local",
+        "ms": 756,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Celular",
@@ -334,8 +333,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 15,
-        "fuente": "local",
+        "ms": 720,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": "Laptop",
@@ -363,14 +362,16 @@
       },
       "api": {
         "status": 200,
-        "ms": 15,
-        "fuente": "local",
+        "ms": 688,
+        "fuente": "ia",
         "intencion": "buscar",
         "tipoBuscado": "PERDIDO",
         "categoria": "Documento",
-        "ubicacion": "pasillo",
-        "acierto": true,
-        "fallos": []
+        "ubicacion": "",
+        "acierto": false,
+        "fallos": [
+          "ubicacion"
+        ]
       }
     },
     {
@@ -389,8 +390,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 35,
-        "fuente": "local",
+        "ms": 792,
+        "fuente": "ia",
         "intencion": "publicar",
         "tipoBuscado": "PERDIDO",
         "categoria": null,
@@ -415,14 +416,16 @@
       },
       "api": {
         "status": 200,
-        "ms": 18,
-        "fuente": "local",
-        "intencion": "publicar",
+        "ms": 574,
+        "fuente": "ia",
+        "intencion": "buscar",
         "tipoBuscado": "ENCONTRADO",
         "categoria": null,
         "ubicacion": "",
-        "acierto": true,
-        "fallos": []
+        "acierto": false,
+        "fallos": [
+          "intencion"
+        ]
       }
     },
     {
@@ -441,16 +444,14 @@
       },
       "api": {
         "status": 200,
-        "ms": 27,
-        "fuente": "local",
-        "intencion": "buscar",
+        "ms": 587,
+        "fuente": "ia",
+        "intencion": "mis_reportes",
         "tipoBuscado": "",
         "categoria": null,
         "ubicacion": "",
-        "acierto": false,
-        "fallos": [
-          "intencion"
-        ]
+        "acierto": true,
+        "fallos": []
       }
     },
     {
@@ -472,9 +473,9 @@
       },
       "api": {
         "status": 200,
-        "ms": 17,
-        "fuente": "local",
-        "intencion": "ayuda",
+        "ms": 782,
+        "fuente": "ia",
+        "intencion": "como_funciona",
         "tipoBuscado": "",
         "categoria": null,
         "ubicacion": "",
@@ -498,8 +499,8 @@
       },
       "api": {
         "status": 200,
-        "ms": 16,
-        "fuente": "local",
+        "ms": 1579,
+        "fuente": "ia",
         "intencion": "saludo",
         "tipoBuscado": "",
         "categoria": null,
@@ -526,16 +527,14 @@
       },
       "api": {
         "status": 200,
-        "ms": 17,
-        "fuente": "local",
-        "intencion": "buscar",
+        "ms": 814,
+        "fuente": "ia",
+        "intencion": "gracias",
         "tipoBuscado": "",
         "categoria": null,
         "ubicacion": "",
-        "acierto": false,
-        "fallos": [
-          "intencion"
-        ]
+        "acierto": true,
+        "fallos": []
       }
     },
     {
@@ -558,9 +557,9 @@
       },
       "api": {
         "status": 200,
-        "ms": 21,
-        "fuente": "local",
-        "intencion": "buscar",
+        "ms": 1189,
+        "fuente": "ia",
+        "intencion": "vacio",
         "tipoBuscado": "",
         "categoria": null,
         "ubicacion": "",
@@ -590,7 +589,7 @@
       },
       "api": {
         "status": 200,
-        "ms": 15,
+        "ms": 800,
         "fuente": "local",
         "intencion": "buscar",
         "tipoBuscado": "",
