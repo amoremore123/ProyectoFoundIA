@@ -258,6 +258,25 @@ py manage.py runserver        # http://localhost:8000
 > (auth/sessions) y es opcional.
 
 
+### Panel administrativo web de FoundIA (React)
+
+Desde la raíz del proyecto, habilita las pantallas de gestión y levanta el panel
+con Docker Compose:
+
+```powershell
+$env:HABILITAR_EXTRAS = 'true'
+docker compose up -d --build frontend-admin
+```
+
+Abre [el panel web](http://localhost:5174/) e inicia sesión con una cuenta de
+FoundIA con rol `ADMIN`. En una base nueva de desarrollo puedes usar la cuenta
+de demostración documentada en la sección de credenciales de prueba.
+
+Para comprobar la gestión, crea una categoría de prueba desde **Categorías** y
+verifica que aparece en el listado. En **Custodia**, selecciona **En custodia**
+y pulsa **Aplicar**. En **Objetos**, cada fila muestra la categoría y la persona
+que hizo la publicación.
+
 ### Admin interno de Django con Docker
 
 Desde la raíz del repositorio, ejecuta en PowerShell:
