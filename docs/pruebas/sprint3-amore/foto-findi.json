@@ -1,0 +1,44 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/categorias",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos/11/fotos",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/11",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/asistente/interpretar",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/asistente/sugerir-publicacion",
+    "status": 200,
+    "expected": 200
+  }
+]
