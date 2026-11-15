@@ -257,6 +257,28 @@ py manage.py runserver        # http://localhost:8000
 > `py manage.py migrate` solo crea las tablas internas de Django
 > (auth/sessions) y es opcional.
 
+
+### Admin interno de Django con Docker
+
+Desde la raíz del repositorio, ejecuta en PowerShell:
+
+```powershell
+$env:HABILITAR_EXTRAS = 'true'
+docker compose up -d --build admin-api
+docker compose exec admin-api python manage.py migrate
+docker compose exec admin-api python manage.py createsuperuser
+```
+
+Abre [el admin de Django](http://localhost:8000/admin/) e ingresa con la cuenta
+que acabas de crear. Esta cuenta pertenece al sistema de autenticación de Django
+y es independiente de las cuentas de FoundIA. Si ya tienes un superusuario, puedes
+cambiar su contraseña con `docker compose exec admin-api python manage.py changepassword <usuario>`.
+
+En **Categorías** puedes registrar una categoría de prueba y encontrarla por
+nombre y estado. En **Objetos**, abre un registro que tenga fotos para ver sus
+archivos en el mismo formulario. Los registros de auditoría y los que dependen de
+flujos propios, como la custodia, se consultan desde el admin.
+
 ## 10. Android (fuera de Sprint 1)
 
 Este módulo se conserva como trabajo futuro. No se inicia con Compose ni forma
