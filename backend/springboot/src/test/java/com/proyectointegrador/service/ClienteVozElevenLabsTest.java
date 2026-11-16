@@ -62,6 +62,21 @@ class ClienteVozElevenLabsTest {
     }
 
     @Test
+    @DisplayName("Pide español y envía «Tecsup» como «Tec-sup» para que se pronuncie como se escribe")
+    void idiomaYPronunciacion() throws IOException {
+        AtomicReference<String> ruta = new AtomicReference<>();
+        AtomicReference<String> clave = new AtomicReference<>();
+        AtomicReference<String> cuerpo = new AtomicReference<>();
+        String url = iniciar(0, ruta, clave, cuerpo);
+
+        ClienteVozElevenLabs voz = new ClienteVozElevenLabs(RestClient.builder(), url, "clave-falsa", "voz123", "eleven_flash_v2_5", 2000);
+        voz.sintetizar("Recupera tus objetos en Tecsup y en TECSUP.");
+
+        assertThat(cuerpo.get()).contains("\"language_code\":\"es\"", "en Tec-sup y en Tec-sup.")
+                .doesNotContain("Tecsup", "TECSUP");
+    }
+
+    @Test
     @DisplayName("Sin clave o sin voz queda como no configurado")
     void sinConfigurar() {
         assertThat(new ClienteVozElevenLabs(RestClient.builder(), "http://127.0.0.1:9", "", "voz", "m", 1000).configurado()).isFalse();

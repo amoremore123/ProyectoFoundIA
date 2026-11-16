@@ -50,7 +50,9 @@ public class ClienteVozElevenLabs implements ClienteVoz {
                 .header("xi-api-key", apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.valueOf("audio/mpeg"))
-                .body(Map.of("text", texto, "model_id", modelo))
+                // Idioma fijo: sin él, el modelo multilingüe adivinaba y leía nombres como «Tecsup»
+                // en inglés y a veces agregaba un sonido extraño al final
+                .body(Map.of("text", PronunciacionVoz.paraVoz(texto), "model_id", modelo, "language_code", "es"))
                 .retrieve()
                 .body(byte[].class);
     }
