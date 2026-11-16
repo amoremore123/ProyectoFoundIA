@@ -8,7 +8,8 @@ import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
-import { getCoincidencias, getObjeto, iniciarContacto, mensajeError, reclamarObjeto, statusDe } from '../services/api';
+import EstadoReclamoCustodia from '../components/EstadoReclamoCustodia';
+import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, mensajeError, reclamarObjeto, statusDe } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function fechaLarga(valor) {
@@ -37,6 +38,8 @@ export default function Detalle() {
   const [contactandoId, setContactandoId] = useState(null);
   const [reclamo, setReclamo] = useState('');
   const [respuestaCustodia, setRespuestaCustodia] = useState('');
+  // H42/H44: estado de mi reclamo en custodia (null mientras no se sabe o no aplica)
+  const [estadoCustodia, setEstadoCustodia] = useState(null);
   const [reclamoError, setReclamoError] = useState('');
   const [reclamando, setReclamando] = useState(false);
   const [confirmarReclamo, setConfirmarReclamo] = useState(false);
@@ -91,6 +94,7 @@ export default function Detalle() {
         ? await reclamarObjeto(objeto.id, respuestaCustodia.trim())
         : await reclamarObjeto(objeto.id);
       setReclamo(respuesta.repetido ? 'repetido' : 'enviado');
+      if (objeto.estado === 'EN_CUSTODIA') setEstadoCustodia(respuesta.estado || 'PENDIENTE');
     } catch (errorReclamo) {
       setReclamoError(mensajeError(errorReclamo, 'No se pudo enviar el reclamo'));
     } finally {
@@ -127,6 +131,18 @@ export default function Detalle() {
       vivo = false;
     };
   }, [id, reintentosCoincidencias]);
+
+  // H42/H44: en objetos de la biblioteca se consulta si ya reclamé y cómo va (con el QR si fue aceptado)
+  useEffect(() => {
+    setEstadoCustodia(null);
+    const ajeno = user && objeto && String(user.id) !== String(objeto.publicadoPor?.id);
+    if (!token || !ajeno || objeto.tipo !== 'ENCONTRADO' || !['EN_CUSTODIA', 'RECUPERADO'].includes(objeto.estado)) return undefined;
+    let vivo = true;
+    getMiReclamoCustodia(objeto.id)
+      .then((r) => { if (vivo) setEstadoCustodia(r?.estado || null); })
+      .catch(() => { if (vivo) setEstadoCustodia(null); });
+    return () => { vivo = false; };
+  }, [objeto, token, user]);
 
   // H47: si se llegó desde FINDI, se abre el diálogo de confirmación del reclamo (solo si se puede reclamar)
   useEffect(() => {
@@ -204,7 +220,11 @@ export default function Detalle() {
             </div>
           </div>
 
-          {puedeReclamar && (reclamo ? (
+          {estadoCustodia && estadoCustodia !== 'SIN_RECLAMO' && (
+            <EstadoReclamoCustodia estado={estadoCustodia} objetoId={objeto.id} nombre={objeto.nombre} />
+          )}
+
+          {puedeReclamar && !(estadoCustodia && estadoCustodia !== 'SIN_RECLAMO') && (reclamo ? (
             <p role="status" className="aviso-accion aviso-ok">
               {objeto.estado === 'EN_CUSTODIA'
                 ? 'Tu reclamo está en la bandeja de la biblioteca.'

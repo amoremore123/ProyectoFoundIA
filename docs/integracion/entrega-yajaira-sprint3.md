@@ -37,9 +37,9 @@ compatible (`201f0d3`, `H45`) y la voz natural de FINDI en el servidor (`c73d62c
 | H53 (Leonel) | Notificaciones: recordatorios y su preferencia | Terminada |
 | H52 (Amore) | Publicar: cámara dentro de la página (HTTPS), borrador si el navegador recarga, foto reducida y ajustada al recuadro del detalle | Terminada: probada en un Samsung Android |
 | H46 (Amore) | FINDI: micrófono, lectura en voz alta y aviso de privacidad | Terminada |
-| H42 (Amore) | Formulario de reclamo con verificación y estado | **Bloqueada:** falta la API de Amore |
-| H44 (Amore) | QR de retiro del usuario | **Bloqueada:** falta la API de Amore |
-| H40 (Amore) | Invitar desde el Perfil y registro desde la invitación | **Bloqueada:** falta la API de Amore |
+| H42 (Amore) | Detalle: formulario con respuesta de verificación (Amore) y estado del reclamo en custodia: en revisión, aceptado, rechazado o retirado | Terminada (probada con la API real) |
+| H44 (Amore) | Detalle: QR de retiro del titular (librería `qrcode`), vencimiento en hora local y descarga | Terminada (probada con la API real) |
+| H40 (Amore) | Perfil: crear, copiar o compartir el enlace (cancelar no se anuncia); registro desde `?invitacion=` (Amore) | Terminada (probada con la API real) |
 
 ## Contratos y evidencias
 
@@ -69,7 +69,7 @@ base compartida. `CUSTODIA_PLAZO_DIAS` (por defecto 60) se pasa a Django desde C
 
 1. Prueba con lector de pantalla real (H51) — Yajaira.
 2. Para usar la IA, cada integrante copia `.env.example` como `.env` y completa `IA_API_KEY` (nunca en Git).
-3. APIs y contratos de H42, H44 y H40 — Amore. Después se completan sus pantallas web.
+3. `dev/amore` (H42, H44, H40, H50) ya está integrada en `frontend/web`, con las migraciones H40 y H42 aplicadas tras un respaldo.
 4. Integrar `dev/yajaira` y `frontend/web` en `dev/leonel` y llevar el sprint a `main` — Leonel.
 
 ## Nota de entorno

@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
 import Detalle from './Detalle';
-import { getCoincidencias, getObjeto, iniciarContacto, reclamarObjeto } from '../services/api';
+import { getCoincidencias, getMiReclamoCustodia, getObjeto, getQrRetiro, iniciarContacto, reclamarObjeto } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
@@ -11,7 +11,10 @@ vi.mock('../services/api', async (importOriginal) => ({
   getObjeto: vi.fn(),
   iniciarContacto: vi.fn(),
   reclamarObjeto: vi.fn(),
+  getMiReclamoCustodia: vi.fn(async () => ({ estado: 'SIN_RECLAMO' })),
+  getQrRetiro: vi.fn(),
 }));
+vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
 
 const objetoPerdido = {
   id: 15,
@@ -195,5 +198,25 @@ describe('H20 - reclamo de un objeto encontrado', () => {
     expect(reclamarObjeto).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Sí, reclamar' }));
     await waitFor(() => expect(reclamarObjeto).toHaveBeenCalledWith(hallazgoAjeno.id, 'Llavero azul por dentro'));
+  });
+
+  it('H42/H44: con un reclamo aceptado muestra el estado y el QR de retiro en vez del formulario', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
+    getMiReclamoCustodia.mockResolvedValue({ id: 3, objetoId: hallazgoAjeno.id, estado: 'ACEPTADO' });
+    getQrRetiro.mockResolvedValue({ token: 'tok', expira: '2026-11-23T15:30:00' });
+    renderizar(true);
+    expect(await screen.findByRole('heading', { name: '¡Reclamo aceptado!' })).toBeTruthy();
+    expect(await screen.findByRole('img', { name: `QR de retiro de ${hallazgoAjeno.nombre}` })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Reclamar este objeto' })).toBeNull();
+  });
+
+  it('H42: tras enviar el reclamo en custodia queda «en revisión»', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
+    reclamarObjeto.mockResolvedValue({ id: 4, estado: 'PENDIENTE', repetido: false });
+    renderizar(true);
+    fireEvent.change(await screen.findByLabelText(/Qué detalle del objeto/), { target: { value: 'Tiene mis iniciales' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reclamar este objeto' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, reclamar' }));
+    expect(await screen.findByRole('heading', { name: 'Reclamo en revisión' })).toBeTruthy();
   });
 });
