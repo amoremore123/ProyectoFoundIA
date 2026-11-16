@@ -20,6 +20,7 @@ import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
 import Legal from './pages/Legal';
 import Cookies from './pages/Cookies';
+import VerificarCustodia from './pages/VerificarCustodia';
 import AvisoCookies from './components/AvisoCookies';
 import { EXTRAS_HABILITADOS } from './config/alcance';
 
@@ -49,6 +50,7 @@ export default function App() {
                 <Route path="/privacidad" element={<Legal tipo="privacidad" />} />
                 <Route path="/terminos" element={<Legal tipo="terminos" />} />
                 <Route path="/cookies" element={<Cookies />} />
+                <Route path="/custodia/verificar" element={<VerificarCustodia />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
                 <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route

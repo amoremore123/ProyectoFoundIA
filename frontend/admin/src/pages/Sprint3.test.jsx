@@ -216,6 +216,21 @@ describe('H43 - reclamos de custodia', () => {
     expect(getReclamosCustodia).toHaveBeenCalledTimes(2);
   });
 
+  it('si otra persona ya fue aceptada solo ofrece rechazar', async () => {
+    getReclamosCustodia.mockResolvedValue(pagina([{ ...RECLAMO, otroAceptado: true }]));
+    resolverReclamo.mockResolvedValue({ ...RECLAMO, estado: 'RECHAZADO' });
+    await montar(<Reclamos />);
+    expect(screen.getByText('Otro reclamo ya fue aceptado')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Resolver reclamo #8' }));
+    expect(screen.queryByRole('radio', { name: /Aceptar/ })).toBeNull();
+    expect(screen.getByRole('radio', { name: 'Rechazar' }).checked).toBe(true);
+    expect(screen.getByRole('note').textContent).toMatch(/solo puede rechazarse/);
+    fireEvent.change(screen.getByPlaceholderText(/Documento de identidad/), { target: { value: 'Ya se entregó a otra persona' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sí, rechazar' })); });
+    expect(resolverReclamo).toHaveBeenCalledWith(8, { decision: 'RECHAZADO', motivo: 'Ya se entregó a otra persona' });
+  });
+
   it('verifica el QR de retiro y solo permite entregar si está vigente', async () => {
     getReclamosCustodia.mockResolvedValue(pagina([]));
     verificarQrRetiro.mockResolvedValueOnce({ valido: true, estadoQr: 'USADO', reclamo: { ...RECLAMO, estado: 'RETIRADO' } });

@@ -152,6 +152,30 @@ export const reclamarObjeto = async (id, respuesta) => {
   return data;
 };
 
+// H42: estado de mi reclamo de un objeto en custodia ({estado: SIN_RECLAMO | PENDIENTE | ACEPTADO | RECHAZADO | RETIRADO})
+export const getMiReclamoCustodia = async (id) => {
+  const { data } = await api.get(`/api/objetos/${id}/reclamos/custodia`);
+  return data;
+};
+
+// H44: QR de retiro del titular de un reclamo aceptado y vigente ({token, expira} en UTC)
+export const getQrRetiro = async (id) => {
+  const { data } = await api.get(`/api/objetos/${id}/reclamos/custodia/qr-retiro`);
+  return data;
+};
+
+// H41: lo que abre el QR de la etiqueta de custodia (público, sin datos personales)
+export const verificarCustodia = async (t) => {
+  const { data } = await axios.get(`${API_URL}/api/custodias/verificar`, { params: { t }, timeout: 10000 });
+  return data;
+};
+
+// H40: enlace de invitación sin datos personales ({url})
+export const crearInvitacion = async () => {
+  const { data } = await api.post('/api/perfil/invitaciones');
+  return data;
+};
+
 // H5/H14: solo el autor puede editar; la API valida igual que al publicar.
 export const actualizarObjeto = async (id, payload) => {
   const { data } = await api.put(`/api/objetos/${id}`, payload);

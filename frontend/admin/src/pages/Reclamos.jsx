@@ -77,7 +77,8 @@ export default function Reclamos() {
 
   const abrir = (reclamo) => {
     setSeleccionado(reclamo);
-    setDecision({ decision: 'ACEPTADO', motivo: '' });
+    // Si otra persona ya fue aceptada, este reclamo solo puede rechazarse
+    setDecision({ decision: reclamo.otroAceptado ? 'RECHAZADO' : 'ACEPTADO', motivo: '' });
     setErrorDecision('');
   };
 
@@ -221,10 +222,18 @@ export default function Reclamos() {
           </p>
           {seleccionado.respuestaVerificacion && <p className="nota-tabla">Respuesta de verificación: {seleccionado.respuestaVerificacion}</p>}
           {seleccionado.objeto?.descripcion && <p className="nota-tabla">Descripción registrada: «{seleccionado.objeto.descripcion}»</p>}
+          {seleccionado.otroAceptado && (
+            <p className="aviso-otro-aceptado" role="note">
+              Ya se aceptó el reclamo de otra persona para este objeto, así que este solo puede rechazarse.
+              Si dudas de quién es el dueño, cita a ambos en la biblioteca antes de entregarlo.
+            </p>
+          )}
           <fieldset className="resolver-opciones">
             <legend className="campo-label">Decisión</legend>
-            <label><input type="radio" name="decision" value="ACEPTADO" checked={decision.decision === 'ACEPTADO'}
-              onChange={() => setDecision((d) => ({ ...d, decision: 'ACEPTADO' }))} /> Aceptar (es el dueño)</label>
+            {!seleccionado.otroAceptado && (
+              <label><input type="radio" name="decision" value="ACEPTADO" checked={decision.decision === 'ACEPTADO'}
+                onChange={() => setDecision((d) => ({ ...d, decision: 'ACEPTADO' }))} /> Aceptar (es el dueño)</label>
+            )}
             <label><input type="radio" name="decision" value="RECHAZADO" checked={decision.decision === 'RECHAZADO'}
               onChange={() => setDecision((d) => ({ ...d, decision: 'RECHAZADO' }))} /> Rechazar</label>
           </fieldset>
@@ -282,6 +291,7 @@ export default function Reclamos() {
                       <td data-label="Estado">
                         <span className={`chip-estado ${e.clase}`}>{e.texto}</span>
                         {r.motivoResolucion && <span className="celda-detalle">{r.motivoResolucion}{r.resueltoPor ? ` · ${r.resueltoPor.nombre}` : ''}</span>}
+                        {r.estado === 'PENDIENTE' && r.otroAceptado && <span className="celda-detalle">Otro reclamo ya fue aceptado</span>}
                         {r.estado === 'ACEPTADO' && r.qrRetiroExpira && (
                           <span className="celda-detalle">QR {r.qrRetiroVigente ? `vigente hasta ${fechaHora(r.qrRetiroExpira)}` : 'vencido'}</span>
                         )}
