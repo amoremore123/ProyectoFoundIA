@@ -12,15 +12,11 @@ import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
 import { buscarObjetos, buscarPorFoto, getMisObjetos, interpretarConIA, listarCategorias, mensajeError, statusDe } from '../services/api';
 import { archivoADataUrl, reducirFoto } from '../utils/fotos';
-import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso } from '../utils/asistente';
+import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso, saludoFindi } from '../utils/asistente';
 import { accionesValidas, ajustarATarjetaObjeto, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
-const BIENVENIDA = {
-  id: 'bienvenida',
-  de: 'bot',
-  texto: '¡Hola! Soy FINDI, el asistente de FoundIA. Puedo ayudarte a buscar, reportar y recuperar objetos en Tecsup. ¿En qué te ayudo?',
-  accesos: true,
-};
+// Primer mensaje: saludo personalizado (hora del día y nombre si hay sesión) con los accesos rápidos
+const bienvenida = (nombre) => ({ id: 'bienvenida', de: 'bot', texto: saludoFindi(nombre), accesos: true });
 
 // Fase 4: estados visuales de FINDI. El avatar no cambia; solo el anillo, la etiqueta y el punto.
 const ETIQUETA_ESTADO = {
@@ -48,7 +44,10 @@ export default function ChatAsistente() {
   const [saludando, setSaludando] = useState(false);
   const yaSaludo = useRef(false);
   const [completada, setCompletada] = useState(null);
-  const [mensajes, setMensajes] = useState([BIENVENIDA]);
+  const nombreUsuario = auth?.user?.nombre || '';
+  const [mensajes, setMensajes] = useState(() => [bienvenida(nombreUsuario)]);
+  // El saludo se dice en voz alta una sola vez (al abrir con la lectura activada o al activarla)
+  const saludoLeido = useRef(false);
   const [texto, setTexto] = useState('');
   const [pensando, setPensando] = useState(false);
   const categoriasRef = useRef(null);
@@ -235,13 +234,27 @@ export default function ChatAsistente() {
     if (abierto) inputRef.current?.focus();
   }, [abierto]);
 
-  // FINDI saluda la primera vez que se abre el chat
+  // Si la persona inicia o cierra sesión antes de conversar, el saludo usa su nombre
+  useEffect(() => {
+    setMensajes((prev) => (prev.length === 1 && prev[0].id === 'bienvenida' ? [bienvenida(nombreUsuario)] : prev));
+  }, [nombreUsuario]);
+
+  // Dice el saludo en voz alta una vez, solo si la conversación aún no empezó
+  const leerSaludo = () => {
+    if (saludoLeido.current || mensajes.length !== 1) return;
+    saludoLeido.current = true;
+    voz.leer(mensajes[0].texto);
+  };
+
+  // FINDI saluda la primera vez que se abre el chat (y lo dice si la lectura en voz alta está activa)
   useEffect(() => {
     if (!abierto || yaSaludo.current) return undefined;
     yaSaludo.current = true;
     setSaludando(true);
+    if (leerRespuestas) leerSaludo();
     const t = setTimeout(() => setSaludando(false), 2800);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto]);
 
   // "Búsqueda completada" se muestra unos segundos y vuelve a "En línea"
@@ -312,8 +325,12 @@ export default function ChatAsistente() {
 
   const alternarLectura = () => {
     if (leerRespuestas) voz.callar();
-    // Fase 6: el mismo toque que activa la voz habilita el audio en celulares
-    else voz.prepararAudio();
+    else {
+      // Fase 6: el mismo toque que activa la voz habilita el audio en celulares
+      voz.prepararAudio();
+      // Al activar la voz antes de conversar, FINDI se presenta hablando
+      leerSaludo();
+    }
     setLeerRespuestas((v) => !v);
   };
 

@@ -449,8 +449,30 @@ describe('FINDI - voz natural', () => {
     await activarVozYPreguntar();
 
     expect(await screen.findByText(/se usa la voz del navegador/)).toBeTruthy();
-    expect(window.speechSynthesis.speak).toHaveBeenCalledTimes(1);
+    // Al activar la voz FINDI se presenta y luego lee la respuesta, ambas con la voz del navegador
+    expect(window.speechSynthesis.speak).toHaveBeenCalledTimes(2);
+    expect(window.speechSynthesis.speak.mock.calls[0][0].text).toMatch(/Soy FINDI, la asistente de FoundIA/);
+    expect(window.speechSynthesis.speak.mock.calls[1][0].text).toMatch(/cuatro pasos/);
     expect(screen.queryByText('Voz de FINDI: ElevenLabs')).toBeNull();
+  });
+
+  it('al activar la voz antes de conversar, FINDI se presenta hablando una sola vez', async () => {
+    obtenerVozFindi.mockResolvedValue(new Blob(['mp3'], { type: 'audio/mpeg' }));
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AsistenteProvider>
+          <ChatAsistente />
+        </AsistenteProvider>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: /abrir asistente/i }));
+    await user.click(screen.getByRole('button', { name: 'Leer las respuestas en voz alta' }));
+    expect(obtenerVozFindi).toHaveBeenCalledWith(expect.stringMatching(/Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte/), expect.anything());
+    // Apagar y volver a encender no repite el saludo
+    await user.click(screen.getByRole('button', { name: 'Dejar de leer las respuestas en voz alta' }));
+    await user.click(screen.getByRole('button', { name: 'Leer las respuestas en voz alta' }));
+    expect(obtenerVozFindi.mock.calls.filter(([t]) => /Soy FINDI/.test(t))).toHaveLength(1);
   });
 
   it('al apagar la voz se corta el audio', async () => {
