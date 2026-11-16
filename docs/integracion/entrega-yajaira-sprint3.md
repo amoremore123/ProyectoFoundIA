@@ -17,7 +17,7 @@ No se hizo merge a `main` ni push forzado. Android es la capa de Amore.
 | H25 Historial de avisos | `GET /api/notificaciones/historial` y `PUT /api/notificaciones/leidas` (`23d28cc`) | Filtros, paginación, «marcar todas», vacío y error | Terminada |
 | H47 Tarjetas y acciones | Catálogo cerrado y acciones validadas (`57adc13`) | Tarjetas de objeto, reclamos y QR; doble confirmación | Terminada |
 | H49 Sugerencia con IA | `POST /api/asistente/sugerir-publicacion` (`ef437c2`) | Aceptar, editar o descartar en Publicar | Terminada: probada con IA real (Groq, `openai/gpt-oss-20b`) |
-| H51 Accesibilidad | Sin API | axe, Lighthouse 24/24 en 100, contraste manual, 320 px | Falta lector de pantalla real (persona y dispositivo) |
+| H51 Accesibilidad | Sin API | axe, Lighthouse 24/24 en 100, contraste manual, 320 px, prueba con TalkBack ([guion](../pruebas/h51-lector-pantalla.md)) | Terminada |
 | H54 Disposición final | Plazo, vencidos y acta en Django; `migracion_h54_disposicion.sql` (`772afd3`) | Pantalla de vencidos, confirmación y acta PDF | Terminada |
 
 Antes de H49 van dos commits que esa historia necesita para compilar: el proveedor de IA
@@ -67,7 +67,7 @@ base compartida. `CUSTODIA_PLAZO_DIAS` (por defecto 60) se pasa a Django desde C
 
 ## Pendientes y de quién dependen
 
-1. Prueba con lector de pantalla real (H51) — Yajaira.
+1. ~~Prueba con lector de pantalla real (H51)~~ — hecha el 16/11/2026 con TalkBack, sin problemas.
 2. Para usar la IA, cada integrante copia `.env.example` como `.env` y completa `IA_API_KEY` (nunca en Git).
 3. `dev/amore` (H42, H44, H40, H50) ya está integrada en `frontend/web`, con las migraciones H40 y H42 aplicadas tras un respaldo.
 4. Integrar `dev/yajaira` y `frontend/web` en `dev/leonel` y llevar el sprint a `main` — Leonel.

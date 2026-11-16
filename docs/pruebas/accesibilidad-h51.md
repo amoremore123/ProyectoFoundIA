@@ -148,6 +148,7 @@ la fecha; está fuera del mínimo de WCAG y queda como mejora.
 
 ## Pendiente
 
-- Prueba con un lector de pantalla real (NVDA en Windows o TalkBack con el navegador del
-  teléfono) y con la ampliación nativa del teléfono: requiere una persona y el dispositivo.
+- ~~Prueba con un lector de pantalla real~~: hecha el 16/11/2026 con TalkBack en un celular
+  Android y Chrome; Yajaira completó el recorrido sin problemas. Guion en
+  [`h51-lector-pantalla.md`](h51-lector-pantalla.md).
 - Android (TalkBack y texto al 130 %) es la capa de Amore.
