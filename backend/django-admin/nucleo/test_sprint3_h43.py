@@ -241,3 +241,31 @@ class ReclamosCustodiaTests(APITestCase):
         self.como(self.admin)
         self.assertEqual(self.client.get("/api/admin/reclamos/").status_code, 200)
         self.assertEqual(self.resolver(self.reclamo, "ACEPTADO").status_code, 200)
+
+    def test_retiro_acepta_el_enlace_que_trae_el_qr_de_la_etiqueta(self):
+        """H41: la etiqueta nueva lleva un enlace; al escanearla para el retiro también sirve."""
+        from .custodia import url_verificacion
+        self.aceptar(self.reclamo)
+        self.como(self.biblioteca)
+        enlace = url_verificacion(self.custodia.token_qr)
+        self.assertIn("/custodia/verificar?t=", enlace)
+        verificado = self.client.get("/api/admin/custodias/verificar/", {"token": enlace})
+        self.assertEqual(verificado.status_code, 200)
+        self.assertEqual(verificado.data["codigo"], self.custodia.codigo)
+        retiro = self.client.post("/api/admin/reclamos/retirar/",
+                                  {"token": self.reclamo.qr_retiro_token, "etiqueta": enlace}, format="json")
+        self.assertEqual(retiro.status_code, 200, retiro.data)
+        self.assertEqual(retiro.data["estado"], "RETIRADO")
+
+    def test_bandeja_avisa_cuando_otro_reclamo_ya_fue_aceptado(self):
+        carla = Usuario.objects.create(
+            nombre="Carla", apellido="Ruiz", correo="carla-h43@prueba.invalid",
+            password=self.ana.password, rol="USUARIO", estado="ACTIVO")
+        segundo = self.crear_reclamo(self.objeto, carla)
+        self.como(self.biblioteca)
+        self.assertFalse(self.client.get(f"/api/admin/reclamos/{segundo.id}/").data["otroAceptado"])
+        self.aceptar(self.reclamo)
+        self.assertTrue(self.client.get(f"/api/admin/reclamos/{segundo.id}/").data["otroAceptado"])
+        self.assertFalse(self.client.get(f"/api/admin/reclamos/{self.reclamo.id}/").data["otroAceptado"])
+        self.assertEqual(self.resolver(segundo, "ACEPTADO").status_code, 409)
+

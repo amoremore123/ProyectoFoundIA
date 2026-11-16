@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/objetos", "/api/objetos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/coincidencias/**").permitAll()
+                        // H41: al escanear la etiqueta de custodia se ve el objeto (sin datos personales)
+                        .requestMatchers(HttpMethod.GET, "/api/custodias/verificar").permitAll()
                         // H45: interpretación pública, con resumen propio cuando hay sesión.
                         .requestMatchers(HttpMethod.POST, "/api/asistente/interpretar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/asistente/voz").permitAll()

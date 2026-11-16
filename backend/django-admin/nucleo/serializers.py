@@ -181,6 +181,7 @@ class ReclamoSerializer(serializers.ModelSerializer):
     qrRetiroUsadoEn = serializers.DateTimeField(source="qr_retiro_usado_en", read_only=True)
     qrRetiroVigente = serializers.SerializerMethodField()
     qrRetiroUrl = serializers.SerializerMethodField()
+    otroAceptado = serializers.SerializerMethodField()
 
     class Meta:
         model = Reclamo
@@ -188,6 +189,7 @@ class ReclamoSerializer(serializers.ModelSerializer):
             "id", "objeto", "reclamante", "estado", "fechaReclamo",
             "resueltoPor", "fechaResolucion", "motivoResolucion",
             "qrRetiroExpira", "qrRetiroUsadoEn", "qrRetiroVigente", "qrRetiroUrl", "respuestaVerificacion",
+            "otroAceptado",
         ]
         read_only_fields = fields
 
@@ -204,6 +206,11 @@ class ReclamoSerializer(serializers.ModelSerializer):
             "id": obj.resuelto_por_id,
             "nombre": f"{obj.resuelto_por.nombre} {obj.resuelto_por.apellido}".strip(),
         }
+
+    def get_otroAceptado(self, obj) -> bool:
+        """Otra persona ya tiene aceptado (o retiró) este objeto: no se puede aceptar este reclamo."""
+        return Reclamo.objects.filter(
+            objeto_id=obj.objeto_id, estado__in=("ACEPTADO", "RETIRADO")).exclude(pk=obj.pk).exists()
 
     def get_qrRetiroVigente(self, obj) -> bool:
         from .reclamos_custodia import token_retiro_vigente
@@ -229,7 +236,8 @@ class ReclamoResolucionSerializer(serializers.Serializer):
 
 class RetiroSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=64, allow_blank=False, trim_whitespace=True)
-    etiqueta = serializers.CharField(max_length=500, allow_blank=False, trim_whitespace=True)
+    # Token de la etiqueta o el enlace completo que trae su QR
+    etiqueta = serializers.CharField(max_length=1000, allow_blank=False, trim_whitespace=True)
 
 
 class NotificacionSerializer(serializers.ModelSerializer):

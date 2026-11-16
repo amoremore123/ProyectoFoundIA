@@ -14,6 +14,8 @@ public interface ReclamoRepository extends JpaRepository<Reclamo, Long> {
 
     long countByUsuarioId(Long usuarioId);
 
+    boolean existsByObjetoIdAndEstadoIn(Long objetoId, java.util.Collection<String> estados);
+
     long countByUsuarioIdAndEstado(Long usuarioId, String estado);
 
     @Query("""

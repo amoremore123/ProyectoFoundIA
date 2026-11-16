@@ -24,6 +24,9 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "
 # Solo controla el panel nativo /admin/. Las API H26/H28/H29 no son extras.
 HABILITAR_EXTRAS = os.environ.get("HABILITAR_EXTRAS", "false").lower() == "true"
 
+# H41: el QR de la etiqueta abre esta web para ver el objeto en custodia
+FOUNDIA_WEB_URL = os.environ.get("FOUNDIA_WEB_URL", "http://localhost:5173").rstrip("/")
+
 ALLOWED_HOSTS = ["*"] if DEBUG else [
     h.strip() for h in os.environ.get("DJANGO_HOSTS", "").split(",") if h.strip()
 ]
