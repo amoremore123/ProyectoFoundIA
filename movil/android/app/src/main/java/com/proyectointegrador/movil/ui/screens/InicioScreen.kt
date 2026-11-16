@@ -20,29 +20,49 @@ import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.*
 
-@Composable fun InicioScreen(onObjetoClick:(Long)->Unit,abrir:(String)->Unit={},comunidad:ComunidadEstado=ComunidadEstado(),viewModel:ObjetosViewModel=viewModel(factory=fabrica())) {
+@Composable fun InicioScreen(onObjetoClick:(Long)->Unit,abrir:(String)->Unit={},comunidad:ComunidadEstado=ComunidadEstado(),autenticado:Boolean=false,viewModel:ObjetosViewModel=viewModel(factory=fabrica())) {
  val state by viewModel.state.collectAsStateWithLifecycle();val categorias by viewModel.categorias.collectAsStateWithLifecycle();val filtro by viewModel.busqueda.collectAsStateWithLifecycle();val errorCategorias by viewModel.errorCategorias.collectAsStateWithLifecycle()
  LaunchedEffect(Unit){viewModel.cargarRecientes();viewModel.cargarCategorias()}
- Surface(color=MaterialTheme.colorScheme.background,modifier=Modifier.fillMaxSize()) {
-  LazyColumn(Modifier.statusBarsPadding(),contentPadding=PaddingValues(start=20.dp,end=20.dp,top=16.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
-   item {Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
-    Column(Modifier.weight(1f)){LogoFoundia();Spacer(Modifier.height(12.dp));Text(comunidad.usuario?.let {"Hola, ${it.nombre.split(" ").first()}"}?:"Hola, comunidad",style=MaterialTheme.typography.titleLarge);Text("Juntos, nada se pierde.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
-    IconButton(onClick={abrir("avisos")}){BadgedBox(badge={if(comunidad.sinLeer>0)Badge{Text(comunidad.sinLeer.toString())}}){Icon(Simbolos.Avisos,"Notificaciones")}}
-    Surface(onClick={abrir("perfil")},shape=CircleShape,color=MaterialTheme.colorScheme.primaryContainer,modifier=Modifier.size(42.dp)){Box(contentAlignment=Alignment.Center){if(comunidad.usuario!=null)Text(comunidad.usuario.nombre.take(1).uppercase(),style=MaterialTheme.typography.titleMedium) else Icon(Simbolos.Perfil,"Mi perfil",Modifier.padding(10.dp))}}
-   }}
-   item {Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(AzulNoche)) {
-    Image(painterResource(R.drawable.tecsup_campus),"Campus Tecsup",Modifier.matchParentSize(),contentScale=ContentScale.Crop)
-    Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(AzulNoche.copy(alpha=.98f),AzulNoche.copy(alpha=.64f)))))
-    Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-     Text("CONECTADOS EN TECSUP",color=Cielo,style=MaterialTheme.typography.labelSmall)
-     Text("¿Perdiste algo\nen el campus?",color=Color.White,style=MaterialTheme.typography.headlineMedium)
-     Text("Encontrarlo puede ser más fácil\nde lo que crees",color=Color(0xFFD5E5FF),style=MaterialTheme.typography.bodyMedium)
-     Button(onClick={abrir("buscar")},colors=ButtonDefaults.buttonColors(containerColor=Color.White,contentColor=AzulNoche),contentPadding=PaddingValues(horizontal=16.dp,vertical=10.dp)){Icon(Simbolos.Buscar,null,Modifier.size(17.dp));Spacer(Modifier.width(8.dp));Text("Explorar objetos")}
+ Surface(color=MarinoFindi,modifier=Modifier.fillMaxSize()) {
+  LazyColumn(Modifier.statusBarsPadding().background(MaterialTheme.colorScheme.background),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=8.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
+   item {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(DegradadoMarca).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+      LogoFoundia(claro=true,modifier=Modifier.weight(1f).wrapContentWidth(Alignment.Start))
+      IconButton(onClick={abrir("avisos")}) {
+       BadgedBox(badge={if(comunidad.sinLeer>0)Badge(containerColor=Color(0xFFFF8500)){Text(comunidad.sinLeer.toString())}}) {
+        Icon(Simbolos.Avisos,"Notificaciones",tint=Color.White)
+       }
+      }
+      Surface(onClick={abrir("perfil")},shape=CircleShape,color=AzulFindi,modifier=Modifier.size(38.dp)) {
+       Box(contentAlignment=Alignment.Center) { Text(comunidad.usuario?.nombre?.take(1)?.uppercase()?:"Tú",color=Color.White,style=MaterialTheme.typography.labelLarge) }
+      }
+     }
+     Column {
+      Text(comunidad.usuario?.let {"¡Hola, ${it.nombre.split(" ").first()}!"}?:"¡Hola, comunidad!",color=Color.White,style=MaterialTheme.typography.titleLarge)
+      Text("¿En qué podemos ayudarte hoy?",color=Color(0xFFD6E6FF),style=MaterialTheme.typography.bodySmall)
+     }
+     EscenaFindi(Modifier.fillMaxWidth().height(220.dp),abrir={abrir("asistente")})
+
     }
-   }}
-   item {Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-    AccionInicio("Perdí algo","Vamos a buscarlo",false,Modifier.weight(1f)){abrir("publicar?tipo=PERDIDO")}
-    AccionInicio("Encontré algo","Ayuda a devolverlo",true,Modifier.weight(1f)){abrir("publicar?tipo=ENCONTRADO")}
+   }
+   item { Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+     TarjetaFindi("Reportar\nobjeto",Simbolos.Caja,AmarilloFindi,Modifier.weight(1f)){abrir("publicar?tipo=PERDIDO")}
+     TarjetaFindi("Buscar\nobjeto",Simbolos.Buscar,AzulFindi,Modifier.weight(1f)){abrir("buscar")}
+    }
+    Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+     TarjetaFindi("Mis\nreportes",Simbolos.Ajustes,AzulFindi,Modifier.weight(1f)){abrir(if(autenticado)"propios" else "perfil")}
+     TarjetaFindi("Notificaciones",Simbolos.Avisos,Color(0xFFFF8500),Modifier.weight(1f)){abrir("avisos")}
+    }
+    Surface(onClick={abrir("asistente")},shape=RoundedCornerShape(20.dp),color=MaterialTheme.colorScheme.primaryContainer) {
+     Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+      Icon(Simbolos.Escudo,null,tint=AzulFindi)
+      Text("Recupera tus objetos de forma segura",Modifier.weight(1f),style=MaterialTheme.typography.titleSmall)
+      Icon(Simbolos.Flecha,null,Modifier.size(18.dp))
+     }
+    }
+    TextButton(onClick={abrir("publicar?tipo=ENCONTRADO")}) { Text("¿Encontraste algo? Ayuda a devolverlo") }
    }}
    if(categorias.isNotEmpty())item {
     Text("Explora por categoría",style=MaterialTheme.typography.titleLarge);Spacer(Modifier.height(10.dp))
@@ -67,17 +87,6 @@ import com.proyectointegrador.movil.ui.viewmodel.*
     state.objetos.isEmpty()->item{Vacio("Cada objeto tiene una historia","Aún no hay publicaciones en esta selección. Puedes explorar otra categoría.")}
     else->items(state.objetos,key={it.id}){objeto->ObjetoCard(objeto,{onObjetoClick(objeto.id)})}
    }
-  }
- }
-}
-@Composable private fun AccionInicio(titulo:String,subtitulo:String,encontrado:Boolean,modifier:Modifier,accion:()->Unit) {
- val fondo=if(encontrado)MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer
- val tinta=if(encontrado)MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
- Surface(onClick=accion,modifier=modifier,shape=RoundedCornerShape(21.dp),color=fondo) {
-  Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-   Icon(if(encontrado)Simbolos.Caja else Simbolos.Buscar,null,Modifier.size(25.dp),tint=tinta)
-   Text(titulo,style=MaterialTheme.typography.titleMedium,color=tinta)
-   Text(subtitulo,style=MaterialTheme.typography.bodySmall,color=tinta)
   }
  }
 }

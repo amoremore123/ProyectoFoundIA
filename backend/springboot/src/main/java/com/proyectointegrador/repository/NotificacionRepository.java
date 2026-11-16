@@ -22,6 +22,9 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
 
     Page<Notificacion> findByUsuarioIdAndLeida(Long usuarioId, Boolean leida, Pageable pageable);
 
+    List<Notificacion> findByUsuarioIdAndTipoAndLeidaFalseAndFechaCreacionGreaterThanEqualAndIdGreaterThanOrderByIdAsc(
+            Long usuarioId, String tipo, java.time.LocalDateTime desde, Long despuesDe, Pageable limite);
+
     long countByUsuarioIdAndLeidaFalse(Long usuarioId);
 
     // H25: una sola sentencia y siempre filtrada por la cuenta del token

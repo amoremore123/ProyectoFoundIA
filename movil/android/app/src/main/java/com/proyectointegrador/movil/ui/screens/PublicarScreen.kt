@@ -1,4 +1,8 @@
 package com.proyectointegrador.movil.ui.screens
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -22,12 +26,49 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
+@Composable fun PublicarScreen(onPublicado:(Long)->Unit={},tipoInicial:String="PERDIDO",categoriaInicial:Long=0,ubicacionInicial:String="",viewModel:PublicarViewModel=viewModel(factory=fabrica())) {
  val estado by viewModel.estado.collectAsStateWithLifecycle();val f by viewModel.form.collectAsStateWithLifecycle();val accion by viewModel.accion.collectAsStateWithLifecycle();val evento by viewModel.evento.collectAsStateWithLifecycle()
- LaunchedEffect(Unit){if(f.nombre.isBlank()&&tipoInicial in listOf("PERDIDO","ENCONTRADO"))viewModel.editar("tipo",tipoInicial)}
+ LaunchedEffect(estado.datos) {
+  if (f.nombre.isBlank() && f.paso == 0 && f.publicadoId == null) {
+   if (tipoInicial in listOf("PERDIDO", "ENCONTRADO")) viewModel.editar("tipo", tipoInicial)
+   if (ubicacionInicial.isNotBlank() && f.ubicacion.isBlank()) viewModel.editar("ubicacion", ubicacionInicial)
+   if (f.categoriaId == null && estado.datos?.datos?.any { it.id == categoriaInicial && it.estado } == true)
+    viewModel.categoria(categoriaInicial)
+  }
+ }
+ val sugerencia by viewModel.sugerencia.collectAsStateWithLifecycle()
+ sugerencia?.let { propuesta ->
+  var propuestaTexto by remember(propuesta) { mutableStateOf(propuesta.descripcion.orEmpty()) }
+  AlertDialog(
+   onDismissRequest = viewModel::descartarSugerencia,
+   title = { Text("Sugerencia de FINDI") },
+   text = {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+     Text("Revisa la sugerencia antes de aplicarla.")
+     propuesta.categoria?.nombre?.let { Text("Categoría sugerida: " + it) }
+     if (propuesta.descripcion != null) OutlinedTextField(
+      value = propuestaTexto, onValueChange = { propuestaTexto = it.take(500) },
+      label = { Text("Descripción sugerida") }
+     )
+    }
+   },
+   confirmButton = { TextButton(onClick = { viewModel.aplicarSugerencia(propuestaTexto) }) { Text("Aplicar") } },
+   dismissButton = { TextButton(onClick = viewModel::descartarSugerencia) { Text("Descartar") } }
+  )
+ }
  val desplazamiento=rememberScrollState()
  LaunchedEffect(f.paso,f.errores){desplazamiento.animateScrollTo(0)}
  val selector=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let {viewModel.foto(it.toString())}}
+ val contexto = LocalContext.current
+ var camara by remember { mutableStateOf(false) }
+ var avisoCamara by remember { mutableStateOf<String?>(null) }
+ val permisoCamara = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+  if (concedido) camara = true else avisoCamara = "Sin permiso de cámara. Puedes elegir una fotografía de la galería."
+ }
+ if (camara) CamaraPublicacion(cerrar = { camara = false }, usar = {
+  viewModel.foto(it.toString())
+  camara = false
+ })
  var calendario by remember {mutableStateOf(false)}
  val fechaPicker=rememberDatePickerState(selectableDates=object:SelectableDates{override fun isSelectableDate(utcTimeMillis:Long)=utcTimeMillis<=System.currentTimeMillis()})
  val titulos=listOf("Tipo de publicación","Información del objeto","Fotografía","Ubicación","Fecha","Revisa y publica")
@@ -50,6 +91,10 @@ import java.util.*
      }}}
     1->{CampoPublicacion("Nombre del objeto",f.nombre,{viewModel.editar("nombre",it)},f.errores["nombre"])
      CampoPublicacion("Descríbelo: color, marca, detalles…",f.descripcion,{viewModel.editar("descripcion",it)},f.errores["descripcion"],3)
+     OutlinedButton(onClick = viewModel::pedirSugerencia,
+      enabled = !accion.ocupada && f.publicadoId == null && (f.nombre.isNotBlank() || f.descripcion.isNotBlank())) {
+      Text("Pedir una sugerencia a FINDI")
+     }
      Text("Categoría",style=MaterialTheme.typography.titleSmall);estado.datos?.aviso?.let {AvisoEstado(it)}
      Column {estado.datos?.datos.orEmpty().filter {it.estado}.forEach {c->FilterChip(f.categoriaId==c.id,{viewModel.categoria(c.id)},{Text(c.nombre?:"Categoría")})}}
      f.errores["categoria"]?.let {AvisoEstado(it,true)}
@@ -59,6 +104,16 @@ import java.util.*
     2->{Text("Una foto ayuda a reconocerlo.",style=MaterialTheme.typography.titleMedium);Text("JPEG o PNG · máximo 5 MiB. Opcional.",style=MaterialTheme.typography.bodySmall)
      if(f.foto!=null)AsyncImage(model=f.foto,contentDescription="Vista previa de la fotografía elegida",modifier=Modifier.fillMaxWidth().height(210.dp).clip(RoundedCornerShape(18.dp)),contentScale=ContentScale.Crop)
      else Vacio("Dale una imagen a tu publicación","Elige una fotografía real de tu objeto.",Simbolos.Foto)
+     avisoCamara?.let { AvisoEstado(it) }
+     OutlinedButton(
+      onClick = {
+       avisoCamara = null
+       if (ContextCompat.checkSelfPermission(contexto, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) camara = true
+       else permisoCamara.launch(Manifest.permission.CAMERA)
+      },
+      enabled = !accion.ocupada && f.publicadoId == null,
+      modifier = Modifier.fillMaxWidth()
+     ) { Text(if (f.foto == null) "Tomar fotografía" else "Volver a tomar fotografía") }
      OutlinedButton(onClick={selector.launch("image/*")},enabled=!accion.ocupada&&f.publicadoId==null,modifier=Modifier.fillMaxWidth()){Icon(Simbolos.Foto,null);Spacer(Modifier.width(8.dp));Text("Elegir fotografía")}
      if(f.foto!=null)TextButton(onClick={viewModel.foto(null)},enabled=f.publicadoId==null){Text("Quitar fotografía")}
     }

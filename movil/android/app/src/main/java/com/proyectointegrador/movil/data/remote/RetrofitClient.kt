@@ -15,7 +15,11 @@ object RetrofitClient {
         OkHttpClient.Builder()
             .addInterceptor { cadena ->
                 val solicitud=cadena.request()
-                val token=Sesion.actual.takeUnless { solicitud.url.encodedPath.startsWith("/api/auth/") || solicitud.url.encodedPath.startsWith("/api/legal/") }
+                val ruta = solicitud.url.encodedPath
+                val cierre = ruta == "/api/auth/logout" || ruta == "/api/auth/logout-all"
+                val token = Sesion.actual.takeUnless {
+                    !cierre && (ruta.startsWith("/api/auth/") || ruta.startsWith("/api/legal/"))
+                }
                 val respuesta=cadena.proceed(solicitud.newBuilder().apply {
                     if(token != null) header("Authorization","Bearer $token")
                 }.build())
@@ -35,6 +39,15 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
+    }
+
+    val biblioteca: BibliotecaApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(com.proyectointegrador.movil.BuildConfig.ADMIN_API_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(BibliotecaApi::class.java)
     }
 
     /** Convierte rutas relativas ("/uploads/...") a URL absolutas. */

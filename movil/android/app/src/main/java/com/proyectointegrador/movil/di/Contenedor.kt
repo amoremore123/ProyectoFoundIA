@@ -13,7 +13,8 @@ class Contenedor(context:Context) {
     val experiencia=ExperienciaRepository(PreferenciasLocales(context))
     val base=FoundIADatabase.abrir(context)
     val publicaciones:PublicacionesRepository=ApiPublicacionesRepository(RetrofitClient.api,RoomCachePublica(base))
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones)
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca)
+    val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {
     lateinit var contenedor:Contenedor;private set
@@ -23,6 +24,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
     @Suppress("UNCHECKED_CAST") override fun <T:ViewModel> create(modelClass:Class<T>):T {
         val c=Inyeccion.contenedor
         val modelo:ViewModel=when(modelClass) {
+            AsistenteViewModel::class.java->AsistenteViewModel(c.asistente)
             ComunidadViewModel::class.java->ComunidadViewModel(c.cuenta)
             ExperienciaViewModel::class.java->ExperienciaViewModel(c.experiencia)
             ObjetosViewModel::class.java->ObjetosViewModel(c.publicaciones)
@@ -41,6 +43,8 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)
             PreferenciasViewModel::class.java->PreferenciasViewModel(c.cuenta)
             EliminacionViewModel::class.java->EliminacionViewModel(c.cuenta)
+            RetiroViewModel::class.java->RetiroViewModel(c.cuenta)
+            ReclamoCustodiaViewModel::class.java->ReclamoCustodiaViewModel(c.cuenta,objetoId)
             ReporteViewModel::class.java->ReporteViewModel(c.cuenta,objetoId)
             DetalleAccionesViewModel::class.java->DetalleAccionesViewModel(c.publicaciones,c.cuenta,objetoId)
             else->throw IllegalArgumentException("ViewModel no registrado: ${modelClass.simpleName}")

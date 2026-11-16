@@ -30,17 +30,23 @@ public class AuthController {
     private final AuthService authService;
     private final RecuperacionPasswordService recuperacionPasswordService;
     private final CierreSesionService cierreSesionService;
+    private final com.proyectointegrador.service.InvitacionService invitaciones;
 
     public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService,
-                          CierreSesionService cierreSesionService) {
+                          CierreSesionService cierreSesionService,
+                          com.proyectointegrador.service.InvitacionService invitaciones) {
         this.authService = authService;
         this.recuperacionPasswordService = recuperacionPasswordService;
         this.cierreSesionService = cierreSesionService;
+        this.invitaciones = invitaciones;
     }
 
     /** H11 - Crea la cuenta (sin verificar) y envía el código al correo. */
     @PostMapping("/register")
-    public ResponseEntity<RegistroResponse> register(@Valid @RequestBody RegisterRequest request) {
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<RegistroResponse> register(@Valid @RequestBody RegisterRequest request,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String invitacion) {
+        if (invitacion != null) invitaciones.registrarUso(invitacion);
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 

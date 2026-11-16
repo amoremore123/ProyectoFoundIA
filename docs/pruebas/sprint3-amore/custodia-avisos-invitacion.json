@@ -1,0 +1,230 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/auth/login/",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/categorias",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 400,
+    "expected": 400
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/custodias/",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/custodias/",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 401,
+    "expected": 401
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9/reclamos/custodia/qr-retiro",
+    "status": 404,
+    "expected": 404
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/reclamos/2/",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/reclamos/2/resolver/",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9/reclamos/custodia/qr-retiro",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/reclamos/retirar/",
+    "status": 403,
+    "expected": 403
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/reclamos/retirar/",
+    "status": 409,
+    "expected": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/reclamos/retirar/",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/reclamos/retirar/",
+    "status": 409,
+    "expected": 409
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/objetos/9/reclamos/custodia",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/notificaciones/reclamos/novedades",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/notificaciones/reclamos/novedades",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/notificaciones/preferencias",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notificaciones/preferencias",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/notificaciones/reclamos/novedades",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notificaciones/preferencias",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/notificaciones/historial",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notificaciones/leidas",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/perfil/invitaciones",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/legal/documentos",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/register",
+    "status": 201,
+    "expected": 201
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/perfil",
+    "status": 401,
+    "expected": 401
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "status": 200,
+    "expected": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/perfil",
+    "status": 200,
+    "expected": 200
+  }
+]

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import Logo from '../components/Logo';
@@ -13,6 +13,7 @@ import { REGLAS_PASSWORD, validarRegistro } from '../utils/validaciones';
 export default function Registro() {
   const { registrar } = useAuth();
   const navigate = useNavigate();
+  const codigoInvitacion = new URLSearchParams(useLocation().search).get('invitacion');
 
   const [form, setForm] = useState({ nombre: '', apellido: '', correo: '', password: '', confirmar: '' });
   const [errores, setErrores] = useState({});
@@ -86,6 +87,7 @@ export default function Registro() {
         password: form.password,
         aceptaTerminos: true,
         versionLegal: documentos.version,
+        ...(/^[A-Za-z0-9_-]{32}$/.test(codigoInvitacion ?? '') ? { invitacion: codigoInvitacion } : {}),
       });
       navigate(`/verificar?correo=${encodeURIComponent(correo)}`, { replace: true, state: { codigoEnviadoEn: Date.now() } });
     } catch (err) {

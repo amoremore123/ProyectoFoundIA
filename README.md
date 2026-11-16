@@ -257,6 +257,47 @@ py manage.py runserver        # http://localhost:8000
 > `py manage.py migrate` solo crea las tablas internas de Django
 > (auth/sessions) y es opcional.
 
+
+### Panel administrativo web de FoundIA (React)
+
+Desde la raíz del proyecto, habilita las pantallas de gestión y levanta el panel
+con Docker Compose:
+
+```powershell
+$env:HABILITAR_EXTRAS = 'true'
+docker compose up -d --build frontend-admin
+```
+
+Abre [el panel web](http://localhost:5174/) e inicia sesión con una cuenta de
+FoundIA con rol `ADMIN`. En una base nueva de desarrollo puedes usar la cuenta
+de demostración documentada en la sección de credenciales de prueba.
+
+Para comprobar la gestión, crea una categoría de prueba desde **Categorías** y
+verifica que aparece en el listado. En **Custodia**, selecciona **En custodia**
+y pulsa **Aplicar**. En **Objetos**, cada fila muestra la categoría y la persona
+que hizo la publicación.
+
+### Admin interno de Django con Docker
+
+Desde la raíz del repositorio, ejecuta en PowerShell:
+
+```powershell
+$env:HABILITAR_EXTRAS = 'true'
+docker compose up -d --build admin-api
+docker compose exec admin-api python manage.py migrate
+docker compose exec admin-api python manage.py createsuperuser
+```
+
+Abre [el admin de Django](http://localhost:8000/admin/) e ingresa con la cuenta
+que acabas de crear. Esta cuenta pertenece al sistema de autenticación de Django
+y es independiente de las cuentas de FoundIA. Si ya tienes un superusuario, puedes
+cambiar su contraseña con `docker compose exec admin-api python manage.py changepassword <usuario>`.
+
+En **Categorías** puedes registrar una categoría de prueba y encontrarla por
+nombre y estado. En **Objetos**, abre un registro que tenga fotos para ver sus
+archivos en el mismo formulario. Los registros de auditoría y los que dependen de
+flujos propios, como la custodia, se consultan desde el admin.
+
 ## 10. Android (fuera de Sprint 1)
 
 Este módulo se conserva como trabajo futuro. No se inicia con Compose ni forma

@@ -690,7 +690,7 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
     POST /api/admin/reclamos/{id}/resolver/   {"decision": "ACEPTADO"|"RECHAZADO", "motivo": "..."}
     GET  /api/admin/reclamos/{id}/qr-retiro/  PDF del QR de retiro
     GET  /api/admin/reclamos/verificar-qr/?token=...  valida sin consumir
-    POST /api/admin/reclamos/retirar/         {"token": "..."} consume el QR una sola vez
+    POST /api/admin/reclamos/retirar/         {"token": "...", "etiqueta": "..."} consume el QR una sola vez
 
     Solo BIBLIOTECA y ADMIN. Aceptar un reclamo rechaza los rivales pendientes
     del mismo objeto y genera un QR de retiro válido 7 días.
@@ -845,6 +845,11 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         entrada = RetiroSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
         token = entrada.validated_data["token"]
+        etiqueta = entrada.validated_data["etiqueta"]
+        try:
+            datos_etiqueta = verificar_token_custodia(etiqueta)
+        except jwt.InvalidTokenError:
+            return Response({"detail": "La etiqueta de custodia no es válida."}, status=400)
 
         with transaction.atomic():
             reclamo = Reclamo.objects.select_for_update().select_related(
@@ -871,13 +876,17 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
                     status=status.HTTP_409_CONFLICT,
                 )
             custodia = Custodia.objects.select_for_update().filter(objeto_id=objeto.id).first()
+            if (custodia is None or custodia.estado != "EN_CUSTODIA"
+                    or datos_etiqueta.get("objeto") != objeto.id
+                    or datos_etiqueta.get("sub") != custodia.codigo
+                    or not hmac.compare_digest(custodia.token_qr, etiqueta)):
+                return Response({"detail": "La etiqueta no corresponde al objeto de este retiro."}, status=409)
             ahora = timezone.now().replace(microsecond=0)
             reclamo.estado = "RETIRADO"
             reclamo.qr_retiro_usado_en = ahora
             reclamo.save(update_fields=["estado", "qr_retiro_usado_en"])
-            if custodia is not None:
-                custodia.estado = "RETIRADO"
-                custodia.save(update_fields=["estado"])
+            custodia.estado = "RETIRADO"
+            custodia.save(update_fields=["estado"])
             objeto.estado = "RECUPERADO"
             objeto.fecha_recuperacion = ahora
             objeto.save(update_fields=["estado", "fecha_recuperacion", "fecha_actualizacion"])

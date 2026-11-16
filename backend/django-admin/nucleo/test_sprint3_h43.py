@@ -168,13 +168,19 @@ class ReclamosCustodiaTests(APITestCase):
         self.assertEqual(pdf["Content-Type"], "application/pdf")
         self.assertTrue(pdf.content.startswith(b"%PDF"))
 
-        verificado = self.client.get("/api/admin/reclamos/verificar-qr/", {"token": token})
+        verificado = self.client.get("/api/admin/reclamos/verificar-qr/", {"token": token, "etiqueta": self.custodia.token_qr})
         self.assertEqual(verificado.status_code, 200)
         self.assertTrue(verificado.data["valido"])
         self.assertEqual(verificado.data["estadoQr"], "VIGENTE")
         self.assertEqual(verificado.data["reclamo"]["id"], self.reclamo.id)
 
-        retiro = self.client.post("/api/admin/reclamos/retirar/", {"token": token}, format="json")
+        otra_custodia = self.poner_en_custodia(self.crear_objeto("Otro objeto"))
+        cruzado = self.client.post("/api/admin/reclamos/retirar/",
+                                   {"token": token, "etiqueta": otra_custodia.token_qr}, format="json")
+        self.assertEqual(cruzado.status_code, 409)
+        self.reclamo.refresh_from_db()
+        self.assertIsNone(self.reclamo.qr_retiro_usado_en)
+        retiro = self.client.post("/api/admin/reclamos/retirar/", {"token": token, "etiqueta": self.custodia.token_qr}, format="json")
         self.assertEqual(retiro.status_code, 200, retiro.data)
         self.assertEqual(retiro.data["estado"], "RETIRADO")
 
@@ -187,10 +193,10 @@ class ReclamosCustodiaTests(APITestCase):
         self.assertEqual(self.objeto.estado, "RECUPERADO")
         self.assertIsNotNone(self.objeto.fecha_recuperacion)
 
-        repetido = self.client.post("/api/admin/reclamos/retirar/", {"token": token}, format="json")
+        repetido = self.client.post("/api/admin/reclamos/retirar/", {"token": token, "etiqueta": self.custodia.token_qr}, format="json")
         self.assertEqual(repetido.status_code, 409)
         self.assertEqual(self.client.get(
-            "/api/admin/reclamos/verificar-qr/", {"token": token}).data["estadoQr"], "USADO")
+            "/api/admin/reclamos/verificar-qr/", {"token": token, "etiqueta": self.custodia.token_qr}).data["estadoQr"], "USADO")
         self.assertEqual(self.client.get(
             f"/api/admin/reclamos/{self.reclamo.id}/qr-retiro/").status_code, 409)
 
@@ -204,15 +210,15 @@ class ReclamosCustodiaTests(APITestCase):
         self.reclamo.save(update_fields=["qr_retiro_expira"])
         self.como(self.biblioteca)
 
-        verificado = self.client.get("/api/admin/reclamos/verificar-qr/", {"token": token})
+        verificado = self.client.get("/api/admin/reclamos/verificar-qr/", {"token": token, "etiqueta": self.custodia.token_qr})
         self.assertEqual(verificado.data["estadoQr"], "VENCIDO")
         self.assertFalse(verificado.data["valido"])
         self.assertEqual(self.client.get(
             f"/api/admin/reclamos/{self.reclamo.id}/qr-retiro/").status_code, 409)
         self.assertEqual(self.client.post(
-            "/api/admin/reclamos/retirar/", {"token": token}, format="json").status_code, 409)
+            "/api/admin/reclamos/retirar/", {"token": token, "etiqueta": self.custodia.token_qr}, format="json").status_code, 409)
         self.assertEqual(self.client.post(
-            "/api/admin/reclamos/retirar/", {"token": "no-existe"}, format="json").status_code, 404)
+            "/api/admin/reclamos/retirar/", {"token": "no-existe", "etiqueta": self.custodia.token_qr}, format="json").status_code, 404)
         self.assertEqual(self.client.get(
             "/api/admin/reclamos/verificar-qr/", {"token": ""}).status_code, 400)
 

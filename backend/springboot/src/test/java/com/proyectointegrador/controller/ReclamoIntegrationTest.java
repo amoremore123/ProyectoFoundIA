@@ -154,15 +154,31 @@ class ReclamoIntegrationTest {
     }
 
     @Test
-    @DisplayName("H43 - un objeto en custodia todavía se puede reclamar")
+    @DisplayName("H42 - custodia exige verificación y conserva un único reclamo propio")
     void reclamaObjetoEnCustodia() throws Exception {
         encontrado.setEstado(EstadoObjeto.EN_CUSTODIA);
         entityManager.flush();
 
-        mockMvc.perform(post("/api/objetos/{id}/reclamos", encontrado.getId()).with(autenticar(reclamante)))
+        var id = encontrado.getId();
+        mockMvc.perform(post("/api/objetos/{id}/reclamos", id).with(autenticar(reclamante)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(reclamante))
+                        .contentType("application/json").content("""
+                                {"respuesta":"Tiene un bordado amarillo por dentro"}
+                                """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.objetoId").value(encontrado.getId()))
-                .andExpect(jsonPath("$.estado").value("PENDIENTE"));
+                .andExpect(jsonPath("$.objetoId").value(id))
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$.respuestaVerificacion").doesNotExist());
+        mockMvc.perform(post("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(reclamante))
+                        .contentType("application/json").content("""
+                                {"respuesta":"No sobrescribir la respuesta previa"}
+                                """))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.repetido").value(true));
+        mockMvc.perform(get("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(tercero)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("SIN_RECLAMO"));
+        assertThat(entityManager.createQuery("select r.respuestaVerificacion from Reclamo r", String.class)
+                .getSingleResult()).isEqualTo("Tiene un bordado amarillo por dentro");
     }
 
     @Test

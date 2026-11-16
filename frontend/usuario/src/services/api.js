@@ -67,8 +67,8 @@ export const login = async (correo, password) => {
   return data;
 };
 
-export const register = async (datos) => {
-  const { data } = await api.post('/api/auth/register', datos);
+export const register = async ({ invitacion, ...datos }) => {
+  const { data } = await api.post('/api/auth/register', datos, invitacion ? { params: { invitacion } } : undefined);
   return data;
 };
 
@@ -144,8 +144,11 @@ export const iniciarContacto = async (objetoPerdidoId, objetoEncontradoId) => {
   return data;
 };
 
-export const reclamarObjeto = async (id) => {
-  const { data } = await api.post(`/api/objetos/${id}/reclamos`);
+export const reclamarObjeto = async (id, respuesta) => {
+  const ruta = '/api/objetos/' + id + '/reclamos';
+  const { data } = respuesta === undefined
+    ? await api.post(ruta)
+    : await api.post(ruta + '/custodia', { respuesta });
   return data;
 };
 

@@ -24,8 +24,11 @@ public class PerfilController {
 
     private final PerfilService perfilService;
 
-    public PerfilController(PerfilService perfilService) {
+    private final com.proyectointegrador.service.InvitacionService invitaciones;
+
+    public PerfilController(PerfilService perfilService, com.proyectointegrador.service.InvitacionService invitaciones) {
         this.perfilService = perfilService;
+        this.invitaciones = invitaciones;
     }
 
     @GetMapping
@@ -36,6 +39,11 @@ public class PerfilController {
     @PutMapping
     public ResponseEntity<UsuarioResponse> actualizar(@Valid @RequestBody PerfilUpdateRequest request) {
         return ResponseEntity.ok(perfilService.actualizar(usuarioActual().getId(), request));
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/invitaciones")
+    public java.util.Map<String, String> crearInvitacion() {
+        return java.util.Map.of("url", invitaciones.crear(usuarioActual().getId()));
     }
 
     @GetMapping("/objetos")

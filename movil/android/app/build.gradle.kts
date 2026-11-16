@@ -17,6 +17,7 @@ android {
         versionCode = 5
         versionName = "1.2.2"
         buildConfigField("String", "API_URL", "\"${providers.gradleProperty("foundiaApiUrl").getOrElse("http://10.0.2.2:8081/")}\"")
+        buildConfigField("String", "ADMIN_API_URL", "\"${providers.gradleProperty("foundiaAdminApiUrl").getOrElse("http://10.0.2.2:8000/")}\"")
         buildConfigField("String", "WEB_URL", "\"${providers.gradleProperty("foundiaWebUrl").getOrElse("http://10.0.2.2:5173/")}\"")
     }
 
@@ -46,6 +47,12 @@ android {
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
 dependencies {
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("androidx.camera:camera-camera2:1.4.2")
+    implementation("androidx.camera:camera-lifecycle:1.4.2")
+    implementation("androidx.camera:camera-view:1.4.2")
     implementation("androidx.room:room-runtime:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")
     ksp("androidx.room:room-compiler:2.7.2")

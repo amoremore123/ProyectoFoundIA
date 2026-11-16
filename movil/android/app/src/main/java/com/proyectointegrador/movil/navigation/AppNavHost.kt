@@ -32,7 +32,7 @@ import com.proyectointegrador.movil.ui.screens.coincidencias.*
 import com.proyectointegrador.movil.ui.screens.cuenta.*
 import com.proyectointegrador.movil.ui.screens.publicaciones.*
 
-@Composable fun AppNavHost(enlace:Uri?=null,consumirEnlace:()->Unit={}) {
+@Composable fun AppNavHost(enlace:Uri?=null, abrirAvisos:Boolean=false, consumirAvisos:()->Unit={}, consumirEnlace:()->Unit={}) {
     val vm:SesionViewModel=viewModel(factory=fabrica())
     val sesion by vm.estado.collectAsStateWithLifecycle()
     val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
@@ -50,7 +50,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
         val fondoOscuro=MaterialTheme.colorScheme.background.luminance()<.25f
         SideEffect { generateSequence(contexto){(it as? ContextWrapper)?.baseContext}.filterIsInstance<Activity>().firstOrNull()?.let {activity->
             val controlador=WindowInsetsControllerCompat(activity.window,activity.window.decorView)
-            controlador.isAppearanceLightStatusBars=!(fondoOscuro||ruta=="bienvenida"||(!sesion.autenticado&&ruta in listOf("perfil","avisos","publicar?tipo={tipo}")))
+            controlador.isAppearanceLightStatusBars=!(fondoOscuro||ruta in listOf("bienvenida","inicio","asistente")||(!sesion.autenticado&&(ruta in listOf("perfil","avisos")||ruta?.startsWith("publicar?")==true)))
             controlador.isAppearanceLightNavigationBars=!fondoOscuro
         }}
         var recuperacion by remember {mutableStateOf<String?>(null)}
@@ -62,28 +62,30 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
             nav.navigate("nueva-clave") {popUpTo(nav.graph.startDestinationId){inclusive=false};launchSingleTop=true};consumirEnlace()
         } }
         fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
+        LaunchedEffect(abrirAvisos) { if (abrirAvisos) { abrir(if (sesion.autenticado) "avisos" else "perfil"); consumirAvisos() } }
         val volver:()->Unit={nav.popBackStack();Unit}
         LaunchedEffect(evento){evento?.let {experiencia.consumirEvento();nav.navigate(it){popUpTo(nav.graph.startDestinationId){inclusive=true};launchSingleTop=true}}}
         LaunchedEffect(ruta,sesion.revision){if(ruta=="inicio"||ruta=="avisos")comunidad.recargar()}
         val etiquetasCompactas=LocalConfiguration.current.screenWidthDp<360&&LocalDensity.current.fontScale>1.1f
-        val pestanas=listOf("inicio" to "Inicio","buscar" to "Buscar","publicar" to "Publicar","avisos" to "Avisos","perfil" to "Perfil")
-        val principal=ruta in listOf("inicio","buscar","publicar?tipo={tipo}","avisos","perfil")
+        val pestanas=listOf("inicio" to "Inicio","propios" to "Reportes","asistente" to "FINDI","buscar" to "Buscar","perfil" to "Perfil")
+        val principal=ruta in listOf("inicio","buscar","avisos","perfil","propios") || ruta?.startsWith("publicar?")==true
         Scaffold(contentWindowInsets=WindowInsets(0),bottomBar={if(principal) Surface(shadowElevation=12.dp,color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)) {
             NavigationBar(containerColor=androidx.compose.ui.graphics.Color.Transparent,tonalElevation=0.dp) {
                 pestanas.forEachIndexed {indice,(destino,texto)->
-                    val iconos=listOf(Simbolos.Inicio,Simbolos.Buscar,Simbolos.Publicar,Simbolos.Avisos,Simbolos.Perfil)
+                    val iconos=listOf(Simbolos.Inicio,Simbolos.Ajustes,Simbolos.Chat,Simbolos.Buscar,Simbolos.Perfil)
                     NavigationBarItem(alwaysShowLabel=!etiquetasCompactas,selected=if(destino=="publicar")ruta?.startsWith("publicar")==true else ruta==destino,
-                        onClick={nav.navigate(if(destino=="publicar")"publicar?tipo=PERDIDO" else destino){popUpTo(nav.graph.startDestinationId){saveState=true};restoreState=true;launchSingleTop=true}},
-                        icon={if(destino=="publicar") Surface(color=MaterialTheme.colorScheme.primary,shape=RoundedCornerShape(13.dp)){Icon(iconos[indice],texto,Modifier.padding(9.dp).size(23.dp),tint=MaterialTheme.colorScheme.onPrimary)}
+                        onClick={nav.navigate(if(destino=="propios"&&!sesion.autenticado)"perfil" else destino){popUpTo(nav.graph.startDestinationId){saveState=true};restoreState=destino!="asistente";launchSingleTop=true}},
+                        icon={if(destino=="asistente") Surface(color=AmarilloFindi,shape=RoundedCornerShape(50)){Icon(iconos[indice],texto,Modifier.padding(9.dp).size(23.dp),tint=MarinoFindi)}
                             else if(destino=="avisos"&&actividad.sinLeer>0) BadgedBox(badge={Badge{Text(actividad.sinLeer.toString())}}){Icon(iconos[indice],texto,Modifier.size(23.dp))}
-                            else Icon(iconos[indice],texto,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=1,softWrap=false,modifier=Modifier.wrapContentWidth(unbounded=true))})
+                            else Icon(iconos[indice],texto,Modifier.size(23.dp))},label={Text(texto,style=MaterialTheme.typography.labelSmall,maxLines=2,textAlign=androidx.compose.ui.text.style.TextAlign.Center)})
                 }
             }
         }}) { padding ->
             NavHost(navController=nav,startDestination=if(!sesion.autenticado&&!ajustes.introduccionCompleta)"bienvenida" else if(sesion.aviso!=null)"perfil" else "inicio",modifier=Modifier.padding(padding),
                 enterTransition={fadeIn()},exitTransition={fadeOut()}) {
                 composable("bienvenida"){BienvenidaScreen(experiencia,::abrir)}
-                composable("inicio") {InicioScreen(onObjetoClick={abrir("detalle/$it")},abrir=::abrir,comunidad=actividad)}
+                composable("inicio") {InicioScreen(onObjetoClick={abrir("detalle/$it")},abrir=::abrir,comunidad=actividad,autenticado=sesion.autenticado)}
+                composable("asistente") {AsistenteScreen(volver,abrir={destino->abrir(if(destino=="propios"&&!sesion.autenticado)"perfil" else destino)},autenticado=sesion.autenticado)}
                 composable("buscar") {BuscarScreen(onObjetoClick={abrir("detalle/$it")})}
                 composable("perfil") {
                     if(!sesion.autenticado) AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
@@ -97,19 +99,30 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("nueva-clave") {NuevaClaveScreen(recuperacion,volver,entrar={recuperacion=null;abrir("perfil")},apertura=aperturaRecuperacion)}
                 composable("detalle/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                     DetalleScreen(objetoId=it.arguments!!.getLong("id"),onBack=volver,onObjetoClick={abrir("detalle/$it")},
-                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")})
+                        onComparar={abrir("pareja/$it")},onReportar={abrir("reportar/$it")},onAcceso={abrir("perfil")},
+                        onReclamo={if (sesion.autenticado) abrir("reclamo-custodia/$it") else abrir("perfil")})
                 }
                 composable("pareja/{id}") {ParejaScreen(it.arguments?.getString("id").orEmpty(),volver,propios={
                     if(sesion.autenticado) abrir("propios") else abrir("perfil")
                 })}
-                composable("publicar?tipo={tipo}",arguments=listOf(navArgument("tipo"){defaultValue="PERDIDO"})){entradaPublicar->
-                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),onPublicado={abrir("detalle/$it")})
+                composable("publicar?tipo={tipo}&categoria={categoria}&ubicacion={ubicacion}",arguments=listOf(
+                    navArgument("tipo"){defaultValue="PERDIDO"},
+                    navArgument("categoria"){type=NavType.LongType;defaultValue=0L},
+                    navArgument("ubicacion"){defaultValue=""}
+                )){entradaPublicar->
+                    if(sesion.autenticado)PublicarScreen(tipoInicial=entradaPublicar.arguments?.getString("tipo").orEmpty(),
+                        categoriaInicial=entradaPublicar.arguments?.getLong("categoria") ?: 0L,
+                        ubicacionInicial=entradaPublicar.arguments?.getString("ubicacion").orEmpty(),onPublicado={abrir("detalle/$it")})
                     else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
                 }
-                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir={abrir("pareja/$it")}) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
+                composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 if(sesion.autenticado) {
+                    composable("retiro") { RetiroScreen(volver) }
+                    composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                        ReclamoCustodiaScreen(it.arguments!!.getLong("id"), volver)
+                    }
                     composable("editar-perfil"){EditarPerfilScreen(volver)}
                     composable("seguridad"){EditarPerfilScreen(volver,seguridad=true)}
                     composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")})}

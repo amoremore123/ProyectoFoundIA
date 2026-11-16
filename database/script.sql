@@ -208,6 +208,7 @@ CREATE TABLE reclamos (
     usuario_id        BIGINT      NOT NULL,
     estado            VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
     fecha_reclamo     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    respuesta_verificacion VARCHAR(500) NULL,
     -- H43: resolución auditada y QR de retiro de un solo uso.
     resuelto_por_id   BIGINT      NULL,
     fecha_resolucion  DATETIME    NULL,
@@ -450,3 +451,12 @@ CREATE TABLE IF NOT EXISTS respaldos (
     CONSTRAINT chk_respaldo_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADO', 'FALLIDO')),
     INDEX idx_respaldos_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H40: invitaciones sin identidad en el enlace.
+CREATE TABLE IF NOT EXISTS invitaciones (
+    codigo_hash CHAR(64) NOT NULL PRIMARY KEY,
+    usuario_id BIGINT NOT NULL,
+    usos INT NOT NULL DEFAULT 0,
+    creada_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_invitacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

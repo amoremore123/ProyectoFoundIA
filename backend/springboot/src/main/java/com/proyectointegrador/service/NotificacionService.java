@@ -36,6 +36,16 @@ public class NotificacionService {
 
     public static final int TAMANO_MAXIMO = 50;
 
+    @Transactional(readOnly = true)
+    public List<NotificacionResponse> novedadesReclamos(Long usuarioId, java.time.LocalDateTime desde, long despuesDe) {
+        if (despuesDe < 0) throw new SolicitudInvalidaException("El cursor no puede ser negativo.");
+        if (!preferencias.obtener(usuarioId).reclamos()) return List.of();
+        return notificacionRepository
+                .findByUsuarioIdAndTipoAndLeidaFalseAndFechaCreacionGreaterThanEqualAndIdGreaterThanOrderByIdAsc(
+                        usuarioId, "RECLAMO", desde, despuesDe, PageRequest.of(0, TAMANO_MAXIMO))
+                .stream().map(NotificacionResponse::from).toList();
+    }
+
     /**
      * H25: historial propio con filtro TODAS, LEIDAS o NO_LEIDAS. Consultar no cambia ningún aviso.
      */

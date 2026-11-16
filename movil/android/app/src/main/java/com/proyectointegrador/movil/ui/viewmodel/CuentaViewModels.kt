@@ -76,7 +76,17 @@ class VerificacionViewModel(private val repo:CuentaRepository,private val reloj:
     }
 }
 class PerfilViewModel(private val repo:CuentaRepository):CargaViewModel<Usuario>({repo.perfil()}) {
-    fun salir(){ejecutar {repo.cerrarSesion()}}
+    fun invitar() = ejecutar {
+        val url = repo.crearInvitacion().url
+        val uri = java.net.URI(url)
+        if (uri.scheme !in listOf("http", "https") || uri.host == null || uri.userInfo != null ||
+            uri.path != "/registro" || !Regex("^invitacion=[A-Za-z0-9_-]{32}$").matches(uri.rawQuery.orEmpty())) {
+            throw com.proyectointegrador.movil.domain.ErrorDatos("El enlace de invitación no es válido.")
+        }
+        emitirEvento(url)
+    }
+
+    fun salir(todos: Boolean = false) { ejecutar { repo.salir(todos) } }
 }
 class RecuperarViewModel(private val repo:CuentaRepository):AccionViewModel() {
     private val _correo=MutableStateFlow("");val correo=_correo.asStateFlow()

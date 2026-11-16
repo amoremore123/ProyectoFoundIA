@@ -76,16 +76,16 @@ def main():
     (OUT / "custodias.json").write_text(json.dumps(custodias))
     for nombre in ["etiqueta", "constancia"]:
         pedir("GET", f"/api/admin/custodias/{custodias[0]}/{nombre}/", token=admin, base=DJANGO, archivo=nombre+".pdf")
-    reclamo = pedir("POST", f"/api/objetos/{objetos[0]}/reclamos", {}, token=l, esperado=201)
+    reclamo = pedir("POST", f"/api/objetos/{objetos[0]}/reclamos/custodia", {"respuesta": "Detalle interno de la mochila de prueba"}, token=l, esperado=201)
     rid = reclamo["id"]
     pedir("POST", f"/api/admin/reclamos/{rid}/resolver/", {"decision": "ACEPTADO", "motivo": "Verificación presencial de prueba QA"}, token=admin, base=DJANGO)
     pedir("GET", f"/api/admin/reclamos/{rid}/qr-retiro/", token=admin, base=DJANGO, archivo="qr-retiro.pdf")
     # El token de retiro se consulta únicamente para este reclamo QA y nunca se imprime.
     import subprocess
-    sql = f"SELECT qr_retiro_token FROM reclamos WHERE id={int(rid)};"
-    qr = subprocess.check_output(["docker", "compose", "exec", "-T", "mysql", "sh", "-c", 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -N -B -uroot objetos_perdidos_db'], input=sql.encode()).decode().strip()
-    pedir("POST", "/api/admin/reclamos/retirar/", {"token": qr}, token=admin, base=DJANGO)
-    pedir("POST", "/api/admin/reclamos/retirar/", {"token": qr}, token=admin, base=DJANGO, esperado=409)
+    sql = f"SELECT r.qr_retiro_token, c.token_qr FROM reclamos r JOIN custodias c ON c.objeto_id=r.objeto_id WHERE r.id={int(rid)};"
+    qr, etiqueta = subprocess.check_output(["docker", "compose", "exec", "-T", "mysql", "sh", "-c", 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -N -B -uroot objetos_perdidos_db'], input=sql.encode()).decode().strip().split("\t")
+    pedir("POST", "/api/admin/reclamos/retirar/", {"token": qr, "etiqueta": etiqueta}, token=admin, base=DJANGO)
+    pedir("POST", "/api/admin/reclamos/retirar/", {"token": qr, "etiqueta": etiqueta}, token=admin, base=DJANGO, esperado=409)
     for estado in ["TODAS", "NO_LEIDAS", "LEIDAS"]:
         r = pedir("GET", f"/api/notificaciones/historial?estado={estado}&pagina=0&tamano=1", token=l)
         assert r["pagina"] == 0 and r["tamano"] == 1

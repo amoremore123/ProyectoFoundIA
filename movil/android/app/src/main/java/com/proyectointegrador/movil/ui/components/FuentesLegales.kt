@@ -34,3 +34,17 @@ fun avisoDocumentos(documentos: Documentos): String = documentos.aviso?.takeIf {
         if (error) AvisoEstado("No se pudo abrir el navegador. Puedes leer la transcripción incluida aquí.")
     }
 }
+
+@Composable
+fun EnlacesLegalesFoundia() {
+    val navegador = LocalUriHandler.current
+    var error by remember { mutableStateOf(false) }
+    val base = com.proyectointegrador.movil.BuildConfig.WEB_URL.trimEnd('/')
+    TextButton(onClick = { error = runCatching { navegador.openUri("$base/privacidad") }.isFailure }) {
+        Text("Política de privacidad en la web")
+    }
+    TextButton(onClick = { error = runCatching { navegador.openUri("$base/terminos") }.isFailure }) {
+        Text("Términos de uso en la web")
+    }
+    if (error) AvisoEstado("No se pudo abrir el navegador. Puedes leer los documentos aquí.", true)
+}

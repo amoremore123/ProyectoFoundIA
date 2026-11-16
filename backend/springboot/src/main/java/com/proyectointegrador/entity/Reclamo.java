@@ -44,7 +44,13 @@ public class Reclamo {
     @Column(name = "fecha_reclamo", nullable = false, updatable = false)
     private LocalDateTime fechaReclamo;
 
+    @Column(name = "respuesta_verificacion", length = 500)
+    private String respuestaVerificacion;
+
     // H43/H45: estado del QR de retiro, sin exponer el token en el asistente.
+    @Column(name = "qr_retiro_token", length = 64)
+    private String qrRetiroToken;
+
     @Column(name = "qr_retiro_expira")
     private LocalDateTime qrRetiroExpira;
 

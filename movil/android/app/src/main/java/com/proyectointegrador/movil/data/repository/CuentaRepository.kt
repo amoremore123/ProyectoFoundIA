@@ -34,7 +34,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 
 /** Datos privados solo en memoria: no se escriben en Room. */
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
-                       private val sesion:AlmacenSesion = SesionCifrada) {
+                       private val sesion:AlmacenSesion = SesionCifrada,
+                       private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -62,7 +63,9 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun reenviar(correo:String)=llamadaApi {api.reenviar(Correo(correo.trim()))}
     suspend fun actualizarPerfil(datos:PerfilRequest)=privada {api.actualizarPerfil(datos)}
     suspend fun perfil()=privada {api.perfil()}
+    suspend fun crearInvitacion() = privada { api.crearInvitacion() }
     suspend fun propios()=privada {api.propios()}
+    suspend fun sugerirPublicacion(datos: SolicitudSugerencia) = privada { api.sugerirPublicacion(datos) }
     suspend fun publicar(datos:PublicacionRequest)=privada {val respuesta=api.publicar(datos);publicaciones.invalidar();respuesta}
     suspend fun subirFoto(id:Long,foto:FotoPreparada)=privada {val parte=okhttp3.MultipartBody.Part.createFormData("archivo",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()));val respuesta=api.subirFoto(id,parte);publicaciones.invalidar();respuesta}
     suspend fun editar(id:Long,datos:PublicacionRequest)=privada {val respuesta=api.editar(id,datos);publicaciones.invalidar();respuesta}
@@ -79,11 +82,35 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         ParejaDatos(pareja,usuario)
     }
+    suspend fun qrRetiroPropio(id: Long) = privada { api.qrRetiroPropio(id) }
+
+    suspend fun registrarRetiro(token: String, etiqueta: String) = privada {
+        val servicio = biblioteca ?: throw ErrorDatos("La API de biblioteca no está configurada.")
+        val retiro = servicio.retirar(RetiroCustodia(token, etiqueta))
+        publicaciones.invalidar()
+        retiro
+    }
+
+    suspend fun miReclamoCustodia(id: Long) = privada { api.miReclamoCustodia(id) }
+    suspend fun reclamarCustodia(id: Long, respuesta: String) = privada {
+        api.reclamarCustodia(id, RespuestaCustodia(respuesta))
+    }
+
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
     suspend fun descartar(id:String)=privada {val respuesta=api.descartar(id);publicaciones.invalidar();respuesta}
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
     suspend fun avisos()=privada {api.avisos()}.also {avisos->synchronized(noLeidos){noLeidos.clear();noLeidos.addAll(avisos.filter {!it.leida}.map {it.id});_sinLeer.value=noLeidos.size}}
     suspend fun leer(id:Long)=privada {api.leer(id)}.also {aviso->synchronized(noLeidos){if(aviso.leida)noLeidos.remove(id) else noLeidos.add(id);_sinLeer.value=noLeidos.size}}
+    suspend fun novedadesReclamos(desde: String, despuesDe: Long) = privada { api.novedadesReclamos(desde, despuesDe) }
+
+    suspend fun historialAvisos(filtro: FiltroAvisos, pagina: Int) = privada {
+        api.historialAvisos(filtro.name, pagina)
+    }
+
+    suspend fun leerTodosLosAvisos() = privada { api.leerTodosLosAvisos() }.also {
+        synchronized(noLeidos) { noLeidos.clear(); _sinLeer.value = it.noLeidas }
+    }
+
     suspend fun preferencias()=privada {api.preferencias()}
     suspend fun guardarPreferencias(datos:Preferencias)=privada {api.guardarPreferencias(datos)}
     suspend fun eliminacion()=privada {api.eliminacion()}
@@ -96,6 +123,16 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(sesion.autenticado) cerrarSesion("Tu contraseña se actualizó. Inicia sesión de nuevo.")
         else publicaciones.invalidar()
     }
+    suspend fun salir(todos: Boolean) {
+        val revision = sesion.revision
+        try {
+            privada { if (todos) api.revocarTodasLasSesiones() else api.revocarSesion() }
+        } catch (error: ErrorDatos) {
+            if (error.estadoHttp != 401) throw error
+        }
+        if (revision == sesion.revision) cerrarSesion()
+    }
+
     suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
         try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }

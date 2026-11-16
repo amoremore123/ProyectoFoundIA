@@ -33,6 +33,14 @@ public class NotificacionController {
         return ResponseEntity.ok(notificacionService.listar(usuarioActual().getId()));
     }
 
+    @GetMapping("/reclamos/novedades")
+    public List<NotificacionResponse> novedadesReclamos(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+            java.time.LocalDateTime desde,
+            @RequestParam(defaultValue = "0") long despuesDe) {
+        return notificacionService.novedadesReclamos(usuarioActual().getId(), desde, despuesDe);
+    }
+
     // H25: historial paginado con filtro; GET /api/notificaciones sigue devolviendo la lista completa
     @GetMapping("/historial")
     public ResponseEntity<HistorialNotificacionesResponse> historial(

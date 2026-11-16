@@ -1,46 +1,42 @@
 package com.proyectointegrador.movil.ui.screens
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.ExperienciaViewModel
-import com.proyectointegrador.movil.ui.components.EstadoAccion
 
-@Composable fun BienvenidaScreen(vm:ExperienciaViewModel,abrir:(String)->Unit) {
- var paso by rememberSaveable {mutableIntStateOf(-1)}
- val accion by vm.accion.collectAsStateWithLifecycle()
- Column(Modifier.fillMaxSize().background(DegradadoMarca).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal=26.dp,vertical=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-  Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween) {
-   LogoFoundia(claro=true)
-   Text("COMUNIDAD\nTECSUP",color=Color(0xFFB4D7FF),style=MaterialTheme.typography.labelSmall)
-  }
-  if(paso>=0) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){TextButton(onClick={vm.completar()},enabled=!accion.ocupada){Text("Omitir",color=Color.White)}}
-  AnimatedContent(targetState=paso,label="Introducción") { actual ->
-   Column(verticalArrangement=Arrangement.spacedBy(18.dp)) {
-    IlustracionEncuentro(actual.coerceAtLeast(0),Modifier.fillMaxWidth().heightIn(max=240.dp))
-    Text(if(actual<0)"ENCUENTRA LO QUE TE CONECTA" else listOf("01 / ENCUENTRA","02 / PUBLICA","03 / CONECTA")[actual],color=Cielo,style=MaterialTheme.typography.labelMedium)
-    Text(if(actual<0)"Lo que perdiste puede estar más cerca de lo que imaginas." else listOf("¿Perdiste algo? Estamos aquí para ayudarte.","Publica lo que encontraste o perdiste en pocos pasos.","Descubre coincidencias y recupera lo que es tuyo.")[actual],color=Color.White,style=MaterialTheme.typography.headlineMedium)
-    Text(if(actual<0)"Encuentra, publica y recupera objetos dentro de la comunidad Tecsup." else listOf("Explora las publicaciones de tu comunidad y vuelve a encontrar eso que importa.","Una foto, los detalles y el lugar: ayuda a que cada objeto encuentre a su dueño.","Compara las sugerencias reales y confirma la recuperación de tu objeto.")[actual],color=Color(0xFFCCDCF7),style=MaterialTheme.typography.bodyLarge)
-   }
-  }
-  Spacer(Modifier.height(4.dp))
-  if(paso>=0) Row(horizontalArrangement=Arrangement.spacedBy(7.dp)){repeat(3){Surface(color=if(it==paso)Cielo else Color(0xFF5670A4),shape=CircleShape,modifier=Modifier.width(if(it==paso)26.dp else 8.dp).height(8.dp)) {}}}
-  EstadoAccion(accion)
-  Button(onClick={if(paso<2)paso++ else vm.completar()},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth().heightIn(min=56.dp),colors=ButtonDefaults.buttonColors(containerColor=Color.White,contentColor=AzulNoche)) {
-   Text(if(paso<0||paso==2)"Comenzar" else "Siguiente",Modifier.weight(1f));Icon(Simbolos.Flecha,null)
-  }
-  TextButton(onClick={vm.completar("perfil")},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Ya tengo una cuenta",color=Color.White)}
- }
+@Composable fun BienvenidaScreen(vm: ExperienciaViewModel, abrir: (String) -> Unit) {
+    val accion by vm.accion.collectAsStateWithLifecycle()
+    val pequena = LocalConfiguration.current.screenHeightDp < 700
+    Column(Modifier.fillMaxSize().background(DegradadoMarca).statusBarsPadding().navigationBarsPadding()
+        .verticalScroll(rememberScrollState()).padding(horizontal = 26.dp, vertical = 18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LogoFoundia(claro = true, modifier = Modifier.padding(top = 4.dp))
+        EscenaFindi(Modifier.fillMaxWidth().height(if (pequena) 190.dp else 250.dp), conSaludo = false)
+        Text("Bienvenido a\nFoundIA", color = Color.White, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text("Recupera y encuentra tus objetos en TECSUP con la ayuda de FINDI.",
+            color = Color(0xFFDCE9FF), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        EstadoAccion(accion)
+        Button(onClick = { vm.completar("perfil") }, enabled = !accion.ocupada,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AmarilloFindi, contentColor = MarinoFindi)) {
+            Icon(Simbolos.Perfil, null, Modifier.size(19.dp)); Spacer(Modifier.width(10.dp)); Text("Iniciar sesión")
+        }
+        OutlinedButton(onClick = { vm.completar("registro") }, enabled = !accion.ocupada,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp), shape = RoundedCornerShape(18.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = .65f)), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
+            Text("Crear cuenta")
+        }
+        TextButton(onClick = { vm.completar() }, enabled = !accion.ocupada) { Text("Explorar sin cuenta", color = Color.White) }
+        Text("COMUNIDAD TECSUP", color = Color(0xFFBFD8FF), style = MaterialTheme.typography.labelSmall)
+    }
 }
