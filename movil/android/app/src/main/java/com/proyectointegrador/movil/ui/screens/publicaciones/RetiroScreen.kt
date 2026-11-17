@@ -20,6 +20,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import com.proyectointegrador.movil.di.fabrica
+import com.proyectointegrador.movil.domain.esCodigoRetiro
+import com.proyectointegrador.movil.domain.esEtiquetaCustodia
 import com.proyectointegrador.movil.model.QrRetiroPropio
 import com.proyectointegrador.movil.ui.components.*
 import com.proyectointegrador.movil.ui.viewmodel.RetiroViewModel
@@ -63,22 +65,34 @@ fun RetiroScreen(volver: () -> Unit, vm: RetiroViewModel = viewModel(factory = f
                 }
             }
             Text("Escanea la etiqueta del objeto y el QR que presenta la persona.")
-            aviso?.let { AvisoEstado(it) }
-            OutlinedTextField(etiqueta, { etiqueta = it.take(500) }, label = { Text("Etiqueta de custodia") },
-                enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+            aviso?.let { AvisoEstado(it, true) }
+            val etiquetaOk = esEtiquetaCustodia(etiqueta)
+            val tokenOk = esCodigoRetiro(token)
+            OutlinedTextField(etiqueta, { etiqueta = it.take(500); aviso = null }, label = { Text("Etiqueta de custodia") },
+                enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
+                isError = etiqueta.isNotBlank() && !etiquetaOk,
+                supportingText = { if (etiqueta.isNotBlank()) Text(if (etiquetaOk) "Etiqueta de custodia leída." else "Este valor no parece una etiqueta de custodia.") })
             OutlinedButton(onClick = { iniciar(true) }, enabled = !accion.ocupada) { Text("Escanear etiqueta") }
-            OutlinedTextField(token, { token = it.take(64) }, label = { Text("Código de retiro") },
-                enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+            OutlinedTextField(token, { token = it.take(64); aviso = null }, label = { Text("Código de retiro") },
+                enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
+                isError = token.isNotBlank() && !tokenOk,
+                supportingText = { if (token.isNotBlank()) Text(if (tokenOk) "Código de retiro leído." else "Este valor no parece un código de retiro.") })
             OutlinedButton(onClick = { iniciar(false) }, enabled = !accion.ocupada) { Text("Escanear QR de retiro") }
             EstadoAccion(accion)
-            BotonPrincipal("Revisar entrega", { confirmar = true }, etiqueta.isNotBlank() && token.isNotBlank() && !accion.ocupada)
+            BotonPrincipal("Revisar entrega", { confirmar = true }, etiquetaOk && tokenOk && !accion.ocupada)
         }
     }
     escanear?.let { esEtiqueta ->
         EscanerCustodia(cerrar = { escanear = null }, detectado = { valor ->
-            if (esEtiqueta && valor.length <= 500) etiqueta = valor
-            else if (!esEtiqueta && valor.length <= 64) token = valor
-            else aviso = "El QR no corresponde al campo seleccionado."
+            // El contenido decide a qué campo corresponde: un QR de retiro cabe en el campo de la etiqueta por su
+            // largo, pero no es una etiqueta de custodia.
+            when {
+                esEtiqueta && esEtiquetaCustodia(valor) -> { etiqueta = valor.trim(); aviso = null }
+                !esEtiqueta && esCodigoRetiro(valor) -> { token = valor.trim(); aviso = null }
+                esEtiqueta && esCodigoRetiro(valor) -> aviso = "Ese QR es un código de retiro. Para este campo escanea la etiqueta pegada en el objeto."
+                !esEtiqueta && esEtiquetaCustodia(valor) -> aviso = "Ese QR es la etiqueta del objeto. Para este campo escanea el QR de retiro que presenta la persona."
+                else -> aviso = "Ese QR no pertenece a FoundIA o no corresponde al campo seleccionado."
+            }
             escanear = null
         })
     }
