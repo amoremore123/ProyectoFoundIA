@@ -2,7 +2,6 @@ package com.proyectointegrador.movil
 
 import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.proyectointegrador.movil.data.local.*
@@ -18,7 +17,7 @@ import org.junit.runner.RunWith
 class RoomPersistenciaTest {
     private val contexto=InstrumentationRegistry.getInstrumentation().targetContext
     private val nombre="room-persistencia-prueba.db"
-    @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java.canonicalName!!,FrameworkSQLiteOpenHelperFactory())
+    @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java)
     private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2).build()
     @Before fun preparar(){contexto.deleteDatabase(nombre)}
     @After fun limpiar(){contexto.deleteDatabase(nombre);contexto.deleteDatabase("room-migracion-prueba.db")}
