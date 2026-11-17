@@ -47,7 +47,7 @@ oculto que revisa cada 3 segundos los dispositivos conectados y recrea los
 túneles que falten. Es útil al reconectar el cable, reinstalar desde Android
 Studio o reiniciar el emulador. Solo corre una copia a la vez. Después de
 reiniciar la laptop hay que iniciarlo otra vez con doble clic en
-`movilndroid\qa	elefono\iniciar-vigilante.cmd`. Para detenerlo se cierra
+`movil\android\qa\telefono\iniciar-vigilante.cmd`. Para detenerlo se cierra
 sesión de Windows o se finaliza el proceso `powershell.exe` que ejecuta
 `vigilar-tuneles.ps1`.
 
