@@ -117,6 +117,8 @@ html[data-tema='oscuro'] .nivel-alta,
 html[data-tema='oscuro'] .perfil-avatar,
 html[data-tema='oscuro'] .sidebar-avatar,
 html[data-tema='oscuro'] .no-leida .notificacion-icono { background: var(--azul); }
+/* H51: en oscuro --danger es salmón; el número blanco quedaba en 2,53:1. Con marino llega a 6:1 */
+html[data-tema='oscuro'] .punto-rojo { color: var(--marino); }
 html[data-tema='oscuro'] .btn-primario:hover:not(:disabled) { background: var(--azul-700); }
 
 /* Acción principal de FINDI: amarillo con texto marino */

@@ -476,7 +476,7 @@ select.input {
 .chip-encontrado { background: var(--success-50); color: #067647; border-color: #abefc6; }
 
 .chip-estado { background: var(--surface-2); color: var(--text-muted); border-color: var(--border); }
-.estado-activo { background: var(--primary-50); color: var(--primary); border-color: var(--primary-100); }
+.estado-activo { background: var(--primary-50); color: var(--primary-700); border-color: var(--primary-100); } /* H51: --primary quedaba en 4,5:1 (claro) y 4,48:1 (oscuro) */
 .estado-eliminado { background: var(--danger-50); color: #b42318; border-color: #fecdca; }
 
 .nivel-alta { background: var(--primary); color: #fff; }

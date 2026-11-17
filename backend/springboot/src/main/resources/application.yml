@@ -73,7 +73,9 @@ app:
   # estas variables. Sin IA_API_KEY se intenta Claude opcional y luego el motor local del servidor.
   ia:
     url: ${IA_URL:https://api.groq.com/openai/v1}
-    modelo: ${IA_MODELO:llama-3.1-8b-instant}
+    modelo: ${IA_MODELO:openai/gpt-oss-20b}
+    # Búsqueda por foto: modelo que acepta imágenes
+    modelo-vision: ${IA_MODELO_VISION:qwen/qwen3.8-27b}
     api-key: ${IA_API_KEY:}
     timeout-ms: ${IA_TIMEOUT_MS:8000}
     limite-por-minuto: ${IA_LIMITE_POR_MINUTO:15}

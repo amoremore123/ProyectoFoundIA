@@ -80,6 +80,20 @@ class InterpretadorIaCompatibleTest {
     }
 
     @Test
+    @DisplayName("La situación de la persona se convierte en lo que hay que buscar")
+    void situacionSeConvierteEnTipoBuscado() {
+        // Quien perdió algo busca entre lo ENCONTRADO; quien encontró, entre lo PERDIDO
+        when(cliente.completarJson(anyString(), anyString())).thenReturn(
+                "{\"intencion\":\"buscar\",\"situacion\":\"perdió\",\"palabras\":[\"mochila\"]}",
+                "{\"intencion\":\"buscar\",\"situacion\":\"encontro\",\"palabras\":[\"casaca\"]}",
+                "{\"intencion\":\"buscar\",\"situacion\":\"no sé\",\"tipoBuscado\":\"PERDIDO\",\"palabras\":[\"x\"]}");
+        assertThat(servicio.interpretar("busco mi mochila", "ip:1").tipoBuscado()).isEqualTo("ENCONTRADO");
+        assertThat(servicio.interpretar("recogí una casaca", "ip:1").tipoBuscado()).isEqualTo("PERDIDO");
+        // Una situación desconocida no se reemplaza por un tipoBuscado que la IA haya inventado
+        assertThat(servicio.interpretar("algo raro", "ip:1").tipoBuscado()).isEmpty();
+    }
+
+    @Test
     @DisplayName("Las intenciones nuevas de la Fase 5 son aceptadas")
     void intencionesNuevas() {
         when(cliente.completarJson(anyString(), anyString())).thenReturn("{\"intencion\":\"mis_reportes\",\"palabras\":[]}");

@@ -244,7 +244,7 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
 
   if (consulta.intencion === 'saludo') {
     return {
-      texto: '¡Hola! Soy FINDI, el asistente de FoundIA. Cuéntame qué perdiste o encontraste, y si recuerdas dónde, mejor. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
+      texto: '¡Hola! Soy FINDI, la asistente de FoundIA. Cuéntame qué perdiste o encontraste, y si recuerdas dónde, mejor. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
       sugerencias: SUGERENCIAS,
     };
   }
@@ -354,3 +354,13 @@ export function responderAcceso(id, { conSesion = false } = {}) {
 
 // H46: palabras del dominio de FoundIA para elegir la mejor alternativa del dictado por voz
 export const VOCABULARIO = Array.from(new Set([...SINONIMOS.flat(), ...COLORES, ...LUGARES]));
+
+// Saludo de FINDI al abrir el chat: según la hora y con el nombre si hay sesión.
+// FINDI se presenta como «la asistente» de FoundIA (su voz es femenina).
+export function saludoFindi(nombre = '', fecha = new Date()) {
+  const hora = fecha.getHours();
+  const momento = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+  const primerNombre = String(nombre || '').trim().split(/\s+/)[0];
+  const inicio = primerNombre ? `¡${momento}, ${primerNombre}!` : `¡Hola! ${momento}.`;
+  return `${inicio} Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte a buscar, reportar o recuperar tus objetos en Tecsup. ¿En qué te ayudo hoy?`;
+}

@@ -11,6 +11,14 @@ const preguntas = [
   ['¿Dónde consulto mis publicaciones?', 'Entra a tu cuenta y abre “Mis reportes”. Para consultar las publicaciones de toda la comunidad, utiliza Buscar.'],
 ];
 
+// Consejos para una buena publicación: ícono, título y explicación (mismos textos de siempre)
+const CONSEJOS = [
+  ['etiqueta', 'Cómo es', 'Incluye el color, la marca y algún detalle particular: una funda, una etiqueta o un llavero.'],
+  ['ubicacion', 'Dónde y cuándo', '“Biblioteca, segundo piso, el martes por la tarde” ayuda más que “en el campus”.'],
+  ['camara', 'Una foto clara', 'Usa una foto del objeto si la tienes. Evita mostrar números de documentos o datos personales.'],
+  ['escudo', 'Antes de una entrega', 'Comprueba un detalle que solo el dueño conozca y acuerda la entrega en un lugar público.'],
+];
+
 export default function GuiaCampus() {
   const { abrir } = useAsistente();
   return <>
@@ -25,12 +33,15 @@ export default function GuiaCampus() {
 
     <section className="consejos-campus" aria-labelledby="consejos-titulo">
       <div className="consejos-intro"><span className="visual-eyebrow">UNA BUENA DESCRIPCIÓN AYUDA</span><h2 id="consejos-titulo">Los detalles hacen la diferencia</h2><p>Una publicación clara ayuda a que otra persona reconozca lo que estás buscando.</p><Link to="/publicar" className="btn btn-secundario">Crear mi publicación</Link></div>
-      <dl className="consejos-lista">
-        <div><dt>Cómo es</dt><dd>Incluye el color, la marca y algún detalle particular: una funda, una etiqueta o un llavero.</dd></div>
-        <div><dt>Dónde y cuándo</dt><dd>“Biblioteca, segundo piso, el martes por la tarde” ayuda más que “en el campus”.</dd></div>
-        <div><dt>Una foto clara</dt><dd>Usa una foto del objeto si la tienes. Evita mostrar números de documentos o datos personales.</dd></div>
-        <div><dt>Antes de una entrega</dt><dd>Comprueba un detalle que solo el dueño conozca y acuerda la entrega en un lugar público.</dd></div>
-      </dl>
+      <ul className="consejos-lista">
+        {CONSEJOS.map(([icono, titulo, texto]) => (
+          <li key={titulo} className="consejo">
+            <span className="consejo-icono" aria-hidden="true"><Icono nombre={icono} tamano={20} /></span>
+            <h3>{titulo}</h3>
+            <p>{texto}</p>
+          </li>
+        ))}
+      </ul>
     </section>
 
     <section className="inicio-faq" aria-labelledby="faq-titulo" id="preguntas-frecuentes">

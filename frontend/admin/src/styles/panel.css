@@ -228,3 +228,15 @@ html[data-tema='oscuro'] .actividad-icono.usuario { background: #2a4387; }
 @media (prefers-contrast: more) {
   .indicador, .tarjeta { border-color: var(--text-muted); }
 }
+
+/* ---------- H48: enlaces a privacidad y términos ---------- */
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.enlaces-legales { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.8rem; }
+.enlaces-legales a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: currentColor; }
+.enlaces-legales a:hover { text-decoration-thickness: 2px; }
+.enlaces-legales a:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 2px; border-radius: 2px; }
+.sidebar-legales { margin-top: 12px; color: rgba(255, 255, 255, 0.72); }
+.sidebar-legales a:hover { color: #fff; }
+.login-legales { margin-top: 18px; color: var(--text-muted); }
+.login-legales a:focus-visible { outline-color: var(--azul); }

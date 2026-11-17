@@ -6,9 +6,11 @@ imprime y la constancia se entrega a quien deja el objeto.
 """
 import io
 from datetime import datetime, timezone as dt_timezone
+from urllib.parse import parse_qs, quote, urlsplit
 
 import jwt
 import qrcode
+from django.conf import settings
 from django.utils import timezone
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -45,6 +47,19 @@ def verificar_token_custodia(token: str) -> dict:
     return datos
 
 
+def url_verificacion(token: str) -> str:
+    """Enlace que lleva el QR: al escanearlo con cualquier celular se ve el objeto en custodia."""
+    return f"{settings.FOUNDIA_WEB_URL}/custodia/verificar?t={quote(token, safe='')}"
+
+
+def extraer_token_etiqueta(valor: str) -> str:
+    """La etiqueta escaneada puede ser el enlace del QR (…?t=token) o el token solo (etiquetas antiguas)."""
+    valor = (valor or "").strip()
+    if valor.startswith(("http://", "https://")):
+        return (parse_qs(urlsplit(valor).query).get("t") or [""])[0].strip()
+    return valor
+
+
 def _imagen_qr(token: str) -> ImageReader:
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=2)
     qr.add_data(token)
@@ -77,7 +92,7 @@ def etiqueta_pdf(custodia) -> bytes:
     pdf.setFont("Helvetica-Bold", 12)
     pdf.drawString(0.5 * cm, alto - 0.9 * cm, "FoundIA · Custodia")
 
-    qr = _imagen_qr(custodia.token_qr)
+    qr = _imagen_qr(url_verificacion(custodia.token_qr))
     lado = 4.6 * cm
     pdf.drawImage(qr, 0.5 * cm, 0.55 * cm, width=lado, height=lado)
 

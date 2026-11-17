@@ -182,6 +182,35 @@ class ReclamoIntegrationTest {
     }
 
     @Test
+    @DisplayName("H42 - si la biblioteca ya aceptó a otra persona no se admiten reclamos nuevos")
+    void noAdmiteReclamosNuevosSiYaHayUnoAceptado() throws Exception {
+        encontrado.setEstado(EstadoObjeto.EN_CUSTODIA);
+        entityManager.flush();
+        var id = encontrado.getId();
+        mockMvc.perform(post("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(reclamante))
+                        .contentType("application/json").content("""
+                                {"respuesta":"Tiene un bordado amarillo por dentro"}
+                                """))
+                .andExpect(status().isCreated());
+        entityManager.createQuery("update Reclamo r set r.estado = 'ACEPTADO'").executeUpdate();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(tercero)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ASIGNADO_A_OTRO"));
+        mockMvc.perform(post("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(tercero))
+                        .contentType("application/json").content("""
+                                {"respuesta":"Es mía, tiene stickers"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("ya fue asignado")));
+        // Quien ya fue aceptado sigue viendo su propio reclamo
+        mockMvc.perform(get("/api/objetos/{id}/reclamos/custodia", id).with(autenticar(reclamante)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ACEPTADO"));
+        assertThat(entityManager.createQuery("select count(r) from Reclamo r", Long.class).getSingleResult())
+                .isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("Reclamo sin sesión, propio, sobre objeto perdido o inexistente no crea avisos")
     void reclamosSinAutorizacionOInvalidosNoNotifican() throws Exception {
         mockMvc.perform(post("/api/objetos/{id}/reclamos", encontrado.getId()))

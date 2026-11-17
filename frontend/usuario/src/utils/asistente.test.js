@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adaptarInterpretacion, interpretar, rankear, responder } from './asistente';
+import { adaptarInterpretacion, interpretar, rankear, responder, saludoFindi } from './asistente';
 
 const categorias = [
   { id: 1, nombre: 'Celular', descripcion: 'Teléfonos inteligentes y celulares', estado: true },
@@ -117,5 +117,17 @@ describe('Fase 5 - Intenciones nuevas de FINDI', () => {
     const res = responder('¿Cómo funciona FoundIA?', { categorias });
     expect(res.texto).toContain('cuatro pasos');
     expect(res.acciones[0].to).toBe('/#proceso-recuperacion');
+  });
+});
+
+describe('Saludo personalizado de FINDI', () => {
+  it('saluda según la hora y se presenta como la asistente de FoundIA', () => {
+    expect(saludoFindi('', new Date(2026, 10, 16, 9, 0))).toMatch(/^¡Hola! Buenos días\. Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte/);
+    expect(saludoFindi('', new Date(2026, 10, 16, 15, 0))).toMatch(/Buenas tardes/);
+    expect(saludoFindi('', new Date(2026, 10, 16, 21, 0))).toMatch(/Buenas noches/);
+  });
+
+  it('usa solo el primer nombre de la persona con sesión', () => {
+    expect(saludoFindi('Ana María', new Date(2026, 10, 16, 15, 0))).toMatch(/^¡Buenas tardes, Ana! Soy FINDI/);
   });
 });

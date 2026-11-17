@@ -10,6 +10,13 @@ const fotografias = [
   [/billetera|monedero|tarjetero/, 'documentos', 'Billetera de cuero con tarjetas'],
 ];
 
+// Imagen de referencia según el nombre o la categoría (o null si no hay una adecuada)
+export function fotoReferencialDe(nombre = '', categoria = '') {
+  const texto = `${nombre} ${categoria}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const fotografia = fotografias.find(([patron]) => patron.test(texto));
+  return fotografia ? { src: `/imagenes/${fotografia[1]}-photo.jpg`, descripcion: fotografia[2] } : null;
+}
+
 export function FotoReferencial({ nombre = '', categoria = '' }) {
   const texto = `${nombre} ${categoria}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const fotografia = fotografias.find(([patron]) => patron.test(texto));

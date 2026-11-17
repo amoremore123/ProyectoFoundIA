@@ -16,6 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReclamoService {
 
+    /** Estados de un reclamo que ya entrega el objeto a alguien (no se aceptan reclamos nuevos). */
+    static final java.util.List<String> ESTADOS_ASIGNADO = java.util.List.of("ACEPTADO", "RETIRADO");
+    public static final String ASIGNADO_A_OTRO = "ASIGNADO_A_OTRO";
+
     private final ObjetoRepository objetoRepository;
     private final ReclamoRepository reclamoRepository;
     private final UsuarioRepository usuarioRepository;
@@ -36,6 +40,10 @@ public class ReclamoService {
         var existente = reclamoRepository.findByObjetoIdAndUsuarioId(objetoId, usuarioId);
         if (existente.isPresent()) return ReclamoResponse.from(existente.get(), false);
         validarCustodia(objeto, usuarioId);
+        // Otra persona ya fue aceptada: no se ofrece el formulario para reclamarlo
+        if (reclamoRepository.existsByObjetoIdAndEstadoIn(objetoId, ESTADOS_ASIGNADO)) {
+            return new ReclamoResponse(null, objetoId, ASIGNADO_A_OTRO, null, false);
+        }
         return new ReclamoResponse(null, objetoId, "SIN_RECLAMO", null, false);
     }
 
@@ -83,6 +91,10 @@ public class ReclamoService {
         var existente = reclamoRepository.findByObjetoIdAndUsuarioId(objetoId, usuarioId);
         if (existente.isPresent()) {
             return ReclamoResponse.from(existente.get(), true);
+        }
+        if (respuesta != null && reclamoRepository.existsByObjetoIdAndEstadoIn(objetoId, ESTADOS_ASIGNADO)) {
+            throw new ReclamoInvalidoException(
+                    "Este objeto ya fue asignado a otra persona. Si crees que es tuyo, acércate a la biblioteca");
         }
 
         var usuario = usuarioRepository.findById(usuarioId)

@@ -18,7 +18,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .custodia import constancia_pdf, etiqueta_pdf, firmar_token_custodia, verificar_token_custodia
+from .custodia import (
+    constancia_pdf, etiqueta_pdf, extraer_token_etiqueta, firmar_token_custodia, verificar_token_custodia,
+)
 from .disposicion import (
     DESTINOS, MOTIVO_MAX, MOTIVO_MIN, acta_pdf, codigo_acta, dias_en_custodia, limite_vencimiento, plazo_dias,
 )
@@ -639,7 +641,7 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
 
     @action(detail=False, methods=["get"], url_path="verificar")
     def verificar(self, request):
-        token = (request.query_params.get("token") or "").strip()
+        token = extraer_token_etiqueta(request.query_params.get("token") or "")
         if not token:
             return Response({"detail": "Falta el token del QR."},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -845,7 +847,7 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         entrada = RetiroSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
         token = entrada.validated_data["token"]
-        etiqueta = entrada.validated_data["etiqueta"]
+        etiqueta = extraer_token_etiqueta(entrada.validated_data["etiqueta"])
         try:
             datos_etiqueta = verificar_token_custodia(etiqueta)
         except jwt.InvalidTokenError:

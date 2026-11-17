@@ -122,3 +122,16 @@ Evidencias visuales:
 captura/permisos en teléfono, contraste manual y Lighthouse. Ninguno se declara
 terminado con mocks. `.claude/` y `.impeccable/` permanecen fuera de los cambios
 propuestos para Git; no usar `git add .`.
+
+## Actualización del 13/11/2026
+
+- **H48.4:** el panel enlaza a `/privacidad` y `/terminos` de la web (inicio de sesión y pie
+  del menú), en otra pestaña. URL configurable con `VITE_WEB_URL` (por defecto `http://localhost:5173`).
+- **H45.5:** 20 frases con resultado esperado; web 17/20 (85 %), API con motor local 16/20 (80 %).
+  La medición con IA queda pendiente de `IA_API_KEY`. Ver [h45-20-frases.md](h45-20-frases.md).
+- **H47:** revisión visual con la API real y la cuenta de Luis. Publicación propia (#6): tarjeta sin
+  acción de reclamo. Publicación ajena (#1): tarjetas de objeto y reclamos, acción «Reclamar este
+  objeto», doble confirmación (chat y detalle) y **ningún reclamo enviado** al cancelar.
+  «Quiero publicar una mochila perdida…»: confirmación y Publicar prellenado sin guardar nada.
+  Se corrigió que el texto dijera «No encontré publicaciones» junto a la tarjeta del objeto mencionado.
+- Usuario: 276 pruebas OK, build OK. Panel: 51 pruebas OK, build OK.

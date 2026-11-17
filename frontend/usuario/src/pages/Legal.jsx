@@ -61,13 +61,14 @@ export default function Legal({ tipo }) {
       {estado === 'ok' && (
         <>
           <article className="legal-pagina-texto" aria-label={pagina.titulo}>
-            <TextoLegal texto={documentos[pagina.campo]} />
+            <TextoLegal texto={documentos[pagina.campo]} nivel={2} />
           </article>
         </>
       )}
 
       <nav className="legal-pagina-enlaces" aria-label="Documentos legales">
         <Link to={pagina.otra.ruta}>Ver {pagina.otra.texto}</Link>
+        <Link to="/cookies">Cookies y almacenamiento</Link>
         <Link to="/">Volver al inicio</Link>
       </nav>
     </div>

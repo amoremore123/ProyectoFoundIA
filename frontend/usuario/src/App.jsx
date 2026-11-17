@@ -19,6 +19,9 @@ import Perfil from './pages/Perfil';
 import MisPublicaciones from './pages/MisPublicaciones';
 import Notificaciones from './pages/Notificaciones';
 import Legal from './pages/Legal';
+import Cookies from './pages/Cookies';
+import VerificarCustodia from './pages/VerificarCustodia';
+import AvisoCookies from './components/AvisoCookies';
 import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
@@ -46,6 +49,8 @@ export default function App() {
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/privacidad" element={<Legal tipo="privacidad" />} />
                 <Route path="/terminos" element={<Legal tipo="terminos" />} />
+                <Route path="/cookies" element={<Cookies />} />
+                <Route path="/custodia/verificar" element={<VerificarCustodia />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
                 <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route
@@ -91,6 +96,8 @@ export default function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            {/* Aviso de cookies y almacenamiento local, en todas las pantallas */}
+            <AvisoCookies />
           </BrowserRouter>
         </AuthProvider>
       </ToastProvider>

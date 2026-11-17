@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ChatAsistente from '../components/ChatAsistente';
+import PieSitio from '../components/PieSitio';
 import { AsistenteProvider } from '../context/AsistenteContext';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
 
@@ -21,6 +22,8 @@ export default function MainLayout() {
             <Outlet />
           </div>
         </main>
+        {/* El pie va fuera del contenedor centrado para ocupar todo el ancho */}
+        {pathname === '/' && <PieSitio />}
         <BottomNav />
         {/* H45: el asistente es parte del Sprint 3; ya no depende del interruptor de extras */}
         <ChatAsistente />

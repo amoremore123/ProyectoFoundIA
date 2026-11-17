@@ -129,6 +129,15 @@ public class JwtService {
         }
     }
 
+    /** H41: lee el token de la etiqueta de custodia que firma el panel (mismo secreto, tipo "custodia"). */
+    public Claims leerTokenCustodia(String token) {
+        Claims claims = parseClaims(token);
+        if (!"custodia".equals(claims.get("tipo")) || claims.getSubject() == null) {
+            throw new io.jsonwebtoken.JwtException("No es un token de custodia");
+        }
+        return claims;
+    }
+
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())

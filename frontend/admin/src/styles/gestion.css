@@ -46,3 +46,7 @@
 .paginacion { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
 .chip-estado.pendiente { background: var(--amarillo-50); color: #7a5b00; }
 .acta-boton { margin-left: 8px; }
+
+/* Reclamo pendiente cuando otra persona ya fue aceptada: solo se puede rechazar */
+.aviso-otro-aceptado { margin: 0; padding: 10px 12px; border-radius: 8px; border: 1px solid #fedf89; background: #fffaeb; color: #93370d; font-size: 14px; line-height: 1.5; }
+:root[data-tema="oscuro"] .aviso-otro-aceptado { background: #4e1d09; border-color: #93370d; color: #fedf89; }

@@ -74,6 +74,12 @@ intenciones web `mis_reportes` y `como_funciona`.
 y caché. No se duplica el endpoint de interpretación ni se envían datos propios
 a los proveedores externos. Las variables de ejemplo están en `.env.example`.
 
+Actualización 14/11/2026: el modelo por defecto es `openai/gpt-oss-20b` (Groq retiró
+`llama-3.1-8b-instant`). Al proveedor se le pide `situacion` (`perdio`/`encontro`) en lugar de
+`tipoBuscado`; el servidor la convierte (quien perdió busca entre lo `ENCONTRADO`), así el
+contrato de la respuesta no cambia. A los modelos gpt-oss se les envía `reasoning_effort: "low"`
+y `max_tokens: 600`. Medición: [h45-20-frases.md](../pruebas/h45-20-frases.md).
+
 Variables de entorno (nunca en Git):
 
 | Variable | Por defecto | Uso |

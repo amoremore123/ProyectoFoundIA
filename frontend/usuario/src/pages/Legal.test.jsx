@@ -36,6 +36,9 @@ describe('H48 - Páginas públicas de privacidad y términos', () => {
     expect(await screen.findByText('Texto de privacidad.')).toBeTruthy();
     expect(screen.getByText('Datos que tratamos')).toBeTruthy();
     expect(screen.queryByText('Texto de términos.')).toBeNull();
+    // H51: los títulos siguen al h1 sin saltar niveles (h1 → h2 → h3)
+    expect(screen.getByRole('heading', { level: 2, name: 'Política de privacidad de FoundIA' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Datos que tratamos' })).toBeTruthy();
   });
 
   it('muestra los términos y enlaza a la política de privacidad', async () => {

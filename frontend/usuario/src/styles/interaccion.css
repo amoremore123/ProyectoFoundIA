@@ -109,16 +109,13 @@ html[data-tema='oscuro'] .input-busqueda {
 /* ---------- Modo oscuro · bloques con color fijo (estilos de portada/campus) ---------- */
 
 html[data-tema='oscuro'] .hero,
-html[data-tema='oscuro'] .portada-ia,
-html[data-tema='oscuro'] .consejos-campus { background: var(--surface-2); }
+html[data-tema='oscuro'] .portada-ia { background: var(--surface-2); }
 
-html[data-tema='oscuro'] .ayuda-campus { background: #14253f; }
 
 html[data-tema='oscuro'] .portada-pregunta { border-color: var(--border-strong); box-shadow: var(--sombra-sm); }
 html[data-tema='oscuro'] .portada-acciones a,
 html[data-tema='oscuro'] .guia-pasos li,
-html[data-tema='oscuro'] .portada-ia-lista li,
-html[data-tema='oscuro'] .consejos-lista div { border-color: var(--border); }
+html[data-tema='oscuro'] .portada-ia-lista li { border-color: var(--border); }
 html[data-tema='oscuro'] .objeto-card:hover { border-color: var(--border-strong); }
 html[data-tema='oscuro'] .foto-referencial,
 html[data-tema='oscuro'] .foto-pendiente { background: var(--surface-2); }
@@ -301,8 +298,7 @@ html[data-tema='oscuro'] .auth-tema { background: var(--surface); }
 .toggle-tipo { transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s; }
 .toggle-tipo:active { transform: scale(0.98); }
 
-/* Enlaces del footer y secciones con subrayado animado */
-.portada-footer-links a,
+/* Enlaces de secciones con subrayado animado (el pie usa píldoras, como el header) */
 .historial-enlace,
 .guia-pasos a,
 .guia-pasos button,
@@ -314,7 +310,6 @@ html[data-tema='oscuro'] .auth-tema { background: var(--surface); }
   transition: background-size 0.25s ease, color 0.15s;
 }
 
-.portada-footer-links a:hover,
 .historial-enlace:hover,
 .guia-pasos a:hover,
 .guia-pasos button:hover,

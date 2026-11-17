@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTema } from '../context/TemaContext';
 import Logo from '../components/Logo';
 import Icono from '../components/Icono';
+import EnlacesLegales from '../components/EnlacesLegales';
 import useRevelarEnScroll from '../hooks/useRevelarEnScroll';
 import { puedeVer } from '../config/permisos';
 
@@ -83,6 +84,7 @@ export default function AdminLayout() {
           <button type="button" className="sidebar-salir" onClick={cerrarSesion}>
             <Icono nombre="salir" tamano={16} /> Cerrar sesión
           </button>
+          <EnlacesLegales className="sidebar-legales" />
         </div>
       </aside>
 

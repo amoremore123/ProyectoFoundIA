@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+// VITE_API_URL=auto (solo para probar desde el celular en la red local): usa el mismo host
+// con el que se abrió la web y el puerto de la API, así un cambio de IP no obliga a reiniciar.
+function urlApi(valor) {
+  if (valor === 'auto' && typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:8081`;
+  }
+  return valor || 'http://localhost:8081';
+}
+
+export const API_URL = urlApi(import.meta.env.VITE_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -143,6 +152,30 @@ export const reclamarObjeto = async (id, respuesta) => {
   return data;
 };
 
+// H42: estado de mi reclamo de un objeto en custodia ({estado: SIN_RECLAMO | PENDIENTE | ACEPTADO | RECHAZADO | RETIRADO})
+export const getMiReclamoCustodia = async (id) => {
+  const { data } = await api.get(`/api/objetos/${id}/reclamos/custodia`);
+  return data;
+};
+
+// H44: QR de retiro del titular de un reclamo aceptado y vigente ({token, expira} en UTC)
+export const getQrRetiro = async (id) => {
+  const { data } = await api.get(`/api/objetos/${id}/reclamos/custodia/qr-retiro`);
+  return data;
+};
+
+// H41: lo que abre el QR de la etiqueta de custodia (público, sin datos personales)
+export const verificarCustodia = async (t) => {
+  const { data } = await axios.get(`${API_URL}/api/custodias/verificar`, { params: { t }, timeout: 10000 });
+  return data;
+};
+
+// H40: enlace de invitación sin datos personales ({url})
+export const crearInvitacion = async () => {
+  const { data } = await api.post('/api/perfil/invitaciones');
+  return data;
+};
+
 // H5/H14: solo el autor puede editar; la API valida igual que al publicar.
 export const actualizarObjeto = async (id, payload) => {
   const { data } = await api.put(`/api/objetos/${id}`, payload);
@@ -165,6 +198,17 @@ export const getDetalleCoincidencia = async (id, { signal } = {}) => {
 
 // H45: interpretación y resumen propio opcional. Usa el token sin interceptores,
 // de modo que un error del asistente no cierre la sesión de toda la web.
+// Buscar con una foto en el chat: la IA describe el objeto y la web busca en las publicaciones.
+// La foto (data URL JPEG/PNG reducida) no se guarda en el servidor.
+export const buscarPorFoto = async (imagen, { signal } = {}) => {
+  const token = localStorage.getItem('token');
+  const { data } = await axios.post(`${API_URL}/api/asistente/buscar-por-foto`, { imagen }, {
+    signal, timeout: 30000,
+    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+  });
+  return data;
+};
+
 export const interpretarConIA = async (mensaje, { signal } = {}) => {
   const token = localStorage.getItem('token');
   const { data } = await axios.post(`${API_URL}/api/asistente/interpretar`, { mensaje }, {
