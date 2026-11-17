@@ -11,14 +11,19 @@ fun Throwable.comoErrorDatos(): ErrorDatos {
     if(this is ErrorDatos) return this
     if(this is IOException) return ErrorDatos("No hay conexión con FoundIA. Revisa tu conexión y reintenta.")
     if(this is HttpException) {
-        val texto=runCatching { JsonParser.parseString(response()?.errorBody()?.string()).asJsonObject.get("mensaje")?.asString }.getOrNull()
+        val cuerpo=runCatching { JsonParser.parseString(response()?.errorBody()?.string()).asJsonObject }.getOrNull()
+        // Spring responde con "mensaje" y Django con "detail". Del detalle de Django solo se usan los
+        // rechazos de negocio en español (400, 404 y 409): QR vencido, usado, de otro objeto, etc.
+        fun campo(clave:String)=cuerpo?.get(clave)?.takeIf { it.isJsonPrimitive }?.asString?.takeIf { it.isNotBlank() }
+        val texto=campo("mensaje")
+        val detalle=if(code() in listOf(400,404,409)) campo("detail") else null
         val mensaje=when(code()) {
             401 -> texto ?: "Tu sesión venció. Vuelve a iniciar sesión."
             403 -> texto ?: "Tu cuenta no tiene permiso para esta acción."
-            404 -> "El recurso no está disponible o fue retirado."
+            404 -> detalle ?: "El recurso no está disponible o fue retirado."
             423 -> texto ?: "La cuenta está bloqueada temporalmente. Intenta más tarde."
             429 -> texto ?: "Espera antes de solicitar otro envío."
-            else -> texto ?: "No se pudo completar la operación. Reintenta."
+            else -> texto ?: detalle ?: "No se pudo completar la operación. Reintenta."
         }
         return ErrorDatos(mensaje,code(),response()?.headers()?.get("Retry-After")?.toIntOrNull()?.coerceIn(1,3600))
     }
