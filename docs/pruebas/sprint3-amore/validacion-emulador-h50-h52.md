@@ -27,9 +27,14 @@ Los pasos se hicieron en el paso 3 de 6 de Publicar.
 | Compresión | Las capturas JPEG pesan 83 212 y 83 010 bytes, muy por debajo del límite de 5 MiB. |
 | Publicación con foto | Se publicó el objeto 13. MySQL registra la foto `/uploads/dff62eca-….jpg`. `GET` de esa ruta devuelve `200 image/jpeg` con 83 010 bytes, el tamaño exacto de la segunda captura. ([captura](emulador-20261117/h52-09-publicado.png)) |
 
-**Observación:** después de publicar, la captura descartada sigue en
-`cache/capturas`. No afecta la publicación. Conviene borrarla al repetir la
-foto o al terminar el flujo.
+**Observación corregida:** en esta prueba, la captura descartada seguía en
+`cache/capturas` después de publicar. El commit `d91144b` borra la captura
+anterior al repetir o quitar la foto. También borra la captura publicada y
+la que queda pendiente cuando se cierra Publicar. Si la foto no sube, se
+conserva para reintentar. Solo se borran archivos de la carpeta de capturas
+de la app, nunca fotos de la galería. En el emulador, al repetir quedó una
+sola captura nueva. Después de publicar el objeto 17 con su foto no quedó
+ninguna. ([captura](emulador-20261117/h52-10-limpieza-publicado.png))
 
 ## H50: aviso de un reclamo en el celular
 
