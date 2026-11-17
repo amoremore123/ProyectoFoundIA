@@ -23,14 +23,22 @@ abre pero no llega ninguna respuesta.
    powershell -ExecutionPolicy Bypass -File movil\android\qa\telefono\conectar-telefono.ps1 -Apk output\android\FoundIA-Sprint3-Amore-telefono-usb.apk
    ```
 
-   El script instala el APK, crea los tres túneles y comprueba que la laptop
-   responda. Si desconectas el cable, vuelve a ejecutarlo sin `-Apk`.
+   El script instala el APK en todos los dispositivos conectados, crea los tres
+   túneles en cada uno y comprueba que la laptop responda. Si desconectas el cable, vuelve a ejecutarlo sin `-Apk`.
 
-Para el APK del teléfono hay que compilar con
+El mismo APK sirve para el teléfono y el emulador, porque `adb reverse`
+también funciona en el emulador. Se compila con
 `-PfoundiaApiUrl=http://127.0.0.1:18281/`,
 `-PfoundiaAdminApiUrl=http://127.0.0.1:18200/` y
-`-PfoundiaWebUrl=http://127.0.0.1:18273/`. El APK del emulador sigue usando
-`10.0.2.2`.
+`-PfoundiaWebUrl=http://127.0.0.1:18273/`.
+
+Para que el botón Run de Android Studio use esas URLs sin pasar parámetros,
+las tres propiedades están en `~/.gradle/gradle.properties`, el archivo
+global de Gradle del usuario, que no forma parte del repositorio. Quien no lo
+tenga compila con los puertos por defecto (`10.0.2.2:8081`, `8000` y `5173`).
+Para volver a ellos, se borran esas tres líneas. Después de abrir el emulador
+o reconectar el cable hay que volver a ejecutar el script, porque los túneles
+no sobreviven al reinicio.
 
 ## Cuentas de QA
 
