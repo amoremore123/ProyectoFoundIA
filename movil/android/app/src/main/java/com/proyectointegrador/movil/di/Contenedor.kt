@@ -38,6 +38,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             NuevaClaveViewModel::class.java->NuevaClaveViewModel(c.cuenta,tokenRecuperacion)
             PublicarViewModel::class.java->PublicarViewModel(c.cuenta,c.publicaciones,c.fotografias)
             PropiosViewModel::class.java->PropiosViewModel(c.cuenta)
+            EditarPublicacionViewModel::class.java->EditarPublicacionViewModel(c.cuenta,c.publicaciones,objetoId)
             SugerenciasViewModel::class.java->SugerenciasViewModel(c.cuenta,objetoId)
             ParejaViewModel::class.java->ParejaViewModel(c.cuenta,parejaId)
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)

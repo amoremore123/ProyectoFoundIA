@@ -135,7 +135,8 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                     }
                     composable("editar-perfil"){EditarPerfilScreen(volver)}
                     composable("seguridad"){EditarPerfilScreen(volver,seguridad=true)}
-                    composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")})}
+                    composable("propios") {PropiosScreen(volver,{abrir("detalle/$it")},{abrir("sugerencias/$it")},{abrir("editar-publicacion/$it")})}
+                    composable("editar-publicacion/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {EditarPublicacionScreen(it.arguments!!.getLong("id"),volver)}
                     composable("sugerencias/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
                         SugerenciasScreen(it.arguments!!.getLong("id"),volver,abrir={abrir("pareja/$it")})
                     }

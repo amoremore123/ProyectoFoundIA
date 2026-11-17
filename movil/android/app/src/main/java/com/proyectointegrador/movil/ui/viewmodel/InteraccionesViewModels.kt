@@ -7,7 +7,21 @@ import com.proyectointegrador.movil.model.*
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 
-class PropiosViewModel(repo:CuentaRepository):CargaViewModel<List<Objeto>>({repo.propios()})
+class PropiosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Objeto>>({repo.propios()}) {
+    private val _porEliminar=MutableStateFlow<Objeto?>(null);val porEliminar=_porEliminar.asStateFlow()
+    fun pedirEliminar(objeto:Objeto){if(!accion.value.ocupada&&com.proyectointegrador.movil.domain.puedeEliminarPublicacion(objeto.estado))_porEliminar.value=objeto}
+    fun cancelarEliminar(){if(!accion.value.ocupada)_porEliminar.value=null}
+    fun confirmarEliminar(){
+        val objeto=_porEliminar.value?:return
+        if(!com.proyectointegrador.movil.domain.puedeEliminarPublicacion(objeto.estado)){_porEliminar.value=null;rechazar("Esta publicación ya no se puede eliminar.");return}
+        ejecutar {
+            repo.eliminar(objeto.id)
+            _porEliminar.value=null
+            informar("Publicación eliminada. Se conserva en tu historial.")
+            recargar()
+        }
+    }
+}
 class SugerenciasViewModel(repo:CuentaRepository,id:Long):CargaViewModel<SugerenciasDatos>({repo.sugerencias(id)}) {
     val puedeGestionar get()=estado.value.datos?.let {it.objeto.publicadoPor?.id==it.usuario.id && it.objeto.tipo=="PERDIDO"}==true
 }

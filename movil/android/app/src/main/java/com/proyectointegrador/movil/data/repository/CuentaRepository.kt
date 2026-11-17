@@ -65,6 +65,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun perfil()=privada {api.perfil()}
     suspend fun crearInvitacion() = privada { api.crearInvitacion() }
     suspend fun propios()=privada {api.propios()}
+    suspend fun objeto(id:Long)=privada {api.objetoPorId(id)}
     suspend fun sugerirPublicacion(datos: SolicitudSugerencia) = privada { api.sugerirPublicacion(datos) }
     suspend fun publicar(datos:PublicacionRequest)=privada {val respuesta=api.publicar(datos);publicaciones.invalidar();respuesta}
     suspend fun subirFoto(id:Long,foto:FotoPreparada)=privada {val parte=okhttp3.MultipartBody.Part.createFormData("archivo",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()));val respuesta=api.subirFoto(id,parte);publicaciones.invalidar();respuesta}

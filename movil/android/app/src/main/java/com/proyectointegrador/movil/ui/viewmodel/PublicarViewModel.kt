@@ -57,18 +57,9 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         _form.value=_form.value.copy(ubicacion=com.proyectointegrador.movil.domain.textoUbicacionGps(direccion,c),latitud=c.latitud,longitud=c.longitud,errores=emptyMap())}
     fun quitarGps(){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(latitud=null,longitud=null)}
     fun categoria(id:Long){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(categoriaId=id,errores=emptyMap())}
-    private fun validar(f:FormPublicacion):Map<String,String>{val errores=mutableMapOf<String,String>()
-        if(f.nombre.isBlank() || f.nombre.length>150)errores["nombre"]="Ingresa un nombre de hasta 150 caracteres."
-        if(f.descripcion.isBlank() || f.descripcion.length>16000)errores["descripcion"]="Ingresa una descripción válida."
-        if(f.categoriaId==null || estado.value.datos?.datos?.none {it.id==f.categoriaId && it.estado}!=false)errores["categoria"]="Selecciona una categoría disponible."
-        if(f.ubicacion.isBlank() || f.ubicacion.length>255)errores["ubicacion"]="Ingresa una ubicación de hasta 255 caracteres."
-        if((f.latitud==null)!=(f.longitud==null)||(f.latitud!=null&&!com.proyectointegrador.movil.domain.coordenadasValidas(f.latitud,f.longitud)))errores["ubicacion"]="Las coordenadas de la ubicación no son válidas."
-        val formato=SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).apply {isLenient=false}
-        val fecha=runCatching {if(!Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}").matches(f.fecha))null else formato.parse(f.fecha)}.getOrNull()
-        val hoy=formato.parse(formato.format(Date()))!!
-        if(fecha==null || fecha.after(hoy))errores["fecha"]="Ingresa una fecha válida que no sea futura."
-        if(f.tipo !in listOf("PERDIDO","ENCONTRADO"))errores["tipo"]="Selecciona el tipo de objeto."
-        return errores
+    private fun validar(f:FormPublicacion):Map<String,String> {
+        val categoriaDisponible=f.categoriaId!=null&&estado.value.datos?.datos?.none {it.id==f.categoriaId&&it.estado}==false
+        return com.proyectointegrador.movil.domain.validarPublicacion(f.nombre,f.descripcion,categoriaDisponible,f.ubicacion,f.latitud,f.longitud,f.fecha,f.tipo)
     }
     fun siguiente(){val f=_form.value
         val campos=when(f.paso){0->setOf("tipo");1->setOf("nombre","descripcion","categoria");3->setOf("ubicacion");4->setOf("fecha");else->emptySet()}
