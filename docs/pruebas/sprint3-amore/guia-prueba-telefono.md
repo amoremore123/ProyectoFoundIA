@@ -78,6 +78,17 @@ escanéalo con el teléfono.
 | Vencido | Etiqueta C y QR de retiro C. En la base de QA, `qr_retiro_expira` se movió a ayer | Rechazo por QR vencido. C sigue en custodia |
 | Sin permiso de cámara | Negar la cámara en «Registrar entrega» | Aviso y entrada manual disponibles |
 
+Qué debe mostrar la app en cada caso, con los mensajes reales del servidor:
+
+| Situación | Mensaje |
+| --- | --- |
+| Escanear el QR de retiro en «Escanear etiqueta» | «Ese QR es un código de retiro. Para este campo escanea la etiqueta pegada en el objeto.» |
+| Escanear la etiqueta en «Escanear QR de retiro» | «Ese QR es la etiqueta del objeto. Para este campo escanea el QR de retiro que presenta la persona.» |
+| QR vencido (caso C) | «El QR de retiro está vencido.» |
+| QR ya usado (repetir el caso A) | «Este QR de retiro ya fue usado.» |
+| Etiqueta de otro objeto | «La etiqueta no corresponde al objeto de este retiro.» |
+| Entrega válida (caso A) | «Entrega registrada. El objeto quedó como recuperado.» |
+
 La etiqueta de main lleva el enlace `…/custodia/verificar?t=<token>`. El
 escáner Android lo acepta porque mide menos de 500 caracteres, y Django
 extrae el token.
