@@ -52,7 +52,7 @@ class ApiPublicacionesRepository(private val api: ApiService, private val cache:
         return lista(clave) {api.buscarObjetos(q=consulta,tipo=tipo)}
     }
     override fun detalle(id:Long)=consultar({cache.detalle(id)},{cache.guardarDetalle(it)},{api.objetoPorId(id)},{cache.retirar(id)})
-    override suspend fun categorias():Lectura<List<Categoria>> = consultar({cache.categorias()},{cache.guardarCategorias(it)},{api.categorias()}).first()
+    override suspend fun categorias():Lectura<List<Categoria>> = consultar({cache.categorias()},{cache.guardarCategorias(it)},{api.categorias()}).first().let {l->l.copy(datos=com.proyectointegrador.movil.domain.ordenarCategorias(l.datos))}
     override fun observarCategorias()=cache.observarCategorias()
     override suspend fun coincidencias(id:Long)=llamadaApi {api.coincidencias(id)}
     override suspend fun vigente(id:Long)=llamadaApi {api.objetoPorId(id)}

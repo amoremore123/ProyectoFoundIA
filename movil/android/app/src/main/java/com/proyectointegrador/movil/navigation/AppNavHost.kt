@@ -69,7 +69,9 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
         val etiquetasCompactas=LocalConfiguration.current.screenWidthDp<360&&LocalDensity.current.fontScale>1.1f
         val pestanas=listOf("inicio" to "Inicio","propios" to "Reportes","asistente" to "FINDI","buscar" to "Buscar","perfil" to "Perfil")
         val principal=ruta in listOf("inicio","buscar","avisos","perfil","propios") || ruta?.startsWith("publicar?")==true
-        Scaffold(contentWindowInsets=WindowInsets(0),bottomBar={if(principal) Surface(shadowElevation=12.dp,color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)) {
+        // Con el teclado abierto se oculta la barra inferior y el relleno del Scaffold se consume: antes imePadding() contaba dos veces su altura.
+        val tecladoVisible=WindowInsets.ime.getBottom(LocalDensity.current)>0
+        Scaffold(contentWindowInsets=WindowInsets(0),bottomBar={if(principal&&!tecladoVisible) Surface(shadowElevation=12.dp,color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)) {
             NavigationBar(containerColor=androidx.compose.ui.graphics.Color.Transparent,tonalElevation=0.dp) {
                 pestanas.forEachIndexed {indice,(destino,texto)->
                     val iconos=listOf(Simbolos.Inicio,Simbolos.Ajustes,Simbolos.Chat,Simbolos.Buscar,Simbolos.Perfil)
@@ -81,7 +83,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 }
             }
         }}) { padding ->
-            NavHost(navController=nav,startDestination=if(!sesion.autenticado&&!ajustes.introduccionCompleta)"bienvenida" else if(sesion.aviso!=null)"perfil" else "inicio",modifier=Modifier.padding(padding),
+            NavHost(navController=nav,startDestination=if(!sesion.autenticado&&!ajustes.introduccionCompleta)"bienvenida" else if(sesion.aviso!=null)"perfil" else "inicio",modifier=Modifier.padding(padding).consumeWindowInsets(padding),
                 enterTransition={fadeIn()},exitTransition={fadeOut()}) {
                 composable("bienvenida"){BienvenidaScreen(experiencia,::abrir)}
                 composable("inicio") {InicioScreen(onObjetoClick={abrir("detalle/$it")},abrir=::abrir,comunidad=actividad,autenticado=sesion.autenticado)}

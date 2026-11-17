@@ -25,7 +25,7 @@ import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
     error!=null->item{AvisoEstado(error!!,true);BotonPrincipal("Reintentar",{viewModel.cargarDetalle(objetoId)})}
     objeto!=null->{val o=objeto!!
      item{if(o.fotosSeguras.size>1)LazyRow(horizontalArrangement=Arrangement.spacedBy(12.dp)){items(o.fotosSeguras,key={it.id}){foto->FotoObjeto(o.copy(fotos=listOf(foto)),Modifier.width(280.dp).height(260.dp).clip(RoundedCornerShape(26.dp)))}} else FotoObjeto(o,Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(26.dp)))}
-     item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically){TipoChip(o.tipoSeguro);Text(o.estado?:"Sin estado",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Spacer(Modifier.height(10.dp));Text(o.nombre,style=MaterialTheme.typography.headlineLarge);o.categoria?.nombre?.let {Text(it,style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}}
+     item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically){TipoChip(o.tipoSeguro);Text(com.proyectointegrador.movil.domain.etiquetaEstadoObjeto(o.estado),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)};Spacer(Modifier.height(10.dp));Text(o.nombre,style=MaterialTheme.typography.headlineLarge);o.categoria?.nombre?.let {Text(it,style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)}}
      if (o.estado == "EN_CUSTODIA") item {
       AvisoEstado("En custodia en la biblioteca")
       BotonPrincipal("Reclamar o consultar mi reclamo", { onReclamo(o.id) })
@@ -37,7 +37,7 @@ import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
      if(coincidencias.isNotEmpty()) {
       item{Text("Posibles coincidencias",style=MaterialTheme.typography.titleLarge);Text("Sugerencias reales según las características del objeto.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)}
       items(coincidencias,key={it.objetoId}){c->Surface(onClick={onComparar(c.coincidenciaId?:if(o.esPerdido)"${o.id}-${c.objetoId}" else "${c.objetoId}-${o.id}")},shape=RoundedCornerShape(20.dp),color=MaterialTheme.colorScheme.tertiaryContainer){Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(c.nombre?:"Objeto",style=MaterialTheme.typography.titleMedium);Text("${c.porcentaje?.let {"%.0f".format(it)}?:"—"}% de similitud · ${c.nivel?:"Sin nivel"}",color=MaterialTheme.colorScheme.onTertiaryContainer);FilaDato(Simbolos.Lugar,c.ubicacion?:"Sin ubicación");Text("Comparar objetos →",style=MaterialTheme.typography.labelLarge)}}}
-     }else item{Text("Aún no hay coincidencias sugeridas.",color=MaterialTheme.colorScheme.onSurfaceVariant,style=MaterialTheme.typography.bodySmall)}
+     }else if(com.proyectointegrador.movil.domain.admiteCoincidencias(o.estado)) item{Text("Aún no hay coincidencias sugeridas.",color=MaterialTheme.colorScheme.onSurfaceVariant,style=MaterialTheme.typography.bodySmall)}
     }
    }
   }

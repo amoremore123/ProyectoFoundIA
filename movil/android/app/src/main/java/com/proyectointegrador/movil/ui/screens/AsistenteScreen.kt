@@ -270,7 +270,7 @@ private fun TarjetaDeFindi(tarjeta: TarjetaFindi, abrir: (String) -> Unit) {
             val id = datos.id?.takeIf { it > 0 } ?: return
             if (tarjeta.enlace != "/objeto/$id") return
             ruta = "detalle/$id"
-            detalle = listOfNotNull(datos.tipo, datos.estado, datos.ubicacion, datos.categoria).joinToString(" · ")
+            detalle = listOfNotNull(datos.tipo, datos.estado?.let { com.proyectointegrador.movil.domain.etiquetaEstadoObjeto(it) }, datos.ubicacion, datos.categoria).joinToString(" · ")
         }
         "RECLAMOS", "QR_RETIRO" -> {
             if (tarjeta.enlace != "/mis-publicaciones") return

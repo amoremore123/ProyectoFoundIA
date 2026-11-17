@@ -44,9 +44,12 @@ class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel
             try {
                 repository.detalle(id).collect {lectura->_detalle.value=lectura.datos;_avisoDetalle.value=lectura.aviso}
                 _cargandoDetalle.value=false
-                try {_coincidencias.value=repository.coincidencias(id)}
-                catch(e:CancellationException){throw e}
-                catch(e:Exception){_avisoDetalle.value=listOfNotNull(_avisoDetalle.value,"No se pudieron actualizar las coincidencias. Reintenta.").joinToString(" ")}
+                // Un objeto en custodia no es público: su endpoint de coincidencias responde 404 y no es un fallo.
+                if(com.proyectointegrador.movil.domain.admiteCoincidencias(_detalle.value?.estado)) {
+                    try {_coincidencias.value=repository.coincidencias(id)}
+                    catch(e:CancellationException){throw e}
+                    catch(e:Exception){_avisoDetalle.value=listOfNotNull(_avisoDetalle.value,"No se pudieron actualizar las coincidencias. Reintenta.").joinToString(" ")}
+                }
             } catch(e:CancellationException){throw e}
             catch(e:Exception){_errorDetalle.value=e.comoErrorDatos().mensaje;_cargandoDetalle.value=false}
         }
