@@ -67,7 +67,14 @@ El APK de QA usa los puertos del host 18281 (Spring), 18200 (Django) y
 `-PfoundiaAdminApiUrl=http://10.0.2.2:18200/` y
 `-PfoundiaWebUrl=http://10.0.2.2:18273/`.
 
+El 17/11 se validaron en el emulador con las APIs reales H52 y H50. En H52 se
+probó negar la cámara, usar la galería, reintentar, repetir la foto y subirla.
+En H50 se probó el permiso negado, la notificación con la app cerrada, que no
+lleguen avisos ajenos, que se abra la bandeja y la preferencia desactivada. El
+detalle está en
+[validacion-emulador-h50-h52.md](../pruebas/sprint3-amore/validacion-emulador-h50-h52.md).
+
 Quedan por certificar en un teléfono la cámara física, el escaneo de los dos
-QR, el dictado en un ambiente con ruido y la entrega programada con la app en
-segundo plano. La lectura con TalkBack requiere una prueba con el servicio
-activo.
+QR, el dictado en un ambiente con ruido y la entrega natural de WorkManager. En
+el emulador, la ejecución con la app cerrada se forzó después del periodo. La
+lectura con TalkBack requiere una prueba con el servicio activo.
