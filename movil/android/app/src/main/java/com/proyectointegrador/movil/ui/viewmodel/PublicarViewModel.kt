@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 data class FormPublicacion(val tipo:String="PERDIDO",val nombre:String="",val descripcion:String="",val categoriaId:Long?=null,
-    val ubicacion:String="",val fecha:String="",val foto:String?=null,val paso:Int=0,val publicadoId:Long?=null,val errores:Map<String,String> = emptyMap())
+    val ubicacion:String="",val latitud:Double?=null,val longitud:Double?=null,val fecha:String="",val foto:String?=null,val paso:Int=0,val publicadoId:Long?=null,val errores:Map<String,String> = emptyMap())
 class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:PublicacionesRepository,private val fotos:FotografiasRepository?=null):CargaViewModel<Lectura<List<Categoria>>>({publicaciones.categorias()}) {
     private val _form=MutableStateFlow(FormPublicacion());val form=_form.asStateFlow()
     private val _sugerencia = MutableStateFlow<SugerenciaFindi?>(null)
@@ -49,14 +49,20 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
     fun terminarSinFoto(){_form.value.publicadoId?.let {emitirEvento(it.toString())}}
     fun editar(campo:String,valor:String){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=when(campo){
         "tipo"->_form.value.copy(tipo=valor);"nombre"->_form.value.copy(nombre=valor);"descripcion"->_form.value.copy(descripcion=valor)
-        "ubicacion"->_form.value.copy(ubicacion=valor);"fecha"->_form.value.copy(fecha=valor);else->_form.value
+        "ubicacion"->_form.value.copy(ubicacion=valor,latitud=null,longitud=null);"fecha"->_form.value.copy(fecha=valor);else->_form.value
     }.copy(errores=emptyMap())}
+    /** Un lugar del campus reemplaza al GPS: se borran las coordenadas, como en la web. */
+    fun lugarCampus(nombre:String){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(ubicacion=nombre.take(255),latitud=null,longitud=null,errores=emptyMap())}
+    fun ubicacionGps(c:com.proyectointegrador.movil.domain.Coordenadas,direccion:String?){if(accion.value.ocupada||_form.value.publicadoId!=null)return
+        _form.value=_form.value.copy(ubicacion=com.proyectointegrador.movil.domain.textoUbicacionGps(direccion,c),latitud=c.latitud,longitud=c.longitud,errores=emptyMap())}
+    fun quitarGps(){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(latitud=null,longitud=null)}
     fun categoria(id:Long){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=_form.value.copy(categoriaId=id,errores=emptyMap())}
     private fun validar(f:FormPublicacion):Map<String,String>{val errores=mutableMapOf<String,String>()
         if(f.nombre.isBlank() || f.nombre.length>150)errores["nombre"]="Ingresa un nombre de hasta 150 caracteres."
         if(f.descripcion.isBlank() || f.descripcion.length>16000)errores["descripcion"]="Ingresa una descripción válida."
         if(f.categoriaId==null || estado.value.datos?.datos?.none {it.id==f.categoriaId && it.estado}!=false)errores["categoria"]="Selecciona una categoría disponible."
         if(f.ubicacion.isBlank() || f.ubicacion.length>255)errores["ubicacion"]="Ingresa una ubicación de hasta 255 caracteres."
+        if((f.latitud==null)!=(f.longitud==null)||(f.latitud!=null&&!com.proyectointegrador.movil.domain.coordenadasValidas(f.latitud,f.longitud)))errores["ubicacion"]="Las coordenadas de la ubicación no son válidas."
         val formato=SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).apply {isLenient=false}
         val fecha=runCatching {if(!Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}").matches(f.fecha))null else formato.parse(f.fecha)}.getOrNull()
         val hoy=formato.parse(formato.format(Date()))!!
@@ -75,7 +81,7 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         ejecutar {
             // Validar y leer la imagen antes de crear evita publicaciones por un archivo inválido.
             val foto=f.foto?.let {fotos?.preparar(it)?:throw com.proyectointegrador.movil.domain.ErrorDatos("No se pudo preparar la fotografía.")}
-            val id=f.publicadoId?:cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim())).id
+            val id=f.publicadoId?:cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim(),f.latitud,f.longitud)).id
             _form.value=_form.value.copy(publicadoId=id)
             if(foto!=null)try {cuenta.subirFoto(id,foto)}catch(e:kotlinx.coroutines.CancellationException){throw e}catch(e:Exception){throw com.proyectointegrador.movil.domain.ErrorDatos("La publicación $id ya está creada. No se pudo subir la foto. Reintenta la foto o continúa sin ella; no se creará otra publicación.")}
             f.foto?.let {fotos?.descartar(it)}

@@ -32,6 +32,7 @@ import com.proyectointegrador.movil.ui.viewmodel.ObjetosViewModel
      }
      aviso?.let {item{AvisoEstado(it);TextButton(onClick={viewModel.cargarDetalle(objetoId)}){Text("Actualizar publicación")}}}
      item{Panel {FilaDato(Simbolos.Lugar,o.ubicacion?:"Sin ubicación");HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant);FilaDato(Simbolos.Fecha,o.fechaObjeto?:"Sin fecha");FilaDato(Simbolos.Perfil,o.publicadoPor?.nombreCompleto?:"Comunidad Tecsup")}}
+     if(o.latitud!=null&&o.longitud!=null) item{MapaUbicacion(o.latitud,o.longitud,o.ubicacion?:o.nombre)}
      item{Text("Los detalles importan",style=MaterialTheme.typography.titleLarge);Spacer(Modifier.height(10.dp));Text(o.descripcion?.ifBlank {"Sin descripción"}?:"Sin descripción",style=MaterialTheme.typography.bodyLarge)}
      item{Panel{com.proyectointegrador.movil.ui.screens.publicaciones.DetalleAcciones(o,onReportar,onAcceso)}}
      if(coincidencias.isNotEmpty()) {
