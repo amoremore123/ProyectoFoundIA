@@ -7,9 +7,13 @@ import java.util.Locale
 
 interface AsistenteRepository {
     suspend fun responder(mensaje: String): RespuestaFindi
+    /** [imagen] es una data URL JPEG o PNG de hasta 2 MiB. */
+    suspend fun buscarPorFoto(imagen: String): FotoBusquedaRespuesta = throw UnsupportedOperationException("No disponible")
 }
 
 class ApiAsistenteRepository(private val api: ApiService) : AsistenteRepository {
+    override suspend fun buscarPorFoto(imagen: String): FotoBusquedaRespuesta = llamadaApi { api.buscarPorFoto(FotoBusquedaRequest(imagen)) }
+
     override suspend fun responder(mensaje: String): RespuestaFindi = llamadaApi {
         val r = api.interpretarFindi(ConsultaFindi(mensaje))
         val texto = Normalizer.normalize(mensaje.lowercase(Locale.ROOT), Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")

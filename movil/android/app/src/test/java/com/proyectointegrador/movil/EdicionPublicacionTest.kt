@@ -157,7 +157,9 @@ class EdicionPublicacionTest {
         assertFalse("Cancelar no llama al servidor", llamadas.any { it.startsWith("DELETE") })
         vm.pedirEliminar(objeto())
         vm.confirmarEliminar()
-        withTimeout(5000) { vm.accion.first { it.mensaje != null } }
+        withTimeout(5000) { vm.accion.first { it.mensaje != null && !it.ocupada } }
+        // La lista se recarga después de borrar: se espera a que termine para no dejar corrutinas sueltas.
+        withTimeout(5000) { vm.estado.first { !it.cargando && it.datos?.isEmpty() == true } }
         assertTrue(llamadas.contains("DELETE /api/objetos/41"))
         assertNull(vm.porEliminar.value)
         assertEquals("Publicación eliminada. Se conserva en tu historial.", vm.accion.value.mensaje)

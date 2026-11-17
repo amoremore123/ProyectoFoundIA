@@ -27,3 +27,11 @@ data class AccionFindi(val texto: String, val ruta: String)
 data class RespuestaFindi(val texto: String, val objetos: List<Objeto> = emptyList(),
     val accion: AccionFindi? = null, val fuente: String? = null,
     val tarjetas: List<TarjetaFindi> = emptyList(), val propuestas: List<PropuestaFindi> = emptyList())
+
+data class FotoBusquedaRequest(val imagen: String)
+data class FotoBusquedaRespuesta(
+    val descripcion: String? = null,
+    val categoria: ObjetoCategoria? = null,
+    val palabras: List<String>? = null,
+    val colores: List<String>? = null,
+)

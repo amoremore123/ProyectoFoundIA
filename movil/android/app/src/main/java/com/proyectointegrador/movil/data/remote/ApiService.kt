@@ -15,6 +15,9 @@ import retrofit2.http.Query
 /** Contrato de la API publica de Spring Boot (seccion 3 de docs/api/endpoints.md). */
 interface ApiService {
 
+    @POST("api/asistente/buscar-por-foto")
+    suspend fun buscarPorFoto(@Body datos: FotoBusquedaRequest): FotoBusquedaRespuesta
+
     @POST("api/asistente/interpretar")
     suspend fun interpretarFindi(@Body datos: ConsultaFindi): InterpretacionFindi
 

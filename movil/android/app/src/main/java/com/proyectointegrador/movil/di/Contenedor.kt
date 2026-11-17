@@ -28,6 +28,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             ComunidadViewModel::class.java->ComunidadViewModel(c.cuenta)
             ExperienciaViewModel::class.java->ExperienciaViewModel(c.experiencia)
             ObjetosViewModel::class.java->ObjetosViewModel(c.publicaciones)
+            BusquedaFotoViewModel::class.java->BusquedaFotoViewModel(c.asistente,c.fotografias)
             SesionViewModel::class.java->SesionViewModel(c.cuenta)
             AccesoViewModel::class.java->AccesoViewModel(c.cuenta)
             RegistroViewModel::class.java->RegistroViewModel(c.cuenta)
