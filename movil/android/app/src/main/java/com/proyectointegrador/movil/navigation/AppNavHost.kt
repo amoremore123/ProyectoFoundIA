@@ -83,6 +83,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 }
             }
         }}) { padding ->
+            CompositionLocalProvider(LocalAbrirWeb provides {clave:String,parametro:String?->abrir("web/"+clave+(if(parametro.isNullOrBlank()) "" else "?p="+Uri.encode(parametro)))}) {
             NavHost(navController=nav,startDestination=if(!sesion.autenticado&&!ajustes.introduccionCompleta)"bienvenida" else if(sesion.aviso!=null)"perfil" else "inicio",modifier=Modifier.padding(padding).consumeWindowInsets(padding),
                 enterTransition={fadeIn()},exitTransition={fadeOut()}) {
                 composable("bienvenida"){BienvenidaScreen(experiencia,::abrir)}
@@ -120,6 +121,13 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
+                composable("web/{clave}?p={p}",arguments=listOf(navArgument("clave"){type=NavType.StringType},navArgument("p"){type=NavType.StringType;defaultValue=""})) {entrada->
+                    val clave=entrada.arguments?.getString("clave").orEmpty()
+                    val url=com.proyectointegrador.movil.domain.urlPaginaWeb(BuildConfig.WEB_URL,clave,entrada.arguments?.getString("p")?.takeIf {it.isNotBlank()})
+                    val titulo=com.proyectointegrador.movil.domain.PAGINAS_WEB_PERMITIDAS[clave]
+                    if(url==null||titulo==null) Pagina("Página no disponible",volver){AvisoEstado("Esta página no se puede abrir dentro de la app.",true)}
+                    else PaginaWebScreen(titulo,url,BuildConfig.WEB_URL,volver)
+                }
                 if(sesion.autenticado) {
                     composable("retiro") { RetiroScreen(volver) }
                     composable("reclamo-custodia/{id}", arguments=listOf(navArgument("id"){type=NavType.LongType})) {
@@ -137,6 +145,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                         ReporteScreen(it.arguments!!.getLong("id"),volver)
                     }
                 }
+            }
             }
         }
     }

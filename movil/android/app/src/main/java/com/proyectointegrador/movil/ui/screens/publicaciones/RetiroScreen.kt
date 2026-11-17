@@ -73,6 +73,8 @@ fun RetiroScreen(volver: () -> Unit, vm: RetiroViewModel = viewModel(factory = f
                 isError = etiqueta.isNotBlank() && !etiquetaOk,
                 supportingText = { if (etiqueta.isNotBlank()) Text(if (etiquetaOk) "Etiqueta de custodia leída." else "Este valor no parece una etiqueta de custodia.") })
             OutlinedButton(onClick = { iniciar(true) }, enabled = !accion.ocupada) { Text("Escanear etiqueta") }
+            val abrirWeb = LocalAbrirWeb.current
+            if (etiquetaOk && abrirWeb != null) TextButton(onClick = { abrirWeb("etiqueta", etiqueta) }) { Text("Ver la etiqueta en la web de FoundIA") }
             OutlinedTextField(token, { token = it.take(64); aviso = null }, label = { Text("Código de retiro") },
                 enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
                 isError = token.isNotBlank() && !tokenOk,
