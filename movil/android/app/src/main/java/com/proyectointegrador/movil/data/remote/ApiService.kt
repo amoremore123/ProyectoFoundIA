@@ -36,7 +36,12 @@ interface ApiService {
         @Query("q") q: String? = null,
         @Query("tipo") tipo: String? = null,
         @Query("categoriaId") categoriaId: Long? = null,
-        @Query("ubicacion") ubicacion: String? = null
+        @Query("ubicacion") ubicacion: String? = null,
+        @Query("desde") desde: String? = null,
+        @Query("hasta") hasta: String? = null,
+        @Query("latitud") latitud: Double? = null,
+        @Query("longitud") longitud: Double? = null,
+        @Query("radioKm") radioKm: Double? = null
     ): List<Objeto>
 
     @GET("api/objetos/categoria/{id}")

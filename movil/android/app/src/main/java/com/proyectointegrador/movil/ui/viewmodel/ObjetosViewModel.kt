@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 data class ObjetosUiState(val objetos:List<Objeto> = emptyList(),val cargando:Boolean=false,val error:String?=null,val aviso:String?=null)
-data class FormBusqueda(val texto:String="",val tipo:String?=null,val categoriaId:Long?=null)
+data class FormBusqueda(val texto:String="",val tipo:String?=null,val categoriaId:Long?=null,val avanzados:com.proyectointegrador.movil.domain.FiltrosAvanzados=com.proyectointegrador.movil.domain.FiltrosAvanzados(),val errorFiltros:String?=null)
 
 class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel() {
     private val _state=MutableStateFlow(ObjetosUiState());val state=_state.asStateFlow()
@@ -26,13 +26,21 @@ class ObjetosViewModel(private val repository:PublicacionesRepository):ViewModel
     fun elegirTipo(tipo:String?){_busqueda.value=_busqueda.value.copy(tipo=tipo);consultar(true)}
     fun elegirCategoria(id:Long?){_busqueda.value=_busqueda.value.copy(categoriaId=id);consultar(true)}
     fun buscarActual(){consultar(true)}
+    /** Aplica los filtros avanzados solo si son válidos; si no, muestra el motivo y no consulta. */
+    fun aplicarAvanzados(filtros:com.proyectointegrador.movil.domain.FiltrosAvanzados){
+        val error=com.proyectointegrador.movil.domain.errorDeFiltros(filtros)
+        _busqueda.value=_busqueda.value.copy(errorFiltros=error,avanzados=if(error==null)filtros else _busqueda.value.avanzados)
+        if(error==null)consultar(true)
+    }
+    fun quitarFiltro(clave:String){_busqueda.value=_busqueda.value.copy(avanzados=com.proyectointegrador.movil.domain.sinFiltro(_busqueda.value.avanzados,clave),errorFiltros=null);consultar(true)}
+    fun limpiarTodo(){_busqueda.value=_busqueda.value.copy(tipo=null,categoriaId=null,avanzados=com.proyectointegrador.movil.domain.FiltrosAvanzados(),errorFiltros=null);consultar(true)}
     private fun consultar(buscar:Boolean,espera:Long=0) {
         consulta?.cancel();_state.value=ObjetosUiState(cargando=true)
         consulta=viewModelScope.launch {
             try {
                 if(espera>0)delay(espera)
                 val f=_busqueda.value
-                val fuente=if(buscar)repository.buscar(f.texto.ifBlank {null},f.tipo) else repository.listar()
+                val fuente=if(buscar&&f.avanzados.activos)repository.buscarAvanzado(f.texto.ifBlank {null},f.tipo,f.categoriaId,f.avanzados) else if(buscar)repository.buscar(f.texto.ifBlank {null},f.tipo) else repository.listar()
                 fuente.collect {_state.value=ObjetosUiState(objetos=it.datos.filter {o->f.categoriaId==null||o.categoria?.id==f.categoriaId},aviso=it.aviso)}
             } catch(e:CancellationException){throw e}
             catch(e:Exception){_state.value=ObjetosUiState(error=e.comoErrorDatos().mensaje)}
