@@ -107,6 +107,19 @@ public class NotificacionService {
         notificacionRepository.save(notificacion);
     }
 
+    /** H55: avisa de un mensaje nuevo sin copiar su texto; la persona lo lee dentro de la conversación. */
+    @Transactional
+    public void notificarMensajeChat(Usuario destinatario, Long conversacionId) {
+        if (!preferencias.permite(destinatario.getId(), "MENSAJE_CHAT")) return;
+        Notificacion notificacion = new Notificacion();
+        notificacion.setUsuario(destinatario);
+        notificacion.setTitulo("Mensaje nuevo");
+        notificacion.setMensaje("Tienes un mensaje nuevo en la conversación #" + conversacionId + ".");
+        notificacion.setTipo("MENSAJE_CHAT");
+        notificacion.setLeida(Boolean.FALSE);
+        notificacionRepository.save(notificacion);
+    }
+
     @Transactional
     public void notificarReclamo(Usuario destinatario, Long objetoId) {
         if (!preferencias.permite(destinatario.getId(), "RECLAMO_RECIBIDO")) return;
