@@ -39,6 +39,17 @@ describe('H41 - al escanear la etiqueta se ve el objeto en custodia', () => {
     expect(screen.queryByRole('link', { name: /reclamarlo/ })).toBeNull();
   });
 
+  it('H73: dentro de la app no ofrece ir al detalle web, que pediría iniciar sesión', async () => {
+    verificarCustodia.mockResolvedValue({
+      codigo: 'FND-2026-0003', estado: 'EN_CUSTODIA', fechaRecepcion: null,
+      objeto: { id: 15, nombre: 'Mochila azul', categoria: null, fotoUrl: null },
+    });
+    abrir('/custodia/verificar?t=tok&embebido=1');
+    expect(await screen.findByRole('heading', { name: 'Objeto en custodia en la biblioteca' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /reclamarlo/ })).toBeNull();
+    expect(screen.getByText(/búscalo en la app de FoundIA/)).toBeTruthy();
+  });
+
   it('una etiqueta falsa, manipulada o sin token se rechaza', async () => {
     verificarCustodia.mockRejectedValue({ response: { status: 404 } });
     abrir('/custodia/verificar?t=falso');

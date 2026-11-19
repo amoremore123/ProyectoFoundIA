@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { EVENTO_CONSENTIMIENTO, OPCIONES, guardarConsentimiento, leerConsentimiento } from '../utils/almacenamiento';
+import { useEmbebido } from '../utils/embebido';
 
 // Aviso de cookies (Ley 29733): informa qué se guarda en el navegador y deja elegir.
 // No bloquea la página ni roba el foco; desaparece cuando la persona elige una opción.
 export default function AvisoCookies() {
   const [visible, setVisible] = useState(() => leerConsentimiento() === null);
   const { pathname } = useLocation();
+  const embebido = useEmbebido();
 
   useEffect(() => {
     // Si la elección se hace en /cookies, el aviso también se oculta
@@ -16,7 +18,8 @@ export default function AvisoCookies() {
   }, []);
 
   // En /cookies la propia página muestra la elección: el aviso flotante taparía la tabla
-  if (!visible || pathname === '/cookies') return null;
+  // Dentro del WebView de la app (H73) el aviso lo da la propia app
+  if (!visible || embebido || pathname === '/cookies') return null;
 
   return (
     <section className="aviso-cookies" aria-labelledby="aviso-cookies-titulo">

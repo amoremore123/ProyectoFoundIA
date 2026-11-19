@@ -4,6 +4,7 @@ import {
   CLAVE_CONSENTIMIENTO, CLAVE_TEMA, EVENTO_CONSENTIMIENTO, OPCIONES, guardarConsentimiento, leerConsentimiento,
 } from '../utils/almacenamiento';
 import { CLAVE_BORRADOR } from '../utils/borradorPublicar';
+import { CLAVE_EMBEBIDO } from '../utils/embebido';
 
 // Política de cookies y almacenamiento local: pública, se lee sin iniciar sesión.
 // Lo que dice esta página debe coincidir con lo que la web guarda (ver utils/almacenamiento.js).
@@ -12,6 +13,7 @@ const GUARDADO = [
   { nombre: 'usuario', para: 'Mostrar tu nombre e iniciales mientras tienes la sesión abierta.', tipo: 'Esencial', dura: 'Hasta que cierres sesión.' },
   { nombre: CLAVE_CONSENTIMIENTO, para: 'Recordar la opción que elegiste en este aviso.', tipo: 'Esencial', dura: 'Hasta que la cambies o borres los datos del navegador.' },
   { nombre: CLAVE_BORRADOR, para: 'Recuperar lo que escribiste en Publicar si el navegador recarga la página (por ejemplo, al volver de la cámara).', tipo: 'Esencial', dura: 'Solo en esa pestaña; se borra al publicar o al cerrarla.' },
+  { nombre: CLAVE_EMBEBIDO, para: 'Mostrar la página sin menú cuando la abres desde la app de FoundIA.', tipo: 'Esencial', dura: 'Solo dentro de la app o de esa pestaña.' },
   { nombre: CLAVE_TEMA, para: 'Recordar si prefieres el modo claro u oscuro.', tipo: 'Preferencia', dura: 'Solo si eliges «Recordar mis preferencias».' },
 ];
 

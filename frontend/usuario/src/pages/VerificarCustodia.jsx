@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Icono from '../components/Icono';
 import { fotoUrl, verificarCustodia } from '../services/api';
+import { useEmbebido } from '../utils/embebido';
 
 // H41: página que abre el QR de la etiqueta de custodia. Cualquiera que lo escanee ve qué objeto es
 // y si sigue en la biblioteca; nunca quién lo dejó ni quién lo reclamó.
@@ -33,6 +34,8 @@ function fechaRecepcion(valor) {
 export default function VerificarCustodia() {
   const [params] = useSearchParams();
   const t = params.get('t') || '';
+  // H73: dentro de la app no hay sesión web; reclamar se hace desde la propia app
+  const embebido = useEmbebido();
   const [estado, setEstado] = useState(t ? 'cargando' : 'invalida');
   const [custodia, setCustodia] = useState(null);
 
@@ -58,7 +61,7 @@ export default function VerificarCustodia() {
               ? 'Este QR no corresponde a una etiqueta vigente de FoundIA. Consulta en la biblioteca.'
               : 'Revisa tu conexión e inténtalo de nuevo.'}
           </p>
-          <Link className="btn btn-secundario" to="/explorar">Ver objetos encontrados</Link>
+          {!embebido && <Link className="btn btn-secundario" to="/explorar">Ver objetos encontrados</Link>}
         </section>
       </div>
     );
@@ -84,9 +87,11 @@ export default function VerificarCustodia() {
             {recibido && <p className="nota-suave">Recibido en la biblioteca el {recibido}</p>}
           </div>
         </div>
-        {custodia.estado === 'EN_CUSTODIA' && (
+        {custodia.estado === 'EN_CUSTODIA' && (embebido ? (
+          <p className="nota-suave">Si es tuyo, búscalo en la app de FoundIA y reclámalo desde su detalle.</p>
+        ) : (
           <Link className="btn btn-primario" to={`/objeto/${objeto.id}`}>Ver el objeto y reclamarlo</Link>
-        )}
+        ))}
       </section>
     </div>
   );
