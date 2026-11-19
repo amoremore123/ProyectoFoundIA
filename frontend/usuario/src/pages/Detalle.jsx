@@ -20,6 +20,9 @@ function fechaLarga(valor) {
   return `${dia}/${mes}/${anio}`;
 }
 
+// Estados en los que la API ofrece coincidencias (GET /api/objetos/{id}/coincidencias)
+const ESTADOS_CON_COINCIDENCIAS = ['ACTIVO', 'RECUPERADO'];
+
 export default function Detalle() {
   const { id } = useParams();
   const sesion = useAuth() || {};
@@ -109,7 +112,18 @@ export default function Detalle() {
     cargar();
   }, [cargar]);
 
+  // La API solo calcula coincidencias de objetos activos o recuperados: para uno en custodia
+  // respondería 404 y se vería como un error, así que ni se piden
+  const estadoObjeto = objeto?.estado;
+  const conCoincidencias = ESTADOS_CON_COINCIDENCIAS.includes(estadoObjeto);
+
   useEffect(() => {
+    if (!conCoincidencias) {
+      setCoincidencias([]);
+      setErrorCoincidencias('');
+      setCargandoCoincidencias(false);
+      return undefined;
+    }
     let vivo = true;
     setCargandoCoincidencias(true);
     setErrorCoincidencias('');
@@ -130,7 +144,7 @@ export default function Detalle() {
     return () => {
       vivo = false;
     };
-  }, [id, reintentosCoincidencias]);
+  }, [id, reintentosCoincidencias, conCoincidencias]);
 
   // H42/H44: en objetos de la biblioteca se consulta si ya reclamé y cómo va (con el QR si fue aceptado)
   useEffect(() => {
@@ -198,6 +212,7 @@ export default function Detalle() {
 
         <div className="detalle-cuerpo">
           <ChipTipo tipo={objeto.tipo} />
+          {objeto.estado === 'EN_CUSTODIA' && <span className="chip-estado estado-activo">En custodia</span>}
           <h1 className="detalle-titulo">{objeto.nombre}</h1>
           <p className="detalle-descripcion">{objeto.descripcion || 'Sin descripción.'}</p>
 
@@ -275,7 +290,7 @@ export default function Detalle() {
         </div>
       </div>
 
-      <section className="seccion">
+      {conCoincidencias && <section className="seccion">
         <h2>Coincidencias sugeridas</h2>
         {puedeContactar && (
           <p className="nota-suave">
@@ -349,7 +364,7 @@ export default function Detalle() {
             ))}
           </ul>
         )}
-      </section>
+      </section>}
 
       <ConfirmarDialogo
         abierto={confirmarReclamo}

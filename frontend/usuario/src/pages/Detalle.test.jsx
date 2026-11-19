@@ -210,6 +210,25 @@ describe('H20 - reclamo de un objeto encontrado', () => {
     expect(screen.queryByRole('button', { name: 'Reclamar este objeto' })).toBeNull();
   });
 
+  it('en custodia no pide coincidencias (la API respondería 404) ni muestra un error', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
+    renderizar(true);
+    await screen.findByRole('heading', { name: hallazgoAjeno.nombre, level: 1 });
+    expect(screen.getByText('En custodia')).toBeTruthy();
+    expect(screen.getByLabelText(/Qué detalle del objeto/)).toBeTruthy();
+    expect(getCoincidencias).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { name: 'Coincidencias sugeridas' })).toBeNull();
+    expect(screen.queryByText(/No se pudieron cargar las coincidencias/)).toBeNull();
+  });
+
+  it('un objeto activo sigue pidiendo y mostrando sus coincidencias', async () => {
+    getObjeto.mockResolvedValue(hallazgoAjeno);
+    renderizar(true);
+    expect(await screen.findByRole('heading', { name: 'Coincidencias sugeridas' })).toBeTruthy();
+    await waitFor(() => expect(getCoincidencias).toHaveBeenCalledWith('15'));
+    expect(screen.queryByText('En custodia')).toBeNull();
+  });
+
   it('H42: tras enviar el reclamo en custodia queda «en revisión»', async () => {
     getObjeto.mockResolvedValue({ ...hallazgoAjeno, estado: 'EN_CUSTODIA' });
     reclamarObjeto.mockResolvedValue({ id: 4, estado: 'PENDIENTE', repetido: false });
