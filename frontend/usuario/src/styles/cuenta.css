@@ -220,3 +220,17 @@ html[data-tema='oscuro'] .estado-reclamo-rechazado { border-color: #7a2a24; back
 .verificar-custodia-objeto .nota-suave { margin: 0; }
 .verificar-custodia-foto { width: 96px; height: 96px; flex: none; object-fit: cover; border-radius: var(--radio); border: 1px solid var(--border); }
 .verificar-custodia > .btn { justify-self: start; }
+
+/* H64: foto de perfil privada en Mi perfil */
+.perfil-resumen { flex-wrap: wrap; }
+.foto-perfil { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px 14px; flex-basis: 100%; }
+.foto-perfil-avatar { width: 72px; height: 72px; font-size: 26px; overflow: hidden; grid-row: span 2; }
+.foto-perfil-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-perfil-acciones { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.foto-perfil-acciones .btn-enlace { display: inline-flex; align-items: center; gap: 6px; }
+.foto-perfil-quitar { color: var(--danger, #b42318); }
+html[data-tema='oscuro'] .foto-perfil-quitar { color: #fda29b; }
+.foto-perfil-ayuda { margin: 0; }
+.foto-perfil .campo-error, .foto-perfil [role='status'] { grid-column: 1 / -1; margin: 0; }
+/* El selector de archivo queda oculto a la vista, pero el botón visible lo abre */
+.foto-perfil-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -5,6 +5,7 @@ import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
 import SolicitudEliminacion from '../components/SolicitudEliminacion';
 import InvitarAmigo from '../components/InvitarAmigo';
+import FotoPerfil from '../components/FotoPerfil';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -35,6 +36,7 @@ export default function Perfil() {
   const [form, setForm] = useState({ nombre: '', apellido: '', ...SIN_PASSWORD });
   const [correo, setCorreo] = useState('');
   const [rol, setRol] = useState('');
+  const [fotoPerfilUrl, setFotoPerfilUrl] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
   const [errorGuardar, setErrorGuardar] = useState('');
@@ -51,6 +53,7 @@ export default function Perfil() {
       setForm({ ...datos, ...SIN_PASSWORD });
       setCorreo(data.correo || '');
       setRol(data.rol || '');
+      setFotoPerfilUrl(data.fotoPerfilUrl || null);
     } catch (e) {
       setErrorCarga(mensajeError(e, 'No se pudo cargar tu perfil'));
     } finally {
@@ -161,9 +164,8 @@ export default function Perfil() {
 
       <form className="tarjeta formulario" onSubmit={guardar} noValidate>
         <div className="perfil-resumen">
-          <span className="perfil-avatar" aria-hidden="true">
-            {(original.nombre || correo || '?').charAt(0).toUpperCase()}
-          </span>
+          {/* H64: foto de perfil privada; sin foto, la inicial de siempre */}
+          <FotoPerfil fotoPerfilUrl={fotoPerfilUrl} iniciales={(original.nombre || correo || '?').charAt(0).toUpperCase()} />
           <div>
             <p className="perfil-correo">{correo}</p>
             {rol && <span className="perfil-rol">{rol}</span>}

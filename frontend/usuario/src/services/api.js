@@ -237,6 +237,29 @@ export const getPerfil = async () => {
   return data;
 };
 
+// H64: foto de perfil privada. La imagen solo se entrega con sesión, así que no sirve un <img src>
+// directo: se descarga con el token y se muestra como blob. Sin foto, la API responde 404.
+export const getFotoPerfil = async (url = '/api/perfil/foto') => {
+  try {
+    const { data } = await api.get(url, { responseType: 'blob' });
+    return data;
+  } catch (e) {
+    if (statusDe(e) === 404) return null;
+    throw e;
+  }
+};
+
+export const subirFotoPerfil = async (archivo) => {
+  const formulario = new FormData();
+  formulario.append('archivo', archivo);
+  const { data } = await api.post('/api/perfil/foto', formulario);
+  return data; // { fotoPerfilUrl: '/api/perfil/foto?v=…' }
+};
+
+export const quitarFotoPerfil = async () => {
+  await api.delete('/api/perfil/foto');
+};
+
 // H34: solicitud de eliminación de la cuenta (no ejecuta un borrado)
 export const getSolicitudEliminacion = async ({ signal } = {}) => {
   const { data } = await api.get('/api/perfil/solicitud-eliminacion', { signal });
