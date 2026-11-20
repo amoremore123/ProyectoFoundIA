@@ -12,7 +12,8 @@ La foto de perfil **no es pública**, a diferencia de las fotos de las publicaci
   chat que se definirá en ese contrato. Hasta entonces nadie más la ve.
 - **No aparece** en las publicaciones, las coincidencias ni ninguna respuesta pública.
 - El archivo se guarda en `perfiles/` dentro del volumen de fotos, y la ruta pública
-  `/uploads/perfiles/**` está **bloqueada** (`403`): no se puede abrir aunque alguien conozca el nombre.
+  `/uploads/perfiles/**` está **bloqueada**: responde `401` con o sin sesión y nunca entrega la
+  imagen, aunque alguien conozca el nombre. Las fotos de publicaciones siguen públicas.
 - Pendiente de decisión del equipo (decisión 5 del reparto, Ley 29733): si también se mostrará en
   las publicaciones. Este contrato aplica la opción más restrictiva.
 
@@ -55,7 +56,7 @@ Quita la foto y borra el archivo. `204`, también si no tenía foto (repetirlo e
 | `200` / `204` | Subida o consulta / borrado |
 | `400` | Sin archivo, archivo vacío, más de 5 MiB, no es JPEG ni PNG, más de 40 megapíxeles |
 | `401` | Sin sesión |
-| `403` | Acceso directo a `/uploads/perfiles/**` |
+| `401` | Acceso directo a `/uploads/perfiles/**`, con o sin sesión |
 | `404` | `GET` sin foto |
 
 ## Base de datos
@@ -82,6 +83,17 @@ recuperación (H58) sin cambios.
   real, debe borrar también la foto de perfil.
 - El recorte de la imagen lo hace el cliente (Android y web); el servidor guarda la imagen tal como llega.
 
+## Verificación del 20/11/2026
+
+- Spring: `FotoPerfilIntegrationTest` (**7 pruebas**). Suite completa: **509 pruebas, 0 fallos**.
+- MySQL 8.0 de QA: `migracion_h64_foto_perfil.sql` se ejecutó dos veces sin error. Por la API real:
+  subir una foto JPEG `200`; `GET /api/perfil/foto` devolvió los mismos bytes con
+  `image/jpeg` y `max-age=3600, private`; `fotoPerfilUrl` aparece en el perfil y en el inicio de
+  sesión; otra cuenta recibió `404`; un archivo que no es imagen, `400`.
+- En la base quedó `perfiles/0c07eabb-….jpg`; `/uploads/perfiles/…` respondió `401` con y sin
+  sesión, mientras una foto de publicación siguió respondiendo `200`.
+- El respaldo de fotos (H59) incluyó `./perfiles/0c07eabb-….jpg`.
+
 ## Pruebas que se deben ejecutar y registrar
 
 - Subir una foto válida: `200`, `GET` la devuelve igual y `fotoPerfilUrl` aparece en el perfil.
@@ -89,5 +101,5 @@ recuperación (H58) sin cambios.
 - Borrar: `204`, `GET` `404`, `fotoPerfilUrl` `null`, el archivo ya no existe; repetirlo `204`.
 - Archivo que no es imagen, PNG con extensión falsa y archivo de más de 5 MiB: `400`, sin cambios.
 - Sin sesión: `401`. Cada cuenta solo obtiene su propia foto.
-- `/uploads/perfiles/<archivo>`: `403` con y sin sesión.
+- `/uploads/perfiles/<archivo>`: nunca `200` (`401` en el servidor real, con y sin sesión).
 - La foto no aparece en `GET /api/objetos/{id}` ni en `publicadoPor`.
