@@ -23,10 +23,22 @@ class RedisenioViewModelsTest {
  private fun responder(dato:Any,codigo:Int=200){servidor.enqueue(MockResponse().setResponseCode(codigo).setBody(Gson().toJson(dato)))}
  private suspend fun <T> cargar(vm:CargaViewModel<T>)=withTimeout(5000){vm.estado.first {!it.cargando}.datos!!}
  private suspend fun terminar(vm:AccionViewModel)=withTimeout(5000){vm.accion.first {!it.ocupada}}
+ private val descartadas=mutableListOf<String>()
  private suspend fun publicador():PublicarViewModel {
   responder(listOf(Categoria(1,"Documentos",null,true)))
-  val fotos=object:FotografiasRepository{override suspend fun preparar(uri:String)=FotoPreparada(byteArrayOf(1,2),"image/png","foto.png")}
+  val fotos=object:FotografiasRepository{
+   override suspend fun preparar(uri:String)=FotoPreparada(byteArrayOf(1,2),"image/png","foto.png")
+   override fun descartar(uri:String){descartadas+=uri}
+  }
   return PublicarViewModel(cuenta,publicaciones,fotos).also {cargar(it);it.editar("nombre","Carné");it.editar("descripcion","Objeto de prueba");it.editar("ubicacion","Biblioteca");it.editar("fecha","2026-10-20");it.categoria(1);it.foto("content://qa/foto")}
+ }
+ @Test fun repetirYPublicarDescartanLasCapturasQueYaNoSeUsan()=runBlocking {
+  val vm=publicador();vm.foto("content://qa/repetida")
+  assertEquals(listOf("content://qa/foto"),descartadas)
+  responder(Objeto(id=92),201);responder(mapOf("mensaje" to "Sin foto"),500);vm.publicar();terminar(vm)
+  assertEquals("Si la foto no subió, se conserva para reintentar",listOf("content://qa/foto"),descartadas)
+  responder(ObjetoFoto(1,"/uploads/foto.png"),201);vm.publicar();terminar(vm)
+  assertEquals(listOf("content://qa/foto","content://qa/repetida"),descartadas)
  }
  @Test fun fotoFallidaNoInventaExitoNiDuplicaPublicacion()=runBlocking {
   val vm=publicador();responder(Objeto(id=91),201);responder(mapOf("mensaje" to "Sin foto"),500);vm.publicar();terminar(vm)

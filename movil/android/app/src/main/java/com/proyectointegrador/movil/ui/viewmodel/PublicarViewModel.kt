@@ -38,7 +38,14 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
     }
 
     fun paso(valor:Int){if(!accion.value.ocupada)_form.value=_form.value.copy(paso=valor.coerceIn(0,5))}
-    fun foto(uri:String?){if(!accion.value.ocupada&&_form.value.publicadoId==null)_form.value=_form.value.copy(foto=uri)}
+    fun foto(uri:String?){
+        if(accion.value.ocupada||_form.value.publicadoId!=null)return
+        val anterior=_form.value.foto
+        _form.value=_form.value.copy(foto=uri)
+        // Al repetir o quitar la foto, la captura anterior ya no se usará.
+        if(anterior!=null&&anterior!=uri)fotos?.descartar(anterior)
+    }
+    override fun onCleared(){_form.value.foto?.let {fotos?.descartar(it)};super.onCleared()}
     fun terminarSinFoto(){_form.value.publicadoId?.let {emitirEvento(it.toString())}}
     fun editar(campo:String,valor:String){if(accion.value.ocupada||_form.value.publicadoId!=null)return;_form.value=when(campo){
         "tipo"->_form.value.copy(tipo=valor);"nombre"->_form.value.copy(nombre=valor);"descripcion"->_form.value.copy(descripcion=valor)
@@ -71,6 +78,7 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
             val id=f.publicadoId?:cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim())).id
             _form.value=_form.value.copy(publicadoId=id)
             if(foto!=null)try {cuenta.subirFoto(id,foto)}catch(e:kotlinx.coroutines.CancellationException){throw e}catch(e:Exception){throw com.proyectointegrador.movil.domain.ErrorDatos("La publicación $id ya está creada. No se pudo subir la foto. Reintenta la foto o continúa sin ella; no se creará otra publicación.")}
+            f.foto?.let {fotos?.descartar(it)}
             _form.value=FormPublicacion();informar("Publicación guardada en el servidor.");emitirEvento(id.toString())
         }
     }

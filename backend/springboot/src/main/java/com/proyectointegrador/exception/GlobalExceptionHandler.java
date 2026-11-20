@@ -176,6 +176,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Valor inválido para el parámetro " + ex.getName(), request);
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> handleParametroFaltante(
+            org.springframework.web.bind.MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Falta el parámetro " + ex.getParameterName(), request);
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "Recurso no encontrado", request);
