@@ -438,8 +438,10 @@ CREATE TABLE IF NOT EXISTS tokens_revocados (
 
 -- H38: registro de respaldos lógicos. En bases existentes usar migracion_h38_respaldos.sql.
 -- Solo guarda metadatos; el archivo .sql.gz y su .sha256 viven en el volumen respaldos_data.
+-- H59: tipo BASE (MySQL) o FOTOS (volumen uploads_data). Bases existentes: migracion_h59_respaldo_fotos.sql.
 CREATE TABLE IF NOT EXISTS respaldos (
     id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    tipo           VARCHAR(10)  NOT NULL DEFAULT 'BASE',
     nombre_archivo VARCHAR(255) NOT NULL,
     huella_sha256  CHAR(64)     NULL,
     tamano_bytes   BIGINT       NULL,
@@ -449,7 +451,9 @@ CREATE TABLE IF NOT EXISTS respaldos (
     mensaje        VARCHAR(500) NULL,
     CONSTRAINT uk_respaldo_archivo UNIQUE (nombre_archivo),
     CONSTRAINT chk_respaldo_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADO', 'FALLIDO')),
-    INDEX idx_respaldos_iniciado (iniciado_en)
+    CONSTRAINT chk_respaldo_tipo CHECK (tipo IN ('BASE', 'FOTOS')),
+    INDEX idx_respaldos_iniciado (iniciado_en),
+    INDEX idx_respaldos_tipo_iniciado (tipo, iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- H40: invitaciones sin identidad en el enlace.

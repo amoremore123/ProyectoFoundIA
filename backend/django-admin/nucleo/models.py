@@ -463,6 +463,9 @@ class Respaldo(models.Model):
     esta tabla solo permite consultar el resultado desde el panel.
     """
 
+    TIPOS = ("BASE", "FOTOS")  # H59: base de datos o volumen de fotos
+
+    tipo = models.CharField(max_length=10, default="BASE")
     nombre_archivo = models.CharField(max_length=255, unique=True)
     huella_sha256 = models.CharField(max_length=64, null=True, blank=True)
     tamano_bytes = models.BigIntegerField(null=True, blank=True)

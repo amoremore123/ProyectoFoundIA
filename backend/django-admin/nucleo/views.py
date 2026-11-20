@@ -926,15 +926,29 @@ class RespaldoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
     Solo lectura: el servicio programado de Docker Compose es el único que
     crea y actualiza filas. `ultimo/` devuelve el respaldo más reciente o
     `{"ultimo": null}` si todavía no se ejecutó ninguno.
+
+    H59: `?tipo=BASE|FOTOS` filtra la lista. `ultimo/` sin tipo sigue
+    devolviendo el último respaldo de la base, como en H38.
     """
 
     queryset = Respaldo.objects.all()
     serializer_class = RespaldoSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
 
+    def _tipo(self, por_defecto=None):
+        tipo = self.request.query_params.get("tipo", por_defecto)
+        if tipo is not None and tipo not in Respaldo.TIPOS:
+            raise ValidationError({"tipo": "Debe ser BASE o FOTOS."})
+        return tipo
+
+    def get_queryset(self):
+        consulta = Respaldo.objects.all()
+        tipo = self._tipo()
+        return consulta.filter(tipo=tipo) if tipo else consulta
+
     @action(detail=False, methods=["get"])
     def ultimo(self, request):
-        respaldo = self.get_queryset().first()
+        respaldo = Respaldo.objects.filter(tipo=self._tipo("BASE")).first()
         return Response({
             "ultimo": RespaldoSerializer(respaldo).data if respaldo else None,
         })

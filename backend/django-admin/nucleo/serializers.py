@@ -267,7 +267,7 @@ class RespaldoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Respaldo
         fields = [
-            "id", "nombreArchivo", "huellaSha256", "tamanoBytes",
+            "id", "tipo", "nombreArchivo", "huellaSha256", "tamanoBytes",
             "estado", "iniciadoEn", "finalizadoEn", "mensaje",
         ]
         read_only_fields = fields
