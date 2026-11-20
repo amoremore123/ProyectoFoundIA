@@ -18,6 +18,10 @@ USE objetos_perdidos_db;
 -- =====================================================================
 -- 1. USUARIOS
 -- =====================================================================
+DROP TABLE IF EXISTS invitaciones;
+DROP TABLE IF EXISTS solicitudes_eliminacion;
+DROP TABLE IF EXISTS tokens_recuperacion_password;
+DROP TABLE IF EXISTS eventos_coincidencia;
 DROP TABLE IF EXISTS cambios_rol;
 DROP TABLE IF EXISTS respaldos;
 DROP TABLE IF EXISTS tokens_revocados;
