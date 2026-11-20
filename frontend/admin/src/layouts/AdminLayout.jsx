@@ -24,6 +24,8 @@ const menu = [
   { to: '/vencidos', icono: 'reloj', label: 'Vencidos' },
   // H58/H59: respaldos de la base y de las fotos (solo ADMIN)
   { to: '/respaldos', icono: 'escudo', label: 'Respaldos' },
+  // H60: campañas de difusión (solo ADMIN)
+  { to: '/campanas', icono: 'megafono', label: 'Campañas' },
 ];
 
 export default function AdminLayout() {

@@ -154,6 +154,24 @@ export const getUltimoRespaldo = async (tipo) => {
   return data?.ultimo ?? null;
 };
 
+// H60: campañas de difusión con enlace de origen (solo ADMIN). No se borran: se finalizan.
+export const getCampanas = async (filtros, numero) => pagina('/api/admin/campanas/', filtros, numero);
+
+export const crearCampana = async (datos) => {
+  const { data } = await api.post('/api/admin/campanas/', datos);
+  return data;
+};
+
+export const editarCampana = async (id, datos) => {
+  const { data } = await api.patch(`/api/admin/campanas/${id}/`, datos);
+  return data;
+};
+
+export const finalizarCampana = async (id) => {
+  const { data } = await api.post(`/api/admin/campanas/${id}/finalizar/`);
+  return data;
+};
+
 // H59: historial de respaldos, filtrable por tipo (BASE o FOTOS)
 export const getRespaldos = async (filtros, numero) => pagina('/api/admin/respaldos/', filtros, numero);
 

@@ -60,3 +60,10 @@
 .respaldos-procedimiento h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .respaldos-pasos { margin: 0; padding-left: 22px; display: grid; gap: 8px; line-height: 1.55; color: var(--text); }
 .respaldos-procedimiento code, .respaldo-datos code, .respaldos-historial code { font-size: 12px; overflow-wrap: anywhere; }
+
+/* H60: campañas de difusión */
+.campana-form { display: grid; gap: 12px; margin-bottom: 20px; }
+.campana-form h2 { margin: 0; }
+.campana-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.campana-enlace { display: block; margin-bottom: 6px; font-size: 12px; overflow-wrap: anywhere; color: var(--text-soft); }
+.acciones-celda { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
