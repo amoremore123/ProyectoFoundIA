@@ -1,38 +1,48 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icono from './Icono';
+import CabeceraSeccion from './inicio/CabeceraSeccion';
 
-// Lugares del campus donde más se pierden cosas. Cada uno abre Buscar con ese lugar.
+// Lugares del campus donde más se pierden cosas. Al elegir uno se abre Buscar con el filtro
+// de ubicación que ya existe (/buscar?ubicacion=...).
 const PUNTOS = [
-  ['Biblioteca', 'Mesas de estudio y salas grupales'],
-  ['Cafetería', 'Mesas, barra y zona de microondas'],
-  ['Laboratorios', 'Cómputo, electrónica y química'],
-  ['Talleres', 'Mecánica, soldadura y mantenimiento'],
-  ['Aulas', 'Pabellones de clases teóricas'],
-  ['Auditorio', 'Charlas, ceremonias y eventos'],
+  ['Biblioteca', 'libro'],
+  ['Cafetería', 'taza'],
+  ['Laboratorios', 'matraz'],
+  ['Talleres', 'llaveInglesa'],
+  ['Aulas', 'grupo'],
+  ['Auditorio', 'pizarra'],
 ];
 
 export default function PuntosCampus() {
+  const [seleccionado, setSeleccionado] = useState(PUNTOS[0][0]);
   return (
-    <section className="puntos-campus" aria-labelledby="puntos-campus-titulo">
-      <div className="puntos-campus-cabecera">
-        <span className="visual-eyebrow">RECORRE EL CAMPUS</span>
-        <h2 id="puntos-campus-titulo">¿Dónde lo viste por última vez?</h2>
-        <p>Elige un lugar y te mostramos lo que la comunidad publicó por ahí.</p>
+    <section className="ini-seccion ini-campus ini-panel" aria-labelledby="puntos-campus-titulo">
+      <div className="ini-campus-foto">
+        <img src="/imagenes/tecsup-campus.png" alt="Fachada del campus Tecsup" width="511" height="296" loading="lazy" />
       </div>
-      <ul className="puntos-campus-lista">
-        {PUNTOS.map(([lugar, detalle], i) => (
-          <li key={lugar} style={{ '--i': i }}>
-            <Link to={`/buscar?ubicacion=${encodeURIComponent(lugar)}`} className="punto-campus">
-              <span className="punto-campus-pin" aria-hidden="true"><Icono nombre="ubicacion" tamano={18} /></span>
-              <span className="punto-campus-texto">
-                <strong>{lugar}</strong>
-                <small>{detalle}</small>
-              </span>
-              <Icono nombre="flechaDer" tamano={16} className="punto-campus-flecha" />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="ini-campus-contenido">
+        <CabeceraSeccion
+          id="puntos-campus-titulo"
+          eyebrow="Recorre el campus"
+          icono={<Icono nombre="ubicacion" tamano={14} />}
+          titulo="¿Dónde lo viste por última vez?"
+          texto="Elige un lugar y explora lo que la comunidad publicó por ahí."
+        />
+        <ul className="ini-lugares" aria-label="Lugares del campus">
+          {PUNTOS.map(([lugar, icono]) => (
+            <li key={lugar}>
+              <button type="button" className="ini-lugar" aria-pressed={seleccionado === lugar} onClick={() => setSeleccionado(lugar)}>
+                <Icono nombre={icono} tamano={22} />
+                <span>{lugar}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <Link to={`/buscar?ubicacion=${encodeURIComponent(seleccionado)}`} className="ini-enlace">
+          Ver publicaciones en {seleccionado} <Icono nombre="flechaDer" tamano={14} />
+        </Link>
+      </div>
     </section>
   );
 }

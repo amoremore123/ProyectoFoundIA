@@ -11,6 +11,7 @@ import './styles/cuenta.css';
 import './styles/foundia.css';
 import './styles/experiencia.css';
 import './styles/hero-findi.css';
+import './styles/inicio-secciones.css';
 
 // Herramienta H51 optativa, excluida de producción; no contiene credenciales.
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('auditar')) {

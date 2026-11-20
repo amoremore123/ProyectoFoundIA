@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CifrasComunidad from '../components/CifrasComunidad';
-import ExplorarVisual from '../components/ExplorarVisual';
-import HistorialObjetos from '../components/HistorialObjetos';
-import GuiaCampus from '../components/GuiaCampus';
 import Icono from '../components/Icono';
 import AccesosFindi from '../components/AccesosFindi';
 import SliderPortada from '../components/SliderPortada';
-import CarruselHorizontal from '../components/CarruselHorizontal';
 import PerfilComunidad from '../components/PerfilComunidad';
 import ProcesoRecuperacion from '../components/ProcesoRecuperacion';
 import PuntosCampus from '../components/PuntosCampus';
 import { useAsistente } from '../context/AsistenteContext';
 import { EXTRAS_HABILITADOS } from '../config/alcance';
-import { AVATAR_FINDI } from '../config/findi';
+import ObjetosRecientes from '../components/inicio/ObjetosRecientes';
+import ConsejosPublicacion from '../components/inicio/ConsejosPublicacion';
+import PreguntasFrecuentes from '../components/inicio/PreguntasFrecuentes';
+import BannerPublicar from '../components/inicio/BannerPublicar';
 
 export default function Portada() {
   const { abrir } = useAsistente();
@@ -58,25 +57,15 @@ export default function Portada() {
     </section>
 
 
-    {EXTRAS_HABILITADOS && <CarruselHorizontal etiqueta="publicaciones">
-      <HistorialObjetos resumen />
-    </CarruselHorizontal>}
-
-    <CarruselHorizontal etiqueta="objetos">
-      <ExplorarVisual />
-    </CarruselHorizontal>
-
-    {EXTRAS_HABILITADOS && <PerfilComunidad />}
-    <ProcesoRecuperacion />
-    <PuntosCampus />
-    <GuiaCampus />
-
-    <section className="ayuda-campus" aria-labelledby="titulo-ayuda">
-      <img className="ayuda-campus-findi" src={AVATAR_FINDI} alt="" width={72} height={72} loading="lazy" />
-      <div><h2 id="titulo-ayuda">¿Encontraste algo?</h2><p>Publica dónde lo encontraste y cómo es. Alguien en Tecsup podría estar buscándolo.</p></div>
-      <Link to="/publicar" className="btn btn-amarillo">Publicar objeto <Icono nombre="flechaDer" tamano={16} /></Link>
-    </section>
-
+    <div className="ini">
+      <ProcesoRecuperacion />
+      <ObjetosRecientes />
+      {EXTRAS_HABILITADOS && <PerfilComunidad />}
+      <PuntosCampus />
+      <ConsejosPublicacion />
+      <PreguntasFrecuentes />
+      <BannerPublicar />
+    </div>
   </div>;
 }
 
