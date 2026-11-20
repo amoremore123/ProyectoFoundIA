@@ -124,8 +124,12 @@ services:
       RESPALDO_DIR: /respaldos
       RESPALDO_INTERVALO_SEGUNDOS: ${RESPALDO_INTERVALO_SEGUNDOS:-86400}
       RESPALDO_RETENCION_DIAS: ${RESPALDO_RETENCION_DIAS:-7}
+      # H59: fotos de las publicaciones, montadas en solo lectura
+      RESPALDO_FOTOS: ${RESPALDO_FOTOS:-1}
+      FOTOS_DIR: /fotos
     volumes:
       - respaldos_data:/respaldos
+      - uploads_data:/fotos:ro
     depends_on:
       mysql:
         condition: service_healthy

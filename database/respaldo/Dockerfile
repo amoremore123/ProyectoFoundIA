@@ -2,7 +2,7 @@
 # Se construye desde la raíz del repositorio para copiar scripts/respaldo.sh.
 FROM mysql:8.0
 
-RUN microdnf install -y gzip findutils \
+RUN microdnf install -y gzip findutils tar \
     && microdnf clean all
 
 COPY scripts/respaldo.sh /usr/local/bin/respaldo.sh
