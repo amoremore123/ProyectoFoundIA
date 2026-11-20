@@ -59,6 +59,47 @@ en las cinco capas: Spring, Django, web de usuario, panel y Android.
 
 4. **Nada pasa a `main` sin la autorización escrita del equipo**, y nunca con push forzado.
 
+### Antes de usar el backend del Sprint 4: aplicar 3 migraciones
+
+El Sprint 4 agrega cambios a la base de datos. Tu MySQL local **no los tiene** hasta que apliques
+las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de levantar Spring**:
+
+| Migración | Historia | Qué agrega |
+| --- | --- | --- |
+| `database/migracion_h59_respaldo_fotos.sql` | H59 | Columna `tipo` en `respaldos` |
+| `database/migracion_h60_campanas.sql` | H60 | Tabla `campanas` |
+| `database/migracion_h64_foto_perfil.sql` | H64 | Columna `foto_perfil_url` en `usuarios` |
+
+> **La de H64 es obligatoria:** sin esa columna, Spring falla al buscar usuarios (por ejemplo, al
+> iniciar sesión).
+
+1. Saca un respaldo antes (funciona aunque todavía no apliques las migraciones):
+
+   ```bash
+   docker compose build respaldo
+   docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
+   ```
+
+2. Aplica las 3 migraciones con MySQL encendido (`docker compose up -d mysql`).
+
+   En **Git Bash**:
+
+   ```bash
+   for m in h59_respaldo_fotos h60_campanas h64_foto_perfil; do docker exec -i foundia-mysql mysql -uroot -proot < database/migracion_$m.sql; done
+   ```
+
+   En **PowerShell** (el `<` de PowerShell no funciona aquí; se usa `cmd`):
+
+   ```powershell
+   foreach ($m in 'h59_respaldo_fotos','h60_campanas','h64_foto_perfil') { cmd /c "docker exec -i foundia-mysql mysql -uroot -proot < database\migracion_$m.sql" }
+   ```
+
+3. Levanta lo demás: `docker compose up -d --build`.
+
+Son **re-ejecutables**: si ya estaban aplicadas, solo muestran «ya existe» y no cambian nada.
+**No** uses `docker compose down -v` ni vuelvas a importar `script.sql` o `seed.sql`: borrarían tus datos.
+Si tu contenedor de MySQL no se llama `foundia-mysql`, revisa el nombre con `docker ps`.
+
 ## Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
 Estado al **06/11/2026: Sprint 2 completado** para las pruebas locales del equipo.
