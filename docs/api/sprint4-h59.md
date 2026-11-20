@@ -61,6 +61,22 @@ scripts/restaurar_fotos.sh
 No escribe nunca en el volumen `uploads_data` en uso; volver a ponerlas en producción es parte del
 procedimiento de H58.
 
+## Verificación del 20/11/2026
+
+- Django: `nucleo/test_sprint4_h59.py` (**5 pruebas**) más las 6 de H38: 11 OK.
+- Docker con MySQL 8.0 en un proyecto de QA aislado (`foundia-qa`, con las 5 fotos de demostración):
+  - Sin la migración, la base se respaldó igual que en H38 (`COMPLETADO`, 6849 bytes) y las fotos se
+    omitieron con el aviso «falta la columna respaldos.tipo».
+  - `migracion_h59_respaldo_fotos.sql` se ejecutó **dos veces** sin error; la fila existente quedó como `BASE`.
+  - Una ejecución dejó `BASE` (6981 bytes) y `FOTOS` (`foundia_fotos_20261120T020625Z.tar.gz`,
+    1 721 572 bytes, «5 archivos»), los dos `COMPLETADO` con huella.
+  - Restauración en `/tmp/restauradas`: huella `OK`, 5 archivos con los mismos nombres y SHA-256 que el volumen.
+  - Rechazos: destino no vacío, archivo alterado (la huella no coincide y no se extrae nada),
+    destino `/fotos` y respaldo sin `.sha256`.
+  - Dentro del servicio, `touch /fotos/prueba` falla con `Read-only file system`.
+  - API real: `ultimo/` devolvió el último `BASE`; `ultimo/?tipo=FOTOS` y `?tipo=FOTOS` el de fotos;
+    `?tipo=VIDEOS` respondió `400`.
+
 ## Pruebas que se deben ejecutar y registrar
 
 - Django: `tipo` en la lista, filtro por tipo, `ultimo/` sin tipo sigue siendo `BASE`,
