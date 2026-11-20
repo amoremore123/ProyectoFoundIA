@@ -7,7 +7,8 @@ import MiniaturaChat from './MiniaturaChat';
 import CamaraEnVivo, { camaraEnVivoDisponible } from './CamaraEnVivo';
 import { useAsistente } from '../context/AsistenteContext';
 import { useAuth } from '../context/AuthContext';
-import { AVATAR_FINDI, EXPRESIONES_FINDI } from '../config/findi';
+import { AVATAR_FINDI, EXPRESIONES_FINDI, RUTAS_EXPRESIONES } from '../config/findi';
+import { useNotificaciones } from '../hooks/useNotificaciones';
 import { calcularEstadoFindi, desenlaceDe, etiquetaEstadoFindi, ESTADOS_FINDI } from '../utils/expresionFindi';
 import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
@@ -24,30 +25,23 @@ const horaActual = () => new Date().toLocaleTimeString('es-PE', { hour: '2-digit
 // La voz no lee emojis
 const sinEmojis = (t = '') => String(t).replace(/[\p{Extended_Pictographic}️‍]/gu, '').replace(/\s+/g, ' ').trim();
 
-// Avatar de FINDI con la expresión actual. Mientras no existan los recursos de cada expresión,
-// una insignia animada indica el estado sobre la imagen original (ver config/findi.js).
-const INSIGNIAS = {
-  saludando: <span className="fc-emoji">👋</span>,
-  escuchando: <Icono nombre="microfono" tamano={12} />,
-  pensando: <b>?</b>,
-  buscando: <Icono nombre="buscar" tamano={12} />,
-  escribiendo: <i className="fc-puntos"><b /><b /><b /></i>,
-  hablando: <i className="fc-ondas"><b /><b /><b /></i>,
-  exito: <Icono nombre="check" tamano={12} />,
-  coincidencia: <Icono nombre="ia" tamano={12} />,
-  'sin-resultados': <Icono nombre="cerrar" tamano={12} />,
-  alerta: <Icono nombre="campana" tamano={12} />,
-};
-
-function AvatarFindi({ expresion = 'alegre', variante = 'cara' }) {
+// Avatar de FINDI con la expresión actual (imágenes 3D aprobadas, ver config/findi.js).
+// "cuerpo": medio cuerpo en la bienvenida; "mini": cabeza y hombros junto a los mensajes.
+// La clave hace que cada cambio de expresión entre con un fundido corto.
+function AvatarFindi({ expresion = 'alegre', variante = 'mini' }) {
   const recurso = EXPRESIONES_FINDI[expresion] || EXPRESIONES_FINDI.alegre;
   return (
     <span className={`fc-avatar fc-avatar-${variante} expresion-${expresion}`} data-expresion={expresion}>
-      <img src={recurso[variante]} alt="" />
-      {INSIGNIAS[expresion] && <span className="fc-insignia" aria-hidden="true">{INSIGNIAS[expresion]}</span>}
+      <img key={recurso.src} src={recurso.src} alt="" decoding="async" />
     </span>
   );
 }
+
+// Duración de la presentación de una respuesta ("Escribiendo"): breve y proporcional al texto.
+// Con movimiento reducido (o sin matchMedia) la respuesta aparece de inmediato.
+const DURACION_ESCRITURA = (texto = '') => Math.min(650, 220 + String(texto).length * 6);
+const permiteMovimiento = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const lista = (data) => (Array.isArray(data) ? data : data?.results || []);
 
@@ -66,6 +60,13 @@ export default function ChatAsistente() {
   // Resultado reciente de la última consulta (coincidencia, sin resultados o acción lista)
   const [desenlace, setDesenlace] = useState(null);
   const [buscando, setBuscando] = useState(false);
+  // Respuesta que se está presentando en pantalla (expresión "Escribiendo")
+  const [presentandoId, setPresentandoId] = useState(null);
+  // Notificación importante: una nueva coincidencia sin leer (expresión "Alerta")
+  const { notificaciones } = useNotificaciones();
+  const coincidenciasNuevas = notificaciones.filter((n) => !n.leida && n.tipo === 'COINCIDENCIA_NUEVA').length;
+  const coincidenciasVistas = useRef(0);
+  const [alertaNotificacion, setAlertaNotificacion] = useState(false);
   const ultimaConsulta = useRef(null);
   const [enLinea, setEnLinea] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
   const nombreUsuario = auth?.user?.nombre || '';
@@ -104,6 +105,17 @@ export default function ChatAsistente() {
   const agregar = (mensaje) => {
     const id = ++contador.current;
     setMensajes((prev) => [...prev, { hora: horaActual(), ...mensaje, id }]);
+    return id;
+  };
+
+  // Respuesta de FINDI: se agrega y, si el movimiento está permitido, se presenta con "Escribiendo"
+  const responderBot = (mensaje) => {
+    const id = agregar({ de: 'bot', ...mensaje });
+    if (permiteMovimiento() && !mensaje.error) {
+      setPresentandoId(id);
+      setTimeout(() => setPresentandoId((actual) => (actual === id ? null : actual)), DURACION_ESCRITURA(mensaje.texto));
+    }
+    return id;
   };
 
   // El chat permanece montado al cerrarlo: detener también las tareas de voz.
@@ -140,18 +152,14 @@ export default function ChatAsistente() {
     if (!repetir) agregar({ de: 'usuario', texto: limpio });
     setTexto('');
     setDictado(false);
-    // Una búsqueda muestra "Buscando"; el resto de consultas, "Pensando" (interpretación con Groq)
-    const esBusqueda = interpretar(limpio, categoriasRef.current || []).intencion === 'buscar';
-    setBuscando(esBusqueda);
-    if (esBusqueda && !repetir) agregar({ de: 'bot', texto: '¡Vamos a buscarlo! 🔎', aviso: true });
+    // 1) Groq interpreta el mensaje ("Pensando"). 2) Solo si es una búsqueda se consultan los
+    // objetos ("Buscando"). Las expresiones salen de estas peticiones reales, no de palabras sueltas.
+    setBuscando(false);
     setPensando(true);
     try {
       if (!categoriasRef.current) categoriasRef.current = lista(await listarCategorias());
       // El backend interpreta el mensaje; ante errores se usa el motor local de la web.
-      const [datos, ia] = await Promise.all([
-        buscarObjetos({ q: '' }),
-        interpretarConIA(limpio).catch(() => null),
-      ]);
+      const ia = await interpretarConIA(limpio).catch(() => null);
       let consulta = adaptarInterpretacion(ia, categoriasRef.current);
       const local = interpretar(limpio, categoriasRef.current);
       // Estas acciones de la web aún no forman parte del vocabulario compartido de H45.
@@ -166,8 +174,16 @@ export default function ChatAsistente() {
       }
       const intencion = elegida.intencion;
       // H47: tarjetas y acciones del catálogo cerrado (se descarta lo que no se conoce)
-      const objetosPublicos = lista(datos);
-      const tarjetas = tarjetasValidas(ia?.tarjetas).map((t) => (t.tipo === 'OBJETO' && t.datos?.id
+      const tarjetasIa = tarjetasValidas(ia?.tarjetas);
+      let objetosPublicos = [];
+      if (intencion === 'buscar' || tarjetasIa.some((t) => t.tipo === 'OBJETO')) {
+        if (intencion === 'buscar') {
+          setBuscando(true);
+          if (!repetir) agregar({ de: 'bot', texto: '¡Voy a revisar los reportes! 💙', aviso: true });
+        }
+        objetosPublicos = lista(await buscarObjetos({ q: '' }));
+      }
+      const tarjetas = tarjetasIa.map((t) => (t.tipo === 'OBJETO' && t.datos?.id
         ? { ...t, objeto: objetosPublicos.find((o) => o.id === t.datos.id) }
         : t));
       const respuesta = intencion === 'mis_reportes'
@@ -177,7 +193,7 @@ export default function ChatAsistente() {
       // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
       const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
       const accionesFindi = accionesValidas(ia?.acciones);
-      agregar({ de: 'bot', fuente, ...respuesta, tarjetas, accionesFindi });
+      responderBot({ fuente, ...respuesta, tarjetas, accionesFindi });
       setDesenlace(desenlaceDe({ ...respuesta, tarjetas }, { buscaba: intencion === 'buscar' }));
       if (leerRespuestas && abiertoRef.current) voz.leer(sinEmojis(respuesta.texto));
     } catch (e) {
@@ -237,8 +253,8 @@ export default function ChatAsistente() {
       }
       const respuesta = responder('', { objetos: lista(datos), categorias: categoriasRef.current, consulta });
       const veo = r.descripcion ? `En tu foto veo: ${r.descripcion}. ` : '';
-      agregar({
-        de: 'bot', fuente: 'ia', ...respuesta,
+      responderBot({
+        fuente: 'ia', ...respuesta,
         texto: `${veo}${respuesta.texto}`,
         acciones: [...(respuesta.acciones || []).filter((a) => a.to !== '/publicar'), publicarConFoto],
       });
@@ -301,6 +317,25 @@ export default function ChatAsistente() {
     return () => clearTimeout(t);
   }, [desenlace]);
 
+  // Alerta: aparece una nueva coincidencia sin leer (notificaciones reales de la cuenta)
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const hayNuevas = coincidenciasNuevas > coincidenciasVistas.current;
+    coincidenciasVistas.current = coincidenciasNuevas;
+    if (!hayNuevas) return undefined;
+    setAlertaNotificacion(true);
+    const t = setTimeout(() => setAlertaNotificacion(false), 4500);
+    return () => clearTimeout(t);
+  }, [abierto, coincidenciasNuevas]);
+
+  // Precarga de las expresiones al abrir el chat por primera vez: los cambios no parpadean
+  const precargadas = useRef(false);
+  useEffect(() => {
+    if (!abierto || precargadas.current || typeof window.Image !== 'function') return;
+    precargadas.current = true;
+    RUTAS_EXPRESIONES.forEach((src) => { const img = new window.Image(); img.src = src; });
+  }, [abierto]);
+
   // Estado de conexión real del navegador
   useEffect(() => {
     const on = () => setEnLinea(true);
@@ -316,7 +351,7 @@ export default function ChatAsistente() {
     setDesenlace(null);
     agregar({ de: 'usuario', texto: acceso.texto });
     const respuesta = responderAcceso(acceso.id, { conSesion: Boolean(auth?.token) });
-    agregar({ de: 'bot', ...respuesta });
+    responderBot(respuesta);
     if (leerRespuestas) voz.leer(sinEmojis(respuesta.texto));
     if (respuesta.enfocar) inputRef.current?.focus();
   };
@@ -344,12 +379,15 @@ export default function ChatAsistente() {
   const ultimoBot = [...mensajes].reverse().find((m) => m.de === 'bot' && !m.aviso);
   const estado = calcularEstadoFindi({
     escuchando: voz.escuchando, pensando, buscando, error: Boolean(ultimoBot?.error),
-    preparando: voz.preparando, hablando: voz.hablando, desenlace, saludando,
+    preparando: voz.preparando, hablando: voz.hablando, escribiendo: presentandoId != null,
+    notificacion: alertaNotificacion, desenlace, saludando,
   });
   const expresion = ESTADOS_FINDI[estado].expresion;
   const etiquetaEstado = etiquetaEstadoFindi(estado, desenlace);
   const conectado = enLinea && !ultimoBot?.error;
   const soloBienvenida = mensajes.length === 1;
+  // La expresión en vivo se muestra en el último mensaje de FINDI (o en el indicador de proceso)
+  const idUltimoBot = [...mensajes].reverse().find((m) => m.de === 'bot')?.id;
 
   useEffect(() => {
     if (!abierto) return undefined;
@@ -499,7 +537,7 @@ export default function ChatAsistente() {
       {abierto && (
         <section className={`fc fc-estado-${estado}`} role="dialog" aria-label="FINDI, asistente de FoundIA">
           <header className="fc-cabecera">
-            <AvatarFindi expresion={expresion} variante="cara" />
+            <span className="fc-avatar-cabecera" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>
             <div className="fc-cabecera-texto">
               <div className="fc-nombre">
                 <strong>FINDI</strong>
@@ -555,9 +593,11 @@ export default function ChatAsistente() {
               const esUsuario = m.de === 'usuario';
               return (
                 <div key={m.id} className={`fc-fila ${esUsuario ? 'usuario' : 'bot'}`}>
-                  {!esUsuario && <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>}
+                  {!esUsuario && (m.id === idUltimoBot && !pensando
+                    ? <span aria-hidden="true"><AvatarFindi expresion={expresion} variante="mini" /></span>
+                    : <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>)}
                   <div className="fc-columna">
-                    <div className={`fc-burbuja${m.error ? ' error' : ''}`}>
+                    <div className={`fc-burbuja${m.error ? ' error' : ''}${m.id === presentandoId ? ' presentando' : ''}`}>
                       {m.foto && <img className="fc-foto-enviada" src={m.foto} alt="Foto enviada para buscar" />}
                       <p>{m.texto}</p>
                       {m.reintentar && (
@@ -579,7 +619,7 @@ export default function ChatAsistente() {
 
             {pensando && (
               <div className="fc-fila bot">
-                <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>
+                <span aria-hidden="true"><AvatarFindi expresion={expresion} variante="mini" /></span>
                 <div className="fc-procesando" role="status" aria-label={buscando ? 'FINDI está buscando coincidencias' : 'FINDI está pensando'}>
                   <span className="fc-giro" aria-hidden="true" />
                   <span>

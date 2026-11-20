@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -315,7 +315,8 @@ describe('FINDI - accesos rápidos y estados', () => {
     const user = await abrirChat();
     await user.type(screen.getByRole('textbox', { name: /escribe tu mensaje/i }), 'Busco una mochila negra');
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
-    expect(screen.getByTestId('estado-findi').textContent).toContain('Buscando coincidencias');
+    // Primero interpreta (Pensando) y, al ser una búsqueda, consulta los objetos (Buscando)
+    await waitFor(() => expect(screen.getByTestId('estado-findi').textContent).toContain('Buscando coincidencias'));
 
     await act(async () => { resolver(objetos); });
     expect(await screen.findByText('Mochila negra con libros')).toBeTruthy();

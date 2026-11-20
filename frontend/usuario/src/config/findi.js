@@ -2,22 +2,26 @@
 export const AVATAR_FINDI = '/findi/findi-avatar.webp';
 export const IMAGEN_FINDI = '/findi/findi.webp';
 
-// Expresiones de FINDI en el chat. Cada una tiene su recurso de medio cuerpo ("cuerpo") y de rostro ("cara").
-// PROVISIONAL: mientras no lleguen los archivos aprobados se reutilizan las imágenes originales y la
-// expresión se comunica con una insignia animada (ver ChatAsistente). Cuando existan, basta con cambiar
-// las rutas aquí, p. ej. cuerpo: '/findi/expresiones/escuchando.webp'. No se generan avatares nuevos.
-const provisional = { cuerpo: IMAGEN_FINDI, cara: AVATAR_FINDI };
+// Expresiones 3D aprobadas de FINDI (medio cuerpo, fondo transparente).
+// Originales de 512 px en /findi/expresiones/; la web usa copias optimizadas de 384 px en
+// /findi/expresiones/web/ (≈40 KB cada una). Para cambiar una expresión basta con reemplazar
+// su archivo con el mismo nombre (y volver a generar la copia optimizada).
+const ruta = (nombre) => `/findi/expresiones/web/${nombre}.webp`;
 
 export const EXPRESIONES_FINDI = {
-  alegre: { ...provisional, nombre: 'Alegre' },
-  saludando: { ...provisional, nombre: 'Saludando' },
-  escuchando: { ...provisional, nombre: 'Escuchando' },
-  pensando: { ...provisional, nombre: 'Pensando' },
-  buscando: { ...provisional, nombre: 'Buscando' },
-  escribiendo: { ...provisional, nombre: 'Escribiendo' },
-  hablando: { ...provisional, nombre: 'Hablando' },
-  exito: { ...provisional, nombre: 'Éxito' },
-  coincidencia: { ...provisional, nombre: 'Coincidencia' },
-  'sin-resultados': { ...provisional, nombre: 'Sin resultados' },
-  alerta: { ...provisional, nombre: 'Alerta' },
+  // La expresión alegre de reposo reutiliza el saludo
+  alegre: { src: ruta('saludando'), nombre: 'Alegre' },
+  saludando: { src: ruta('saludando'), nombre: 'Saludando' },
+  escuchando: { src: ruta('escuchando'), nombre: 'Escuchando' },
+  pensando: { src: ruta('pensando'), nombre: 'Pensando' },
+  buscando: { src: ruta('buscando'), nombre: 'Buscando' },
+  escribiendo: { src: ruta('escribiendo'), nombre: 'Escribiendo' },
+  hablando: { src: ruta('hablando'), nombre: 'Hablando' },
+  exito: { src: ruta('exito'), nombre: 'Éxito' },
+  coincidencia: { src: ruta('coincidencia'), nombre: 'Coincidencia' },
+  'sin-resultados': { src: ruta('sin-resultados'), nombre: 'Sin resultados' },
+  alerta: { src: ruta('alerta'), nombre: 'Alerta' },
 };
+
+// Rutas únicas, para precargarlas al abrir el chat y evitar parpadeos al cambiar
+export const RUTAS_EXPRESIONES = [...new Set(Object.values(EXPRESIONES_FINDI).map((e) => e.src))];

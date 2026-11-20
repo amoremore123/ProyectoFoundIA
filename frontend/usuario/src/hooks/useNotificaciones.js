@@ -10,7 +10,8 @@ export function avisarCambioNotificaciones() {
 }
 
 export function useNotificaciones() {
-  const { token } = useAuth();
+  // Sin AuthProvider (p. ej. pruebas aisladas) se comporta como sin sesión
+  const { token } = useAuth() || {};
   const [notificaciones, setNotificaciones] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');

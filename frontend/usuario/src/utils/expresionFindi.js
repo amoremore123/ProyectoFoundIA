@@ -6,7 +6,9 @@ export const ESTADOS_FINDI = {
   pensando: { expresion: 'pensando', etiqueta: 'Pensando…' },
   buscando: { expresion: 'buscando', etiqueta: 'Buscando coincidencias…' },
   error: { expresion: 'alerta', etiqueta: 'Sin conexión' },
-  preparando: { expresion: 'escribiendo', etiqueta: 'Preparando la respuesta…' },
+  preparando: { expresion: 'escribiendo', etiqueta: 'Preparando la voz…' },
+  escribiendo: { expresion: 'escribiendo', etiqueta: 'Escribiendo…' },
+  notificacion: { expresion: 'alerta', etiqueta: 'Tienes una posible coincidencia nueva' },
   hablando: { expresion: 'hablando', etiqueta: 'Respondiendo…' },
   coincidencia: { expresion: 'coincidencia', etiqueta: 'Búsqueda completada' },
   'sin-resultados': { expresion: 'sin-resultados', etiqueta: 'Sin coincidencias por ahora' },
@@ -23,18 +25,23 @@ export const ESTADOS_FINDI = {
  * @param {boolean} s.error       la última respuesta fue un error
  * @param {boolean} s.preparando  se está generando el audio de la respuesta (ElevenLabs)
  * @param {boolean} s.hablando    se está reproduciendo la voz
+ * @param {boolean} s.escribiendo se está presentando una respuesta en pantalla
+ * @param {boolean} s.notificacion llegó una notificación importante (nueva coincidencia sin leer)
  * @param {{tipo: string, n?: number}|null} s.desenlace  resultado reciente de la última consulta
  * @param {boolean} s.saludando   primera apertura del chat
  */
 export function calcularEstadoFindi({
   escuchando = false, pensando = false, buscando = false, error = false,
-  preparando = false, hablando = false, desenlace = null, saludando = false,
+  preparando = false, hablando = false, escribiendo = false, notificacion = false,
+  desenlace = null, saludando = false,
 } = {}) {
   if (escuchando) return 'escuchando';
   if (pensando) return buscando ? 'buscando' : 'pensando';
   if (error) return 'error';
   if (hablando) return 'hablando';
   if (preparando) return 'preparando';
+  if (escribiendo) return 'escribiendo';
+  if (notificacion) return 'notificacion';
   if (desenlace?.tipo && ESTADOS_FINDI[desenlace.tipo]) return desenlace.tipo;
   if (saludando) return 'saludando';
   return 'en-linea';

@@ -3,11 +3,11 @@ import { calcularEstadoFindi, desenlaceDe, ESTADOS_FINDI, etiquetaEstadoFindi } 
 import { EXPRESIONES_FINDI } from '../config/findi';
 
 describe('Expresiones de FINDI', () => {
-  it('cada estado usa una expresión con recurso de cara y de medio cuerpo', () => {
+  it('cada estado usa una de las 10 imágenes aprobadas de /findi/expresiones', () => {
     Object.values(ESTADOS_FINDI).forEach(({ expresion }) => {
-      expect(EXPRESIONES_FINDI[expresion]?.cara).toBeTruthy();
-      expect(EXPRESIONES_FINDI[expresion]?.cuerpo).toBeTruthy();
+      expect(EXPRESIONES_FINDI[expresion]?.src).toMatch(/^\/findi\/expresiones\/web\/[a-z-]+\.webp$/);
     });
+    expect(new Set(Object.values(EXPRESIONES_FINDI).map((e) => e.src)).size).toBe(10);
   });
 
   it('prioriza el micrófono, luego la consulta en curso y luego la voz', () => {
@@ -15,7 +15,10 @@ describe('Expresiones de FINDI', () => {
     expect(calcularEstadoFindi({ pensando: true, buscando: true, hablando: true })).toBe('buscando');
     expect(calcularEstadoFindi({ pensando: true })).toBe('pensando');
     expect(calcularEstadoFindi({ hablando: true, desenlace: { tipo: 'coincidencia', n: 1 } })).toBe('hablando');
-    expect(calcularEstadoFindi({ preparando: true })).toBe('preparando');
+    expect(calcularEstadoFindi({ preparando: true, escribiendo: true })).toBe('preparando');
+    expect(calcularEstadoFindi({ escribiendo: true, notificacion: true })).toBe('escribiendo');
+    expect(calcularEstadoFindi({ notificacion: true, desenlace: { tipo: 'exito' } })).toBe('notificacion');
+    expect(ESTADOS_FINDI.notificacion.expresion).toBe('alerta');
     expect(calcularEstadoFindi({ error: true, saludando: true })).toBe('error');
     expect(calcularEstadoFindi({ saludando: true })).toBe('saludando');
     expect(calcularEstadoFindi({})).toBe('en-linea');

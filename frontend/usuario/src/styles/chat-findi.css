@@ -96,59 +96,58 @@ html[data-tema='oscuro'] .fc {
 
 /* ---------- Avatar con expresión ---------- */
 
-.fc-avatar { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; }
-.fc-avatar-cara {
+/* Cabecera: el avatar original de FINDI */
+.fc-avatar-cabecera {
   width: 48px;
   height: 48px;
+  flex-shrink: 0;
   border-radius: 50%;
   padding: 2px;
   background: var(--amarillo);
   box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.18);
-  transition: box-shadow var(--fc-transicion);
 }
-.fc-avatar-cara img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #14234b; }
-.fc-avatar-cuerpo { width: 150px; }
-.fc-avatar-cuerpo img { width: 100%; height: auto; filter: drop-shadow(0 14px 22px rgba(8, 102, 245, 0.28)); }
+.fc-avatar-cabecera img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #14234b; }
 
-.fc-insignia {
+/* Expresiones 3D (imágenes cuadradas de medio cuerpo con fondo transparente) */
+.fc-avatar { position: relative; display: inline-block; flex-shrink: 0; }
+.fc-avatar img { display: block; animation: fc-fundido 160ms ease-out both; }
+@keyframes fc-fundido { from { opacity: 0.35; } }
+
+/* Bienvenida: del pecho a la cabeza, con hombros y manos visibles */
+.fc-avatar-cuerpo { width: clamp(140px, 40vw, 168px); aspect-ratio: 1; }
+.fc-avatar-cuerpo img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 14px 22px rgba(8, 102, 245, 0.28)); }
+
+/* Conversación: versión compacta, recortada a cabeza y hombros */
+.fc-avatar-mini.fc-avatar {
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--amarillo);
+  background: radial-gradient(circle at 50% 35%, #1d3d86 0%, #14234b 75%);
+  box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.16);
+  transition: box-shadow var(--fc-transicion), border-color var(--fc-transicion);
+}
+.fc-avatar-mini.fc-avatar img {
   position: absolute;
-  right: -4px;
-  top: -4px;
-  display: grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 4px;
-  border-radius: 999px;
-  border: 2px solid #14234b;
-  background: var(--azul);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1;
-  animation: fc-insignia 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  left: 50%;
+  top: 4%;
+  width: 128%;
+  height: 128%;
+  max-width: none;
+  object-fit: contain;
+  transform: translateX(-51%);
 }
-.fc-avatar-cuerpo .fc-insignia { right: 8px; top: 6px; min-width: 30px; height: 30px; font-size: 15px; }
-.fc-avatar-cuerpo .fc-insignia .icono { width: 16px; height: 16px; }
-@keyframes fc-insignia { from { opacity: 0; transform: scale(0.6); } }
-
-.expresion-saludando .fc-insignia { background: transparent; border-color: transparent; font-size: 16px; }
-.expresion-saludando .fc-emoji { display: inline-block; transform-origin: 70% 80%; animation: fc-saludo 1.2s ease-in-out 2; }
-.expresion-escuchando .fc-insignia { background: #e11d48; }
-.expresion-escuchando.fc-avatar-cara { box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.35); animation: fc-pulso 1.4s ease-in-out infinite; }
-.expresion-pensando .fc-insignia,
-.expresion-escribiendo .fc-insignia { background: #4d90ff; }
-.expresion-buscando .fc-insignia { background: var(--azul); }
-.expresion-hablando .fc-insignia { background: var(--azul); }
-.expresion-hablando.fc-avatar-cara { box-shadow: 0 0 0 3px rgba(8, 102, 245, 0.45); }
-.expresion-exito .fc-insignia { background: #16a34a; }
-.expresion-coincidencia .fc-insignia { background: var(--amarillo); color: var(--marino); }
-.expresion-coincidencia.fc-avatar-cara { box-shadow: 0 0 0 4px rgba(255, 212, 0, 0.4); }
-.expresion-sin-resultados .fc-insignia { background: #64748b; }
-.expresion-alerta .fc-insignia { background: var(--naranja); color: var(--marino); }
-
-@keyframes fc-saludo { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(18deg); } 75% { transform: rotate(-10deg); } }
+.expresion-escuchando.fc-avatar-mini { border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.3); animation: fc-pulso 1.4s ease-in-out infinite; }
+.expresion-hablando.fc-avatar-mini { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(8, 102, 245, 0.4); }
+.expresion-coincidencia.fc-avatar-mini,
+.expresion-exito.fc-avatar-mini { box-shadow: 0 0 0 4px rgba(255, 212, 0, 0.4); }
+.expresion-alerta.fc-avatar-mini { border-color: var(--naranja); box-shadow: 0 0 0 3px rgba(255, 133, 0, 0.35); }
 @keyframes fc-pulso { 50% { box-shadow: 0 0 0 7px rgba(225, 29, 72, 0.1); } }
+
+/* Presentación de la respuesta ("Escribiendo"): aparece de forma progresiva */
+.fc-burbuja.presentando p { animation: fc-escribir 420ms steps(14, end) both; }
+@keyframes fc-escribir { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 
 /* Ondas de voz y puntos de escritura */
 .fc-ondas { display: inline-flex; align-items: center; gap: 2px; height: 12px; }
@@ -237,8 +236,8 @@ html[data-tema='oscuro'] .fc-sugerencia:hover:not(:disabled) { color: #fff; }
 .fc-fila.usuario { justify-content: flex-end; }
 .fc-columna { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 84%; }
 .fc-fila.usuario .fc-columna { align-items: flex-end; }
-.fc-avatar-mini { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; padding: 2px; background: var(--amarillo); }
-.fc-avatar-mini img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #14234b; }
+.fc-avatar-mini:not(.fc-avatar) { width: 32px; height: 32px; margin: 0 8px; flex-shrink: 0; border-radius: 50%; padding: 2px; background: var(--amarillo); }
+.fc-avatar-mini:not(.fc-avatar) img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #14234b; }
 
 .fc-burbuja {
   padding: 9px 13px;
@@ -422,11 +421,10 @@ html[data-tema='oscuro'] .fc :focus-visible { outline-color: var(--amarillo); }
   /* En pantalla completa el panel ya tiene su botón de cerrar */
   .fc ~ .chat-lanzador { display: none; }
   .fc-columna { max-width: 86%; }
-  .fc-avatar-cuerpo { width: 132px; }
 }
 
-@media (max-height: 560px) and (min-width: 641px) {
-  .fc-avatar-cuerpo { width: 96px; }
+@media (max-height: 600px) {
+  .fc-avatar-cuerpo { width: 110px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
