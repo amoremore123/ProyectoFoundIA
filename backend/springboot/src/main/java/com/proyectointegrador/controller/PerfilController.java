@@ -26,9 +26,45 @@ public class PerfilController {
 
     private final com.proyectointegrador.service.InvitacionService invitaciones;
 
-    public PerfilController(PerfilService perfilService, com.proyectointegrador.service.InvitacionService invitaciones) {
+    private final com.proyectointegrador.service.FotoPerfilService fotoPerfil;
+
+    public PerfilController(PerfilService perfilService, com.proyectointegrador.service.InvitacionService invitaciones,
+                            com.proyectointegrador.service.FotoPerfilService fotoPerfil) {
         this.perfilService = perfilService;
         this.invitaciones = invitaciones;
+        this.fotoPerfil = fotoPerfil;
+    }
+
+    /** H64: sube o reemplaza la foto de perfil (parte multipart «archivo», JPEG o PNG hasta 5 MiB). */
+    @org.springframework.web.bind.annotation.PostMapping(value = "/foto",
+            consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public java.util.Map<String, String> subirFoto(
+            @org.springframework.web.bind.annotation.RequestParam(value = "archivo", required = false)
+            org.springframework.web.multipart.MultipartFile archivo) {
+        return java.util.Map.of("fotoPerfilUrl", fotoPerfil.subir(usuarioActual().getId(), archivo));
+    }
+
+    /** H64: la foto solo se entrega a la propia cuenta, con caché privada. */
+    @GetMapping("/foto")
+    public ResponseEntity<org.springframework.core.io.Resource> verFoto() {
+        return fotoPerfil.archivo(usuarioActual().getId())
+                .map(archivo -> ResponseEntity.ok()
+                        .contentType(archivo.toString().endsWith(".png")
+                                ? org.springframework.http.MediaType.IMAGE_PNG
+                                : org.springframework.http.MediaType.IMAGE_JPEG)
+                        .cacheControl(org.springframework.http.CacheControl
+                                .maxAge(java.time.Duration.ofHours(1)).cachePrivate())
+                        .<org.springframework.core.io.Resource>body(
+                                new org.springframework.core.io.FileSystemResource(archivo)))
+                .orElseThrow(() -> new com.proyectointegrador.exception.ResourceNotFoundException(
+                        "La cuenta no tiene foto de perfil"));
+    }
+
+    /** H64: quita la foto; repetirlo es seguro. */
+    @org.springframework.web.bind.annotation.DeleteMapping("/foto")
+    public ResponseEntity<Void> eliminarFoto() {
+        fotoPerfil.eliminar(usuarioActual().getId());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

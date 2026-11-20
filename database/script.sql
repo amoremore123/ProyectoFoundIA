@@ -488,3 +488,6 @@ CREATE TABLE IF NOT EXISTS campanas (
     CONSTRAINT chk_campanas_fechas CHECK (fecha_fin >= fecha_inicio),
     INDEX idx_campanas_fechas (fecha_inicio, fecha_fin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H64: foto de perfil privada (ruta interna perfiles/<uuid>.jpg). Bases existentes: migracion_h64_foto_perfil.sql.
+ALTER TABLE usuarios ADD COLUMN foto_perfil_url VARCHAR(80) NULL;
