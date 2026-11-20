@@ -92,6 +92,7 @@ El reparto (página 6) asigna a Leonel, además de sus historias, este trabajo d
 | Web de usuario (`npm test` y `npm run build`) | 312 pruebas OK; build correcto |
 | Panel (`npm test` y `npm run build`) | 52 pruebas OK; build correcto |
 | Android (`gradlew testDebugUnitTest`) | 53 pruebas, 0 fallos (incluye las 6 de `RetiroCustodiaTest` de H44) |
+| APK (`gradlew assembleDebug`) | Compila sin errores: `app-debug.apk` 1.2.2 (versión 5), 35 MB. Sin claves ni JWT dentro; apunta a `10.0.2.2` (emulador) |
 | Datos de demostración | Docker con MySQL de QA aislado: 9 publicaciones, 3 coincidencias, 5 fotos servidas como JPEG, custodias `FND-2026-0001` y `FND-2026-0002` con etiqueta PDF |
 
 ## Para llevar a `main`
