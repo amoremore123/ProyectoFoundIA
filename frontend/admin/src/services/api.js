@@ -148,11 +148,14 @@ export const getCambiosRol = async (id) => {
   return Array.isArray(data) ? data : data?.results || [];
 };
 
-// H38: último respaldo automático ({ ultimo: {...} | null })
-export const getUltimoRespaldo = async () => {
-  const { data } = await api.get('/api/admin/respaldos/ultimo/');
+// H38/H59: último respaldo automático ({ ultimo: {...} | null }). Sin tipo, el de la base (como en H38).
+export const getUltimoRespaldo = async (tipo) => {
+  const { data } = await api.get('/api/admin/respaldos/ultimo/', tipo ? { params: { tipo } } : undefined);
   return data?.ultimo ?? null;
 };
+
+// H59: historial de respaldos, filtrable por tipo (BASE o FOTOS)
+export const getRespaldos = async (filtros, numero) => pagina('/api/admin/respaldos/', filtros, numero);
 
 // Archivos (PDF/Excel): se piden con el token y se devuelven como Blob.
 // Si el servidor responde un error, el cuerpo JSON llega como Blob: se convierte para leer "detail".

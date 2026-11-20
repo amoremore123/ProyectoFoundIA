@@ -23,8 +23,17 @@ function fechaHora(valor) {
   return d.toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-// H38: estado del último respaldo automático de la base de datos (solo lectura)
-export default function UltimoRespaldo() {
+// La huella SHA-256 completa ocupa 64 caracteres: se muestra corta y entera al copiarla o leerla
+export function huellaCorta(huella) {
+  if (!huella) return '—';
+  return huella.length > 20 ? `${huella.slice(0, 12)}…${huella.slice(-6)}` : huella;
+}
+
+const TITULOS = { BASE: 'Respaldo de la base', FOTOS: 'Respaldo de las fotos' };
+
+// H38: estado del último respaldo automático de la base de datos (solo lectura).
+// H59: con tipo="FOTOS" muestra el del volumen de fotos, con su huella.
+export default function UltimoRespaldo({ tipo, titulo, conHuella = false }) {
   const [respaldo, setRespaldo] = useState(undefined); // undefined = cargando, null = sin respaldos
   const [error, setError] = useState('');
 
@@ -32,21 +41,23 @@ export default function UltimoRespaldo() {
     setRespaldo(undefined);
     setError('');
     try {
-      setRespaldo(await getUltimoRespaldo());
+      setRespaldo(await getUltimoRespaldo(tipo));
     } catch (e) {
       setError(mensajeError(e, 'No se pudo consultar el último respaldo'));
       setRespaldo(null);
     }
-  }, []);
+  }, [tipo]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  const idTitulo = `titulo-respaldo${tipo ? `-${tipo.toLowerCase()}` : ''}`;
+  const nombre = titulo || TITULOS[tipo] || 'Último respaldo';
 
   const estado = respaldo ? ESTADOS[respaldo.estado] || { texto: respaldo.estado, clase: '' } : null;
 
   return (
-    <section className="tarjeta panel-tarjeta respaldo-tarjeta" aria-labelledby="titulo-respaldo">
+    <section className="tarjeta panel-tarjeta respaldo-tarjeta" aria-labelledby={idTitulo}>
       <div className="panel-tarjeta-cabecera">
-        <h2 id="titulo-respaldo"><Icono nombre="escudo" tamano={18} /> Último respaldo</h2>
+        <h2 id={idTitulo}><Icono nombre="escudo" tamano={18} /> {nombre}</h2>
         {estado && <span className={`chip-estado ${estado.clase}`}>{estado.texto}</span>}
       </div>
       {respaldo === undefined && !error ? (
@@ -58,7 +69,9 @@ export default function UltimoRespaldo() {
         </div>
       ) : respaldo === null ? (
         <p className="panel-aviso" role="status">
-          Todavía no hay respaldos registrados. Revisa que el servicio «respaldo» de Docker esté en marcha.
+          {tipo === 'FOTOS'
+            ? 'Todavía no hay respaldos de fotos. Se crean junto con el de la base si el servicio «respaldo» tiene RESPALDO_FOTOS=1.'
+            : 'Todavía no hay respaldos registrados. Revisa que el servicio «respaldo» de Docker esté en marcha.'}
         </p>
       ) : (
         <dl className="respaldo-datos">
@@ -66,6 +79,12 @@ export default function UltimoRespaldo() {
           <div><dt>Fin</dt><dd>{fechaHora(respaldo.finalizadoEn)}</dd></div>
           <div><dt>Tamaño</dt><dd>{tamanoLegible(respaldo.tamanoBytes)}</dd></div>
           <div className="respaldo-archivo"><dt>Archivo</dt><dd>{respaldo.nombreArchivo}</dd></div>
+          {conHuella && (
+            <div className="respaldo-archivo">
+              <dt>Huella SHA-256</dt>
+              <dd><code title={respaldo.huellaSha256 || undefined}>{huellaCorta(respaldo.huellaSha256)}</code></dd>
+            </div>
+          )}
           {respaldo.estado === 'FALLIDO' && (
             <div className="respaldo-error" role="alert">
               <dt>Error</dt><dd>{respaldo.mensaje || 'El respaldo falló sin mensaje del servidor.'}</dd>

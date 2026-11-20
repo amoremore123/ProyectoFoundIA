@@ -13,6 +13,7 @@ import Estadisticas from './pages/Estadisticas';
 import Custodia from './pages/Custodia';
 import Reclamos from './pages/Reclamos';
 import Vencidos from './pages/Vencidos';
+import Respaldos from './pages/Respaldos';
 import { inicioDe, puedeVer } from './config/permisos';
 
 function RutaProtegida({ children }) {
@@ -55,6 +56,8 @@ export default function App() {
                 <Route path="/reclamos" element={<SoloRol ruta="/reclamos"><Reclamos /></SoloRol>} />
                 {/* H54 */}
                 <Route path="/vencidos" element={<SoloRol ruta="/vencidos"><Vencidos /></SoloRol>} />
+                {/* H58 y H59 (Sprint 4): solo ADMIN */}
+                <Route path="/respaldos" element={<SoloRol ruta="/respaldos"><Respaldos /></SoloRol>} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -22,6 +22,8 @@ const menu = [
   { to: '/reclamos', icono: 'bandeja', label: 'Reclamos' },
   // H54: objetos no reclamados
   { to: '/vencidos', icono: 'reloj', label: 'Vencidos' },
+  // H58/H59: respaldos de la base y de las fotos (solo ADMIN)
+  { to: '/respaldos', icono: 'escudo', label: 'Respaldos' },
 ];
 
 export default function AdminLayout() {
