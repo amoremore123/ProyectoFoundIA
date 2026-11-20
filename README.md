@@ -1,6 +1,65 @@
 # FoundIA — Plataforma de Objetos Perdidos y Encontrados
 
-## Entrega actual: Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
+## Entrega actual: Sprint 3 (20 historias)
+
+Estado al **19/11/2026: Sprint 3 integrado en `main`** (`c9c7034`), con la CI en verde
+en las cinco capas: Spring, Django, web de usuario, panel y Android.
+
+- Historias: H25, H32, H36, H37, H38, H40 (arrastres del Sprint 2) y H41–H54.
+  Los 20 contratos están en [`docs/api/sprint3-*.md`](docs/api/).
+- Entregas: [Leonel](docs/integracion/entrega-leonel-sprint3.md),
+  [Yajaira](docs/integracion/entrega-yajaira-sprint3.md) y
+  [Amore](docs/integracion/entrega-amore-sprint3.md).
+- CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta en cada push
+  `mvn test`, las pruebas de Django con SQLite, `npm test` y `npm run build` de las dos
+  webs y las pruebas unitarias de Android. No usa bases compartidas ni claves.
+- Datos de demostración: con los servicios levantados, `python scripts/cargar_datos_demo.py`
+  crea con las APIs reales publicaciones en lugares del campus, pares que coinciden,
+  fotos y objetos en custodia. Es re-ejecutable. Usarlo solo en una base de QA.
+- Queda para el Sprint 4 (M2): las pruebas en teléfono físico de H44, H46, H50, H51 y H52.
+
+### Instrucciones para el equipo después del cierre del Sprint 3
+
+1. **Todos:** traer el nuevo `main` a la rama en la que trabajan antes de seguir.
+
+   ```bash
+   git fetch origin
+   git checkout <tu-rama>
+   git merge origin/main
+   ```
+
+   `frontend/web`, `mobile/android` y `dev/amore` lo reciben sin conflictos.
+
+2. **Yajaira:** empezar el Sprint 4 desde `main`, no desde la versión vieja de
+   `dev/yajaira`. Todo su trabajo del Sprint 3 ya está en `main` (se integró con otros
+   commits), pero `dev/yajaira` quedó atrás y choca en 6 archivos. Para que
+   `dev/yajaira` quede igual que `main`, conservando su historial y **sin push forzado**:
+
+   ```bash
+   git status                      # no debe haber cambios sin commitear
+   git fetch origin
+   git checkout -b partir-de-main origin/main
+   git merge -s ours origin/dev/yajaira -m "Partir de main para el Sprint 4"
+   git checkout dev/yajaira
+   git merge --ff-only partir-de-main
+   git branch -d partir-de-main
+   git push origin dev/yajaira
+   ```
+
+   `-s ours` conserva el contenido de `main` y solo une el historial: las líneas
+   distintas de `dev/yajaira` son versiones anteriores del mismo código (por ejemplo,
+   el retiro sin validar la etiqueta de H44), ya reemplazadas en `main`.
+
+3. **Amore:** subir la rama `cierre/sprint4` con el backend del chat (commit `e407eeb`).
+   El reparto del Sprint 4 la da por hecha, pero no está en GitHub y H55–H63 dependen de ella.
+
+   ```bash
+   git push origin cierre/sprint4
+   ```
+
+4. **Nada pasa a `main` sin la autorización escrita del equipo**, y nunca con push forzado.
+
+## Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
 Estado al **06/11/2026: Sprint 2 completado** para las pruebas locales del equipo.
 H35 rechaza la sesión anterior incluso dentro del mismo segundo del reset y
@@ -39,10 +98,9 @@ Los demás extras del Sprint 1 siguen ocultos por defecto conservando su código
 (historial público y secciones adicionales de portada). Categorías (H26) y reportes
 (H28) ya no dependen de ese interruptor porque son historias del Sprint 2.
 
-### Trabajo local de Sprint 3: FINDI
+### Configuración de FINDI (IA y voz)
 
-En la web de usuario, FINDI ya está visible sin activar los extras. Este trabajo
-local aún no representa una entrega integrada del Sprint 3.
+En la web de usuario, FINDI está visible sin activar los extras.
 
 - Con Docker Compose, copia `.env.example` a `.env` en la raíz. Sin claves,
   el chat usa la interpretación local y la lectura del navegador.
@@ -55,7 +113,6 @@ local aún no representa una entrega integrada del Sprint 3.
   Para verificar la caché de voz: `mvn -Dtest=VozServiceTest test` en
   `backend/springboot`.
 
-Se integró `dev/leonel` (`3942c88`) en el árbol de trabajo, pendiente de commit.
 H45 comparte un único endpoint: intenta el proveedor `IA_*`, después Claude
 opcional (`ASISTENTE_CLAUDE_ENABLED` y `ANTHROPIC_API_KEY`) y finalmente el motor
 local del servidor. La voz conserva su endpoint separado. Ver la
@@ -392,34 +449,35 @@ Detalle, frecuencia, retención y guardas:
 **Ramas**
 
 ```
-main                    ← producción / entregas
-develop                 ← integración del equipo
-  feature/registro-login
-  feature/publicaciones
-  feature/busqueda
-  feature/admin
-  feature/movil
+main              ← entregas integradas (solo con autorización escrita del equipo)
+dev/leonel        ← historias de Leonel (backend) e integración final
+dev/yajaira       ← historias de Yajaira
+dev/amore         ← historias de Amore
+frontend/web      ← capa web de todas las historias
+mobile/android    ← capa Android de todas las historias
 ```
 
 **Flujo**
 
 ```bash
-git checkout develop              # partir siempre de develop
-git checkout -b feature/publicaciones
-# ... trabajo y commits pequeños ...
-git push -u origin feature/publicaciones
-# abrir Pull Request → develop → revisión del equipo
+git fetch origin
+git checkout <tu-rama>
+git merge origin/main             # traer lo último integrado antes de empezar
+# ... trabajo, un commit por cambio ...
+git push origin <tu-rama>
 ```
 
 **Reglas**
 
-1. Nunca commitear directamente a `main`.
-2. Commit messages cortos e en inglés o español, pero consistentes
-   (`add publicaciones endpoint`).
+1. Nunca commitear directamente a `main` ni hacer push forzado.
+2. Un commit por historia o cambio lógico, en español y sin punto final:
+   `Hxx: acción breve y concreta`. Sin coautoría ni menciones a herramientas.
 3. Revisar `git status` antes de commitear: no subir `node_modules/`,
    `target/`, `build/`, `.env`, `local.properties` (ya excluidos en
    `.gitignore`).
-4. Hacer pull de `develop` a menudo para detectar conflictos temprano.
+4. Nada se da por terminado con mocks: probar con la API real y una MySQL de QA.
+   No usar `docker compose down -v` ni reimportar `script.sql` o `seed.sql` sobre datos reales.
+5. La CI debe quedar en verde después de cada push.
 
 ## Entrega de Amore — Sprint 2
 
