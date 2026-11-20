@@ -121,13 +121,13 @@ describe('Fase 5 - Intenciones nuevas de FINDI', () => {
 });
 
 describe('Saludo personalizado de FINDI', () => {
-  it('saluda según la hora y se presenta como la asistente de FoundIA', () => {
-    expect(saludoFindi('', new Date(2026, 10, 16, 9, 0))).toMatch(/^¡Hola! Buenos días\. Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte/);
-    expect(saludoFindi('', new Date(2026, 10, 16, 15, 0))).toMatch(/Buenas tardes/);
-    expect(saludoFindi('', new Date(2026, 10, 16, 21, 0))).toMatch(/Buenas noches/);
+  it('saluda de forma breve y pregunta qué necesita', () => {
+    expect(saludoFindi('', new Date(2026, 10, 16, 9, 0))).toBe('¡Hola! 👋 Soy FINDI. ¿Qué necesitas hoy?');
   });
 
   it('usa solo el primer nombre de la persona con sesión', () => {
-    expect(saludoFindi('Ana María', new Date(2026, 10, 16, 15, 0))).toMatch(/^¡Buenas tardes, Ana! Soy FINDI/);
+    expect(saludoFindi('Ana María', new Date(2026, 10, 16, 15, 0))).toMatch(/^¡Buenas tardes, Ana! 👋 Soy FINDI\./);
+    expect(saludoFindi('Ana', new Date(2026, 10, 16, 9, 0))).toMatch(/^¡Buenos días, Ana!/);
+    expect(saludoFindi('Ana', new Date(2026, 10, 16, 21, 0))).toMatch(/^¡Buenas noches, Ana!/);
   });
 });

@@ -7,27 +7,47 @@ import MiniaturaChat from './MiniaturaChat';
 import CamaraEnVivo, { camaraEnVivoDisponible } from './CamaraEnVivo';
 import { useAsistente } from '../context/AsistenteContext';
 import { useAuth } from '../context/AuthContext';
-import { AVATAR_FINDI } from '../config/findi';
+import { AVATAR_FINDI, EXPRESIONES_FINDI } from '../config/findi';
+import { calcularEstadoFindi, desenlaceDe, etiquetaEstadoFindi, ESTADOS_FINDI } from '../utils/expresionFindi';
 import useVoz from '../hooks/useVoz';
 import { desplazarASeccion } from '../utils/navegacion';
 import { buscarObjetos, buscarPorFoto, getMisObjetos, interpretarConIA, listarCategorias, mensajeError, statusDe } from '../services/api';
 import { archivoADataUrl, reducirFoto } from '../utils/fotos';
-import { ACCESOS_FINDI, adaptarInterpretacion, interpretar, responder, responderAcceso, saludoFindi } from '../utils/asistente';
+import { ACCESOS_FINDI, SUGERENCIAS_INICIALES, adaptarInterpretacion, interpretar, responder, responderAcceso, saludoFindi } from '../utils/asistente';
 import { accionesValidas, ajustarATarjetaObjeto, datosPrellenado, tarjetasValidas } from '../utils/tarjetasFindi';
 
 // Primer mensaje: saludo personalizado (hora del día y nombre si hay sesión) con los accesos rápidos
 const bienvenida = (nombre) => ({ id: 'bienvenida', de: 'bot', texto: saludoFindi(nombre), accesos: true });
 
-// Fase 4: estados visuales de FINDI. El avatar no cambia; solo el anillo, la etiqueta y el punto.
-const ETIQUETA_ESTADO = {
-  'en-linea': 'En línea',
-  saludando: 'Saludando',
-  escuchando: 'Escuchando…',
-  pensando: 'Pensando…',
-  respondiendo: 'Respondiendo…',
-  completada: 'Búsqueda completada',
-  error: 'Sin conexión',
+// Hora corta de cada mensaje (HH:MM)
+const horaActual = () => new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+// La voz no lee emojis
+const sinEmojis = (t = '') => String(t).replace(/[\p{Extended_Pictographic}️‍]/gu, '').replace(/\s+/g, ' ').trim();
+
+// Avatar de FINDI con la expresión actual. Mientras no existan los recursos de cada expresión,
+// una insignia animada indica el estado sobre la imagen original (ver config/findi.js).
+const INSIGNIAS = {
+  saludando: <span className="fc-emoji">👋</span>,
+  escuchando: <Icono nombre="microfono" tamano={12} />,
+  pensando: <b>?</b>,
+  buscando: <Icono nombre="buscar" tamano={12} />,
+  escribiendo: <i className="fc-puntos"><b /><b /><b /></i>,
+  hablando: <i className="fc-ondas"><b /><b /><b /></i>,
+  exito: <Icono nombre="check" tamano={12} />,
+  coincidencia: <Icono nombre="ia" tamano={12} />,
+  'sin-resultados': <Icono nombre="cerrar" tamano={12} />,
+  alerta: <Icono nombre="campana" tamano={12} />,
 };
+
+function AvatarFindi({ expresion = 'alegre', variante = 'cara' }) {
+  const recurso = EXPRESIONES_FINDI[expresion] || EXPRESIONES_FINDI.alegre;
+  return (
+    <span className={`fc-avatar fc-avatar-${variante} expresion-${expresion}`} data-expresion={expresion}>
+      <img src={recurso[variante]} alt="" />
+      {INSIGNIAS[expresion] && <span className="fc-insignia" aria-hidden="true">{INSIGNIAS[expresion]}</span>}
+    </span>
+  );
+}
 
 const lista = (data) => (Array.isArray(data) ? data : data?.results || []);
 
@@ -43,7 +63,11 @@ export default function ChatAsistente() {
   const location = useLocation();
   const [saludando, setSaludando] = useState(false);
   const yaSaludo = useRef(false);
-  const [completada, setCompletada] = useState(null);
+  // Resultado reciente de la última consulta (coincidencia, sin resultados o acción lista)
+  const [desenlace, setDesenlace] = useState(null);
+  const [buscando, setBuscando] = useState(false);
+  const ultimaConsulta = useRef(null);
+  const [enLinea, setEnLinea] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
   const nombreUsuario = auth?.user?.nombre || '';
   const [mensajes, setMensajes] = useState(() => [bienvenida(nombreUsuario)]);
   // El saludo se dice en voz alta una sola vez (al abrir con la lectura activada o al activarla)
@@ -79,7 +103,7 @@ export default function ChatAsistente() {
 
   const agregar = (mensaje) => {
     const id = ++contador.current;
-    setMensajes((prev) => [...prev, { ...mensaje, id }]);
+    setMensajes((prev) => [...prev, { hora: horaActual(), ...mensaje, id }]);
   };
 
   // El chat permanece montado al cerrarlo: detener también las tareas de voz.
@@ -111,11 +135,15 @@ export default function ChatAsistente() {
   const preguntar = useCallback(async (pregunta, { repetir = false } = {}) => {
     const limpio = pregunta.trim();
     if (!limpio || pensando) return;
-    setCompletada(null);
+    setDesenlace(null);
     // Al reintentar no se repite el mensaje del usuario
     if (!repetir) agregar({ de: 'usuario', texto: limpio });
     setTexto('');
     setDictado(false);
+    // Una búsqueda muestra "Buscando"; el resto de consultas, "Pensando" (interpretación con Groq)
+    const esBusqueda = interpretar(limpio, categoriasRef.current || []).intencion === 'buscar';
+    setBuscando(esBusqueda);
+    if (esBusqueda && !repetir) agregar({ de: 'bot', texto: '¡Vamos a buscarlo! 🔎', aviso: true });
     setPensando(true);
     try {
       if (!categoriasRef.current) categoriasRef.current = lista(await listarCategorias());
@@ -130,7 +158,13 @@ export default function ChatAsistente() {
       if (['mis_reportes', 'como_funciona'].includes(local.intencion)
           && consulta?.intencion !== local.intencion) consulta = null;
       // Fase 5: "mis reportes" se responde con tus publicaciones reales (requiere sesión)
-      const intencion = (consulta || local).intencion;
+      let elegida = consulta || local;
+      // Seguimiento: "en el laboratorio 1500" completa la búsqueda anterior con el lugar
+      if (['buscar', 'vacio'].includes(elegida.intencion) && !elegida.palabras?.length && !elegida.categoria
+          && elegida.ubicacion && ultimaConsulta.current) {
+        elegida = { ...ultimaConsulta.current, ubicacion: elegida.ubicacion, intencion: 'buscar' };
+      }
+      const intencion = elegida.intencion;
       // H47: tarjetas y acciones del catálogo cerrado (se descarta lo que no se conoce)
       const objetosPublicos = lista(datos);
       const tarjetas = tarjetasValidas(ia?.tarjetas).map((t) => (t.tipo === 'OBJETO' && t.datos?.id
@@ -138,13 +172,14 @@ export default function ChatAsistente() {
         : t));
       const respuesta = intencion === 'mis_reportes'
         ? await responderMisReportes()
-        : ajustarATarjetaObjeto(responder(limpio, { objetos: objetosPublicos, categorias: categoriasRef.current, consulta }), tarjetas);
+        : ajustarATarjetaObjeto(responder(limpio, { objetos: objetosPublicos, categorias: categoriasRef.current, consulta: elegida }), tarjetas);
+      if (intencion === 'buscar' && respuesta.consulta) ultimaConsulta.current = respuesta.consulta;
       // H45: se indica con transparencia si respondió la IA o el motor local de respaldo
       const fuente = consulta && ia?.fuente !== 'local' ? 'ia' : 'local';
       const accionesFindi = accionesValidas(ia?.acciones);
       agregar({ de: 'bot', fuente, ...respuesta, tarjetas, accionesFindi });
-      if (respuesta.resultados?.length) setCompletada(respuesta.resultados.length);
-      if (leerRespuestas && abiertoRef.current) voz.leer(respuesta.texto);
+      setDesenlace(desenlaceDe({ ...respuesta, tarjetas }, { buscaba: intencion === 'buscar' }));
+      if (leerRespuestas && abiertoRef.current) voz.leer(sinEmojis(respuesta.texto));
     } catch (e) {
       agregar({
         de: 'bot',
@@ -179,6 +214,8 @@ export default function ChatAsistente() {
     }
     const vista = typeof URL.createObjectURL === 'function' ? URL.createObjectURL(archivo) : '';
     agregar({ de: 'usuario', texto: 'Busca objetos como este', foto: vista });
+    setDesenlace(null);
+    setBuscando(true);
     setPensando(true);
     const publicarConFoto = { texto: 'Publicar con esta foto', to: '/publicar', state: { fotoAdjunta: archivo } };
     try {
@@ -205,7 +242,7 @@ export default function ChatAsistente() {
         texto: `${veo}${respuesta.texto}`,
         acciones: [...(respuesta.acciones || []).filter((a) => a.to !== '/publicar'), publicarConFoto],
       });
-      if (respuesta.resultados?.length) setCompletada(respuesta.resultados.length);
+      setDesenlace(desenlaceDe(respuesta, { buscaba: true }));
     } catch (e) {
       const limite = statusDe(e) === 429;
       agregar({
@@ -243,7 +280,7 @@ export default function ChatAsistente() {
   const leerSaludo = () => {
     if (saludoLeido.current || mensajes.length !== 1) return;
     saludoLeido.current = true;
-    voz.leer(mensajes[0].texto);
+    voz.leer(sinEmojis(mensajes[0].texto));
   };
 
   // FINDI saluda la primera vez que se abre el chat (y lo dice si la lectura en voz alta está activa)
@@ -257,21 +294,30 @@ export default function ChatAsistente() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto]);
 
-  // "Búsqueda completada" se muestra unos segundos y vuelve a "En línea"
+  // El resultado de la última consulta se muestra unos segundos y vuelve a "En línea"
   useEffect(() => {
-    if (completada == null) return undefined;
-    const t = setTimeout(() => setCompletada(null), 4500);
+    if (!desenlace) return undefined;
+    const t = setTimeout(() => setDesenlace(null), 4500);
     return () => clearTimeout(t);
-  }, [completada]);
+  }, [desenlace]);
+
+  // Estado de conexión real del navegador
+  useEffect(() => {
+    const on = () => setEnLinea(true);
+    const off = () => setEnLinea(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
 
   // Accesos rápidos: respuestas fijas, sin consultar la API
   const usarAcceso = (acceso) => {
     if (pensando) return;
-    setCompletada(null);
+    setDesenlace(null);
     agregar({ de: 'usuario', texto: acceso.texto });
     const respuesta = responderAcceso(acceso.id, { conSesion: Boolean(auth?.token) });
     agregar({ de: 'bot', ...respuesta });
-    if (leerRespuestas) voz.leer(respuesta.texto);
+    if (leerRespuestas) voz.leer(sinEmojis(respuesta.texto));
     if (respuesta.enfocar) inputRef.current?.focus();
   };
 
@@ -295,17 +341,15 @@ export default function ChatAsistente() {
     else if (a.tipo === 'ABRIR_RECLAMO') navigate(a.destino, { state: { abrirReclamo: true } });
   };
 
-  const ultimoBot = [...mensajes].reverse().find((m) => m.de === 'bot');
-  let estado = 'en-linea';
-  if (voz.escuchando) estado = 'escuchando';
-  else if (pensando) estado = 'pensando';
-  else if (ultimoBot?.error) estado = 'error';
-  else if (voz.hablando) estado = 'respondiendo';
-  else if (completada != null) estado = 'completada';
-  else if (saludando) estado = 'saludando';
-  const etiquetaEstado = estado === 'completada'
-    ? `${ETIQUETA_ESTADO.completada} · ${completada} ${completada === 1 ? 'resultado' : 'resultados'}`
-    : ETIQUETA_ESTADO[estado];
+  const ultimoBot = [...mensajes].reverse().find((m) => m.de === 'bot' && !m.aviso);
+  const estado = calcularEstadoFindi({
+    escuchando: voz.escuchando, pensando, buscando, error: Boolean(ultimoBot?.error),
+    preparando: voz.preparando, hablando: voz.hablando, desenlace, saludando,
+  });
+  const expresion = ESTADOS_FINDI[estado].expresion;
+  const etiquetaEstado = etiquetaEstadoFindi(estado, desenlace);
+  const conectado = enLinea && !ultimoBot?.error;
+  const soloBienvenida = mensajes.length === 1;
 
   useEffect(() => {
     if (!abierto) return undefined;
@@ -339,28 +383,139 @@ export default function ChatAsistente() {
     preguntar(texto);
   };
 
+  // Contenido extra de un mensaje de FINDI (resultados, tarjetas y acciones). Solo con datos reales.
+  const extrasMensaje = (m) => (
+    <>
+      {m.resultados?.length > 0 && (
+        <ul className="fc-resultados">
+          {m.resultados.map(({ objeto, porcentaje }) => (
+            <li key={objeto.id}>
+              <Link to={`/objeto/${objeto.id}`} className="fc-objeto" onClick={cerrar}>
+                <MiniaturaChat objeto={objeto} />
+                <span className="fc-objeto-info">
+                  <span className="fc-objeto-nombre">{objeto.nombre}</span>
+                  <span className="fc-objeto-linea"><Icono nombre="ubicacion" tamano={12} /> {objeto.ubicacion || 'Sin ubicación'}</span>
+                  <span className="fc-objeto-pie">
+                    <ChipTipo tipo={objeto.tipo} />
+                    <span className="fc-objeto-match">{porcentaje}% coincidencia</span>
+                  </span>
+                </span>
+                <Icono nombre="flechaDer" tamano={16} className="fc-objeto-flecha" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {m.misReportes?.length > 0 && (
+        <ul className="fc-resultados" aria-label="Mis reportes">
+          {m.misReportes.map((objeto) => (
+            <li key={objeto.id}>
+              <Link to={`/objeto/${objeto.id}`} className="fc-objeto" onClick={cerrar}>
+                <MiniaturaChat objeto={objeto} />
+                <span className="fc-objeto-info">
+                  <span className="fc-objeto-nombre">{objeto.nombre}</span>
+                  <span className="fc-objeto-pie">
+                    <ChipTipo tipo={objeto.tipo} />
+                    <span className="fc-objeto-match">{ESTADO_REPORTE[objeto.estado] || objeto.estado}</span>
+                  </span>
+                </span>
+                <Icono nombre="flechaDer" tamano={16} className="fc-objeto-flecha" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {m.tarjetas?.length > 0 && (
+        <ul className="fc-resultados" aria-label="Tarjetas de FINDI">
+          {m.tarjetas.map((t, i) => (
+            <li key={`${t.tipo}-${i}`} className={`fc-tarjeta-${t.tipo.toLowerCase()}`}>
+              {t.tipo === 'OBJETO' && (
+                <Link to={t.enlace} className="fc-objeto" onClick={cerrar}>
+                  <MiniaturaChat objeto={t.objeto || { nombre: t.titulo, categoria: t.datos?.categoria }} />
+                  <span className="fc-objeto-info">
+                    <span className="fc-objeto-nombre">{t.titulo}</span>
+                    {t.datos?.ubicacion && <span className="fc-objeto-linea"><Icono nombre="ubicacion" tamano={12} /> {t.datos.ubicacion}</span>}
+                    <span className="fc-objeto-pie">
+                      {t.datos?.tipo && <ChipTipo tipo={t.datos.tipo} />}
+                      <span className="fc-objeto-match">{ESTADO_REPORTE[t.datos?.estado] || t.datos?.estado}</span>
+                    </span>
+                  </span>
+                  <Icono nombre="flechaDer" tamano={16} className="fc-objeto-flecha" />
+                </Link>
+              )}
+              {t.tipo === 'RECLAMOS' && (
+                <Link to={t.enlace} className="fc-cifras" onClick={cerrar}>
+                  <strong><Icono nombre="bandeja" tamano={14} /> {t.titulo}</strong>
+                  <span>{t.datos?.pendientes ?? 0} pendientes · {t.datos?.aceptados ?? 0} aceptados · {t.datos?.retirados ?? 0} retirados · {t.datos?.rechazados ?? 0} rechazados</span>
+                </Link>
+              )}
+              {t.tipo === 'QR_RETIRO' && (
+                <Link to={t.enlace} className="fc-cifras" onClick={cerrar}>
+                  <strong><Icono nombre="check" tamano={14} /> {t.titulo}</strong>
+                  <span>{t.datos?.vigentes === 1 ? 'Tienes 1 QR listo para recoger tu objeto.' : `Tienes ${t.datos?.vigentes} QR listos para recoger tus objetos.`}</span>
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {m.accionesFindi?.length > 0 && (
+        <div className="fc-acciones" role="group" aria-label="Acciones propuestas por FINDI">
+          {m.accionesFindi.map((a, i) => (
+            <button key={a.tipo + a.destino} type="button" className={`fc-accion${i === 0 ? ' principal' : ''}`} onClick={() => setAccionPendiente(a)}>
+              {a.texto} <Icono nombre="flechaDer" tamano={14} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {m.acciones?.length > 0 && (
+        <div className="fc-acciones">
+          {m.acciones.map((a) => (
+            <Link key={a.to} to={a.to} state={a.state} className="fc-accion" onClick={(event) => irAAccion(event, a.to)}>
+              {a.texto} <Icono nombre="flechaDer" tamano={14} />
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {m.sugerencias?.length > 0 && (
+        <div className="fc-sugerencias">
+          {m.sugerencias.map((s) => (
+            <button key={s} type="button" className="fc-sugerencia" onClick={() => preguntar(s)} disabled={pensando}>{s}</button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  const ondas = <i className="fc-ondas" aria-hidden="true"><b /><b /><b /></i>;
+
   return (
     <>
       {abierto && (
-        <section className="chat-panel" role="dialog" aria-label="FINDI, asistente de FoundIA">
-          <div className="chat-cabecera">
-            <span className={`chat-avatar-marco estado-${estado}`} data-estado={estado}>
-              <span className="chat-avatar"><img src={AVATAR_FINDI} alt="" /></span>
-              {estado === 'saludando' && <span className="chat-saludo" aria-hidden="true">👋</span>}
-            </span>
-            <div className="chat-cabecera-texto">
-              <strong>FINDI</strong>
-              <span className="chat-estado-linea" data-testid="estado-findi">
-                {estado === 'respondiendo'
-                  ? <i className="chat-ondas" aria-hidden="true"><b /><b /><b /></i>
-                  : <i className={`chat-estado estado-${estado}`} aria-hidden="true" />}
-                {etiquetaEstado}
+        <section className={`fc fc-estado-${estado}`} role="dialog" aria-label="FINDI, asistente de FoundIA">
+          <header className="fc-cabecera">
+            <AvatarFindi expresion={expresion} variante="cara" />
+            <div className="fc-cabecera-texto">
+              <div className="fc-nombre">
+                <strong>FINDI</strong>
+                <span className={`fc-conexion${conectado ? '' : ' desconectado'}`}>
+                  <i aria-hidden="true" />{conectado ? 'En línea' : enLinea ? 'Sin conexión' : 'Sin internet'}
+                </span>
+              </div>
+              <span className="fc-subtitulo" data-testid="estado-findi">
+                {estado === 'hablando' && ondas}
+                {etiquetaEstado || 'Tu asistente inteligente de FoundIA ✨'}
               </span>
             </div>
             {voz.soportaLectura && (
               <button
                 type="button"
-                className={`chat-cerrar chat-leer${leerRespuestas ? ' activo' : ''}`}
+                className={`fc-boton-cabecera${leerRespuestas ? ' activo' : ''}`}
                 onClick={alternarLectura}
                 aria-pressed={leerRespuestas}
                 aria-label={leerRespuestas ? 'Dejar de leer las respuestas en voz alta' : 'Leer las respuestas en voz alta'}
@@ -369,220 +524,144 @@ export default function ChatAsistente() {
                 <Icono nombre={leerRespuestas ? 'volumen' : 'volumenOff'} tamano={18} />
               </button>
             )}
-            <button type="button" className="chat-cerrar" onClick={cerrar} aria-label="Cerrar asistente">
+            <button type="button" className="fc-boton-cabecera" onClick={cerrar} aria-label="Cerrar asistente" title="Cerrar (la conversación se conserva)">
               <Icono nombre="cerrar" tamano={18} />
             </button>
-          </div>
+          </header>
 
-          <div className="chat-mensajes" aria-live="polite">
-            {mensajes.map((m) => (
-              <div key={m.id} className={`chat-fila ${m.de === 'usuario' ? 'chat-fila-usuario' : ''}`}>
-                <div className={`chat-burbuja ${m.de === 'usuario' ? 'chat-burbuja-usuario' : ''} ${m.error ? 'chat-burbuja-error' : ''}`}>
-                  {m.foto && <img className="chat-foto-enviada" src={m.foto} alt="Foto enviada para buscar" />}
-                  <p>{m.texto}</p>
-                  {m.reintentar && (
-                    <button type="button" className="chat-reintentar" onClick={() => preguntar(m.reintentar, { repetir: true })} disabled={pensando}>
-                      <Icono nombre="flechaDer" tamano={14} /> Reintentar
-                    </button>
-                  )}
-                  {m.avisoVoz && (
-                    <Link to="/privacidad" className="chat-aviso-enlace" onClick={cerrar}>Ver la política de privacidad</Link>
-                  )}
-                  {m.fuente && (
-                    <span className={`chat-fuente chat-fuente-${m.fuente}`}>
-                      {m.fuente === 'ia' ? 'Interpretado con IA' : 'Respuesta del motor local'}
-                    </span>
-                  )}
-
-                  {m.resultados?.length > 0 && (
-                    <ul className="chat-resultados">
-                      {m.resultados.map(({ objeto, porcentaje }) => {
-                        return (
-                          <li key={objeto.id}>
-                            <Link to={`/objeto/${objeto.id}`} className="chat-resultado" onClick={cerrar}>
-                              <MiniaturaChat objeto={objeto} />
-                              <span className="chat-resultado-info">
-                                <span className="chat-resultado-nombre">{objeto.nombre}</span>
-                                <span className="chat-resultado-linea">
-                                  <Icono nombre="ubicacion" tamano={12} /> {objeto.ubicacion || 'Sin ubicación'}
-                                </span>
-                                <span className="chat-resultado-pie">
-                                  <ChipTipo tipo={objeto.tipo} />
-                                  <span className="chat-resultado-match">{porcentaje}% coincidencia</span>
-                                </span>
-                              </span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-
-                  {m.misReportes?.length > 0 && (
-                    <ul className="chat-resultados" aria-label="Mis reportes">
-                      {m.misReportes.map((objeto) => (
-                        <li key={objeto.id}>
-                          <Link to={`/objeto/${objeto.id}`} className="chat-resultado" onClick={cerrar}>
-                            <MiniaturaChat objeto={objeto} />
-                            <span className="chat-resultado-info">
-                              <span className="chat-resultado-nombre">{objeto.nombre}</span>
-                              <span className="chat-resultado-pie">
-                                <ChipTipo tipo={objeto.tipo} />
-                                <span className="chat-resultado-match">{ESTADO_REPORTE[objeto.estado] || objeto.estado}</span>
-                              </span>
-                            </span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {m.tarjetas?.length > 0 && (
-                    <ul className="chat-tarjetas" aria-label="Tarjetas de FINDI">
-                      {m.tarjetas.map((t, i) => (
-                        <li key={`${t.tipo}-${i}`} className={`chat-tarjeta chat-tarjeta-${t.tipo.toLowerCase()}`}>
-                          {t.tipo === 'OBJETO' && (
-                            <Link to={t.enlace} className="chat-resultado" onClick={cerrar}>
-                              <MiniaturaChat objeto={t.objeto || { nombre: t.titulo, categoria: t.datos?.categoria }} />
-                              <span className="chat-resultado-info">
-                                <span className="chat-resultado-nombre">{t.titulo}</span>
-                                {t.datos?.ubicacion && (
-                                  <span className="chat-resultado-linea"><Icono nombre="ubicacion" tamano={12} /> {t.datos.ubicacion}</span>
-                                )}
-                                <span className="chat-resultado-pie">
-                                  {t.datos?.tipo && <ChipTipo tipo={t.datos.tipo} />}
-                                  <span className="chat-resultado-match">{ESTADO_REPORTE[t.datos?.estado] || t.datos?.estado}</span>
-                                </span>
-                              </span>
-                            </Link>
-                          )}
-                          {t.tipo === 'RECLAMOS' && (
-                            <Link to={t.enlace} className="chat-tarjeta-cifras" onClick={cerrar}>
-                              <strong><Icono nombre="bandeja" tamano={14} /> {t.titulo}</strong>
-                              <span>{t.datos?.pendientes ?? 0} pendientes · {t.datos?.aceptados ?? 0} aceptados · {t.datos?.retirados ?? 0} retirados · {t.datos?.rechazados ?? 0} rechazados</span>
-                            </Link>
-                          )}
-                          {t.tipo === 'QR_RETIRO' && (
-                            <Link to={t.enlace} className="chat-tarjeta-cifras" onClick={cerrar}>
-                              <strong><Icono nombre="check" tamano={14} /> {t.titulo}</strong>
-                              <span>{t.datos?.vigentes === 1 ? 'Tienes 1 QR listo para recoger tu objeto.' : `Tienes ${t.datos?.vigentes} QR listos para recoger tus objetos.`}</span>
-                            </Link>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {m.accionesFindi?.length > 0 && (
-                    <div className="chat-acciones" role="group" aria-label="Acciones propuestas por FINDI">
-                      {m.accionesFindi.map((a) => (
-                        <button key={a.tipo + a.destino} type="button" className="chat-accion" onClick={() => setAccionPendiente(a)}>
-                          {a.texto} <Icono nombre="flechaDer" tamano={14} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {m.acciones?.length > 0 && (
-                    <div className="chat-acciones">
-                      {m.acciones.map((a) => (
-                        <Link key={a.to} to={a.to} state={a.state} className="chat-accion" onClick={(event) => irAAccion(event, a.to)}>
-                          {a.texto} <Icono nombre="flechaDer" tamano={14} />
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-
-                  {m.accesos && (
-                    <div className="chat-accesos" role="group" aria-label="Accesos rápidos">
+          <div className="fc-mensajes" aria-live="polite">
+            {mensajes.map((m) => {
+              if (m.id === 'bienvenida' && soloBienvenida) {
+                return (
+                  <div key={m.id} className="fc-bienvenida">
+                    <AvatarFindi expresion={expresion === 'alegre' ? 'saludando' : expresion} variante="cuerpo" />
+                    <p className="fc-bienvenida-texto">{m.texto}</p>
+                    <div className="fc-accesos" role="group" aria-label="Accesos rápidos">
                       {ACCESOS_FINDI.map((a) => (
-                        <button key={a.id} type="button" className="chat-acceso" onClick={() => usarAcceso(a)} disabled={pensando}>
-                          <span className="chat-acceso-icono" aria-hidden="true"><Icono nombre={a.icono} tamano={16} /></span>
+                        <button key={a.id} type="button" className={`fc-acceso fc-acceso-${a.id}`} onClick={() => usarAcceso(a)} disabled={pensando}>
+                          <span className="fc-acceso-icono" aria-hidden="true"><Icono nombre={a.icono} tamano={18} /></span>
                           {a.texto}
                         </button>
                       ))}
                     </div>
-                  )}
-
-                  {m.sugerencias?.length > 0 && (
-                    <div className="chat-sugerencias">
-                      {m.sugerencias.map((s) => (
-                        <button key={s} type="button" className="chat-sugerencia" onClick={() => preguntar(s)} disabled={pensando}>
-                          {s}
-                        </button>
+                    <div className="fc-sugerencias" role="group" aria-label="Sugerencias">
+                      {SUGERENCIAS_INICIALES.slice(0, 3).map((s) => (
+                        <button key={s} type="button" className="fc-sugerencia" onClick={() => preguntar(s)} disabled={pensando}>{s}</button>
                       ))}
                     </div>
-                  )}
+                  </div>
+                );
+              }
+              const esUsuario = m.de === 'usuario';
+              return (
+                <div key={m.id} className={`fc-fila ${esUsuario ? 'usuario' : 'bot'}`}>
+                  {!esUsuario && <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>}
+                  <div className="fc-columna">
+                    <div className={`fc-burbuja${m.error ? ' error' : ''}`}>
+                      {m.foto && <img className="fc-foto-enviada" src={m.foto} alt="Foto enviada para buscar" />}
+                      <p>{m.texto}</p>
+                      {m.reintentar && (
+                        <button type="button" className="fc-reintentar" onClick={() => preguntar(m.reintentar, { repetir: true })} disabled={pensando}>
+                          <Icono nombre="flechaDer" tamano={14} /> Reintentar
+                        </button>
+                      )}
+                      {m.avisoVoz && <Link to="/privacidad" className="fc-enlace" onClick={cerrar}>Ver la política de privacidad</Link>}
+                    </div>
+                    {!esUsuario && extrasMensaje(m)}
+                    <span className="fc-meta">
+                      {m.hora && <time>{m.hora}</time>}
+                      {m.fuente && <span className={`fc-fuente fc-fuente-${m.fuente}`}>{m.fuente === 'ia' ? 'Interpretado con IA' : 'Respuesta del motor local'}</span>}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {pensando && (
-              <div className="chat-fila">
-                <div className="chat-burbuja chat-escribiendo" role="status" aria-label="El asistente está buscando">
-                  <span /><span /><span />
+              <div className="fc-fila bot">
+                <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>
+                <div className="fc-procesando" role="status" aria-label={buscando ? 'FINDI está buscando coincidencias' : 'FINDI está pensando'}>
+                  <span className="fc-giro" aria-hidden="true" />
+                  <span>
+                    <strong>{buscando ? 'Buscando coincidencias…' : 'Pensando…'}</strong>
+                    <small>Un momento, por favor.</small>
+                  </span>
                 </div>
               </div>
             )}
             <div ref={finRef} />
           </div>
 
-          <form className="chat-entrada" onSubmit={enviar}>
-            <input
-              ref={inputRef}
-              className="chat-input"
-              value={texto}
-              onChange={(e) => {
-                setTexto(e.target.value);
-                if (!e.target.value) setDictado(false);
-              }}
-              placeholder="Ej. Perdí mi casaca azul en el aula 204"
-              aria-label="Escribe tu mensaje al asistente"
-              maxLength={300}
-            />
-            <button
-              type="button"
-              className="chat-microfono chat-foto"
-              onClick={pedirFoto}
-              disabled={pensando}
-              aria-label="Buscar con una foto"
-              title="Buscar con una foto"
-            >
-              <Icono nombre="camara" tamano={18} />
-            </button>
-            <input
-              ref={entradaFotoChat}
-              type="file"
-              accept="image/jpeg,image/png"
-              className="foto-entrada"
-              tabIndex={-1}
-              aria-hidden="true"
-              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; buscarConFoto(f); }}
-            />
-            {voz.soportaDictado && (
-              <button
-                type="button"
-                className={`chat-microfono${voz.escuchando ? ' escuchando' : ''}`}
-                onClick={usarMicrofono}
-                disabled={pensando}
-                aria-pressed={voz.escuchando}
-                aria-label={voz.escuchando ? 'Dejar de escuchar' : 'Hablar con el asistente'}
-              >
-                <Icono nombre="microfono" tamano={18} />
-              </button>
+          <div className="fc-pie">
+            {voz.escuchando && (
+              <div className="fc-barra escuchando" role="status">
+                <span className="fc-mic-pulso" aria-hidden="true"><Icono nombre="microfono" tamano={14} /></span>
+                <span>Micrófono activo · Escuchando… habla ahora</span>
+                <button type="button" onClick={voz.detener} aria-label="Cancelar dictado">Cancelar</button>
+              </div>
             )}
-            <button type="submit" className="chat-enviar" disabled={!texto.trim() || pensando} aria-label="Enviar mensaje">
-              <Icono nombre="enviar" tamano={18} />
-            </button>
-          </form>
-          {voz.escuchando && <p className="chat-voz-estado" role="status">Escuchando… habla ahora</p>}
-          {!voz.escuchando && dictado && texto && (
-            <p className="chat-voz-estado" role="status">Revisa el texto, corrígelo si hace falta y pulsa Enviar.</p>
-          )}
-          {voz.errorVoz && <p className="chat-voz-error" role="alert">{voz.errorVoz}</p>}
-          {leerRespuestas && voz.avisoLectura && <p className="chat-voz-estado chat-voz-aviso">{voz.avisoLectura}</p>}
-          {/* El plan gratuito de ElevenLabs pide dar crédito cuando se usa su voz */}
-          {leerRespuestas && voz.proveedor === 'elevenlabs' && <p className="chat-credito">Voz de FINDI: ElevenLabs</p>}
+            {!voz.escuchando && voz.hablando && (
+              <div className="fc-barra hablando">
+                {ondas}
+                <span>FINDI está hablando</span>
+                <button type="button" onClick={voz.callar} aria-label="Detener la voz de FINDI">Detener</button>
+              </div>
+            )}
+            {!voz.escuchando && dictado && texto && (
+              <p className="fc-nota" role="status">Revisa el texto, corrígelo si hace falta y pulsa Enviar.</p>
+            )}
+            {voz.errorVoz && <p className="fc-nota error" role="alert">{voz.errorVoz}</p>}
+            {leerRespuestas && voz.avisoLectura && <p className="fc-nota">{voz.avisoLectura}</p>}
+
+            <form className="fc-entrada" onSubmit={enviar}>
+              <span className="fc-campo">
+                <Icono nombre="ia" tamano={16} className="fc-campo-icono" />
+                <input
+                  ref={inputRef}
+                  className="fc-input"
+                  value={texto}
+                  onChange={(e) => {
+                    setTexto(e.target.value);
+                    if (!e.target.value) setDictado(false);
+                  }}
+                  onFocus={() => setTimeout(() => finRef.current?.scrollIntoView?.({ block: 'end' }), 250)}
+                  placeholder="Escribe un mensaje a FINDI…"
+                  aria-label="Escribe tu mensaje al asistente"
+                  maxLength={300}
+                  enterKeyHint="send"
+                />
+              </span>
+              <button type="button" className="fc-boton-redondo" onClick={pedirFoto} disabled={pensando} aria-label="Buscar con una foto" title="Buscar con una foto">
+                <Icono nombre="camara" tamano={18} />
+              </button>
+              <input
+                ref={entradaFotoChat}
+                type="file"
+                accept="image/jpeg,image/png"
+                className="foto-entrada"
+                tabIndex={-1}
+                aria-hidden="true"
+                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; buscarConFoto(f); }}
+              />
+              {voz.soportaDictado && (
+                <button
+                  type="button"
+                  className={`fc-boton-redondo${voz.escuchando ? ' escuchando' : ''}`}
+                  onClick={usarMicrofono}
+                  disabled={pensando}
+                  aria-pressed={voz.escuchando}
+                  aria-label={voz.escuchando ? 'Dejar de escuchar' : 'Hablar con el asistente'}
+                >
+                  <Icono nombre="microfono" tamano={18} />
+                </button>
+              )}
+              <button type="submit" className="fc-enviar" disabled={!texto.trim() || pensando} aria-label="Enviar mensaje">
+                <Icono nombre="enviar" tamano={18} />
+              </button>
+            </form>
+            {/* El plan gratuito de ElevenLabs pide dar crédito cuando se usa su voz */}
+            {leerRespuestas && voz.proveedor === 'elevenlabs' && <p className="fc-credito">Voz de FINDI: ElevenLabs</p>}
+          </div>
         </section>
       )}
 

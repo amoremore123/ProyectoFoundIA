@@ -40,7 +40,7 @@ async function enviarFoto(user, vista) {
   expect(within(aviso).getByText(/No se guarda ni se publica/)).toBeTruthy();
   await user.click(within(aviso).getByRole('button', { name: 'Entendido, continuar' }));
   // Sin HTTPS (jsdom) se usa la galería: la entrada de archivo oculta del chat
-  const entrada = vista.container.ownerDocument.querySelector('.chat-entrada input[type="file"]');
+  const entrada = vista.container.ownerDocument.querySelector('.fc-entrada input[type="file"]');
   fireEvent.change(entrada, { target: { files: [foto()] } });
 }
 

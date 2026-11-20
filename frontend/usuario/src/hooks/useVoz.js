@@ -60,6 +60,8 @@ export default function useVoz({ alReconocer, alParcial } = {}) {
   const [escuchando, setEscuchando] = useState(false);
   // Fase 4: FINDI muestra "Respondiendo…" mientras lee una respuesta en voz alta
   const [hablando, setHablando] = useState(false);
+  // Mientras ElevenLabs genera el audio de la respuesta (antes de que empiece a sonar)
+  const [preparando, setPreparando] = useState(false);
   const [errorVoz, setErrorVoz] = useState('');
   const reconocimiento = useRef(null);
   const callback = useRef(alReconocer);
@@ -156,6 +158,7 @@ export default function useVoz({ alReconocer, alParcial } = {}) {
   const soltarAudio = useCallback(() => {
     peticionVoz.current?.abort();
     peticionVoz.current = null;
+    setPreparando(false);
     if (audio.current) {
       audio.current.onplaying = null;
       audio.current.onended = null;
@@ -181,9 +184,11 @@ export default function useVoz({ alReconocer, alParcial } = {}) {
 
     const control = new AbortController();
     peticionVoz.current = control;
+    setPreparando(true);
     obtenerVozFindi(texto, { signal: control.signal })
       .then((mp3) => {
         if (control.signal.aborted) return;
+        setPreparando(false);
         if (!audio.current) audio.current = new window.Audio();
         const reproductor = audio.current;
         urlAudio.current = URL.createObjectURL(mp3);
@@ -197,6 +202,7 @@ export default function useVoz({ alReconocer, alParcial } = {}) {
       })
       .catch((e) => {
         if (control.signal.aborted) return;
+        setPreparando(false);
         // Sin voz configurada (503) o con un backend que aún no tiene /voz (404) no se reintenta en esta visita
         if ([404, 503].includes(e?.response?.status)) vozNatural.current = false;
         respaldo(texto);
@@ -225,7 +231,7 @@ export default function useVoz({ alReconocer, alParcial } = {}) {
   }, [soportaNavegador, soltarAudio]);
 
   return {
-    soportaDictado, soportaLectura, escuchando, hablando, errorVoz, proveedor, avisoLectura,
+    soportaDictado, soportaLectura, escuchando, hablando, preparando, errorVoz, proveedor, avisoLectura,
     escuchar, detener, leer, callar, prepararAudio,
   };
 }

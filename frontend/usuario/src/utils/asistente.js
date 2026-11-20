@@ -244,16 +244,16 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
 
   if (consulta.intencion === 'saludo') {
     return {
-      texto: '¡Hola! Soy FINDI, la asistente de FoundIA. Cuéntame qué perdiste o encontraste, y si recuerdas dónde, mejor. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
+      texto: '¡Hola! 👋 Cuéntame qué perdiste o encontraste, y dónde lo viste por última vez.',
       sugerencias: SUGERENCIAS,
     };
   }
   if (consulta.intencion === 'gracias') {
-    return { texto: '¡Con gusto! Si necesitas buscar otra cosa, aquí estoy. Ojalá recuperes lo tuyo pronto.' };
+    return { texto: '¡De nada! 💙 Aquí estaré si necesitas algo más.' };
   }
   if (consulta.intencion === 'ayuda') {
     return {
-      texto: 'Busco entre todos los objetos publicados en el campus. Entiendo lenguaje natural: dime qué es, de qué color y dónde lo perdiste o encontraste, y te muestro los más parecidos ordenados por coincidencia.',
+      texto: 'Te ayudo a buscar, reportar y recuperar objetos en Tecsup. Dime qué es, de qué color y dónde lo viste.',
       sugerencias: SUGERENCIAS,
     };
   }
@@ -263,13 +263,13 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
   // "mis_reportes" necesita la sesión y la API: lo resuelve ChatAsistente con GET /api/perfil/objetos
   if (consulta.intencion === 'publicar') {
     return {
-      texto: 'Publicar es rápido: entra a “Publicar”, elige si lo perdiste o lo encontraste, describe el objeto, la categoría, el lugar y la fecha. FoundIA te avisará si aparece una coincidencia.',
+      texto: '¡Claro! 📦 En Publicar indicas qué es, dónde y cuándo. Te aviso si aparece una coincidencia.',
       acciones: [{ texto: 'Publicar un objeto', to: '/publicar' }],
     };
   }
   if (consulta.intencion === 'vacio') {
     return {
-      texto: 'Necesito un poco más de detalle. ¿Qué objeto es? Puedes decirme el tipo, color, marca o el lugar donde lo viste por última vez.',
+      texto: 'No te entendí bien 🤔 ¿Qué objeto es y dónde lo viste por última vez?',
       sugerencias: SUGERENCIAS,
     };
   }
@@ -293,11 +293,14 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
   const verMas = { texto: 'Ver búsqueda completa', to: `/buscar?${paramsBusqueda.toString()}` };
 
   if (!resultados.length) {
-    const publicar = consulta.tipoBuscado === 'PERDIDO'
-      ? 'Publícalo como encontrado para que su dueño lo vea.'
-      : 'Te recomiendo publicarlo como perdido: te avisaremos cuando alguien lo encuentre.';
+    // Sin lugar, primero se pide el dato que más ayuda; con lugar, se ofrece registrar el reporte
+    const siguiente = !consulta.ubicacion
+      ? '¿Dónde lo viste por última vez?'
+      : consulta.tipoBuscado === 'PERDIDO'
+        ? '¿Lo publicamos como encontrado para que su dueño lo vea?'
+        : '¿Quieres registrar un reporte?';
     return {
-      texto: `No encontré publicaciones que coincidan con ${resumen || 'tu descripción'}. ${publicar}`,
+      texto: `Por ahora no encontré coincidencias${resumen ? ` con ${resumen}` : ''}. ${siguiente}`,
       acciones: [{ texto: 'Publicar ahora', to: '/publicar' }, verMas],
       consulta,
     };
@@ -306,8 +309,8 @@ export function responder(mensaje, { objetos = [], categorias = [], consulta: da
   const n = resultados.length;
   return {
     texto: notaTipo
-      ? `Busqué ${resumen}.${notaTipo}`
-      : `Encontré ${n} ${n === 1 ? 'publicación que podría ser tuya' : 'publicaciones que podrían coincidir'} con ${resumen}:`,
+      ? notaTipo.trim()
+      : n === 1 ? '¡Encontré una posible coincidencia! 💙 ¿La revisamos?' : `¡Encontré ${n} posibles coincidencias! 💙 ¿Las revisamos?`,
     resultados,
     acciones: [verMas],
     consulta,
@@ -319,33 +322,39 @@ export const SUGERENCIAS_INICIALES = SUGERENCIAS;
 // Fase 4 - Accesos rápidos de FINDI. Son respuestas fijas: no consultan la IA ni inventan datos.
 // No hay acceso a "personal responsable" porque ese flujo no existe (el contacto es entre usuarios).
 export const ACCESOS_FINDI = [
-  { id: 'buscar', texto: 'Buscar un objeto perdido', icono: 'buscar' },
+  { id: 'buscar', texto: 'Buscar un objeto', icono: 'buscar' },
   { id: 'reportar', texto: 'Reportar un objeto', icono: 'caja' },
-  { id: 'mis-reportes', texto: 'Consultar mis reportes', icono: 'lista' },
-  { id: 'como-funciona', texto: '¿Cómo funciona FoundIA?', icono: 'info' },
+  { id: 'mis-reportes', texto: 'Mis reportes', icono: 'lista' },
+  { id: 'ayuda', texto: 'Necesito ayuda', icono: 'info' },
 ];
 
 export function responderAcceso(id, { conSesion = false } = {}) {
   switch (id) {
     case 'buscar':
       return {
-        texto: 'Cuéntame qué perdiste, de qué color es y dónde lo viste por última vez. Por ejemplo: “perdí mi casaca azul en el aula 204”.',
+        texto: '¡Vamos a buscarlo! 🔎 ¿Qué perdiste y dónde lo viste por última vez?',
         sugerencias: SUGERENCIAS.slice(0, 2),
         enfocar: true,
       };
     case 'reportar':
       return {
-        texto: 'Para reportar un objeto indica si lo perdiste o lo encontraste, qué es, su categoría, el lugar y la fecha. Si puedes, agrega una foto sin datos personales. FoundIA te avisará si aparece una coincidencia.',
+        texto: '¡Perfecto! 📦 Indica qué es, dónde y cuándo; si puedes, agrega una foto sin datos personales.',
         acciones: [{ texto: 'Ir a Reportar objeto', to: '/publicar' }],
       };
     case 'mis-reportes':
       return conSesion
-        ? { texto: 'En “Mis reportes” ves tus publicaciones, su estado y puedes editarlas o eliminarlas.', acciones: [{ texto: 'Ver mis reportes', to: '/mis-publicaciones' }] }
-        : { texto: 'Para consultar tus reportes primero inicia sesión con tu cuenta de FoundIA.', acciones: [{ texto: 'Iniciar sesión', to: '/login' }] };
+        ? { texto: 'En Mis reportes ves el estado de tus publicaciones y puedes editarlas. 📋', acciones: [{ texto: 'Ver mis reportes', to: '/mis-publicaciones' }] }
+        : { texto: 'Para ver tus reportes, primero inicia sesión. 🔐', acciones: [{ texto: 'Iniciar sesión', to: '/login' }] };
     case 'como-funciona':
       return {
-        texto: 'FoundIA funciona en cuatro pasos: 1) Reporta lo que perdiste o encontraste. 2) Te avisamos si hay una posible coincidencia. 3) Verifica con un contacto o un reclamo con un detalle que solo el dueño conoce. 4) Coordinen la entrega y confirma la recuperación.',
+        texto: 'Son cuatro pasos: reporta, te avisamos si hay coincidencia, verificas con un detalle que solo el dueño conoce y coordinan la entrega.',
         acciones: [{ texto: 'Ver el proceso completo', to: '/#proceso-recuperacion' }],
+      };
+    case 'ayuda':
+      return {
+        texto: 'Te ayudo a buscar, reportar y recuperar objetos en Tecsup 💙 Son cuatro pasos: reporta, te avisamos, verificas y coordinan la entrega.',
+        acciones: [{ texto: 'Ver el proceso completo', to: '/#proceso-recuperacion' }],
+        sugerencias: SUGERENCIAS.slice(0, 2),
       };
     default:
       return null;
@@ -361,6 +370,6 @@ export function saludoFindi(nombre = '', fecha = new Date()) {
   const hora = fecha.getHours();
   const momento = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   const primerNombre = String(nombre || '').trim().split(/\s+/)[0];
-  const inicio = primerNombre ? `¡${momento}, ${primerNombre}!` : `¡Hola! ${momento}.`;
-  return `${inicio} Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte a buscar, reportar o recuperar tus objetos en Tecsup. ¿En qué te ayudo hoy?`;
+  const inicio = primerNombre ? `¡${momento}, ${primerNombre}! 👋` : '¡Hola! 👋';
+  return `${inicio} Soy FINDI. ¿Qué necesitas hoy?`;
 }

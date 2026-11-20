@@ -269,26 +269,26 @@ describe('FINDI - accesos rápidos y estados', () => {
     await abrirChat();
     const accesos = screen.getByRole('group', { name: 'Accesos rápidos' });
     expect(within(accesos).getAllByRole('button').map((b) => b.textContent)).toEqual([
-      'Buscar un objeto perdido', 'Reportar un objeto', 'Consultar mis reportes', '¿Cómo funciona FoundIA?',
+      'Buscar un objeto', 'Reportar un objeto', 'Mis reportes', 'Necesito ayuda',
     ]);
     expect(screen.getByTestId('estado-findi').textContent).toContain('Saludando');
   });
 
-  it('"Consultar mis reportes" pide iniciar sesión si no hay sesión', async () => {
+  it('"Mis reportes" pide iniciar sesión si no hay sesión', async () => {
     const user = await abrirChat();
-    await user.click(screen.getByRole('button', { name: 'Consultar mis reportes' }));
+    await user.click(screen.getByRole('button', { name: 'Mis reportes' }));
     expect(screen.getByRole('link', { name: /Iniciar sesión/ }).getAttribute('href')).toBe('/login');
   });
 
-  it('"Consultar mis reportes" lleva a Mis reportes con sesión', async () => {
+  it('"Mis reportes" lleva a Mis reportes con sesión', async () => {
     const user = await abrirChat({ conSesion: true });
-    await user.click(screen.getByRole('button', { name: 'Consultar mis reportes' }));
+    await user.click(screen.getByRole('button', { name: 'Mis reportes' }));
     expect(screen.getByRole('link', { name: /Ver mis reportes/ }).getAttribute('href')).toBe('/mis-publicaciones');
   });
 
-  it('"¿Cómo funciona FoundIA?" responde sin consultar la API', async () => {
+  it('"Necesito ayuda" responde sin consultar la API', async () => {
     const user = await abrirChat();
-    await user.click(screen.getByRole('button', { name: '¿Cómo funciona FoundIA?' }));
+    await user.click(screen.getByRole('button', { name: 'Necesito ayuda' }));
     expect(screen.getByText(/cuatro pasos/)).toBeTruthy();
     expect(screen.getByRole('link', { name: /Ver el proceso completo/ })).toBeTruthy();
     expect(buscarObjetos).not.toHaveBeenCalled();
@@ -298,23 +298,24 @@ describe('FINDI - accesos rápidos y estados', () => {
     const errores = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const user = await abrirChat();
-      await user.click(screen.getByRole('button', { name: '¿Cómo funciona FoundIA?' }));
-      await user.click(screen.getByRole('button', { name: 'Consultar mis reportes' }));
+      await user.click(screen.getByRole('button', { name: 'Necesito ayuda' }));
+      // La bienvenida se compacta: el mensaje del usuario y la respuesta quedan en el historial
+      expect(screen.getByText('Necesito ayuda')).toBeTruthy();
       expect(screen.getByText(/cuatro pasos/)).toBeTruthy();
-      expect(screen.getByRole('link', { name: /Iniciar sesión/ })).toBeTruthy();
+      expect(screen.queryByRole('group', { name: 'Accesos rápidos' })).toBeNull();
       expect(errores.mock.calls.some((args) => String(args[0]).includes('same key'))).toBe(false);
     } finally {
       errores.mockRestore();
     }
   });
 
-  it('muestra "Pensando…" mientras busca y "Búsqueda completada" al terminar', async () => {
+  it('muestra "Buscando coincidencias…" mientras busca y "Búsqueda completada" al terminar', async () => {
     let resolver;
     buscarObjetos.mockReturnValue(new Promise((r) => { resolver = r; }));
     const user = await abrirChat();
     await user.type(screen.getByRole('textbox', { name: /escribe tu mensaje/i }), 'Busco una mochila negra');
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
-    expect(screen.getByTestId('estado-findi').textContent).toContain('Pensando');
+    expect(screen.getByTestId('estado-findi').textContent).toContain('Buscando coincidencias');
 
     await act(async () => { resolver(objetos); });
     expect(await screen.findByText('Mochila negra con libros')).toBeTruthy();
@@ -427,7 +428,7 @@ describe('FINDI - voz natural', () => {
     );
     await user.click(screen.getByRole('button', { name: /abrir asistente/i }));
     await user.click(screen.getByRole('button', { name: 'Leer las respuestas en voz alta' }));
-    await user.click(screen.getByRole('button', { name: '¿Cómo funciona FoundIA?' }));
+    await user.click(screen.getByRole('button', { name: 'Necesito ayuda' }));
     return user;
   }
 
@@ -451,7 +452,7 @@ describe('FINDI - voz natural', () => {
     expect(await screen.findByText(/se usa la voz del navegador/)).toBeTruthy();
     // Al activar la voz FINDI se presenta y luego lee la respuesta, ambas con la voz del navegador
     expect(window.speechSynthesis.speak).toHaveBeenCalledTimes(2);
-    expect(window.speechSynthesis.speak.mock.calls[0][0].text).toMatch(/Soy FINDI, la asistente de FoundIA/);
+    expect(window.speechSynthesis.speak.mock.calls[0][0].text).toMatch(/Soy FINDI\. ¿Qué necesitas hoy\?/);
     expect(window.speechSynthesis.speak.mock.calls[1][0].text).toMatch(/cuatro pasos/);
     expect(screen.queryByText('Voz de FINDI: ElevenLabs')).toBeNull();
   });
@@ -468,7 +469,7 @@ describe('FINDI - voz natural', () => {
     );
     await user.click(screen.getByRole('button', { name: /abrir asistente/i }));
     await user.click(screen.getByRole('button', { name: 'Leer las respuestas en voz alta' }));
-    expect(obtenerVozFindi).toHaveBeenCalledWith(expect.stringMatching(/Soy FINDI, la asistente de FoundIA, y estaré gustosa de ayudarte/), expect.anything());
+    expect(obtenerVozFindi).toHaveBeenCalledWith(expect.stringMatching(/^¡Hola! Soy FINDI\. ¿Qué necesitas hoy\?$/), expect.anything());
     // Apagar y volver a encender no repite el saludo
     await user.click(screen.getByRole('button', { name: 'Dejar de leer las respuestas en voz alta' }));
     await user.click(screen.getByRole('button', { name: 'Leer las respuestas en voz alta' }));
