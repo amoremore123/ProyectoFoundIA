@@ -5,11 +5,25 @@ import android.net.Uri
 import com.proyectointegrador.movil.domain.ErrorDatos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 data class FotoPreparada(val bytes:ByteArray,val tipo:String,val nombre:String)
-interface FotografiasRepository {suspend fun preparar(uri:String):FotoPreparada}
+interface FotografiasRepository {
+ suspend fun preparar(uri:String):FotoPreparada
+ /** Borra la captura propia que ya no se usará. Las fotos de la galería nunca se tocan. */
+ fun descartar(uri:String) {}
+}
 class FotografiasLocales(context:Context):FotografiasRepository {
  private val resolver=context.applicationContext.contentResolver
+ private val autoridadCapturas=context.packageName+".capturas"
+ private val carpetaCapturas=File(context.cacheDir,"capturas")
+ override fun descartar(uri:String) {
+  val origen=Uri.parse(uri)
+  if(origen.scheme!="content"||origen.authority!=autoridadCapturas)return
+  val nombre=origen.lastPathSegment?:return
+  val archivo=File(carpetaCapturas,nombre)
+  if(archivo.canonicalFile.parentFile==carpetaCapturas.canonicalFile)archivo.delete()
+ }
  override suspend fun preparar(uri:String):FotoPreparada=withContext(Dispatchers.IO) {
   val origen=Uri.parse(uri)
   if(origen.scheme!="content")throw ErrorDatos("Selecciona una imagen de tu galería.")
