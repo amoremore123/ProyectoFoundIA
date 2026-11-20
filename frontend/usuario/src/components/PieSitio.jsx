@@ -55,7 +55,6 @@ export default function PieSitio() {
 
         <div className="pie-sitio-legal">
           <span>© 2026 FoundIA</span>
-          <span>Proyecto integrador Tecsup</span>
         </div>
       </div>
     </footer>
