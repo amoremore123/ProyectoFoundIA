@@ -18,6 +18,7 @@ USE objetos_perdidos_db;
 -- =====================================================================
 -- 1. USUARIOS
 -- =====================================================================
+DROP TABLE IF EXISTS campanas;
 DROP TABLE IF EXISTS invitaciones;
 DROP TABLE IF EXISTS solicitudes_eliminacion;
 DROP TABLE IF EXISTS tokens_recuperacion_password;
@@ -468,3 +469,22 @@ CREATE TABLE IF NOT EXISTS invitaciones (
     creada_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_invitacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- H60: campañas de difusión con enlace de origen. Bases existentes: migracion_h60_campanas.sql.
+CREATE TABLE IF NOT EXISTS campanas (
+    id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre              VARCHAR(120) NOT NULL,
+    descripcion         VARCHAR(500) NULL,
+    origen              VARCHAR(40)  NOT NULL,
+    destino             VARCHAR(255) NOT NULL DEFAULT '/',
+    fecha_inicio        DATE         NOT NULL,
+    fecha_fin           DATE         NOT NULL,
+    creada_por_id       BIGINT       NOT NULL,
+    finalizada_en       DATETIME(6)  NULL,
+    fecha_creacion      DATETIME(6)  NOT NULL,
+    fecha_actualizacion DATETIME(6)  NOT NULL,
+    CONSTRAINT uk_campanas_origen UNIQUE (origen),
+    CONSTRAINT fk_campanas_creada_por FOREIGN KEY (creada_por_id) REFERENCES usuarios (id) ON DELETE RESTRICT,
+    CONSTRAINT chk_campanas_fechas CHECK (fecha_fin >= fecha_inicio),
+    INDEX idx_campanas_fechas (fecha_inicio, fecha_fin)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

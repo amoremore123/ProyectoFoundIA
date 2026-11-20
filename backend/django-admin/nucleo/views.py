@@ -26,6 +26,7 @@ from .disposicion import (
 )
 from .models import (
     ROL_CHOICES,
+    Campana,
     CambioRol,
     Categoria,
     Custodia,
@@ -38,6 +39,7 @@ from .models import (
     SecuenciaCustodia,
     TokenRevocado,
     Usuario,
+    hoy_en_lima,
 )
 from .authentication import get_jwt_secret, sello_credencial
 from .exportacion import FORMATO_PDF, FORMATO_XLSX, excel_reporte, nombre_archivo, pdf_reporte
@@ -49,6 +51,7 @@ from .reclamos_custodia import (
     token_retiro_vigente,
 )
 from .serializers import (
+    CampanaSerializer,
     CategoriaSerializer,
     CustodiaCreateSerializer,
     CustodiaObjetoSerializer,
@@ -952,3 +955,57 @@ class RespaldoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
         return Response({
             "ultimo": RespaldoSerializer(respaldo).data if respaldo else None,
         })
+
+
+class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                     mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """H60 - Campañas de difusión, solo ADMIN.
+
+    GET/POST /api/admin/campanas/ · GET/PUT/PATCH /api/admin/campanas/{id}/
+    POST /api/admin/campanas/{id}/finalizar/. No hay DELETE: una campaña se
+    finaliza, no se borra, porque su origen sigue contando visitas (H67).
+    """
+
+    serializer_class = CampanaSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+    ESTADOS = ("PROGRAMADA", "ACTIVA", "FINALIZADA")
+
+    def get_queryset(self):
+        consulta = Campana.objects.select_related("creada_por").all()
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in self.ESTADOS:
+            raise ValidationError({"estado": "Usa PROGRAMADA, ACTIVA o FINALIZADA."})
+        hoy = hoy_en_lima()
+        if estado == "FINALIZADA":
+            return consulta.filter(Q(finalizada_en__isnull=False) | Q(fecha_fin__lt=hoy))
+        vigentes = consulta.filter(finalizada_en__isnull=True)
+        if estado == "PROGRAMADA":
+            return vigentes.filter(fecha_inicio__gt=hoy)
+        return vigentes.filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+
+    def perform_create(self, serializer):
+        ahora = timezone.now()
+        serializer.save(creada_por=self.request.user, fecha_creacion=ahora, fecha_actualizacion=ahora)
+
+    def perform_update(self, serializer):
+        serializer.save(fecha_actualizacion=timezone.now())
+
+    @action(detail=True, methods=["post"])
+    def finalizar(self, request, pk=None):
+        campana = self.get_object()
+        hoy = hoy_en_lima()
+        estado = campana.estado(hoy)
+        if estado == "PROGRAMADA":
+            return Response({"detail": "La campaña aún no empieza: cambia sus fechas en lugar de finalizarla."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if estado == "ACTIVA":
+            # Termina hoy: la fecha de fin refleja el último día real de la campaña
+            ahora = timezone.now()
+            campana.fecha_fin = hoy
+            campana.finalizada_en = ahora
+            campana.fecha_actualizacion = ahora
+            campana.save(update_fields=["fecha_fin", "finalizada_en", "fecha_actualizacion"])
+        # Ya finalizada: se responde igual, sin cambios (repetir es seguro)
+        return Response(self.get_serializer(campana).data)

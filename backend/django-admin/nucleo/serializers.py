@@ -1,6 +1,10 @@
+import re
+from urllib.parse import urlencode
+
+from django.conf import settings
 from rest_framework import serializers
 
-from .models import Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Respaldo, Usuario
+from .models import Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Respaldo, Usuario
 
 
 class LoginSerializer(serializers.Serializer):
@@ -271,3 +275,69 @@ class RespaldoSerializer(serializers.ModelSerializer):
             "estado", "iniciadoEn", "finalizadoEn", "mensaje",
         ]
         read_only_fields = fields
+
+
+class CampanaSerializer(serializers.ModelSerializer):
+    """H60: campaña de difusión. El servidor pone el autor, las fechas de registro y el enlace."""
+
+    ORIGEN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+    fechaInicio = serializers.DateField(source="fecha_inicio")
+    fechaFin = serializers.DateField(source="fecha_fin")
+    descripcion = serializers.CharField(
+        max_length=500, required=False, allow_blank=True, allow_null=True, trim_whitespace=True)
+    nombre = serializers.CharField(min_length=3, max_length=120, trim_whitespace=True)
+    origen = serializers.CharField(min_length=3, max_length=40, trim_whitespace=True)
+    destino = serializers.CharField(max_length=255, required=False, trim_whitespace=True)
+    enlace = serializers.SerializerMethodField()
+    estado = serializers.SerializerMethodField()
+    creadaPor = serializers.SerializerMethodField()
+    finalizadaEn = serializers.DateTimeField(source="finalizada_en", read_only=True)
+    fechaCreacion = serializers.DateTimeField(source="fecha_creacion", read_only=True)
+    fechaActualizacion = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+
+    class Meta:
+        model = Campana
+        fields = [
+            "id", "nombre", "descripcion", "origen", "destino", "enlace",
+            "fechaInicio", "fechaFin", "estado", "finalizadaEn", "creadaPor", "fechaCreacion", "fechaActualizacion",
+        ]
+        read_only_fields = ["id"]
+
+    def get_enlace(self, obj) -> str:
+        return f"{settings.FOUNDIA_WEB_URL}{obj.destino}?{urlencode({'origen': obj.origen})}"
+
+    def get_estado(self, obj) -> str:
+        return obj.estado()
+
+    def get_creadaPor(self, obj) -> dict:
+        return {"id": obj.creada_por_id,
+                "nombre": f"{obj.creada_por.nombre} {obj.creada_por.apellido}".strip()}
+
+    def validate_origen(self, valor):
+        if self.instance is not None and valor != self.instance.origen:
+            raise serializers.ValidationError("El origen no se puede cambiar: el enlace ya pudo compartirse.")
+        if not self.ORIGEN.match(valor):
+            raise serializers.ValidationError("Usa solo minúsculas, números y guiones (por ejemplo, semana-perdidos-2026).")
+        repetido = Campana.objects.filter(origen=valor)
+        if self.instance is not None:
+            repetido = repetido.exclude(pk=self.instance.pk)
+        if repetido.exists():
+            raise serializers.ValidationError("Ya existe una campaña con ese origen.")
+        return valor
+
+    def validate_destino(self, valor):
+        valor = valor or "/"
+        # Solo rutas de la propia web: nada de «https://…» ni «//otro-dominio»
+        if not valor.startswith("/") or valor.startswith("//") or "\\" in valor or "?" in valor or "#" in valor:
+            raise serializers.ValidationError("Debe ser una ruta de la web que empiece con «/», sin dominio ni parámetros.")
+        return valor
+
+    def validate(self, attrs):
+        inicio = attrs.get("fecha_inicio", getattr(self.instance, "fecha_inicio", None))
+        fin = attrs.get("fecha_fin", getattr(self.instance, "fecha_fin", None))
+        if inicio and fin and fin < inicio:
+            raise serializers.ValidationError({"fechaFin": "Debe ser igual o posterior a la fecha de inicio."})
+        if "descripcion" in attrs and not attrs["descripcion"]:
+            attrs["descripcion"] = None
+        return attrs

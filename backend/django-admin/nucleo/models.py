@@ -12,6 +12,8 @@ CRITICO:
   (fecha_registro, fecha_objeto, fecha_publicacion, fecha_actualizacion,
   fecha_subida, fecha_creacion, fecha_contacto, fecha_reporte, fecha_resolucion).
 """
+import datetime as _dt
+
 from django.db import models
 from django.utils import timezone
 
@@ -481,3 +483,45 @@ class Respaldo(models.Model):
 
     def __str__(self):
         return f"Respaldo {self.nombre_archivo} ({self.estado})"
+
+
+ZONA_LIMA = _dt.timezone(_dt.timedelta(hours=-5), "America/Lima")  # Perú no usa horario de verano
+
+
+def hoy_en_lima():
+    return timezone.now().astimezone(ZONA_LIMA).date()
+
+
+class Campana(models.Model):
+    """H60: campaña de difusión con enlace de origen para medir su alcance (H67)."""
+
+    nombre = models.CharField(max_length=120)
+    descripcion = models.CharField(max_length=500, null=True, blank=True)
+    origen = models.CharField(max_length=40, unique=True)
+    destino = models.CharField(max_length=255, default="/")
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    creada_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="creada_por_id",
+        related_name="campanas_creadas",
+    )
+    finalizada_en = models.DateTimeField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "campanas"
+        ordering = ["-fecha_inicio", "-id"]
+
+    def estado(self, hoy=None):
+        # Las fechas de la campaña son del calendario de Lima, aunque Django trabaje en UTC
+        hoy = hoy or hoy_en_lima()
+        if hoy < self.fecha_inicio:
+            return "PROGRAMADA"
+        if self.finalizada_en is not None or hoy > self.fecha_fin:
+            return "FINALIZADA"
+        return "ACTIVA"
+
+    def __str__(self):
+        return f"Campaña {self.origen}"

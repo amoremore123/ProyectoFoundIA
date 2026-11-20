@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CampanaViewSet,
     CategoriaViewSet,
     CustodiaViewSet,
     DashboardExportView,
@@ -25,6 +26,8 @@ router.register("reclamos", ReclamoViewSet, basename="reclamos")
 router.register("categorias", CategoriaViewSet, basename="categorias")
 router.register("reportes", ReporteViewSet, basename="reportes")
 router.register("respaldos", RespaldoViewSet, basename="respaldos")
+# H60: campañas de difusión (sin DELETE: se finalizan)
+router.register("campanas", CampanaViewSet, basename="campanas")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),
