@@ -18,7 +18,7 @@ class RoomPersistenciaTest {
     private val contexto=InstrumentationRegistry.getInstrumentation().targetContext
     private val nombre="room-persistencia-prueba.db"
     @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java)
-    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2).build()
+    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3).build()
     @Before fun preparar(){contexto.deleteDatabase(nombre)}
     @After fun limpiar(){contexto.deleteDatabase(nombre);contexto.deleteDatabase("room-migracion-prueba.db")}
 
@@ -67,6 +67,43 @@ class RoomPersistenciaTest {
         val tablas=mutableListOf<String>()
         db.openHelper.readableDatabase.query("SELECT name FROM sqlite_master WHERE type='table'").use {while(it.moveToNext())tablas.add(it.getString(0))}
         assertFalse(tablas.any {it.contains("usuario") || it.contains("sesion") || it.contains("password") || it.contains("notificacion")})
+        db.close()
+    }
+
+    @Test fun migracionDosATresConservaLaCacheYCreaLasTablasDelChat() {
+        val v2=migraciones.createDatabase("room-migracion-prueba.db",2)
+        v2.execSQL("INSERT INTO publicaciones_cache(id,contenido,actualizadoEn,venceEn) VALUES (5,'{\"id\":5,\"nombre\":\"Previo\"}',1000,2000)")
+        v2.close()
+        val v3=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",3,true,FoundIADatabase.MIGRACION_2_3)
+        v3.query("SELECT contenido FROM publicaciones_cache WHERE id=5").use {assertTrue(it.moveToFirst());assertTrue(it.getString(0).contains("Previo"))}
+        v3.query("SELECT COUNT(*) FROM publicaciones_cache").use {assertTrue(it.moveToFirst());assertEquals(1,it.getInt(0))}
+        for(tabla in listOf("conversaciones_cache","mensajes_chat_cache","mensajes_pendientes"))
+            v3.query("SELECT COUNT(*) FROM "+tabla).use {assertTrue(it.moveToFirst());assertEquals(0,it.getInt(0))}
+        v3.close()
+    }
+    @Test fun elChatGuardadoSobreviveAlCierreLaColaSeOrdenaYLimpiarBorraTodo()=runBlocking {
+        var db=abrir();var chat=RoomAlmacenChat(db)
+        chat.guardarConversaciones(listOf(Conversacion(9,"ENTRE_USUARIOS",3,"Mochila","ABIERTA",false,false,Participante(7,"Beto"),null,2)))
+        chat.guardarMensajes(9,listOf(MensajeChat(1,7,"Beto","hola",null,null),MensajeChat(2,5,"Ana","azul",null,null)))
+        chat.guardarMensajes(9,listOf(MensajeChat(2,5,"Ana","azul actualizado",null,null)))
+        val a=chat.agregarPendiente(9,"primero");val b=chat.agregarPendiente(9,"segundo")
+        db.close()
+        db=abrir();chat=RoomAlmacenChat(db)
+        assertEquals(9L,chat.conversaciones().single().id)
+        assertEquals(listOf("hola","azul actualizado"),chat.mensajes(9).map {it.texto})
+        assertEquals(listOf("primero","segundo"),chat.pendientes(9).map {it.texto})
+        assertTrue(b.localId>a.localId)
+        chat.quitarPendiente(a.localId)
+        assertEquals(listOf("segundo"),chat.pendientes(9).map {it.texto})
+        chat.limpiar()
+        assertTrue(chat.conversaciones().isEmpty()&&chat.mensajes(9).isEmpty()&&chat.pendientes(9).isEmpty())
+        db.close()
+    }
+    @Test fun elChatGuardaComoMaximo200MensajesPorConversacion()=runBlocking {
+        val db=abrir();val chat=RoomAlmacenChat(db)
+        chat.guardarMensajes(9,(1L..230L).map {MensajeChat(it,7,"Beto","m$it",null,null)})
+        val guardados=chat.mensajes(9)
+        assertEquals(200,guardados.size);assertEquals(31L,guardados.first().id);assertEquals(230L,guardados.last().id)
         db.close()
     }
 }

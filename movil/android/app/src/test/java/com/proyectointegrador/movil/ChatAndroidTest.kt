@@ -190,8 +190,8 @@ class ChatAndroidTest {
     @Test fun laListaDeConversacionesSeCarga() = runBlocking {
         val vm = ConversacionesViewModel(cuenta)
         val estado = withTimeout(5000) { vm.estado.first { !it.cargando } }
-        assertEquals(9L, estado.datos!!.single().id)
-        assertEquals("Beto", estado.datos!!.single().otro!!.nombre)
+        assertEquals(9L, estado.datos!!.datos.single().id)
+        assertEquals("Beto", estado.datos!!.datos.single().otro!!.nombre)
     }
 
     @Test fun iniciarPorContactoAvisaQuePantallaAbrir() = runBlocking {

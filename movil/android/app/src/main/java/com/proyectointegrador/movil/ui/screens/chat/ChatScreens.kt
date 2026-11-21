@@ -38,7 +38,9 @@ import com.proyectointegrador.movil.ui.viewmodel.ConversacionesViewModel
 fun ConversacionesScreen(volver: () -> Unit, abrir: (String) -> Unit, vm: ConversacionesViewModel = viewModel(factory = fabrica())) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     Pagina("Mensajes", volver) {
-        Consulta(estado, vm::recargar) { lista, recargar ->
+        Consulta(estado, vm::recargar) { lectura, recargar ->
+            val lista = lectura.datos
+            lectura.aviso?.let { AvisoEstado(it) }
             if (lista.isEmpty()) {
                 Panel { Text("Todavía no tienes conversaciones. Se abren desde una coincidencia con contacto o desde un reclamo en custodia.") }
             } else {
@@ -82,7 +84,10 @@ fun ChatScreen(id: Long, volver: () -> Unit, vm: ChatViewModel = viewModel(key =
     val lista = rememberLazyListState()
     val elegirFoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let { vm.enviarFoto(it.toString()) } }
 
-    LaunchedEffect(chat.mensajes.size) { if (chat.mensajes.isNotEmpty()) lista.animateScrollToItem(chat.mensajes.lastIndex) }
+    LaunchedEffect(chat.mensajes.size, chat.pendientes.size) {
+        val total = chat.mensajes.size + chat.pendientes.size
+        if (total > 0) lista.animateScrollToItem(total - 1)
+    }
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().padding(horizontal = 16.dp)) {
@@ -92,6 +97,7 @@ fun ChatScreen(id: Long, volver: () -> Unit, vm: ChatViewModel = viewModel(key =
                 }
             })
             EstadoAccion(accion)
+            if (chat.sinConexion) AvisoEstado("Sin conexión. Lo que escribas se enviará cuando vuelva la red.")
             chat.error?.let { Column { AvisoEstado(it, true); OutlinedButton(onClick = vm::reintentar) { Text("Reintentar") } } }
             when {
                 chat.cargando -> Esqueleto()
@@ -99,6 +105,14 @@ fun ChatScreen(id: Long, volver: () -> Unit, vm: ChatViewModel = viewModel(key =
                     if (chat.mensajes.isEmpty()) item { Text("Aún no hay mensajes. Escribe el primero.", Modifier.padding(vertical = 16.dp)) }
                     items(chat.mensajes, key = { it.id }) { m ->
                         Burbuja(m, propio = m.autorId == chat.miId, reportar = { reportando = m; motivo = "" })
+                    }
+                    items(chat.pendientes, key = { "pendiente-" + it.localId }) { p ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            Column(Modifier.widthIn(max = 290.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(10.dp)) {
+                                Text(p.texto)
+                                Text("Pendiente de enviar", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
                     }
                 }
             }

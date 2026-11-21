@@ -36,7 +36,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
                        private val sesion:AlmacenSesion = SesionCifrada,
                        private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null,
-                       private val externa:com.proyectointegrador.movil.data.push.SesionExterna? = null) {
+                       private val externa:com.proyectointegrador.movil.data.push.SesionExterna? = null,
+                       private val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -53,6 +54,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         val respuesta=llamadaApi(bloque)
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         publicaciones.invalidar()
+        chatLocal?.limpiar()
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null}
         sesion.guardar(respuesta.token)
@@ -112,7 +114,19 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun quitarFotoPerfil()=privada {api.quitarFotoPerfil();Unit}
     // H55 a H63: chat. Cada llamada exige sesión y descarta la respuesta si la sesión cambió mientras viajaba.
     suspend fun iniciarConversacion(datos:IniciarConversacion)=privada {api.iniciarConversacion(datos)}
-    suspend fun conversaciones()=privada {api.conversaciones()}
+    /** Con conexión guarda la lista; sin conexión devuelve la última copia guardada (si la hay), marcada como tal. */
+    suspend fun conversaciones():Lectura<List<Conversacion>> {
+        try {
+            val lista=privada {api.conversaciones()}
+            chatLocal?.guardarConversaciones(lista)
+            return Lectura(lista)
+        } catch(e:ErrorDatos) {
+            if(e.estadoHttp!=null||chatLocal==null) throw e
+            val guardada=chatLocal.conversaciones()
+            if(guardada.isEmpty()) throw e
+            return Lectura(guardada,desdeCache=true,aviso="Sin conexión. Mostrando tus conversaciones guardadas.")
+        }
+    }
     suspend fun mensajes(id:Long,despuesDe:Long)=privada {api.mensajes(id,despuesDe)}
     suspend fun enviarMensaje(id:Long,texto:String)=privada {api.enviarMensaje(id,EnviarMensaje(texto))}
     suspend fun enviarFotoChat(id:Long,texto:String?,foto:FotoPreparada)=privada {
@@ -162,6 +176,6 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
-        try {publicaciones.invalidar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
+        try {publicaciones.invalidar();chatLocal?.limpiar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }
 }

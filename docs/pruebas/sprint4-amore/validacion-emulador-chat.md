@@ -47,3 +47,16 @@ subir por la API `200` y la app muestra la foto (`h64-1-perfil-con-foto.png`); �
 servidor (`GET /api/perfil/foto` pasa a `404`, `h64-2-sin-foto.png`); el acceso directo a `/uploads/perfiles/**` responde `401`.
 La foto de la otra persona dentro del chat espera la ruta que defina el contrato de H55.
 Elegir una foto desde la galería del emulador no se automatizó: se probó la subida con la API y la validación con pruebas unitarias.
+
+## H65 y caché del chat: lectura y envío sin conexión (21/11/2026, emulador + API real)
+
+- Room pasa a la versión 3 con `conversaciones_cache`, `mensajes_chat_cache` y `mensajes_pendientes` (migración 2→3 probada en el emulador; 9 de 9 pruebas instrumentadas).
+- Sin conexión la lista y el chat muestran lo último guardado; un mensaje de texto escrito sin red queda «Pendiente de enviar» (`off-2-pendiente.png`) y se envía en orden al volver la conexión.
+- Prueba real: se detuvo el contenedor de la API, se envió un mensaje desde la app, se reinició la API y el mensaje llegó **una sola vez** a la otra cuenta (`off-3-enviado.png`).
+- El chat guardado es privado: se borra al cerrar sesión y al entrar con otra cuenta (probado con pruebas unitarias).
+- Pruebas unitarias: 128 de 128.
+
+**Límites que se declaran:** solo los mensajes de texto se encolan (las fotos necesitan conexión); publicar sin conexión no está
+implementado (la parte de H65 en el backend, el identificador de cliente para no duplicar, tampoco existe todavía).
+Si la respuesta del servidor se pierde después de que el mensaje ya se guardó, un reintento podría duplicarlo hasta que el
+backend acepte un identificador de cliente.

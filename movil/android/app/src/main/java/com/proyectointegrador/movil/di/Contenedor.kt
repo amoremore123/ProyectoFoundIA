@@ -16,7 +16,8 @@ class Contenedor(context:Context) {
     val sesionExterna=com.proyectointegrador.movil.data.push.SesionExterna(RetrofitClient.api,
         com.proyectointegrador.movil.data.push.crearServicioFirebase(context),
         com.proyectointegrador.movil.data.push.AlmacenDispositivoLocal(context))
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna)
+    val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat=com.proyectointegrador.movil.data.local.RoomAlmacenChat(base)
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna,chatLocal=chatLocal)
     val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {
@@ -47,7 +48,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             ParejaViewModel::class.java->ParejaViewModel(c.cuenta,parejaId)
             FotoPerfilViewModel::class.java->FotoPerfilViewModel(c.cuenta,c.fotografias)
             ConversacionesViewModel::class.java->ConversacionesViewModel(c.cuenta)
-            ChatViewModel::class.java->ChatViewModel(c.cuenta,c.fotografias,objetoId)
+            ChatViewModel::class.java->ChatViewModel(c.cuenta,c.fotografias,objetoId,local=c.chatLocal)
             IniciarChatViewModel::class.java->IniciarChatViewModel(c.cuenta)
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)
             PreferenciasViewModel::class.java->PreferenciasViewModel(c.cuenta)
