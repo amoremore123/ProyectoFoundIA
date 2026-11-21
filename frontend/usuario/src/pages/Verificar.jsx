@@ -112,9 +112,11 @@ export default function Verificar() {
             inputMode="numeric"
             autoComplete="one-time-code"
             placeholder="000000"
-            aria-label="Código de 6 dígitos"
+            aria-describedby="codigo-ayuda"
           />
         </label>
+        {/* H51: el nombre accesible es el texto visible; la cantidad de dígitos va como ayuda, fuera de la etiqueta */}
+        <span id="codigo-ayuda" className="nota-suave">Son 6 dígitos y llegan a tu correo.</span>
 
         <button type="submit" className="btn btn-primario btn-bloque" disabled={enviando || codigo.length !== 6}>
           {enviando ? 'Verificando...' : 'Verificar cuenta'}
