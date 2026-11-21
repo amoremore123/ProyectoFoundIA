@@ -52,5 +52,5 @@ uploads/
 *.swp
 
 # Firebase: configuración privada del equipo
-google-services.json
+google-services*.json
 *firebase-adminsdk*.json

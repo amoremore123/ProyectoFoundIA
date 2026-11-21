@@ -39,3 +39,11 @@ Amore informó el 21/11/2026 que el escaneo y el QR se probaron en su salón y f
 por la persona responsable, sin capturas ni registro adjunto**, y no se anotó en qué dispositivo se hizo. Antes de
 presentarlo como certificado conviene agregar la evidencia (capturas o un video corto) y los casos probados: QR válido,
 ya usado, de otro objeto y vencido.
+
+## H64: foto de perfil (21/11/2026, emulador + API real)
+
+Backend de `dev/leonel` integrado en una rama local de QA con el chat. Resultados:
+subir por la API `200` y la app muestra la foto (`h64-1-perfil-con-foto.png`); «Quitar foto» en la app borra en el
+servidor (`GET /api/perfil/foto` pasa a `404`, `h64-2-sin-foto.png`); el acceso directo a `/uploads/perfiles/**` responde `401`.
+La foto de la otra persona dentro del chat espera la ruta que defina el contrato de H55.
+Elegir una foto desde la galería del emulador no se automatizó: se probó la subida con la API y la validación con pruebas unitarias.

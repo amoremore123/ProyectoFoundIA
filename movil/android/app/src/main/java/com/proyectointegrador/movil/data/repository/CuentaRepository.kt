@@ -103,6 +103,13 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
+    // H64: foto de perfil. Devuelve null si la cuenta no tiene foto (404).
+    suspend fun fotoPerfil():ByteArray? = try {privada {api.fotoPerfil().bytes()}} catch(e:ErrorDatos) {if(e.estadoHttp==404) null else throw e}
+    suspend fun subirFotoPerfil(foto:FotoPreparada)=privada {
+        val parte=okhttp3.MultipartBody.Part.createFormData("archivo",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()))
+        api.subirFotoPerfil(parte)
+    }
+    suspend fun quitarFotoPerfil()=privada {api.quitarFotoPerfil();Unit}
     // H55 a H63: chat. Cada llamada exige sesión y descarta la respuesta si la sesión cambió mientras viajaba.
     suspend fun iniciarConversacion(datos:IniciarConversacion)=privada {api.iniciarConversacion(datos)}
     suspend fun conversaciones()=privada {api.conversaciones()}

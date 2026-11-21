@@ -106,6 +106,11 @@ interface ApiService {
     @POST("api/dispositivos") suspend fun registrarDispositivo(@Body datos: DispositivoRequest): Dispositivo
     @DELETE("api/dispositivos/{id}") suspend fun eliminarDispositivo(@Path("id") id: Long): retrofit2.Response<Unit>
     @POST("api/auth/firebase-token") suspend fun tokenFirebase(): TokenFirebase
+    // H64: foto de perfil privada. No es pública: se pide con sesión.
+    @GET("api/perfil/foto") suspend fun fotoPerfil(): okhttp3.ResponseBody
+    @retrofit2.http.Multipart
+    @POST("api/perfil/foto") suspend fun subirFotoPerfil(@retrofit2.http.Part archivo: okhttp3.MultipartBody.Part): FotoPerfilRespuesta
+    @DELETE("api/perfil/foto") suspend fun quitarFotoPerfil(): retrofit2.Response<Unit>
     // H55 a H63: chat entre personas y con la biblioteca.
     @POST("api/conversaciones") suspend fun iniciarConversacion(@Body datos: IniciarConversacion): Conversacion
     @GET("api/conversaciones") suspend fun conversaciones(): List<Conversacion>

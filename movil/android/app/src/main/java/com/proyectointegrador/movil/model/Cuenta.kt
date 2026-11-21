@@ -1,6 +1,6 @@
 package com.proyectointegrador.movil.model
 
-data class Usuario(val id: Long, val nombre: String, val apellido: String, val correo: String, val rol: String, val estado: String)
+data class Usuario(val id: Long, val nombre: String, val apellido: String, val correo: String, val rol: String, val estado: String, val fotoPerfilUrl: String? = null)
 data class Acceso(val token: String, val usuario: Usuario)
 data class Login(val correo: String, val password: String)
 data class Registro(val nombre: String, val apellido: String, val correo: String, val password: String,
