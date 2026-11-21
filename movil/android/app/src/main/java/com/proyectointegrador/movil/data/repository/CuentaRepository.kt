@@ -35,7 +35,8 @@ data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 /** Datos privados solo en memoria: no se escriben en Room. */
 class CuentaRepository(private val api:ApiService, private val publicaciones:PublicacionesRepository,
                        private val sesion:AlmacenSesion = SesionCifrada,
-                       private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null) {
+                       private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null,
+                       private val externa:com.proyectointegrador.movil.data.push.SesionExterna? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -55,7 +56,11 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null}
         sesion.guardar(respuesta.token)
+        // H57 y H72: complementos de Firebase. No bloquean ni hacen fallar el inicio de sesión.
+        externa?.let {runCatching {it.alEntrar()}.onFailure {error->if(error is CancellationException)throw error}}
     }
+    /** Se llama al abrir la app con una sesión guardada. */
+    suspend fun alAbrirApp() {if(sesion.autenticado) externa?.alEntrar()}
     suspend fun login(correo:String,password:String)=acceso {api.login(Login(correo.trim(),password))}
     suspend fun verificar(correo:String,codigo:String)=acceso {api.verificar(Verificacion(correo.trim(),codigo))}
     suspend fun registrar(datos:Registro)=llamadaApi {api.registrar(datos)}
@@ -126,6 +131,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
     suspend fun salir(todos: Boolean) {
         val revision = sesion.revision
+        // Primero se da de baja el teléfono: después de revocar el JWT ya no habría sesión para pedirlo.
+        externa?.let {try {it.alSalir()} catch (error:CancellationException) {throw error} catch (_:Exception) {}}
         try {
             privada { if (todos) api.revocarTodasLasSesiones() else api.revocarSesion() }
         } catch (error: ErrorDatos) {

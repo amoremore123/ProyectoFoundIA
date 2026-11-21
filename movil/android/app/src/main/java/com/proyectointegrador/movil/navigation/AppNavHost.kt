@@ -23,6 +23,8 @@ import androidx.navigation.navArgument
 import com.proyectointegrador.movil.BuildConfig
 import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.domain.tokenDeRecuperacion
+import com.proyectointegrador.movil.domain.DestinoPush
+import com.proyectointegrador.movil.domain.destinoDeEnlace
 import com.proyectointegrador.movil.ui.viewmodel.SesionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,7 +34,7 @@ import com.proyectointegrador.movil.ui.screens.coincidencias.*
 import com.proyectointegrador.movil.ui.screens.cuenta.*
 import com.proyectointegrador.movil.ui.screens.publicaciones.*
 
-@Composable fun AppNavHost(enlace:Uri?=null, abrirAvisos:Boolean=false, consumirAvisos:()->Unit={}, consumirEnlace:()->Unit={}) {
+@Composable fun AppNavHost(enlace:Uri?=null, abrirAvisos:Boolean=false, consumirAvisos:()->Unit={}, consumirEnlace:()->Unit={}, enlacePush:String?=null, consumirPush:()->Unit={}) {
     val vm:SesionViewModel=viewModel(factory=fabrica())
     val sesion by vm.estado.collectAsStateWithLifecycle()
     val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
@@ -63,6 +65,15 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
         } }
         fun abrir(ruta:String) {nav.navigate(ruta) {launchSingleTop=true}}
         LaunchedEffect(abrirAvisos) { if (abrirAvisos) { abrir(if (sesion.autenticado) "avisos" else "perfil"); consumirAvisos() } }
+        // H57: tocar un aviso push abre la pantalla del enlace; sin sesión se pide iniciar sesión primero.
+        LaunchedEffect(enlacePush) { if (enlacePush != null) {
+            if (!sesion.autenticado) abrir("perfil") else when (val destino = destinoDeEnlace(enlacePush)) {
+                is DestinoPush.Detalle -> abrir("detalle/${destino.objetoId}")
+                is DestinoPush.Conversacion -> abrir("avisos")
+                DestinoPush.Avisos -> abrir("avisos")
+            }
+            consumirPush()
+        } }
         val volver:()->Unit={nav.popBackStack();Unit}
         LaunchedEffect(evento){evento?.let {experiencia.consumirEvento();nav.navigate(it){popUpTo(nav.graph.startDestinationId){inclusive=true};launchSingleTop=true}}}
         LaunchedEffect(ruta,sesion.revision){if(ruta=="inicio"||ruta=="avisos")comunidad.recargar()}

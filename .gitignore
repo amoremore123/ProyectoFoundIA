@@ -50,3 +50,7 @@ tmp/
 uploads/
 *.tmp
 *.swp
+
+# Firebase: configuración privada del equipo
+google-services.json
+*firebase-adminsdk*.json

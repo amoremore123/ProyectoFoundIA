@@ -19,23 +19,26 @@ import com.proyectointegrador.movil.ui.theme.FoundIATheme
 class MainActivity : ComponentActivity() {
     private var enlace by mutableStateOf<Uri?>(null)
     private var abrirAvisos by mutableStateOf(false)
+    private var enlacePush by mutableStateOf<String?>(null)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         enlace=intent.data
         abrirAvisos = intent.getBooleanExtra("avisosReclamo", false)
+        enlacePush = intent.getStringExtra(com.proyectointegrador.movil.data.push.EXTRA_ENLACE_PUSH)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enlace=intent?.data
         abrirAvisos = intent?.getBooleanExtra("avisosReclamo", false) == true
+        enlacePush = intent?.getStringExtra(com.proyectointegrador.movil.data.push.EXTRA_ENLACE_PUSH)
         enableEdgeToEdge()
         setContent {
             val experiencia:ExperienciaViewModel=viewModel(factory=fabrica())
             val ajustes by experiencia.estado.collectAsStateWithLifecycle()
             FoundIATheme(tema=ajustes.tema) {
-                AppNavHost(enlace, abrirAvisos, { abrirAvisos = false }) { enlace = null }
+                AppNavHost(enlace, abrirAvisos, { abrirAvisos = false }, { enlace = null }, enlacePush) { enlacePush = null }
             }
         }
     }

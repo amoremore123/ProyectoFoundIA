@@ -13,7 +13,10 @@ class Contenedor(context:Context) {
     val experiencia=ExperienciaRepository(PreferenciasLocales(context))
     val base=FoundIADatabase.abrir(context)
     val publicaciones:PublicacionesRepository=ApiPublicacionesRepository(RetrofitClient.api,RoomCachePublica(base))
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca)
+    val sesionExterna=com.proyectointegrador.movil.data.push.SesionExterna(RetrofitClient.api,
+        com.proyectointegrador.movil.data.push.crearServicioFirebase(context),
+        com.proyectointegrador.movil.data.push.AlmacenDispositivoLocal(context))
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna)
     val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {

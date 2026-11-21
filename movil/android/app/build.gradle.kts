@@ -50,7 +50,14 @@ android {
 
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
+// Firebase solo se activa si el equipo puso google-services.json (fuera de Git). Sin él la app compila y abre igual.
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.maps.android:maps-compose:6.2.1")

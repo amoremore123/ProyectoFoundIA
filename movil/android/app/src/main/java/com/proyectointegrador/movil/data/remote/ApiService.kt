@@ -102,4 +102,8 @@ interface ApiService {
     // H35: recuperación mediante la API común, con enlace de un solo uso.
     @POST("api/auth/recuperar-password") suspend fun solicitarClave(@Body datos: Correo): Mensaje
     @POST("api/auth/restablecer-password") suspend fun restablecer(@Body datos: Restablecer): Mensaje
+    // H57: dispositivo para recibir push. H72: token personalizado para Firebase Auth.
+    @POST("api/dispositivos") suspend fun registrarDispositivo(@Body datos: DispositivoRequest): Dispositivo
+    @DELETE("api/dispositivos/{id}") suspend fun eliminarDispositivo(@Path("id") id: Long): retrofit2.Response<Unit>
+    @POST("api/auth/firebase-token") suspend fun tokenFirebase(): TokenFirebase
 }
