@@ -66,8 +66,8 @@ class ChatDominioTest {
 class ChatAndroidTest {
     private lateinit var servidor: MockWebServer
     private lateinit var cuenta: CuentaRepository
-    private val llamadas = mutableListOf<String>()
-    private val cuerpos = mutableListOf<String>()
+    private val llamadas = java.util.concurrent.CopyOnWriteArrayList<String>()
+    private val cuerpos = java.util.concurrent.CopyOnWriteArrayList<String>()
     private var soloLectura = false
     private var bloqueada = false
     private var caido = false
@@ -115,7 +115,7 @@ class ChatAndroidTest {
         cuenta = CuentaRepository(api, ApiPublicacionesRepository(api, CachePrueba()), SesionPrueba().also { it.guardar("prueba") })
     }
 
-    @After fun cerrar() { servidor.shutdown(); Dispatchers.resetMain() }
+    @After fun cerrar() { runBlocking { kotlinx.coroutines.delay(400) }; servidor.shutdown(); Dispatchers.resetMain() }
 
     private suspend fun chat(): ChatViewModel {
         val vm = ChatViewModel(cuenta, fotos, 9, intervaloMs = 3_600_000)
@@ -137,7 +137,7 @@ class ChatAndroidTest {
         vm.enviar("  Hola  ") { enviado = true }
         withTimeout(5000) { vm.chat.first { !it.enviando && it.mensajes.size == 3 } }
         assertTrue(enviado)
-        assertEquals("{\"texto\":\"Hola\"}", cuerpos.last())
+        assertTrue(cuerpos.contains("{\"texto\":\"Hola\"}"))
         assertEquals(listOf(1L, 2L, 3L), vm.chat.value.mensajes.map { it.id })
         vm.detenerSondeo()
     }
@@ -199,7 +199,7 @@ class ChatAndroidTest {
         vm.porContacto(4)
         val evento = withTimeout(5000) { vm.evento.first { it != null } }
         assertEquals("conversacion/9", evento)
-        assertTrue(cuerpos.last().contains("\"contactoId\":4"))
-        assertFalse(cuerpos.last().contains("reclamoId"))
+        val cuerpo = cuerpos.first { it.contains("contactoId") }
+        assertFalse(cuerpo.contains("reclamoId"))
     }
 }

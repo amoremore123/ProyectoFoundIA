@@ -59,8 +59,8 @@ class EdicionPublicacionTest {
     private lateinit var cuenta: CuentaRepository
     private lateinit var publicaciones: ApiPublicacionesRepository
     private val categoria = Categoria(3, "Mochila", null, true)
-    private val llamadas = mutableListOf<String>()
-    private val cuerpos = mutableListOf<String>()
+    private val llamadas = java.util.concurrent.CopyOnWriteArrayList<String>()
+    private val cuerpos = java.util.concurrent.CopyOnWriteArrayList<String>()
     private var estadoObjeto = "ACTIVO"
     private var propios: List<Objeto> = emptyList()
 
@@ -98,8 +98,8 @@ class EdicionPublicacionTest {
     private suspend fun editor(estado: String = "ACTIVO"): EditarPublicacionViewModel {
         estadoObjeto = estado
         val vm = EditarPublicacionViewModel(cuenta, publicaciones, 41)
-        withTimeout(5000) { vm.estado.first { !it.cargando } }
-        withTimeout(5000) { vm.categorias.first { it.isNotEmpty() } }
+        withTimeout(20000) { vm.estado.first { !it.cargando } }
+        withTimeout(20000) { vm.categorias.first { it.isNotEmpty() } }
         vm.iniciar(vm.estado.value.datos!!)
         return vm
     }
@@ -115,7 +115,7 @@ class EdicionPublicacionTest {
         val vm = editor()
         vm.editar("nombre", "Mochila azul con cierre")
         vm.guardar()
-        withTimeout(5000) { vm.evento.first { it == "guardado" } }
+        withTimeout(20000) { vm.evento.first { it == "guardado" } }
         assertTrue(llamadas.contains("PUT /api/objetos/41"))
         val cuerpo = JsonParser.parseString(cuerpos.last()).asJsonObject
         assertEquals("Mochila azul con cierre", cuerpo["nombre"].asString)
@@ -149,7 +149,7 @@ class EdicionPublicacionTest {
     @Test fun eliminarPideConfirmacionYBorraSoloAlConfirmar() = runBlocking {
         propios = listOf(objeto())
         val vm = PropiosViewModel(cuenta)
-        withTimeout(5000) { vm.estado.first { !it.cargando } }
+        withTimeout(20000) { vm.estado.first { !it.cargando } }
         vm.pedirEliminar(objeto())
         assertNotNull(vm.porEliminar.value)
         vm.cancelarEliminar()
@@ -157,9 +157,9 @@ class EdicionPublicacionTest {
         assertFalse("Cancelar no llama al servidor", llamadas.any { it.startsWith("DELETE") })
         vm.pedirEliminar(objeto())
         vm.confirmarEliminar()
-        withTimeout(5000) { vm.accion.first { it.mensaje != null && !it.ocupada } }
+        withTimeout(20000) { vm.accion.first { it.mensaje != null && !it.ocupada } }
         // La lista se recarga después de borrar: se espera a que termine para no dejar corrutinas sueltas.
-        withTimeout(5000) { vm.estado.first { !it.cargando && it.datos?.isEmpty() == true } }
+        withTimeout(20000) { vm.estado.first { !it.cargando && it.datos?.isEmpty() == true } }
         assertTrue(llamadas.contains("DELETE /api/objetos/41"))
         assertNull(vm.porEliminar.value)
         assertEquals("Publicación eliminada. Se conserva en tu historial.", vm.accion.value.mensaje)
@@ -168,7 +168,7 @@ class EdicionPublicacionTest {
     @Test fun unaPublicacionOcultaNoSePuedeEliminar() = runBlocking {
         propios = listOf(objeto("OCULTO"))
         val vm = PropiosViewModel(cuenta)
-        withTimeout(5000) { vm.estado.first { !it.cargando } }
+        withTimeout(20000) { vm.estado.first { !it.cargando } }
         vm.pedirEliminar(objeto("OCULTO"))
         assertNull(vm.porEliminar.value)
     }

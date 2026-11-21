@@ -29,7 +29,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class PushFirebaseTest {
     private lateinit var servidor: MockWebServer
     private lateinit var api: ApiService
-    private val peticiones = mutableListOf<String>()
+    private val peticiones = java.util.concurrent.CopyOnWriteArrayList<String>()
     private var estadoDispositivo = 201
     private var estadoToken = 200
 

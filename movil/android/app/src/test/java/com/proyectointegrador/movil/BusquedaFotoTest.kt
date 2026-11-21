@@ -46,7 +46,7 @@ class BusquedaFotoTest {
     private lateinit var asistente: ApiAsistenteRepository
     private var codigo = 200
     private var cuerpo: Any = FotoBusquedaRespuesta()
-    private val enviados = mutableListOf<String>()
+    private val enviados = java.util.concurrent.CopyOnWriteArrayList<String>()
     private val fotos = object : FotografiasRepository {
         override suspend fun preparar(uri: String) = FotoPreparada(byteArrayOf(1), "image/jpeg", "f.jpg")
         override suspend fun prepararParaBusqueda(uri: String) = "data:image/jpeg;base64,AAAA"

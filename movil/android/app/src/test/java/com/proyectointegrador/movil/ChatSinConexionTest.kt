@@ -60,8 +60,8 @@ class ChatSinConexionTest {
     private lateinit var servidor: MockWebServer
     private lateinit var cuenta: CuentaRepository
     private val almacen = AlmacenChatMemoria()
-    private val llamadas = mutableListOf<String>()
-    private val cuerpos = mutableListOf<String>()
+    private val llamadas = java.util.concurrent.CopyOnWriteArrayList<String>()
+    private val cuerpos = java.util.concurrent.CopyOnWriteArrayList<String>()
     @Volatile private var sinRed = false
     @Volatile private var rechazar = 0
     private var siguienteId = 10L
@@ -78,8 +78,8 @@ class ChatSinConexionTest {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val ruta = request.requestUrl!!.encodedPath
                 llamadas += "${request.method} $ruta"
-                if (request.method == "POST") cuerpos += request.body.readUtf8()
                 if (sinRed) return MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)
+                if (request.method == "POST") cuerpos += request.body.readUtf8()
                 fun json(d: Any, codigo: Int = 200) = MockResponse().setResponseCode(codigo).setBody(Gson().toJson(d))
                 return when {
                     request.method == "GET" && ruta == "/api/perfil" -> json(Usuario(5, "Ana", "Prueba", "a@prueba.invalid", "USUARIO", "ACTIVO"))
@@ -148,13 +148,12 @@ class ChatSinConexionTest {
         esperar { vm.chat.value.pendientes.isNotEmpty() }
         assertTrue(limpio)
         assertEquals(listOf("Ya voy"), almacen.cola.map { it.texto })
-        assertEquals(0, llamadas.count { it == "POST /api/conversaciones/9/mensajes" && !cuerpos.last().isEmpty() && false })
 
         sinRed = false
         vm.reintentar()
         esperar { vm.chat.value.pendientes.isEmpty() && vm.chat.value.mensajes.isNotEmpty() }
         assertTrue(almacen.cola.isEmpty())
-        assertEquals(1, cuerpos.count { it.contains("Ya voy") && !it.contains("ya voy x") }.coerceAtMost(1))
+        assertEquals("El texto se envía una sola vez", 1, cuerpos.count { it.contains("Ya voy") })
         assertEquals(1, vm.chat.value.mensajes.size)
         // Una segunda consulta no vuelve a enviar nada.
         val antes = cuerpos.size

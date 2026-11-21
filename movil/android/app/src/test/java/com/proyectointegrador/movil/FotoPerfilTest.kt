@@ -35,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class FotoPerfilTest {
     private lateinit var servidor: MockWebServer
     private lateinit var cuenta: CuentaRepository
-    private val llamadas = mutableListOf<String>()
+    private val llamadas = java.util.concurrent.CopyOnWriteArrayList<String>()
     private var conFoto = true
     private val bytes = byteArrayOf(1, 2, 3, 4)
 
@@ -70,7 +70,7 @@ class FotoPerfilTest {
         cuenta = CuentaRepository(api, ApiPublicacionesRepository(api, CachePrueba()), SesionPrueba().also { it.guardar("prueba") })
     }
 
-    @After fun cerrar() { servidor.shutdown(); Dispatchers.resetMain() }
+    @After fun cerrar() { runBlocking { kotlinx.coroutines.delay(400) }; servidor.shutdown(); Dispatchers.resetMain() }
 
     @Test fun cargaLosBytesDeLaFotoPropia() = runBlocking {
         val vm = FotoPerfilViewModel(cuenta, fotos)
