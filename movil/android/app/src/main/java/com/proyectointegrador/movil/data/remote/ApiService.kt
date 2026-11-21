@@ -106,4 +106,19 @@ interface ApiService {
     @POST("api/dispositivos") suspend fun registrarDispositivo(@Body datos: DispositivoRequest): Dispositivo
     @DELETE("api/dispositivos/{id}") suspend fun eliminarDispositivo(@Path("id") id: Long): retrofit2.Response<Unit>
     @POST("api/auth/firebase-token") suspend fun tokenFirebase(): TokenFirebase
+    // H55 a H63: chat entre personas y con la biblioteca.
+    @POST("api/conversaciones") suspend fun iniciarConversacion(@Body datos: IniciarConversacion): Conversacion
+    @GET("api/conversaciones") suspend fun conversaciones(): List<Conversacion>
+    @GET("api/conversaciones/{id}") suspend fun conversacion(@Path("id") id: Long): Conversacion
+    @GET("api/conversaciones/{id}/mensajes") suspend fun mensajes(@Path("id") id: Long, @Query("despuesDe") despuesDe: Long = 0): MensajesRespuesta
+    @POST("api/conversaciones/{id}/mensajes") suspend fun enviarMensaje(@Path("id") id: Long, @Body datos: EnviarMensaje): MensajeChat
+    @retrofit2.http.Multipart
+    @POST("api/conversaciones/{id}/mensajes")
+    suspend fun enviarMensajeConFoto(@Path("id") id: Long, @retrofit2.http.Part foto: okhttp3.MultipartBody.Part,
+        @retrofit2.http.Part("texto") texto: okhttp3.RequestBody?): MensajeChat
+    @POST("api/conversaciones/{id}/leida") suspend fun marcarConversacionLeida(@Path("id") id: Long): retrofit2.Response<Unit>
+    @POST("api/conversaciones/{id}/bloqueo") suspend fun bloquearConversacion(@Path("id") id: Long): Conversacion
+    @DELETE("api/conversaciones/{id}/bloqueo") suspend fun desbloquearConversacion(@Path("id") id: Long): Conversacion
+    @POST("api/conversaciones/{id}/mensajes/{mensajeId}/reporte")
+    suspend fun reportarMensaje(@Path("id") id: Long, @Path("mensajeId") mensajeId: Long, @Body datos: ReportarMensaje): retrofit2.Response<Unit>
 }

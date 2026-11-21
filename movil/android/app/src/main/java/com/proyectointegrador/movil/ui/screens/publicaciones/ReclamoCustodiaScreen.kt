@@ -43,6 +43,7 @@ fun ReclamoCustodiaScreen(id: Long, volver: () -> Unit,
                 if (reclamo.estado == "ACEPTADO") OutlinedButton(onClick = vm::verQr, enabled = !accion.ocupada) {
                     Text("Mostrar QR de retiro")
                 }
+                reclamo.id?.let { com.proyectointegrador.movil.ui.screens.chat.BotonConversar(reclamoId = it, texto = "Escribir a la biblioteca") }
                 TextButton(onClick = vm::recargar, enabled = !accion.ocupada) { Text("Actualizar") }
             }
         }

@@ -45,7 +45,7 @@ import com.proyectointegrador.movil.ui.components.*
  }}
 }
 @Composable fun ParejaScreen(id:String,volver:()->Unit,propios:()->Unit,vm:ParejaViewModel=viewModel(key="pareja-$id",factory=fabrica(parejaId=id))) {
- val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val resultado by vm.resultado.collectAsStateWithLifecycle();val confirmar by vm.confirmacion.collectAsStateWithLifecycle()
+ val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val resultado by vm.resultado.collectAsStateWithLifecycle();val contactoId by vm.contactoId.collectAsStateWithLifecycle();val confirmar by vm.confirmacion.collectAsStateWithLifecycle()
  Pagina("Conecta las pistas",volver){
   if(resultado!=null){IlustracionEncuentro(2,Modifier.fillMaxWidth().heightIn(max=210.dp));AvisoEstado(resultado!!);BotonPrincipal("Volver a mis publicaciones",propios)}
   else Consulta(estado,vm::recargar){datos,_->val pareja=datos.pareja
@@ -58,6 +58,7 @@ import com.proyectointegrador.movil.ui.components.*
    Panel("Características comparadas"){pareja.criterios.forEach {(criterio,puntos)->Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(criterio.replaceFirstChar {it.uppercase()},Modifier.weight(1f));Text("$puntos puntos",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.tertiary)}}}
    ResumenObjeto(pareja.perdido);ResumenObjeto(pareja.encontrado)
    EstadoAccion(accion)
+   contactoId?.let {com.proyectointegrador.movil.ui.screens.chat.BotonConversar(contactoId=it)}
    if(vm.puedeGestionar){BotonPrincipal("Confirmar recuperación",{vm.pedir("recuperar")},!accion.ocupada,icono=Simbolos.Check);OutlinedButton(onClick={vm.pedir("contactar")},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Solicitar contacto")};TextButton(onClick={vm.pedir("descartar")},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Descartar coincidencia")}}
    else AvisoEstado("La gestión corresponde al titular del objeto perdido activo.")
   }

@@ -120,6 +120,8 @@ import com.proyectointegrador.movil.ui.components.*
    Panel("Tu actividad") {
     FilaCuenta("Mis publicaciones","Lo que perdiste y encontraste",Simbolos.Caja){abrir("propios")}
     HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
+    FilaCuenta("Mensajes","Conversa con quien encontró tu objeto o con la biblioteca",Simbolos.Chat){abrir("conversaciones")}
+    HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
     FilaCuenta("Notificaciones","Novedades de tus coincidencias",Simbolos.Avisos){abrir("avisos")}
    }
    OutlinedButton(onClick = vm::invitar, enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth()) {

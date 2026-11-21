@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.ui.screens.*
 import com.proyectointegrador.movil.ui.screens.avisos.*
+import com.proyectointegrador.movil.ui.screens.chat.*
 import com.proyectointegrador.movil.ui.screens.coincidencias.*
 import com.proyectointegrador.movil.ui.screens.cuenta.*
 import com.proyectointegrador.movil.ui.screens.publicaciones.*
@@ -69,7 +70,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
         LaunchedEffect(enlacePush) { if (enlacePush != null) {
             if (!sesion.autenticado) abrir("perfil") else when (val destino = destinoDeEnlace(enlacePush)) {
                 is DestinoPush.Detalle -> abrir("detalle/${destino.objetoId}")
-                is DestinoPush.Conversacion -> abrir("avisos")
+                is DestinoPush.Conversacion -> abrir("conversacion/${destino.id}")
                 DestinoPush.Avisos -> abrir("avisos")
             }
             consumirPush()
@@ -94,7 +95,7 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                 }
             }
         }}) { padding ->
-            CompositionLocalProvider(LocalAbrirWeb provides {clave:String,parametro:String?->abrir("web/"+clave+(if(parametro.isNullOrBlank()) "" else "?p="+Uri.encode(parametro)))}) {
+            CompositionLocalProvider(LocalAbrirRuta provides {destino:String->abrir(destino)},LocalAbrirWeb provides {clave:String,parametro:String?->abrir("web/"+clave+(if(parametro.isNullOrBlank()) "" else "?p="+Uri.encode(parametro)))}) {
             NavHost(navController=nav,startDestination=if(!sesion.autenticado&&!ajustes.introduccionCompleta)"bienvenida" else if(sesion.aviso!=null)"perfil" else "inicio",modifier=Modifier.padding(padding).consumeWindowInsets(padding),
                 enterTransition={fadeIn()},exitTransition={fadeOut()}) {
                 composable("bienvenida"){BienvenidaScreen(experiencia,::abrir)}
@@ -130,6 +131,10 @@ import com.proyectointegrador.movil.ui.screens.publicaciones.*
                     else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
                 }
                 composable("avisos") {if(sesion.autenticado)AvisosScreen(volver,abrir=::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
+                composable("conversaciones") {if(sesion.autenticado)ConversacionesScreen(volver,::abrir) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})}
+                composable("conversacion/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})) {
+                    if(sesion.autenticado)ChatScreen(it.arguments!!.getLong("id"),volver) else AccesoScreen({abrir("registro")},{abrir("verificar/${Uri.encode(it.ifEmpty {"_"})}")},{abrir("recuperar")})
+                }
                 composable("apariencia"){AparienciaScreen(volver,experiencia)}
                 composable("privacidad"){PrivacidadScreen(volver)}
                 composable("web/{clave}?p={p}",arguments=listOf(navArgument("clave"){type=NavType.StringType},navArgument("p"){type=NavType.StringType;defaultValue=""})) {entrada->

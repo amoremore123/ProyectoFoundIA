@@ -103,6 +103,19 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
+    // H55 a H63: chat. Cada llamada exige sesión y descarta la respuesta si la sesión cambió mientras viajaba.
+    suspend fun iniciarConversacion(datos:IniciarConversacion)=privada {api.iniciarConversacion(datos)}
+    suspend fun conversaciones()=privada {api.conversaciones()}
+    suspend fun mensajes(id:Long,despuesDe:Long)=privada {api.mensajes(id,despuesDe)}
+    suspend fun enviarMensaje(id:Long,texto:String)=privada {api.enviarMensaje(id,EnviarMensaje(texto))}
+    suspend fun enviarFotoChat(id:Long,texto:String?,foto:FotoPreparada)=privada {
+        val parte=okhttp3.MultipartBody.Part.createFormData("foto",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()))
+        api.enviarMensajeConFoto(id,parte,texto?.takeIf {it.isNotBlank()}?.toRequestBody("text/plain".toMediaType()))
+    }
+    suspend fun marcarLeida(id:Long)=privada {api.marcarConversacionLeida(id);Unit}
+    suspend fun bloquearConversacion(id:Long)=privada {api.bloquearConversacion(id)}
+    suspend fun desbloquearConversacion(id:Long)=privada {api.desbloquearConversacion(id)}
+    suspend fun reportarMensaje(id:Long,mensajeId:Long,motivo:String)=privada {api.reportarMensaje(id,mensajeId,ReportarMensaje(motivo));Unit}
     suspend fun descartar(id:String)=privada {val respuesta=api.descartar(id);publicaciones.invalidar();respuesta}
     suspend fun recuperar(id:String)=privada {val respuesta=api.recuperar(id,ConfirmarRecuperacion());publicaciones.invalidar();respuesta}
     suspend fun avisos()=privada {api.avisos()}.also {avisos->synchronized(noLeidos){noLeidos.clear();noLeidos.addAll(avisos.filter {!it.leida}.map {it.id});_sinLeer.value=noLeidos.size}}

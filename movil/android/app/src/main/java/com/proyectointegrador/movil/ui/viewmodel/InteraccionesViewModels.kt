@@ -28,6 +28,7 @@ class SugerenciasViewModel(repo:CuentaRepository,id:Long):CargaViewModel<Sugeren
 class ParejaViewModel(private val repo:CuentaRepository,private val id:String):CargaViewModel<ParejaDatos>({repo.pareja(id)}) {
     private val _confirmacion=MutableStateFlow<String?>(null);val confirmacion=_confirmacion.asStateFlow()
     private val _resultado=MutableStateFlow<String?>(null);val resultado=_resultado.asStateFlow()
+    private val _contactoId=MutableStateFlow<Long?>(null);val contactoId=_contactoId.asStateFlow()
     val puedeGestionar get()=estado.value.datos?.let {it.usuario!=null && it.usuario.id==it.pareja.perdido.publicadoPor?.id &&
         it.pareja.perdido.estado=="ACTIVO" && it.pareja.encontrado.estado=="ACTIVO"}==true
     fun pedir(tipo:String){if(puedeGestionar && tipo in listOf("recuperar","descartar","contactar"))_confirmacion.value=tipo}
@@ -37,7 +38,7 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
         ejecutar {
             if(tipo=="contactar") {
                 val pareja=estado.value.datos!!.pareja
-                val r=repo.contactar(ContactoRequest(pareja.perdido.id,pareja.encontrado.id));informar(if(r.repetido)"Ya existe tu solicitud de contacto." else "Solicitud de contacto registrada.");_confirmacion.value=null;return@ejecutar
+                val r=repo.contactar(ContactoRequest(pareja.perdido.id,pareja.encontrado.id));_contactoId.value=r.id;informar(if(r.repetido)"Ya existe tu solicitud de contacto." else "Solicitud de contacto registrada.");_confirmacion.value=null;return@ejecutar
             }
             _resultado.value=if(tipo=="recuperar") {
                 val r=repo.recuperar(id);"Recuperación confirmada. Fecha del servidor: ${r.fechaRecuperacion}."
