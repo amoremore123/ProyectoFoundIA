@@ -50,3 +50,7 @@ tmp/
 uploads/
 *.tmp
 *.swp
+
+# C2: resultados e informe de Playwright (se generan al correr npm run e2e)
+frontend/usuario/e2e-resultados/
+frontend/usuario/e2e-informe/
