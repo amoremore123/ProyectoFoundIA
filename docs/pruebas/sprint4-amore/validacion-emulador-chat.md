@@ -32,3 +32,10 @@ se probó entre dos usuarios normales (contacto de QA creado solo en la base de 
 - Push real con la app cerrada: requiere el proyecto de Firebase y su cuenta de servicio.
 - Cámara física, escaneo con la cámara real, dictado con ruido y lectura de TalkBack con voz: requieren un teléfono Android.
 - La foto de la otra persona en el chat: espera la ruta que defina el contrato de H64/H55.
+
+## H44: escaneo de etiqueta y QR de retiro
+
+Amore informó el 21/11/2026 que el escaneo y el QR se probaron en su salón y funcionan. **Es un resultado reportado
+por la persona responsable, sin capturas ni registro adjunto**, y no se anotó en qué dispositivo se hizo. Antes de
+presentarlo como certificado conviene agregar la evidencia (capturas o un video corto) y los casos probados: QR válido,
+ya usado, de otro objeto y vencido.
