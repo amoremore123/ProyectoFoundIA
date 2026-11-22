@@ -25,6 +25,8 @@ const TIPOS = {
   COINCIDENCIA_NUEVA: { etiqueta: 'Posible coincidencia', clase: 'tipo-coincidencia' },
   // H53: recordatorio de un objeto propio sin resolver; su enlace lleva a /objeto/{id}
   RECORDATORIO_OBJETO: { etiqueta: 'Recordatorio', clase: 'tipo-recordatorio' },
+  // H57: mensaje nuevo del chat (sin el texto); lleva a la conversación
+  MENSAJE_CHAT: { etiqueta: 'Mensaje nuevo', clase: 'tipo-contacto' },
 };
 
 // H25: filtros del historial
@@ -36,8 +38,14 @@ const FILTROS = [
 const TAMANO = 20;
 
 // H23: solo se navega a rutas internas conocidas; el destino vuelve a validar la disponibilidad
-export function enlaceInterno(enlace) {
-  return typeof enlace === 'string' && /^\/(coincidencias|objeto)\/[A-Za-z0-9-]+$/.test(enlace) ? enlace : null;
+export function enlaceInterno(enlace, noti) {
+  if (typeof enlace === 'string' && /^\/(coincidencias|objeto|mensajes)\/[A-Za-z0-9-]+$/.test(enlace)) return enlace;
+  // El aviso de chat no trae enlace: se toma el número de la conversación del texto, o se abre la lista
+  if (noti?.tipo === 'MENSAJE_CHAT') {
+    const id = /#(\d+)/.exec(noti.mensaje || '')?.[1];
+    return id ? `/mensajes/${id}` : '/mensajes';
+  }
+  return null;
 }
 
 // Notificaciones propias (las del usuario del token). Abrir un aviso lo marca como leído.
@@ -108,7 +116,7 @@ export default function Notificaciones() {
   };
 
   const abrir = async (noti) => {
-    const destino = enlaceInterno(noti.enlace);
+    const destino = enlaceInterno(noti.enlace, noti);
     if (noti.leida) {
       if (destino) navigate(destino);
       return;
@@ -205,7 +213,7 @@ export default function Notificaciones() {
           <ul className="lista-notificaciones">
             {notificaciones.map((noti) => {
               const tipo = TIPOS[noti.tipo] || { etiqueta: 'Aviso', clase: 'tipo-general' };
-              const destino = enlaceInterno(noti.enlace);
+              const destino = enlaceInterno(noti.enlace, noti);
               return (
                 <li key={noti.id}>
                   <button

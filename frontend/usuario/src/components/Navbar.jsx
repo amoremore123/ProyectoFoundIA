@@ -81,6 +81,7 @@ export default function Navbar() {
           <NavLink to="/buscar">Buscar objeto</NavLink>
           {EXTRAS_HABILITADOS ? <NavLink to="/historial">Historial</NavLink> : <NavLink to="/explorar">Explorar</NavLink>}
           {token && <NavLink to="/mis-publicaciones">Mis reportes</NavLink>}
+          {token && <NavLink to="/mensajes">Mensajes</NavLink>}
           <a href="/#proceso-recuperacion" onClick={irAAyuda}>Ayuda</a>
         </nav>
 

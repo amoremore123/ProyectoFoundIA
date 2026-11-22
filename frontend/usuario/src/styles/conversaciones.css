@@ -1,0 +1,75 @@
+/* H55 a H63: chat entre personas y con la biblioteca. Prefijo conv- para no chocar con el chat de FINDI. */
+
+.conv-privacidad { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 16px; }
+
+/* Lista de conversaciones */
+.conv-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.conv-lista-item {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px;
+  border: 1px solid var(--border); border-radius: var(--radio); background: var(--surface);
+  color: var(--text); text-decoration: none; transition: border-color .15s ease, background-color .15s ease;
+}
+.conv-lista-item:hover { border-color: var(--primary); }
+.conv-sin-leer { border-color: var(--primary); background: var(--primary-50); }
+.conv-lista-avatar {
+  width: 42px; height: 42px; flex: none; border-radius: 50%; display: inline-flex; align-items: center;
+  justify-content: center; background: var(--primary); color: #fff; font-weight: 700; font-size: 17px;
+}
+.conv-lista-cuerpo { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.conv-lista-fila { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.conv-lista-fila strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-lista-hora { margin-left: auto; flex: none; font-size: 12px; color: var(--text-muted); }
+.conv-lista-objeto { font-size: 13px; color: var(--text-muted); }
+.conv-lista-previa { flex: 1; min-width: 0; font-size: 14px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-sin-leer .conv-lista-previa { color: var(--text); font-weight: 600; }
+.conv-contador, .conv-etiqueta { flex: none; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.conv-contador { background: var(--primary); color: #fff; }
+.conv-etiqueta { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* Conversación */
+.conv-pagina { display: flex; flex-direction: column; gap: 12px; }
+.conv-cabecera { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.conv-volver { display: inline-flex; align-items: center; gap: 4px; }
+.conv-cabecera-datos { flex: 1; min-width: 0; }
+.conv-titulo { margin: 0; font-size: 20px; line-height: 1.25; color: var(--text); }
+.conv-objeto { font-size: 13px; color: var(--primary-700, var(--primary)); }
+.conv-aviso { margin: 0; }
+
+.conv-mensajes-lista {
+  list-style: none; margin: 0; padding: 4px 2px; display: flex; flex-direction: column; gap: 10px;
+  max-height: min(60vh, 560px); overflow-y: auto; overscroll-behavior: contain;
+}
+.conv-vacio { padding: 18px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: var(--radio); }
+.conv-burbuja { max-width: min(78%, 520px); padding: 10px 12px; border-radius: 16px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.conv-propio { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+.conv-ajeno { align-self: flex-start; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.conv-autor { font-size: 12px; font-weight: 700; opacity: .9; }
+.conv-texto { margin: 0; line-height: 1.5; white-space: pre-wrap; }
+.conv-foto img { display: block; max-width: 100%; max-height: 260px; border-radius: 10px; object-fit: cover; }
+.conv-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; opacity: .85; }
+.conv-reportar { font-size: 12px; padding: 0; }
+
+.conv-reporte { display: grid; gap: 10px; }
+.conv-reporte-acciones { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.conv-cerrada {
+  margin: 0; display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: var(--radio);
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+}
+
+.conv-redactar { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.conv-campo { resize: vertical; min-height: 56px; }
+.conv-redactar-fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.conv-contador-texto { margin-left: auto; font-size: 12px; }
+.conv-vista-foto { display: flex; align-items: center; gap: 12px; }
+.conv-vista-foto img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+.conv-foto-input, .conv-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Botón para escribir a la biblioteca desde el estado del reclamo (H63) */
+.estado-reclamo-chat { margin-top: 12px; display: grid; gap: 6px; justify-items: start; }
+
+html[data-tema='oscuro'] .conv-propio { background: #2f6fd6; }
+
+@media (max-width: 480px) {
+  .conv-burbuja { max-width: 88%; }
+  .conv-mensajes-lista { max-height: 55vh; }
+}

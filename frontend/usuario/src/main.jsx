@@ -13,6 +13,7 @@ import './styles/experiencia.css';
 import './styles/hero-findi.css';
 import './styles/inicio-secciones.css';
 import './styles/chat-findi.css';
+import './styles/conversaciones.css';
 
 // Herramienta H51 optativa, excluida de producción; no contiene credenciales.
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('auditar')) {

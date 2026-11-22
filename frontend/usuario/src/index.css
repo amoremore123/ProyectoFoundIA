@@ -211,7 +211,9 @@ ul { list-style: none; margin: 0; padding: 0; }
   bottom: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 4 opciones sin sesión y 5 con sesión (Mensajes, H55): todas en una fila */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);

@@ -21,6 +21,8 @@ import Notificaciones from './pages/Notificaciones';
 import Legal from './pages/Legal';
 import Cookies from './pages/Cookies';
 import VerificarCustodia from './pages/VerificarCustodia';
+import Mensajes from './pages/Mensajes';
+import Conversacion from './pages/Conversacion';
 import AvisoCookies from './components/AvisoCookies';
 import { EXTRAS_HABILITADOS } from './config/alcance';
 
@@ -61,6 +63,9 @@ export default function App() {
                     </RutaProtegida>
                   }
                 />
+                {/* H55: chat interno, solo con sesión */}
+                <Route path="/mensajes" element={<RutaProtegida><Mensajes /></RutaProtegida>} />
+                <Route path="/mensajes/:id" element={<RutaProtegida><Conversacion /></RutaProtegida>} />
                 <Route
                   path="/perfil"
                   element={

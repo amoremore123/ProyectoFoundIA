@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import Icono from './Icono';
-import { getQrRetiro, mensajeError } from '../services/api';
+import { getQrRetiro, iniciarConversacion, mensajeError } from '../services/api';
 
 // H42/H44: estado de mi reclamo de un objeto en custodia y, si fue aceptado, el QR de retiro.
 // El QR solo contiene el token firmado por el servidor (sin nombre, correo ni teléfono).
@@ -85,7 +86,33 @@ function QrRetiro({ objetoId, nombre }) {
   );
 }
 
-export default function EstadoReclamoCustodia({ estado, objetoId, nombre }) {
+// H63: quien reclamó puede escribir a la biblioteca (pedir un detalle o acordar el retiro)
+function EscribirBiblioteca({ reclamoId }) {
+  const navigate = useNavigate();
+  const [abriendo, setAbriendo] = useState(false);
+  const [error, setError] = useState('');
+  const abrir = async () => {
+    setAbriendo(true);
+    setError('');
+    try {
+      const conversacion = await iniciarConversacion({ reclamoId });
+      navigate(`/mensajes/${conversacion.id}`);
+    } catch (e) {
+      setError(mensajeError(e, 'No se pudo abrir la conversación con la biblioteca'));
+      setAbriendo(false);
+    }
+  };
+  return (
+    <div className="estado-reclamo-chat">
+      <button type="button" className="btn btn-secundario" onClick={abrir} disabled={abriendo}>
+        <Icono nombre="chat" tamano={16} /> {abriendo ? 'Abriendo...' : 'Escribir a la biblioteca'}
+      </button>
+      {error && <p className="campo-error" role="alert">{error}</p>}
+    </div>
+  );
+}
+
+export default function EstadoReclamoCustodia({ estado, objetoId, nombre, reclamoId }) {
   const info = ESTADOS[estado];
   if (!info) return null;
   return (
@@ -93,6 +120,7 @@ export default function EstadoReclamoCustodia({ estado, objetoId, nombre }) {
       <h2 id="estado-reclamo-titulo" className="estado-reclamo-titulo">{info.titulo}</h2>
       <p className="estado-reclamo-texto">{info.texto}</p>
       {estado === 'ACEPTADO' && <QrRetiro objetoId={objetoId} nombre={nombre} />}
+      {reclamoId && ['PENDIENTE', 'ACEPTADO'].includes(estado) && <EscribirBiblioteca reclamoId={reclamoId} />}
     </section>
   );
 }

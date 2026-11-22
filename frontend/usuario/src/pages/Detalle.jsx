@@ -1,6 +1,6 @@
 import ImagenObjeto from '../components/ImagenObjeto';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import ChipTipo from '../components/ChipTipo';
 import CompartirPublicacion from '../components/CompartirPublicacion';
 import ReportarPublicacion from '../components/ReportarPublicacion';
@@ -9,7 +9,7 @@ import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import EstadoReclamoCustodia from '../components/EstadoReclamoCustodia';
-import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, mensajeError, reclamarObjeto, statusDe } from '../services/api';
+import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, iniciarConversacion, mensajeError, reclamarObjeto, statusDe } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function fechaLarga(valor) {
@@ -43,11 +43,15 @@ export default function Detalle() {
   const [respuestaCustodia, setRespuestaCustodia] = useState('');
   // H42/H44: estado de mi reclamo en custodia (null mientras no se sabe o no aplica)
   const [estadoCustodia, setEstadoCustodia] = useState(null);
+  // H63: id de mi reclamo, para escribir a la biblioteca desde el estado del reclamo
+  const [reclamoCustodiaId, setReclamoCustodiaId] = useState(null);
   const [reclamoError, setReclamoError] = useState('');
   const [reclamando, setReclamando] = useState(false);
   const [confirmarReclamo, setConfirmarReclamo] = useState(false);
   // H47: FINDI puede abrir esta pantalla con el reclamo listo para confirmar (no lo envía)
   const location = useLocation();
+  const navigate = useNavigate();
+  const [abriendoChat, setAbriendoChat] = useState(null);
   const reclamoDesdeFindi = useRef(Boolean(location.state?.abrirReclamo));
 
   const cargar = useCallback(async () => {
@@ -68,6 +72,21 @@ export default function Detalle() {
     }
   }, [id]);
 
+  // H55: con la solicitud de contacto enviada se puede conversar con quien encontró el objeto
+  const conversar = async (coincidencia) => {
+    const contactoId = contactos[coincidencia.objetoId]?.id;
+    if (!contactoId) return;
+    setAbriendoChat(coincidencia.objetoId);
+    setErroresContacto((e) => ({ ...e, [coincidencia.objetoId]: '' }));
+    try {
+      const conversacion = await iniciarConversacion({ contactoId });
+      navigate(`/mensajes/${conversacion.id}`);
+    } catch (errorChat) {
+      setErroresContacto((e) => ({ ...e, [coincidencia.objetoId]: mensajeError(errorChat, 'No se pudo abrir la conversación') }));
+      setAbriendoChat(null);
+    }
+  };
+
   // H18: el error se muestra en la tarjeta de esa coincidencia y el botón queda para reintentar.
   const contactar = async (coincidencia) => {
     setErroresContacto((e) => ({ ...e, [coincidencia.objetoId]: '' }));
@@ -76,7 +95,7 @@ export default function Detalle() {
       const respuesta = await iniciarContacto(objeto.id, coincidencia.objetoId);
       setContactos((anteriores) => ({
         ...anteriores,
-        [coincidencia.objetoId]: respuesta.repetido ? 'repetido' : 'enviado',
+        [coincidencia.objetoId]: { estado: respuesta.repetido ? 'repetido' : 'enviado', id: respuesta.id },
       }));
     } catch (errorContacto) {
       setErroresContacto((e) => ({
@@ -97,7 +116,7 @@ export default function Detalle() {
         ? await reclamarObjeto(objeto.id, respuestaCustodia.trim())
         : await reclamarObjeto(objeto.id);
       setReclamo(respuesta.repetido ? 'repetido' : 'enviado');
-      if (objeto.estado === 'EN_CUSTODIA') setEstadoCustodia(respuesta.estado || 'PENDIENTE');
+      if (objeto.estado === 'EN_CUSTODIA') { setEstadoCustodia(respuesta.estado || 'PENDIENTE'); setReclamoCustodiaId(respuesta.id || null); }
     } catch (errorReclamo) {
       setReclamoError(mensajeError(errorReclamo, 'No se pudo enviar el reclamo'));
     } finally {
@@ -153,7 +172,7 @@ export default function Detalle() {
     if (!token || !ajeno || objeto.tipo !== 'ENCONTRADO' || !['EN_CUSTODIA', 'RECUPERADO'].includes(objeto.estado)) return undefined;
     let vivo = true;
     getMiReclamoCustodia(objeto.id)
-      .then((r) => { if (vivo) setEstadoCustodia(r?.estado || null); })
+      .then((r) => { if (vivo) { setEstadoCustodia(r?.estado || null); setReclamoCustodiaId(r?.id || null); } })
       .catch(() => { if (vivo) setEstadoCustodia(null); });
     return () => { vivo = false; };
   }, [objeto, token, user]);
@@ -236,7 +255,7 @@ export default function Detalle() {
           </div>
 
           {estadoCustodia && estadoCustodia !== 'SIN_RECLAMO' && (
-            <EstadoReclamoCustodia estado={estadoCustodia} objetoId={objeto.id} nombre={objeto.nombre} />
+            <EstadoReclamoCustodia estado={estadoCustodia} objetoId={objeto.id} nombre={objeto.nombre} reclamoId={reclamoCustodiaId} />
           )}
 
           {puedeReclamar && !(estadoCustodia && estadoCustodia !== 'SIN_RECLAMO') && (reclamo ? (
@@ -336,11 +355,19 @@ export default function Detalle() {
                 {puedeContactar && (
                   <div className="coincidencia-contacto">
                     {contactos[c.objetoId] ? (
-                      <p role="status" className="aviso-accion aviso-ok">
-                        {contactos[c.objetoId] === 'repetido'
-                          ? 'Ya habías enviado una solicitud de contacto.'
-                          : 'Solicitud de contacto enviada.'}
-                      </p>
+                      <>
+                        <p role="status" className="aviso-accion aviso-ok">
+                          {contactos[c.objetoId].estado === 'repetido'
+                            ? 'Ya habías enviado una solicitud de contacto.'
+                            : 'Solicitud de contacto enviada.'}
+                        </p>
+                        {erroresContacto[c.objetoId] && <p role="alert" className="campo-error">{erroresContacto[c.objetoId]}</p>}
+                        {contactos[c.objetoId].id && (
+                          <button type="button" className="btn btn-secundario" onClick={() => conversar(c)} disabled={abriendoChat === c.objetoId}>
+                            {abriendoChat === c.objetoId ? 'Abriendo...' : 'Conversar'}
+                          </button>
+                        )}
+                      </>
                     ) : (
                       <>
                         {erroresContacto[c.objetoId] && (

@@ -164,6 +164,62 @@ export const getQrRetiro = async (id) => {
   return data;
 };
 
+// H55 a H63: chat interno (docs/api/sprint4-h55.md). Solo participantes; una conversación ajena da 404.
+// Se inicia desde un contacto (entre personas) o desde un reclamo en custodia (con la biblioteca).
+export const iniciarConversacion = async ({ contactoId, reclamoId }) => {
+  const { data } = await api.post('/api/conversaciones', contactoId ? { contactoId } : { reclamoId });
+  return data;
+};
+
+export const getConversaciones = async () => {
+  const { data } = await api.get('/api/conversaciones');
+  return Array.isArray(data) ? data : [];
+};
+
+export const getConversacion = async (id) => {
+  const { data } = await api.get(`/api/conversaciones/${id}`);
+  return data;
+};
+
+// Mensajes con id mayor al cursor (hasta 50) + ultimoId, soloLectura y bloqueada
+export const getMensajes = async (id, despuesDe = 0, { signal } = {}) => {
+  const { data } = await api.get(`/api/conversaciones/${id}/mensajes`, { params: { despuesDe }, signal });
+  return data;
+};
+
+export const enviarMensaje = async (id, texto) => {
+  const { data } = await api.post(`/api/conversaciones/${id}/mensajes`, { texto });
+  return data;
+};
+
+// H62: foto del chat (JPEG o PNG, hasta 5 MiB) con texto opcional
+export const enviarFotoChat = async (id, foto, texto = '') => {
+  const formulario = new FormData();
+  formulario.append('foto', foto);
+  if (texto.trim()) formulario.append('texto', texto.trim());
+  const { data } = await api.post(`/api/conversaciones/${id}/mensajes`, formulario);
+  return data;
+};
+
+export const marcarConversacionLeida = async (id) => {
+  await api.post(`/api/conversaciones/${id}/leida`);
+};
+
+// H56: bloquear impide escribir a ambos lados; desbloquear quita solo el bloqueo propio
+export const bloquearConversacion = async (id) => {
+  const { data } = await api.post(`/api/conversaciones/${id}/bloqueo`);
+  return data;
+};
+
+export const desbloquearConversacion = async (id) => {
+  const { data } = await api.delete(`/api/conversaciones/${id}/bloqueo`);
+  return data;
+};
+
+export const reportarMensaje = async (id, mensajeId, motivo) => {
+  await api.post(`/api/conversaciones/${id}/mensajes/${mensajeId}/reporte`, { motivo });
+};
+
 // H41: lo que abre el QR de la etiqueta de custodia (público, sin datos personales)
 export const verificarCustodia = async (t) => {
   const { data } = await axios.get(`${API_URL}/api/custodias/verificar`, { params: { t }, timeout: 10000 });

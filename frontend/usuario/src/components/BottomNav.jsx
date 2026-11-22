@@ -17,7 +17,7 @@ export default function BottomNav() {
   const { token } = useAuth();
   return (
     <nav className="bottom-nav" aria-label="Navegación principal">
-      {[...items, itemCuenta(token)].map((item) => (
+      {[...items, ...(token ? [{ to: '/mensajes', icono: 'chat', label: 'Mensajes' }] : []), itemCuenta(token)].map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
