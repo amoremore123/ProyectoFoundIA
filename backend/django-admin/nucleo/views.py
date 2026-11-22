@@ -24,6 +24,7 @@ from .custodia import (
 from .disposicion import (
     DESTINOS, MOTIVO_MAX, MOTIVO_MIN, acta_pdf, codigo_acta, dias_en_custodia, limite_vencimiento, plazo_dias,
 )
+from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
     ROL_CHOICES,
     Campana,
@@ -175,6 +176,7 @@ class LogoutView(APIView):
             Usuario.objects.filter(pk=request.user.pk).update(
                 sesion_version=F("sesion_version") + 1)
             Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
+            revocar_firebase(request.user.pk)  # H72
             return Response({"mensaje": "Sesión cerrada en todos los dispositivos"})
 
         exp = payload.get("exp")
@@ -204,6 +206,7 @@ class LogoutAllView(APIView):
         Usuario.objects.filter(pk=request.user.pk).update(
             sesion_version=F("sesion_version") + 1)
         Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
+        revocar_firebase(request.user.pk)  # H72
         return Response({"mensaje": "Sesiones cerradas en todos los dispositivos"})
 
 
@@ -302,8 +305,9 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         usuario.estado = estado
         usuario.save(update_fields=["estado", "fecha_actualizacion"])
         if estado == "SUSPENDIDO":
-            # H57: una cuenta suspendida no recibe push
+            # H57: una cuenta suspendida no recibe push; H72: ni conserva su sesión de Firebase
             Dispositivo.objects.filter(usuario_id=usuario.pk).delete()
+            revocar_firebase(usuario.pk)
         return Response(UsuarioSerializer(usuario).data)
 
     def _cambiar_rol(self, request, usuario):

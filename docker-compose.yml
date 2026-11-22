@@ -104,6 +104,9 @@ services:
       CUSTODIA_PLAZO_DIAS: ${CUSTODIA_PLAZO_DIAS:-60}
       # H41: web que abre el QR de la etiqueta (con celular, usar la IP de la laptop)
       FOUNDIA_WEB_URL: ${FOUNDIA_WEB_URL:-http://localhost:5173}
+      # H72: revocar sesiones de Firebase al suspender o cerrar en todos los dispositivos
+      FIREBASE_CREDENCIALES_JSON: ${FIREBASE_CREDENCIALES_JSON:-}
+      FIREBASE_PROYECTO_ID: ${FIREBASE_PROYECTO_ID:-}
     ports:
       - "8000:8000"
     depends_on:
