@@ -46,6 +46,7 @@ public class PreferenciaNotificacionService {
             case "CONTACTO_RECIBIDO" -> p.isContactos();
             case "RECLAMO_RECIBIDO" -> p.isReclamos();
             case "RECORDATORIO_OBJETO" -> p.isRecordatorios();
+            case "MENSAJE_CHAT" -> true;
             default -> throw new IllegalArgumentException("Tipo de aviso no admitido");
         };
     }
