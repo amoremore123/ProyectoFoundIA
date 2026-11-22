@@ -60,13 +60,15 @@ Firebase revoca las sesiones **por cuenta**, no por teléfono. Por eso:
 | --- | --- |
 | Cerrar sesión en un teléfono (`POST /api/auth/logout`) | Android hace `FirebaseAuth.signOut()` en ese teléfono. **El servidor no revoca en Firebase**: si lo hiciera, cerraría también la sesión de Firebase de los otros teléfonos de la cuenta, y H37 exige que este cierre afecte solo a esa sesión |
 | Cerrar en todos los dispositivos (`POST /api/auth/logout-all` y `/api/admin/auth/logout-all/`) | El servidor llama a `revokeRefreshTokens(uid)`: todas las sesiones de Firebase de la cuenta dejan de renovarse |
-| Suspender la cuenta desde el panel (Django, `PATCH /api/admin/usuarios/{id}/ {"estado": "SUSPENDIDO"}`) | Igual que «todos los dispositivos». Como la suspensión ocurre en Django, el revocado lo hace Django con la misma cuenta de servicio, o Spring al detectarla; se decide al implementar |
+| Suspender la cuenta desde el panel (Django: Usuarios, H15, o un reporte del chat, H56) | Igual que «todos los dispositivos». **Lo hace Django** con la misma cuenta de servicio (`nucleo/firebase.py`) |
+| Cerrar en todos los dispositivos desde el panel (`POST /api/admin/auth/logout-all/`) | Django revoca igual que Spring |
 
 > El plan del Sprint 4 dice «revocar el token de Firebase al cerrar sesión». Este contrato lo aplica
 > al cierre en todos los dispositivos y a la suspensión, por la razón de la tabla. **Confirmar con
 > el equipo.**
 
-Si Firebase no está configurado, cerrar sesión funciona igual que hoy; solo se omite el revocado.
+El revocado se hace **después de confirmar** en la base y en segundo plano: si Google no responde, cerrar sesión
+o suspender no falla. Si Firebase no está configurado, todo funciona igual que antes; solo se omite el revocado.
 
 ## Lo que hace Android (Amore)
 
@@ -81,7 +83,8 @@ Si Firebase no está configurado, cerrar sesión funciona igual que hoy; solo se
 
 ## Configuración
 
-Usa la **misma cuenta de servicio de H57**, solo por variables de entorno (nunca en Git):
+Usa la **misma cuenta de servicio de H57**, solo por variables de entorno (nunca en Git). En Docker Compose
+se pasa a Spring (`api`) y a Django (`admin-api`):
 
 | Variable | Uso |
 | --- | --- |
@@ -101,3 +104,24 @@ activar ningún proveedor de inicio de sesión.
 - `logout-all` y suspensión: se llama a `revokeRefreshTokens` con el `uid` correcto (prueba con el
   SDK simulado solo para esta llamada; la prueba real, con la cuenta de servicio del equipo).
 - Android: token vencido, otra cuenta, sin red y app sin Firebase configurado.
+
+## Verificación del 22/11/2026
+
+- Spring: `FirebaseAuthIntegrationTest` (**5 pruebas**, con una clave RSA de prueba y un servidor local que
+  hace de Google) y `FirebaseAuthSinConfigurarTest` (**1**). Comprueban: sin sesión `401` aunque
+  `/api/auth/**` sea público; el token está firmado por la cuenta de servicio, con la audiencia de Firebase,
+  vence en 1 hora y solo trae el rol; el UID es estable y distinto entre cuentas; sesión cerrada o cuenta
+  suspendida `401`; `logout-all` revoca y `logout` no; sin Firebase `503` y la sesión normal sigue.
+  Suite completa: **534 pruebas, 0 fallos**.
+- Django: `nucleo/test_sprint4_h72.py` (**7 pruebas**): firma con la cuenta de servicio, llamada a
+  `accounts:update` con `foundia-<id>`, un fallo de Google no rompe nada, se programa después de confirmar, sin
+  credenciales no llama a nadie, y lo llaman la suspensión (H15 y H56) y `logout-all`. Suite: **144 pruebas OK**.
+- **Firebase real** (proyecto `foundia-2a615`) con MySQL 8.0 de QA:
+  - Con el token de Spring, `signInWithCustomToken` respondió `200` y el `idToken` de Firebase trae
+    `user_id = foundia-2`, el rol `USUARIO` y **ningún correo**. La sesión de Firebase se pudo renovar.
+  - Tras `logout-all` en Spring, renovar esa sesión de Firebase respondió `400 TOKEN_EXPIRED`.
+  - Tras suspender la cuenta desde el panel de Django, renovar su sesión de Firebase respondió
+    `400 TOKEN_EXPIRED`, y Spring ya no le entregó otro token (`401`).
+
+Sigue pendiente: confirmar con el equipo la regla de revocado (tabla de arriba) y con el docente que esta
+forma cumple la semana 13.
