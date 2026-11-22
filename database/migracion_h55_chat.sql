@@ -1,6 +1,7 @@
 -- H55 a H63: chat interno entre personas y con la biblioteca.
 -- Idempotente: se puede ejecutar varias veces. Hacer un respaldo antes de aplicarla a una base con datos.
 -- No usar docker compose down -v ni reimportar script.sql o seed.sql sobre datos reales.
+USE objetos_perdidos_db;
 
 CREATE TABLE IF NOT EXISTS conversaciones (
     id            BIGINT      NOT NULL AUTO_INCREMENT,
