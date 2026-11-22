@@ -23,9 +23,12 @@ con su propia pantalla.
 | | Una cuenta de usuario no entra al panel | H36 |
 | | Subir la foto de perfil (archivo real), verla tras recargar y quitarla; un archivo que no es imagen se rechaza | H64 |
 | | `?embebido=1`: Términos y Privacidad sin menú, recordado al navegar; `?embebido=0` lo quita | H73 |
+| `e2e/chat.e2e.js` | Quien perdió contacta y abre el chat; quien encontró lo ve «sin leer» en otro navegador y responde; el mensaje llega sin recargar; reportar un mensaje; bloquear impide escribir a los dos y desbloquear lo restablece | H55, H56 |
+| | Quien reclamó un objeto en custodia escribe a la biblioteca y le envía una foto | H62, H63 |
+| | Una conversación ajena no se abre | H55 |
 
-Quedan fuera hasta que exista su backend: chat (H55, H56, H61 a H63), push (H57) y restaurar desde
-el panel (H70). Se agregan aquí cuando Leonel suba esas APIs.
+Quedan fuera hasta que exista su backend: restaurar desde el panel (H70) y las historias de difusión
+(H66, H67, H69, H71). El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
 
 ## Resultado del 21/11/2026
 
@@ -80,3 +83,9 @@ publicaciones con «e2e» en el nombre, una custodia, un reclamo aceptado y una 
 no se pueden borrar (la API responde `405`). Por eso estas pruebas se corren en la base de QA o de
 desarrollo, **nunca sobre datos reales**. Las contraseñas de las cuentas nuevas se generan en cada
 ejecución y no se guardan.
+
+## Actualización del 22/11/2026: chat
+
+**16 de 16 pruebas en verde** (3,1 minutos), con la API de `dev/leonel` más `cierre/sprint4` (chat) y
+la migración `migracion_h55_chat.sql` aplicada tras un respaldo. Se agregaron las tres pruebas de
+`e2e/chat.e2e.js`.
