@@ -76,3 +76,17 @@ Las filas existentes quedan `PENDIENTE` y sin resolución.
 - `SUSPENDER` → `RESUELTO`, la cuenta queda `SUSPENDIDO` y su sesión de Spring deja de valer (`401`).
 - Repetir la misma resolución `200` y `repetido: true` (sin otro aviso); otra distinta `409`.
 - Suspender la propia cuenta `400`; campos extra `400`; filtro `?estado=` correcto.
+
+## Verificación del 22/11/2026
+
+- Django: `nucleo/test_sprint4_h56.py` (**9 pruebas**). Suite completa de Django: **132 pruebas OK**.
+  Una prueba encontró que la respuesta de `SUSPENDER` mostraba al autor todavía `ACTIVO` (aunque sí
+  quedaba suspendido); se corrigió.
+- MySQL 8.0 de QA: `migracion_h56_resolver_reportes_mensaje.sql` se ejecutó dos veces sin error.
+- Con reportes creados de verdad desde el chat de Spring:
+  - La bandeja mostró el texto, el autor y quién reportó, sin correos; `USUARIO` recibió `403`.
+  - `ADVERTIR`: `RESUELTO`; la autora vio en Spring el aviso «Advertencia por un mensaje del chat», que
+    no dice quién reportó. Repetirlo: `repetido: true`; cambiarlo a `SUSPENDER`: `409`.
+  - `SUSPENDER`: la cuenta quedó `SUSPENDIDO`; su sesión de Spring pasó de `200` a `401` y no pudo
+    volver a iniciar sesión (`401`).
+  - Filtro: 2 `RESUELTO` y 0 `PENDIENTE`.
