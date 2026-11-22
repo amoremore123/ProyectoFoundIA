@@ -35,6 +35,7 @@ from .models import (
     Objeto,
     Reclamo,
     Reporte,
+    ReporteMensaje,
     Respaldo,
     SecuenciaCustodia,
     TokenRevocado,
@@ -61,6 +62,7 @@ from .serializers import (
     ReclamoResolucionSerializer,
     ReclamoSerializer,
     ReporteSerializer,
+    ReporteMensajeSerializer,
     RespaldoSerializer,
     RetiroSerializer,
     UsuarioSerializer,
@@ -1009,3 +1011,29 @@ class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cr
             campana.save(update_fields=["fecha_fin", "finalizada_en", "fecha_actualizacion"])
         # Ya finalizada: se responde igual, sin cambios (repetir es seguro)
         return Response(self.get_serializer(campana).data)
+
+
+class ReporteMensajeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H56 - GET /api/admin/reportes-mensajes/ y /{id}/ · POST /{id}/resolver/, solo ADMIN.
+
+    Los reportes los crea el chat (Spring); aquí solo se consultan y se resuelven
+    con DESCARTAR, ADVERTIR o SUSPENDER. No hay alta, edición ni borrado.
+    """
+
+    serializer_class = ReporteMensajeSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+    ESTADOS = ("PENDIENTE", "RESUELTO", "RECHAZADO")
+
+    def get_queryset(self):
+        consulta = ReporteMensaje.objects.select_related("mensaje__autor", "usuario", "resuelto_por")
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in self.ESTADOS:
+            raise ValidationError({"estado": "Usa PENDIENTE, RESUELTO o RECHAZADO."})
+        return consulta.filter(estado=estado)
+
+    @action(detail=True, methods=["post"])
+    def resolver(self, request, pk=None):
+        from .reportes_mensaje import resolver_reporte_mensaje
+        return resolver_reporte_mensaje(request, pk)

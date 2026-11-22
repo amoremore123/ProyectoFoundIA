@@ -12,6 +12,7 @@ from .views import (
     LogoutView,
     ObjetoViewSet,
     ReclamoViewSet,
+    ReporteMensajeViewSet,
     ReporteViewSet,
     RespaldoViewSet,
     UsuarioViewSet,
@@ -26,6 +27,8 @@ router.register("reclamos", ReclamoViewSet, basename="reclamos")
 router.register("categorias", CategoriaViewSet, basename="categorias")
 router.register("reportes", ReporteViewSet, basename="reportes")
 router.register("respaldos", RespaldoViewSet, basename="respaldos")
+# H56: resolver los reportes de mensajes del chat
+router.register("reportes-mensajes", ReporteMensajeViewSet, basename="reportes-mensajes")
 # H60: campañas de difusión (sin DELETE: se finalizan)
 router.register("campanas", CampanaViewSet, basename="campanas")
 

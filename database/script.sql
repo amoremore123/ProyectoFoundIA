@@ -561,8 +561,14 @@ CREATE TABLE IF NOT EXISTS reportes_mensaje (
     motivo      VARCHAR(255) NOT NULL,
     estado      VARCHAR(20)  NOT NULL DEFAULT 'PENDIENTE',
     creado_en   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- H56: resolución auditada desde el panel (migracion_h56_resolver_reportes_mensaje.sql)
+    accion           VARCHAR(20)   NULL,
+    resolucion       VARCHAR(1000) NULL,
+    resuelto_por_id  BIGINT        NULL,
+    fecha_resolucion DATETIME      NULL,
     PRIMARY KEY (id),
     CONSTRAINT uq_reportes_mensaje UNIQUE (mensaje_id, usuario_id),
+    CONSTRAINT fk_reportes_mensaje_resuelto_por FOREIGN KEY (resuelto_por_id) REFERENCES usuarios (id),
     CONSTRAINT fk_reportes_mensaje_mensaje FOREIGN KEY (mensaje_id) REFERENCES mensajes_chat (id) ON DELETE CASCADE,
     CONSTRAINT fk_reportes_mensaje_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;

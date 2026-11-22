@@ -4,7 +4,9 @@ from urllib.parse import urlencode
 from django.conf import settings
 from rest_framework import serializers
 
-from .models import Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Respaldo, Usuario
+from .models import (
+    Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Usuario,
+)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -341,3 +343,44 @@ class CampanaSerializer(serializers.ModelSerializer):
         if "descripcion" in attrs and not attrs["descripcion"]:
             attrs["descripcion"] = None
         return attrs
+
+
+def _persona(usuario, con_estado=False):
+    if usuario is None:
+        return None
+    datos = {"id": usuario.id, "nombre": f"{usuario.nombre} {usuario.apellido}".strip()}
+    if con_estado:
+        datos["estado"] = usuario.estado
+    return datos
+
+
+class ReporteMensajeSerializer(serializers.ModelSerializer):
+    """H56: reporte de un mensaje del chat con el texto y el autor, sin correos ni teléfonos."""
+
+    fechaReporte = serializers.DateTimeField(source="creado_en", read_only=True)
+    conversacionId = serializers.IntegerField(source="mensaje.conversacion_id", read_only=True)
+    mensaje = serializers.SerializerMethodField()
+    autor = serializers.SerializerMethodField()
+    reportadoPor = serializers.SerializerMethodField()
+    resueltoPor = serializers.SerializerMethodField()
+    fechaResolucion = serializers.DateTimeField(source="fecha_resolucion", read_only=True)
+
+    class Meta:
+        model = ReporteMensaje
+        fields = ["id", "estado", "motivo", "fechaReporte", "conversacionId", "mensaje", "autor",
+                  "reportadoPor", "accion", "resolucion", "resueltoPor", "fechaResolucion"]
+        read_only_fields = fields
+
+    def get_mensaje(self, obj) -> dict:
+        m = obj.mensaje
+        return {"id": m.id, "texto": m.texto, "imagenUrl": m.imagen_url,
+                "enviadoEn": serializers.DateTimeField().to_representation(m.enviado_en)}
+
+    def get_autor(self, obj) -> dict:
+        return _persona(obj.mensaje.autor, con_estado=True)
+
+    def get_reportadoPor(self, obj) -> dict:
+        return _persona(obj.usuario)
+
+    def get_resueltoPor(self, obj):
+        return _persona(obj.resuelto_por)

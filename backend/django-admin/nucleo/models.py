@@ -525,3 +525,47 @@ class Campana(models.Model):
 
     def __str__(self):
         return f"Campaña {self.origen}"
+
+
+class MensajeChat(models.Model):
+    """H55: mensaje del chat (lo escribe Spring); Django solo lo lee para moderar (H56)."""
+
+    conversacion_id = models.BigIntegerField()
+    autor = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="autor_id", related_name="mensajes_chat",
+    )
+    texto = models.TextField(null=True, blank=True)
+    imagen_url = models.CharField(max_length=500, null=True, blank=True)
+    enviado_en = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "mensajes_chat"
+
+
+class ReporteMensaje(models.Model):
+    """H56: reporte de un mensaje del chat; lo crea Spring y se resuelve desde el panel."""
+
+    ACCIONES = {"DESCARTAR": "RECHAZADO", "ADVERTIR": "RESUELTO", "SUSPENDER": "RESUELTO"}
+
+    mensaje = models.ForeignKey(
+        MensajeChat, on_delete=models.DO_NOTHING, db_column="mensaje_id", related_name="reportes",
+    )
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id", related_name="reportes_mensaje_hechos",
+    )
+    motivo = models.CharField(max_length=255)
+    estado = models.CharField(max_length=20, default="PENDIENTE")
+    creado_en = models.DateTimeField(default=timezone.now)
+    accion = models.CharField(max_length=20, null=True, blank=True)
+    resolucion = models.CharField(max_length=1000, null=True, blank=True)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id", null=True, blank=True,
+        related_name="reportes_mensaje_resueltos",
+    )
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "reportes_mensaje"
+        ordering = ["creado_en", "id"]
