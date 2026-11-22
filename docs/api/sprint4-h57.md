@@ -84,7 +84,10 @@ integración con Firebase.
 | `RECLAMO_RECIBIDO` | Spring | `reclamos` |
 | `RECLAMO` | Django | `reclamos` |
 | `RECORDATORIO_OBJETO` | Spring | `recordatorios` |
-| `MENSAJE_CHAT` | Spring (H55) | se agregará con el chat |
+| `MENSAJE_CHAT` | Spring (H55) | siempre (el chat no tiene preferencia propia); enlace `/conversaciones/{id}` |
+| `SISTEMA` | Django (advertencias de H56) | siempre |
+
+Los demás tipos no envían push.
 
 - Con la preferencia apagada **no se envía push** (el aviso puede seguir en la bandeja si su
   historia ya lo guardaba así).
@@ -162,3 +165,24 @@ ALTER TABLE notificaciones ADD COLUMN push_enviado_en DATETIME NULL;
 - En Android: `google-services.json` fuera de Git, registrar y renovar el token con
   `POST /api/dispositivos`, crear los canales `avisos` y `mensajes`, abrir `data.enlace` al tocar
   el aviso y borrar el dispositivo al cerrar sesión.
+
+## Verificación del 22/11/2026
+
+- Spring: `DispositivosPushIntegrationTest` (**10 pruebas**, con Firebase simulado): registrar es
+  idempotente y no devuelve el token; el token pasa de cuenta; validaciones; cuenta ajena `404`; máximo 10;
+  `logout` borra el de esa sesión y `logout-all` todos; cada aviso se envía una vez y solo a su
+  destinatario; preferencia apagada, avisos viejos y tipos desconocidos no se envían; token rechazado se
+  borra; sin Firebase no se envía ni se marca nada. Suite completa: **528 pruebas, 0 fallos**.
+- Django: `nucleo/test_sprint4_h57.py` (**5 pruebas**): `logout` y `logout-all` del panel y la suspensión
+  (desde Usuarios y desde un reporte del chat, H56) borran los dispositivos. Suite: **137 pruebas OK**.
+- MySQL 8.0 de QA: `migracion_h57_dispositivos.sql` se ejecutó dos veces sin error. Rutas reales:
+  registrar `201`, repetir `200`, la lista no trae el token, otra cuenta `404`, `logout` borró el dispositivo.
+- **Firebase real** (proyecto `foundia-2a615`, cuenta de servicio solo por variable de entorno): el
+  despachador tomó un aviso nuevo, Google entregó el token de acceso y FCM respondió que el token de
+  teléfono (inventado para la prueba) no existe; el servidor borró ese dispositivo. Esto confirma la
+  autenticación y el formato del mensaje.
+- **Falta:** la llegada a un teléfono real con la app cerrada, con el token que registra la app de Amore
+  (M2 del Sprint 4).
+
+Cambios respecto al contrato inicial: el aviso del chat ahora guarda el enlace `/conversaciones/{id}`
+(Android lo abre; la web ya deduce `/mensajes/{id}` del número), y se agregó el tipo `SISTEMA`.
