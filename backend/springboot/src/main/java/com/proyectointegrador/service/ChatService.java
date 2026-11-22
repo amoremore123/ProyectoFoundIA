@@ -260,14 +260,22 @@ public class ChatService {
     /** H61: cuando el objeto ya no está en juego o el reclamo se cerró, solo se puede leer. */
     private boolean soloLectura(Conversacion c) {
         if (c.getEstado() != null && c.getEstado().name().equals("SOLO_LECTURA")) return true;
-        EstadoObjeto e = c.getObjeto().getEstado();
-        if (e == EstadoObjeto.RECUPERADO || e == EstadoObjeto.ELIMINADO || e == EstadoObjeto.OCULTO) return true;
+        if (terminado(c.getObjeto().getEstado())) return true;
         if (c.getReclamo() != null) {
+            // Estados reales del reclamo: PENDIENTE, ACEPTADO, RECHAZADO y RETIRADO
             String r = c.getReclamo().getEstado();
-            return "RECHAZADO".equals(r) || "ENTREGADO".equals(r) || "CANCELADO".equals(r);
+            return "RECHAZADO".equals(r) || "RETIRADO".equals(r);
         }
-        return c.getContacto() != null && (c.getContacto().getEstado() == EstadoContacto.RECHAZADO
-                || c.getContacto().getEstado() == EstadoContacto.CERRADO);
+        if (c.getContacto() == null) return false;
+        if (c.getContacto().getEstado() == EstadoContacto.RECHAZADO
+                || c.getContacto().getEstado() == EstadoContacto.CERRADO) return true;
+        // La conversación apunta al objeto encontrado, pero al confirmar la recuperación (H22)
+        // el que pasa a RECUPERADO es el perdido: también termina la conversación.
+        return terminado(c.getContacto().getCoincidencia().getObjetoPerdido().getEstado());
+    }
+
+    private static boolean terminado(EstadoObjeto e) {
+        return e == EstadoObjeto.RECUPERADO || e == EstadoObjeto.ELIMINADO || e == EstadoObjeto.OCULTO;
     }
 
     private boolean bloqueada(Conversacion c, Usuario yo) {

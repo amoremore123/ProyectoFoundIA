@@ -263,6 +263,24 @@ class ChatIntegrationTest {
     }
 
     @Test
+    @DisplayName("Al confirmar la recuperación (H22) el objeto perdido pasa a RECUPERADO y la conversación queda en solo lectura")
+    void soloLecturaAlRecuperarElObjetoPerdido() throws Exception {
+        long id = iniciarEntrePersonas();
+        escribir(hallador, id, "¿es tuya?");
+        // Confirmar la recuperación cambia el objeto perdido; el encontrado sigue ACTIVO
+        perdido.setEstado(EstadoObjeto.RECUPERADO);
+        em.flush();
+        mvc.perform(get("/api/conversaciones/{id}/mensajes", id).with(como(hallador)))
+                .andExpect(jsonPath("$.soloLectura").value(true))
+                .andExpect(jsonPath("$.mensajes.length()").value(1));
+        for (Usuario quien : new Usuario[]{perdedor, hallador}) {
+            mvc.perform(post("/api/conversaciones/{id}/mensajes", id).with(como(quien))
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"texto\":\"tarde\"}"))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Test
     @DisplayName("Quien reclama conversa con la biblioteca y el personal responde desde su bandeja")
     void conBiblioteca() throws Exception {
         Objeto custodia = objeto(bibliotecaria, TipoObjeto.ENCONTRADO, "Cartera en custodia");
