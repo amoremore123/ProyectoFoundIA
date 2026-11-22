@@ -116,6 +116,8 @@ public class NotificacionService {
         notificacion.setTitulo("Mensaje nuevo");
         notificacion.setMensaje("Tienes un mensaje nuevo en la conversación #" + conversacionId + ".");
         notificacion.setTipo("MENSAJE_CHAT");
+        // H57: al tocar el push, Android abre la conversación; la web la deduce del número (#id)
+        notificacion.setEnlace("/conversaciones/" + conversacionId);
         notificacion.setLeida(Boolean.FALSE);
         notificacionRepository.save(notificacion);
     }

@@ -38,6 +38,10 @@ public class Notificacion {
     @Column(name = "mensaje", nullable = false, columnDefinition = "TEXT")
     private String mensaje;
 
+    /** H57: cuándo el despachador tomó este aviso para el push (null = todavía no). */
+    @Column(name = "push_enviado_en")
+    private LocalDateTime pushEnviadoEn;
+
     @Column(name = "tipo", length = 50)
     private String tipo;
 
