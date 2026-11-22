@@ -569,3 +569,20 @@ class ReporteMensaje(models.Model):
         managed = False
         db_table = "reportes_mensaje"
         ordering = ["creado_en", "id"]
+
+
+class Dispositivo(models.Model):
+    """H57: teléfono que recibe push (lo registra Spring). Django solo lo borra al cerrar sesión o suspender."""
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, db_column="usuario_id", related_name="dispositivos",
+    )
+    token = models.CharField(max_length=512, unique=True)
+    plataforma = models.CharField(max_length=10)
+    sesion_jti = models.CharField(max_length=64, null=True, blank=True)
+    fecha_registro = models.DateTimeField(default=timezone.now)
+    fecha_ultimo_uso = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "dispositivos"

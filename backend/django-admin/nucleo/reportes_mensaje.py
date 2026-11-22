@@ -6,7 +6,7 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .models import Notificacion, ReporteMensaje, Usuario
+from .models import Dispositivo, Notificacion, ReporteMensaje, Usuario
 from .resolucion_reportes import ConflictoResolucion
 
 
@@ -56,6 +56,7 @@ def resolver_reporte_mensaje(request, pk):
         if autor.estado != "SUSPENDIDO":
             autor.estado = "SUSPENDIDO"
             autor.save(update_fields=["estado", "fecha_actualizacion"])
+        Dispositivo.objects.filter(usuario_id=autor.pk).delete()  # H57: sin push para una cuenta suspendida
         # La respuesta debe mostrar al autor ya suspendido, no la copia leída antes
         reporte.mensaje.autor = autor
 

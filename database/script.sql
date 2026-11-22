@@ -18,6 +18,7 @@ USE objetos_perdidos_db;
 -- =====================================================================
 -- 1. USUARIOS
 -- =====================================================================
+DROP TABLE IF EXISTS dispositivos;
 DROP TABLE IF EXISTS reportes_mensaje;
 DROP TABLE IF EXISTS lecturas_chat;
 DROP TABLE IF EXISTS mensajes_chat;
@@ -572,3 +573,22 @@ CREATE TABLE IF NOT EXISTS reportes_mensaje (
     CONSTRAINT fk_reportes_mensaje_mensaje FOREIGN KEY (mensaje_id) REFERENCES mensajes_chat (id) ON DELETE CASCADE,
     CONSTRAINT fk_reportes_mensaje_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
+
+-- H57: dispositivos para el push con Firebase y marca de envío. Bases existentes: migracion_h57_dispositivos.sql.
+CREATE TABLE IF NOT EXISTS dispositivos (
+    id               BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    usuario_id       BIGINT       NOT NULL,
+    token            VARCHAR(512) NOT NULL,
+    plataforma       VARCHAR(10)  NOT NULL,
+    sesion_jti       VARCHAR(64)  NULL,
+    fecha_registro   DATETIME     NOT NULL,
+    fecha_ultimo_uso DATETIME     NOT NULL,
+    CONSTRAINT uk_dispositivo_token UNIQUE (token),
+    CONSTRAINT fk_dispositivo_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT chk_dispositivo_plataforma CHECK (plataforma IN ('ANDROID')),
+    INDEX idx_dispositivos_usuario (usuario_id, fecha_ultimo_uso),
+    INDEX idx_dispositivos_sesion (sesion_jti)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE notificaciones ADD COLUMN push_enviado_en DATETIME NULL;
+CREATE INDEX idx_notificaciones_push ON notificaciones (push_enviado_en, fecha_creacion);

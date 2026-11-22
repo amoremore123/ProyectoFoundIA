@@ -27,6 +27,7 @@ from .disposicion import (
 from .models import (
     ROL_CHOICES,
     Campana,
+    Dispositivo,
     CambioRol,
     Categoria,
     Custodia,
@@ -173,6 +174,7 @@ class LogoutView(APIView):
             # Un token legado sin jti no se puede revocar de forma individual.
             Usuario.objects.filter(pk=request.user.pk).update(
                 sesion_version=F("sesion_version") + 1)
+            Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
             return Response({"mensaje": "Sesión cerrada en todos los dispositivos"})
 
         exp = payload.get("exp")
@@ -188,6 +190,8 @@ class LogoutView(APIView):
                 "expira_en": expira,
             },
         )
+        # H57: el teléfono de esta sesión deja de recibir push
+        Dispositivo.objects.filter(sesion_jti=jti).delete()
         return Response({"mensaje": "Sesión cerrada"})
 
 
@@ -199,6 +203,7 @@ class LogoutAllView(APIView):
     def post(self, request):
         Usuario.objects.filter(pk=request.user.pk).update(
             sesion_version=F("sesion_version") + 1)
+        Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
         return Response({"mensaje": "Sesiones cerradas en todos los dispositivos"})
 
 
@@ -296,6 +301,9 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             )
         usuario.estado = estado
         usuario.save(update_fields=["estado", "fecha_actualizacion"])
+        if estado == "SUSPENDIDO":
+            # H57: una cuenta suspendida no recibe push
+            Dispositivo.objects.filter(usuario_id=usuario.pk).delete()
         return Response(UsuarioSerializer(usuario).data)
 
     def _cambiar_rol(self, request, usuario):

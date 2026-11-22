@@ -31,23 +31,27 @@ public class CierreSesionService {
     private final TokenRevocadoRepository tokenRevocadoRepository;
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
+    private final com.proyectointegrador.repository.DispositivoRepository dispositivos;
     private final Clock clock;
 
     @Autowired
     public CierreSesionService(TokenRevocadoRepository tokenRevocadoRepository,
                                UsuarioRepository usuarioRepository,
-                               JwtService jwtService) {
-        this(tokenRevocadoRepository, usuarioRepository, jwtService, Clock.systemUTC());
+                               JwtService jwtService,
+                               com.proyectointegrador.repository.DispositivoRepository dispositivos) {
+        this(tokenRevocadoRepository, usuarioRepository, jwtService, dispositivos, Clock.systemUTC());
     }
 
     /** Constructor para pruebas: permite fijar la hora. */
     CierreSesionService(TokenRevocadoRepository tokenRevocadoRepository,
                         UsuarioRepository usuarioRepository,
                         JwtService jwtService,
+                        com.proyectointegrador.repository.DispositivoRepository dispositivos,
                         Clock clock) {
         this.tokenRevocadoRepository = tokenRevocadoRepository;
         this.usuarioRepository = usuarioRepository;
         this.jwtService = jwtService;
+        this.dispositivos = dispositivos;
         this.clock = clock;
     }
 
@@ -76,6 +80,8 @@ public class CierreSesionService {
         // Las revocaciones vencidas ya no protegen nada y se pueden borrar.
         tokenRevocadoRepository.deleteByExpiraEnBefore(ahora());
         tokenRevocadoRepository.save(new TokenRevocado(jti, usuario, ahora(), expiraEn));
+        // H57: el teléfono de esta sesión deja de recibir push
+        dispositivos.deleteBySesionJti(jti);
         return false;
     }
 
@@ -94,6 +100,8 @@ public class CierreSesionService {
     private void cerrarTodasLasSesiones(Usuario usuario) {
         usuario.setSesionVersion(usuario.getSesionVersion() + 1);
         usuarioRepository.save(usuario);
+        // H57: ningún teléfono de la cuenta vuelve a recibir push hasta iniciar sesión otra vez
+        dispositivos.deleteByUsuarioId(usuario.getId());
     }
 
     private LocalDateTime ahora() {
