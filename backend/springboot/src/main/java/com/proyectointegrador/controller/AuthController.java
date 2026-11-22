@@ -31,14 +31,25 @@ public class AuthController {
     private final RecuperacionPasswordService recuperacionPasswordService;
     private final CierreSesionService cierreSesionService;
     private final com.proyectointegrador.service.InvitacionService invitaciones;
+    private final com.proyectointegrador.service.FirebaseAuthService firebaseAuth;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService,
                           CierreSesionService cierreSesionService,
-                          com.proyectointegrador.service.InvitacionService invitaciones) {
+                          com.proyectointegrador.service.InvitacionService invitaciones,
+                          com.proyectointegrador.service.FirebaseAuthService firebaseAuth) {
         this.authService = authService;
         this.recuperacionPasswordService = recuperacionPasswordService;
         this.cierreSesionService = cierreSesionService;
         this.invitaciones = invitaciones;
+        this.firebaseAuth = firebaseAuth;
+    }
+
+    /** Pruebas unitarias anteriores a H72 (sin Firebase). */
+    public AuthController(AuthService authService, RecuperacionPasswordService recuperacionPasswordService,
+                          CierreSesionService cierreSesionService,
+                          com.proyectointegrador.service.InvitacionService invitaciones) {
+        this(authService, recuperacionPasswordService, cierreSesionService, invitaciones, null);
     }
 
     /** H11 - Crea la cuenta (sin verificar) y envía el código al correo. */
@@ -89,6 +100,12 @@ public class AuthController {
         return ResponseEntity.ok(new MensajeResponse(todas
                 ? "Sesión cerrada en todos los dispositivos"
                 : "Sesión cerrada"));
+    }
+
+    /** H72 - Token personalizado de Firebase para la sesión actual (503 si Firebase no está configurado). */
+    @PostMapping("/firebase-token")
+    public com.proyectointegrador.service.FirebaseAuthService.TokenFirebase firebaseToken(Authentication authentication) {
+        return firebaseAuth.emitir(principal(authentication).getId());
     }
 
     /** H37 - Invalida todos los tokens de la cuenta, incluidos otros dispositivos. */

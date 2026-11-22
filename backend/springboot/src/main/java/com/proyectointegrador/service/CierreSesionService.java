@@ -34,6 +34,9 @@ public class CierreSesionService {
     private final com.proyectointegrador.repository.DispositivoRepository dispositivos;
     private final Clock clock;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private FirebaseAuthService firebaseAuth;
+
     @Autowired
     public CierreSesionService(TokenRevocadoRepository tokenRevocadoRepository,
                                UsuarioRepository usuarioRepository,
@@ -102,6 +105,8 @@ public class CierreSesionService {
         usuarioRepository.save(usuario);
         // H57: ningún teléfono de la cuenta vuelve a recibir push hasta iniciar sesión otra vez
         dispositivos.deleteByUsuarioId(usuario.getId());
+        // H72: las sesiones de Firebase de la cuenta dejan de renovarse (al confirmar, en segundo plano)
+        if (firebaseAuth != null) firebaseAuth.revocarAlConfirmar(usuario.getId());
     }
 
     private LocalDateTime ahora() {

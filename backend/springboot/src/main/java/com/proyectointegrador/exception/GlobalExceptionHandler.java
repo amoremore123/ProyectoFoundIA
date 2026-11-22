@@ -70,6 +70,11 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
+    @ExceptionHandler(FirebaseNoDisponibleException.class)
+    public ResponseEntity<ApiError> firebaseNoDisponible(FirebaseNoDisponibleException ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(AsistenteNoDisponibleException.class)
     public ResponseEntity<ApiError> asistenteNoDisponible(AsistenteNoDisponibleException ex, HttpServletRequest request) {
         return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
