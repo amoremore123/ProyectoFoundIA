@@ -64,6 +64,14 @@ public class AuthService {
         this(usuarioRepository, passwordEncoder, jwtService, emailService, Clock.systemUTC());
     }
 
+    private AlcanceCampanaService alcance;
+
+    /** H67: opcional, para contar el registro que llegó por una campaña. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAlcance(AlcanceCampanaService alcance) {
+        this.alcance = alcance;
+    }
+
     /** Constructor para pruebas: permite fijar la hora. */
     AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                 JwtService jwtService, EmailService emailService, Clock clock) {
@@ -98,6 +106,8 @@ public class AuthService {
         asignarNuevoCodigo(usuario);
 
         usuarioRepository.save(usuario);
+        // H67: en la misma transacción; si el registro se revierte, el conteo también
+        if (alcance != null) alcance.registrarRegistro(request.origen());
         // Si el correo falla se lanza EnvioCorreoException y la transacción se revierte.
         emailService.enviarCodigoVerificacion(
                 correo, usuario.getNombre(), usuario.getCodigoVerificacion(), MINUTOS_VIGENCIA_CODIGO);

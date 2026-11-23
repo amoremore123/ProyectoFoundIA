@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
                         // H71: avisos destacados vigentes, públicos
                         .requestMatchers(HttpMethod.GET, "/api/avisos-destacados").permitAll()
+                        // H67: visita que llegó por el enlace de una campaña (sin datos personales)
+                        .requestMatchers(HttpMethod.POST, "/api/campanas/visitas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/objetos", "/api/objetos/**").permitAll()
                         // H64: las fotos de perfil son privadas; se ven solo con sesión en /api/perfil/foto
                         .requestMatchers("/uploads/perfiles/**").denyAll()

@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS lecturas_chat;
 DROP TABLE IF EXISTS mensajes_chat;
 DROP TABLE IF EXISTS conversaciones;
 DROP TABLE IF EXISTS bloqueos_chat;
+DROP TABLE IF EXISTS alcance_campanas;
 DROP TABLE IF EXISTS avisos_destacados;
 DROP TABLE IF EXISTS campanas;
 DROP TABLE IF EXISTS invitaciones;
@@ -668,3 +669,17 @@ CREATE TABLE IF NOT EXISTS envios_masivos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE notificaciones ADD COLUMN envio_masivo_id BIGINT NULL,
     ADD CONSTRAINT fk_notificacion_envio_masivo FOREIGN KEY (envio_masivo_id) REFERENCES envios_masivos (id);
+
+-- H67: alcance de las campañas. Bases existentes: migracion_h67_alcance_campanas.sql.
+CREATE TABLE IF NOT EXISTS alcance_campanas (
+    id         BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    campana_id BIGINT      NOT NULL,
+    tipo       VARCHAR(10) NOT NULL,
+    visita_id  VARCHAR(64) NULL,
+    fecha      DATETIME(6) NOT NULL,
+    CONSTRAINT fk_alcance_campana FOREIGN KEY (campana_id) REFERENCES campanas (id),
+    CONSTRAINT uq_alcance_visita UNIQUE (campana_id, visita_id),
+    CONSTRAINT chk_alcance_tipo CHECK (tipo IN ('VISITA', 'REGISTRO')),
+    CONSTRAINT chk_alcance_visita CHECK ((tipo = 'VISITA') = (visita_id IS NOT NULL)),
+    INDEX idx_alcance_campana_fecha (campana_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
