@@ -87,6 +87,16 @@ describe('H1/H3/H4 - Formulario de publicación', () => {
     expect(crearObjeto).not.toHaveBeenCalled();
     expect(subirFotoObjeto).not.toHaveBeenCalled();
   });
+  it('M1: el selector no ofrece categorías desactivadas', async () => {
+    listarCategorias.mockResolvedValue([
+      { id: 3, nombre: 'Mochila', estado: true },
+      { id: 9, nombre: 'Accesorios QA semanal', estado: false },
+    ]);
+    renderizar();
+    await screen.findByRole('option', { name: 'Mochila' });
+    expect(screen.queryByRole('option', { name: /Accesorios QA/ })).toBeNull();
+  });
+
   it('marca los campos obligatorios y no envía un formulario vacío', async () => {
     const user = userEvent.setup();
     renderizar();

@@ -5,6 +5,7 @@
 //   - foundia-tema: el modo claro u oscuro. Preferencia: solo si la persona lo permite.
 //   - foundia-borrador-publicar (sessionStorage): lo escrito en Publicar. Esencial y temporal (H52).
 //   - foundia-embebido (sessionStorage): la página se abrió dentro de la app. Esencial y temporal (H73).
+//   - foundia-avisos-ocultos (sessionStorage): avisos destacados que cerraste. Preferencia temporal (H71).
 export const CLAVE_CONSENTIMIENTO = 'foundia-almacenamiento';
 export const CLAVE_TEMA = 'foundia-tema';
 export const EVENTO_CONSENTIMIENTO = 'foundia-almacenamiento';

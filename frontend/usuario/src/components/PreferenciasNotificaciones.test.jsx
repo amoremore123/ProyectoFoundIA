@@ -34,7 +34,7 @@ describe('H24 - Preferencias de avisos', () => {
     fireEvent.click(casilla('Reclamos'));
     await act(async () => { fireEvent.click(botonGuardar()); });
 
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false, recordatorios: true });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false, recordatorios: true, push: true, correo: false });
     expect(screen.getByRole('status').textContent).toContain('Preferencias guardadas');
     expect(casilla('Reclamos').checked).toBe(false);
     expect(botonGuardar().disabled).toBe(true);
@@ -76,7 +76,7 @@ describe('H24 - Preferencias de avisos', () => {
     expect(casilla('Recordatorios').checked).toBe(true);
     fireEvent.click(casilla('Recordatorios'));
     await act(async () => { fireEvent.click(botonGuardar()); });
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ ...TODAS, recordatorios: false });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ ...TODAS, recordatorios: false, push: true, correo: false });
     expect(casilla('Recordatorios').checked).toBe(false);
   });
 });

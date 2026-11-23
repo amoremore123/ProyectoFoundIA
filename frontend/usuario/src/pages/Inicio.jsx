@@ -6,6 +6,7 @@ import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import useCategorias from '../hooks/useCategorias';
+import AvisosDestacados from '../components/AvisosDestacados';
 import { listarObjetos, mensajeError } from '../services/api';
 
 export default function Inicio() {
@@ -49,6 +50,7 @@ export default function Inicio() {
 
   return (
     <div className="pagina">
+      <AvisosDestacados />
       <section className="hero">
         <span className="hero-etiqueta">COMUNIDAD TECSUP</span>
         <h1>Tus cosas tienen vuelta.</h1>

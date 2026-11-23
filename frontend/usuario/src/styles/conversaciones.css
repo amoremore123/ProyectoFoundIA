@@ -73,3 +73,25 @@ html[data-tema='oscuro'] .conv-propio { background: #2f6fd6; }
   .conv-burbuja { max-width: 88%; }
   .conv-mensajes-lista { max-height: 55vh; }
 }
+
+/* H71: avisos destacados arriba de Inicio */
+.avisos-destacados { display: grid; gap: 10px; margin: 0 auto 16px; width: min(100%, 1120px); padding: 0 16px; position: relative; z-index: 2; }
+.portada > .avisos-destacados { margin-top: 12px; }
+.aviso-destacado {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radio);
+  background: #fff8db; border: 1px solid #f5d76e; color: #3d2c00;
+}
+.aviso-destacado-icono { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #ffd60a; color: #12355b; }
+.aviso-destacado-cuerpo { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.aviso-destacado-titulo { margin: 0; font-size: 15px; font-weight: 700; color: inherit; }
+.aviso-destacado-texto { margin: 0; font-size: 14px; line-height: 1.5; }
+.aviso-destacado-enlace { justify-self: start; font-size: 14px; font-weight: 600; color: #12355b; }
+.aviso-destacado-cerrar { flex: none; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 6px; border-radius: 8px; line-height: 0; }
+.aviso-destacado-cerrar:hover { background: rgba(0, 0, 0, .06); }
+html[data-tema='oscuro'] .aviso-destacado { background: #3a2f0b; border-color: #806a1c; color: #fff3c4; }
+html[data-tema='oscuro'] .aviso-destacado-enlace { color: #ffd60a; }
+html[data-tema='oscuro'] .aviso-destacado-cerrar:hover { background: rgba(255, 255, 255, .08); }
+
+/* H68: canales de aviso dentro de las preferencias */
+.preferencias-canales { margin: 4px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--border); display: grid; gap: 8px; }
+.preferencias-canales legend { padding: 0; }

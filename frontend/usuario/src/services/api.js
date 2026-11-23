@@ -220,6 +220,12 @@ export const reportarMensaje = async (id, mensajeId, motivo) => {
   await api.post(`/api/conversaciones/${id}/mensajes/${mensajeId}/reporte`, { motivo });
 };
 
+// H71: avisos destacados vigentes hoy (público, máximo 5). Sin avisos devuelve []
+export const getAvisosDestacados = async () => {
+  const { data } = await axios.get(`${API_URL}/api/avisos-destacados`, { timeout: 8000 });
+  return Array.isArray(data) ? data : [];
+};
+
 // H41: lo que abre el QR de la etiqueta de custodia (público, sin datos personales)
 export const verificarCustodia = async (t) => {
   const { data } = await axios.get(`${API_URL}/api/custodias/verificar`, { params: { t }, timeout: 10000 });
@@ -368,9 +374,12 @@ export const getPreferenciasNotificaciones = async ({ signal } = {}) => {
 };
 
 // H53: "recordatorios" es opcional en el contrato; si no llega, el servidor conserva el valor guardado
-export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos, recordatorios }) => {
+// H68: "push" y "correo" (canales) también son opcionales: si no llegan, se conservan
+export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos, recordatorios, push, correo }) => {
   const cuerpo = { coincidencias, contactos, reclamos };
   if (typeof recordatorios === 'boolean') cuerpo.recordatorios = recordatorios;
+  if (typeof push === 'boolean') cuerpo.push = push;
+  if (typeof correo === 'boolean') cuerpo.correo = correo;
   const { data } = await api.put('/api/notificaciones/preferencias', cuerpo);
   return data;
 };

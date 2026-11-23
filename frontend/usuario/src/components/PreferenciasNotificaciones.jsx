@@ -10,7 +10,18 @@ const OPCIONES = [
   { campo: 'recordatorios', etiqueta: 'Recordatorios', ayuda: 'Cuando un objeto que perdiste sigue sin resolverse después de varios días.' },
 ];
 
-const iguales = (a, b) => Boolean(a && b) && OPCIONES.every(({ campo }) => a[campo] === b[campo]);
+// H68: por dónde llegan, además de la bandeja (que no se puede apagar). Correo apagado por defecto.
+const CANALES = [
+  { campo: 'push', etiqueta: 'Notificaciones en el teléfono', ayuda: 'En la app de FoundIA, aunque esté cerrada.', porDefecto: true },
+  { campo: 'correo', etiqueta: 'Correo electrónico', ayuda: 'A tu correo verificado. Del chat llega como máximo un correo cada 30 minutos.', porDefecto: false },
+];
+const CAMPOS = [...OPCIONES, ...CANALES];
+const valoresDe = (data) => Object.fromEntries([
+  ...OPCIONES.map(({ campo }) => [campo, data?.[campo] !== false]),
+  ...CANALES.map(({ campo, porDefecto }) => [campo, typeof data?.[campo] === 'boolean' ? data[campo] : porDefecto]),
+]);
+
+const iguales = (a, b) => Boolean(a && b) && CAMPOS.every(({ campo }) => a[campo] === b[campo]);
 
 // H24 - Preferencias de avisos de la cuenta propia (coincidencias, contactos y reclamos).
 // Los cambios solo afectan a los avisos nuevos; el historial se conserva.
@@ -33,7 +44,7 @@ export default function PreferenciasNotificaciones() {
     try {
       const data = await getPreferenciasNotificaciones({ signal: control.signal });
       if (control.signal.aborted) return;
-      const valores = Object.fromEntries(OPCIONES.map(({ campo }) => [campo, data?.[campo] !== false]));
+      const valores = valoresDe(data);
       setGuardadas(valores);
       setForm(valores);
     } catch (e) {
@@ -62,7 +73,7 @@ export default function PreferenciasNotificaciones() {
     setAviso('');
     try {
       const data = await guardarPreferenciasNotificaciones(form);
-      const valores = Object.fromEntries(OPCIONES.map(({ campo }) => [campo, Boolean(data?.[campo])]));
+      const valores = valoresDe(data);
       setGuardadas(valores);
       setForm(valores);
       setAviso('Preferencias guardadas. Se aplican a los avisos nuevos.');
@@ -102,6 +113,19 @@ export default function PreferenciasNotificaciones() {
             </label>
           ))}
           <p className="nota-suave">Desactivar un tipo no borra los avisos que ya recibiste.</p>
+          <fieldset className="preferencias-canales">
+            <legend className="preferencia-etiqueta">¿Por dónde te avisamos?</legend>
+            <p className="preferencia-ayuda">Siempre los verás en esta bandeja. Además, puedes recibirlos por:</p>
+            {CANALES.map(({ campo, etiqueta, ayuda }) => (
+              <label key={campo} className="preferencia">
+                <input type="checkbox" checked={form[campo]} onChange={cambiar(campo)} disabled={guardando} />
+                <span>
+                  <span className="preferencia-etiqueta">{etiqueta}</span>
+                  <span className="preferencia-ayuda">{ayuda}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
           {errorGuardar && <p role="alert" className="campo-error">{errorGuardar}</p>}
           {aviso && <p role="status" className="aviso-accion aviso-ok">{aviso}</p>}
           <div className="preferencias-botones">

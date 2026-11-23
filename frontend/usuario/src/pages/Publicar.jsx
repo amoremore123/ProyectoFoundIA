@@ -431,7 +431,8 @@ export default function Publicar() {
             disabled={cargandoCategorias || Boolean(errorCategorias)}
           >
             <option value="">{cargandoCategorias ? 'Cargando categorías...' : 'Selecciona una categoría'}</option>
-            {categorias.map((c) => (
+            {/* M1 (H26): solo las activas; al editar se conserva la que ya tenía aunque esté desactivada */}
+            {categorias.filter((c) => c.estado !== false || String(c.id) === String(form.categoriaId)).map((c) => (
               <option key={c.id} value={c.id} disabled={c.estado === false}>
                 {c.nombre}{c.estado === false ? ' (desactivada)' : ''}
               </option>

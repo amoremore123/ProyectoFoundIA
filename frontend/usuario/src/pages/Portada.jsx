@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CifrasComunidad from '../components/CifrasComunidad';
+import AvisosDestacados from '../components/AvisosDestacados';
 import Icono from '../components/Icono';
 import AccesosFindi from '../components/AccesosFindi';
 import SliderPortada from '../components/SliderPortada';
@@ -26,6 +27,8 @@ export default function Portada() {
   };
 
   return <div className="portada">
+    {/* H71: avisos vigentes de la biblioteca arriba de todo */}
+    <AvisosDestacados />
     <div className="portada-escenario">
       <SliderPortada />
       <AccesosFindi />
