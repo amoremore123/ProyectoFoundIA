@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from datetime import datetime, timedelta, timezone as dt_timezone
 
@@ -38,7 +39,7 @@ from .models import (
     Reclamo,
     Reporte,
     ReporteMensaje,
-    Respaldo,
+    Respaldo, Restauracion,
     SecuenciaCustodia,
     TokenRevocado,
     Usuario,
@@ -65,7 +66,7 @@ from .serializers import (
     ReclamoSerializer,
     ReporteSerializer,
     ReporteMensajeSerializer,
-    RespaldoSerializer,
+    RespaldoSerializer, RestauracionSerializer,
     RetiroSerializer,
     UsuarioSerializer,
 )
@@ -969,6 +970,67 @@ class RespaldoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
         return Response({
             "ultimo": RespaldoSerializer(respaldo).data if respaldo else None,
         })
+
+    @action(detail=False, methods=["get"])
+    def versiones(self, request):
+        """H70 - Versiones restaurables: el respaldo de la base y el de fotos de una misma ejecución."""
+        bases = Respaldo.objects.filter(tipo="BASE", estado="COMPLETADO")
+        pagina = self.paginate_queryset(bases)
+        fotos = []
+        if pagina:
+            desde = min(b.iniciado_en for b in pagina) - DESFASE_VERSION
+            hasta = max(b.iniciado_en for b in pagina) + DESFASE_VERSION
+            fotos = list(Respaldo.objects.filter(
+                tipo="FOTOS", estado="COMPLETADO", iniciado_en__range=(desde, hasta)))
+        return self.get_paginated_response([_version(base, fotos) for base in pagina])
+
+
+# H70: diferencia máxima entre el respaldo de la base y el de fotos de una misma ejecución
+# (la misma que usan scripts/recuperar_todo.sh y scripts/restaurar_version.sh).
+DESFASE_VERSION = timedelta(hours=1)
+MARCA_VERSION = re.compile(r"\d{8}T\d{6}Z")
+
+
+def _archivo_version(respaldo):
+    if respaldo is None:
+        return None
+    return {
+        "id": respaldo.id,
+        "nombreArchivo": respaldo.nombre_archivo,
+        "tamanoBytes": respaldo.tamano_bytes,
+        "eliminadoEn": RespaldoSerializer(respaldo).data["eliminadoEn"],
+    }
+
+
+def _version(base, fotos):
+    cercanas = [f for f in fotos if abs(f.iniciado_en - base.iniciado_en) <= DESFASE_VERSION]
+    par = min(cercanas, key=lambda f: abs(f.iniciado_en - base.iniciado_en), default=None)
+    marca = MARCA_VERSION.search(base.nombre_archivo)
+    if base.eliminado_en or (par and par.eliminado_en):
+        motivo = "Los archivos se borraron por la retención."
+    elif par is None:
+        motivo = "No hay respaldo de fotos de la misma ejecución."
+    else:
+        motivo = None
+    return {
+        "version": marca.group(0) if marca else None,
+        "fecha": RespaldoSerializer(base).data["iniciadoEn"],
+        "disponible": motivo is None,
+        "motivo": motivo,
+        "base": _archivo_version(base),
+        "fotos": _archivo_version(par),
+    }
+
+
+class RestauracionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H70 - GET /api/admin/restauraciones/ y /{id}/: ensayos y restauraciones aplicadas.
+
+    Solo lectura: las registra scripts/restaurar_version.sh. El panel no restaura.
+    """
+
+    queryset = Restauracion.objects.all()
+    serializer_class = RestauracionSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
 
 
 class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,

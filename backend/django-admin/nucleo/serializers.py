@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from .models import (
-    Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Usuario,
+    Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Restauracion, Usuario,
 )
 
 
@@ -269,12 +269,31 @@ class RespaldoSerializer(serializers.ModelSerializer):
     tamanoBytes = serializers.IntegerField(source="tamano_bytes", read_only=True)
     iniciadoEn = serializers.DateTimeField(source="iniciado_en", read_only=True)
     finalizadoEn = serializers.DateTimeField(source="finalizado_en", read_only=True)
+    eliminadoEn = serializers.DateTimeField(source="eliminado_en", read_only=True)
 
     class Meta:
         model = Respaldo
         fields = [
             "id", "tipo", "nombreArchivo", "huellaSha256", "tamanoBytes",
-            "estado", "iniciadoEn", "finalizadoEn", "mensaje",
+            "estado", "iniciadoEn", "finalizadoEn", "mensaje", "eliminadoEn",
+        ]
+        read_only_fields = fields
+
+
+class RestauracionSerializer(serializers.ModelSerializer):
+    """H70: solo lectura; la escribe scripts/restaurar_version.sh."""
+
+    respaldoBase = serializers.CharField(source="respaldo_base", read_only=True)
+    respaldoFotos = serializers.CharField(source="respaldo_fotos", read_only=True)
+    respaldoSeguridad = serializers.CharField(source="respaldo_seguridad", read_only=True)
+    iniciadoEn = serializers.DateTimeField(source="iniciado_en", read_only=True)
+    finalizadoEn = serializers.DateTimeField(source="finalizado_en", read_only=True)
+
+    class Meta:
+        model = Restauracion
+        fields = [
+            "id", "version", "modo", "estado", "respaldoBase", "respaldoFotos",
+            "respaldoSeguridad", "responsable", "iniciadoEn", "finalizadoEn", "mensaje",
         ]
         read_only_fields = fields
 

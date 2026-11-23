@@ -475,6 +475,8 @@ class Respaldo(models.Model):
     iniciado_en = models.DateTimeField()
     finalizado_en = models.DateTimeField(null=True, blank=True)
     mensaje = models.CharField(max_length=500, null=True, blank=True)
+    # H70: la retención borró el archivo; la fila queda como historial.
+    eliminado_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -483,6 +485,32 @@ class Respaldo(models.Model):
 
     def __str__(self):
         return f"Respaldo {self.nombre_archivo} ({self.estado})"
+
+
+class Restauracion(models.Model):
+    """H70: cada ensayo o restauración aplicada de una versión anterior.
+
+    La escribe scripts/restaurar_version.sh; el panel solo la consulta.
+    """
+
+    version = models.CharField(max_length=20)
+    modo = models.CharField(max_length=10)  # ENSAYO | APLICADA
+    estado = models.CharField(max_length=12, default="EN_PROCESO")  # EN_PROCESO | COMPLETADA | FALLIDA
+    respaldo_base = models.CharField(max_length=255)
+    respaldo_fotos = models.CharField(max_length=255)
+    respaldo_seguridad = models.CharField(max_length=20, null=True, blank=True)
+    responsable = models.CharField(max_length=120, null=True, blank=True)
+    iniciado_en = models.DateTimeField()
+    finalizado_en = models.DateTimeField(null=True, blank=True)
+    mensaje = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "restauraciones"
+        ordering = ["-iniciado_en", "-id"]
+
+    def __str__(self):
+        return f"Restauración {self.version} ({self.modo}, {self.estado})"
 
 
 ZONA_LIMA = _dt.timezone(_dt.timedelta(hours=-5), "America/Lima")  # Perú no usa horario de verano

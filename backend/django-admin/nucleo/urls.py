@@ -15,6 +15,7 @@ from .views import (
     ReporteMensajeViewSet,
     ReporteViewSet,
     RespaldoViewSet,
+    RestauracionViewSet,
     UsuarioViewSet,
 )
 
@@ -27,6 +28,8 @@ router.register("reclamos", ReclamoViewSet, basename="reclamos")
 router.register("categorias", CategoriaViewSet, basename="categorias")
 router.register("reportes", ReporteViewSet, basename="reportes")
 router.register("respaldos", RespaldoViewSet, basename="respaldos")
+# H70: historial de restauraciones (solo lectura; restaura scripts/restaurar_version.sh)
+router.register("restauraciones", RestauracionViewSet, basename="restauraciones")
 # H56: resolver los reportes de mensajes del chat
 router.register("reportes-mensajes", ReporteMensajeViewSet, basename="reportes-mensajes")
 # H60: campañas de difusión (sin DELETE: se finalizan)
