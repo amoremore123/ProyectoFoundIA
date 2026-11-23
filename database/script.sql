@@ -619,3 +619,10 @@ CREATE TABLE IF NOT EXISTS restauraciones (
     CONSTRAINT chk_restauracion_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
     INDEX idx_restauraciones_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H68: canal de los avisos (push y correo). Bases existentes: migracion_h68_canal_avisos.sql.
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_push BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_correo BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE notificaciones ADD COLUMN correo_enviado_en DATETIME NULL;
+ALTER TABLE notificaciones ADD COLUMN correo_resultado VARCHAR(10) NULL;
+CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fecha_creacion);

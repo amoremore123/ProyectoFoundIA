@@ -12,5 +12,8 @@ public class PreferenciaNotificacion {
     @Column(nullable=false) private boolean contactos=true;
     @Column(nullable=false) private boolean reclamos=true;
     @Column(nullable=false) private boolean recordatorios=true;
+    /** H68: por dónde llegan los avisos además de la bandeja. */
+    @Column(name="canal_push", nullable=false) private boolean canalPush=true;
+    @Column(name="canal_correo", nullable=false) private boolean canalCorreo=false;
     @Column(name="fecha_actualizacion", nullable=false) private LocalDateTime fechaActualizacion;
 }

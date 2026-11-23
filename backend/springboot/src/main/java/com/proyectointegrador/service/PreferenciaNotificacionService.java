@@ -31,6 +31,9 @@ public class PreferenciaNotificacionService {
         p.setReclamos(datos.reclamos());
         // H53: un cliente de H24 que no envía `recordatorios` conserva el valor guardado.
         if (datos.recordatorios()!=null) p.setRecordatorios(datos.recordatorios());
+        // H68: los clientes anteriores no envían los canales; se conservan los guardados.
+        if (datos.push()!=null) p.setCanalPush(datos.push());
+        if (datos.correo()!=null) p.setCanalCorreo(datos.correo());
         p.setFechaActualizacion(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS));
         return respuesta(preferencias.saveAndFlush(p));
     }
@@ -52,6 +55,23 @@ public class PreferenciaNotificacionService {
     }
 
     private PreferenciasRequest respuesta(PreferenciaNotificacion p) {
-        return new PreferenciasRequest(p.isCoincidencias(),p.isContactos(),p.isReclamos(),p.isRecordatorios());
+        return new PreferenciasRequest(p.isCoincidencias(),p.isContactos(),p.isReclamos(),p.isRecordatorios(),
+                p.isCanalPush(),p.isCanalCorreo());
+    }
+
+    /**
+     * H57 y H68: si el tipo de aviso (de Spring o de Django) está activo en las preferencias, para
+     * decidir si sale por push o por correo. Los tipos desconocidos no salen de la bandeja.
+     */
+    public static boolean tipoActivo(PreferenciasRequest p, String tipo) {
+        if (tipo == null) return false;
+        return switch (tipo) {
+            case "COINCIDENCIA_NUEVA" -> Boolean.TRUE.equals(p.coincidencias());
+            case "CONTACTO_RECIBIDO" -> Boolean.TRUE.equals(p.contactos());
+            case "RECLAMO_RECIBIDO", "RECLAMO" -> Boolean.TRUE.equals(p.reclamos());
+            case "RECORDATORIO_OBJETO" -> !Boolean.FALSE.equals(p.recordatorios());
+            case "MENSAJE_CHAT", "SISTEMA" -> true;
+            default -> false;
+        };
     }
 }

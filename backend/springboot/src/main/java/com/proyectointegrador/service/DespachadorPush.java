@@ -90,17 +90,9 @@ public class DespachadorPush {
         return enviados;
     }
 
-    /** Preferencias de H24 por tipo de aviso; los tipos desconocidos no envían push. */
+    /** Preferencias de H24 por tipo de aviso y canal push de H68; los tipos desconocidos no envían push. */
     private boolean permitido(Aviso a) {
-        if (a.tipo() == null) return false;
         PreferenciasRequest p = preferencias.obtener(a.usuarioId());
-        return switch (a.tipo()) {
-            case "COINCIDENCIA_NUEVA" -> Boolean.TRUE.equals(p.coincidencias());
-            case "CONTACTO_RECIBIDO" -> Boolean.TRUE.equals(p.contactos());
-            case "RECLAMO_RECIBIDO", "RECLAMO" -> Boolean.TRUE.equals(p.reclamos());
-            case "RECORDATORIO_OBJETO" -> !Boolean.FALSE.equals(p.recordatorios());
-            case "MENSAJE_CHAT", "SISTEMA" -> true;
-            default -> false;
-        };
+        return !Boolean.FALSE.equals(p.push()) && PreferenciaNotificacionService.tipoActivo(p, a.tipo());
     }
 }
