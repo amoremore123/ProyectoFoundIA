@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Estadisticas, { formatearDuracion } from './Estadisticas';
 import { getDashboard } from '../services/api';
 
-vi.mock('../services/api', async (importOriginal) => ({ ...await importOriginal(), getDashboard: vi.fn() }));
+vi.mock('../services/api', async (importOriginal) => ({
+  ...await importOriginal(), getDashboard: vi.fn(),
+  getMapaPerdidas: vi.fn(async () => ({ puntos: [], conCoordenadas: 0, sinCoordenadas: 0 })),
+}));
+// En jsdom no se dibujan mapas: Leaflet se reemplaza por uno vacío
+vi.mock('leaflet', () => ({ default: { map: () => ({ setView() { return this; }, remove() {}, fitBounds() {} }), tileLayer: () => ({ addTo() {} }), polygon: () => ({ bindTooltip() { return this; }, addTo() { return this; }, getBounds() { return { pad() { return this; } }; } }),  layerGroup: () => ({ addTo() { return this; }, remove() {} }), circleMarker: () => ({ bindTooltip() { return this; }, addTo() {} }), latLngBounds: () => ({ pad() { return this; } }) } }));
 
 const respuesta = {
   usuarios: 12,

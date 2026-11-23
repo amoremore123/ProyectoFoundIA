@@ -3,6 +3,7 @@ import ExportarReporte from '../components/ExportarReporte';
 import { getDashboard, mensajeError } from '../services/api';
 import Icono from '../components/Icono';
 import useContador from '../hooks/useContador';
+import MapaPerdidas from '../components/MapaPerdidas';
 
 function CifraValor({ valor }) {
   const animado = useContador(valor);
@@ -277,6 +278,9 @@ export default function Estadisticas() {
           )}
 
           {datos.recuperacion && <Recuperacion r={datos.recuperacion} />}
+
+          {/* Mapa de pérdidas: dónde se pierden más cosas en el campus */}
+          <MapaPerdidas />
 
           {(datos.categoriasTop || datos.ubicacionesTop) && (
             <div className="grid-rankings">

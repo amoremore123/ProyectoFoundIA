@@ -245,6 +245,16 @@ class ImpactoView(APIView):
         return Response(metricas_impacto())
 
 
+class MapaPerdidasView(APIView):
+    """GET /api/admin/metricas/mapa/?desde=&hasta=&tipo=: puntos del campus con más objetos, agrupados."""
+
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    def get(self, request):
+        from .metricas import metricas_mapa
+        return Response(metricas_mapa(request.query_params))
+
+
 class DashboardExportView(APIView):
     """H32 - GET /api/admin/dashboard/exportar.xlsx|.pdf
 

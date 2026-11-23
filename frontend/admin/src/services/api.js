@@ -238,6 +238,16 @@ export const getImpacto = async () => {
   return data;
 };
 
+// Mapa de pérdidas: puntos agrupados por cercanía (unos 11 m), con perdidos y encontrados
+export const getMapaPerdidas = async ({ tipo, desde, hasta } = {}) => {
+  const params = {};
+  if (tipo) params.tipo = tipo;
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  const { data } = await api.get('/api/admin/metricas/mapa/', { params });
+  return data;
+};
+
 // H67: alcance de las campañas (visitas y registros por origen, sin datos personales)
 export const getAlcanceCampanas = async ({ desde, hasta } = {}) => {
   const params = {};

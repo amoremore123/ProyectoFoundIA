@@ -214,3 +214,47 @@ def metricas_impacto(hoy=None):
         "encontradosDevueltosPorcentaje": porcentaje(encontrados_devueltos, encontrados.count()),
         "custodia": custodias,
     }
+
+
+DECIMALES_MAPA = 4  # unos 11 m: agrupa lugares cercanos y no expone la ubicación exacta de nadie
+TIPOS_MAPA = ("PERDIDO", "ENCONTRADO")
+
+
+def metricas_mapa(params):
+    """Mapa de pérdidas: lugares del campus con más objetos, agrupados por cercanía.
+
+    Usa las coordenadas que se guardan al publicar (M4). Cuenta perdidos y encontrados por punto,
+    con el nombre de lugar más usado ahí. Excluye las publicaciones eliminadas u ocultas.
+    """
+    entrada = RangoMetricasSerializer(data=params)
+    entrada.is_valid(raise_exception=True)
+    tipo = (params.get("tipo") or "").upper()
+    if tipo and tipo not in TIPOS_MAPA:
+        raise ValidationError({"tipo": "Usa PERDIDO o ENCONTRADO."})
+    objetos = Objeto.objects.exclude(estado__in=("ELIMINADO", "OCULTO"))
+    if entrada.validated_data.get("desde"):
+        objetos = objetos.filter(fecha_publicacion__date__gte=entrada.validated_data["desde"])
+    if entrada.validated_data.get("hasta"):
+        objetos = objetos.filter(fecha_publicacion__date__lte=entrada.validated_data["hasta"])
+    if tipo:
+        objetos = objetos.filter(tipo=tipo)
+
+    con_coordenadas = objetos.filter(latitud__isnull=False, longitud__isnull=False)
+    grupos = {}
+    for lat, lng, tipo_objeto, ubicacion in con_coordenadas.values_list("latitud", "longitud", "tipo", "ubicacion"):
+        clave = (round(float(lat), DECIMALES_MAPA), round(float(lng), DECIMALES_MAPA))
+        g = grupos.setdefault(clave, {"perdidos": 0, "encontrados": 0, "lugares": Counter()})
+        g["perdidos" if tipo_objeto == "PERDIDO" else "encontrados"] += 1
+        if ubicacion and ubicacion.strip():
+            g["lugares"][ubicacion.strip()] += 1
+    puntos = [{
+        "lat": lat, "lng": lng, "total": g["perdidos"] + g["encontrados"],
+        "perdidos": g["perdidos"], "encontrados": g["encontrados"],
+        "lugar": g["lugares"].most_common(1)[0][0] if g["lugares"] else None,
+    } for (lat, lng), g in grupos.items()]
+    puntos.sort(key=lambda p: (-p["total"], p["lugar"] or ""))
+    return {
+        "puntos": puntos,
+        "conCoordenadas": con_coordenadas.count(),
+        "sinCoordenadas": objetos.count() - con_coordenadas.count(),
+    }

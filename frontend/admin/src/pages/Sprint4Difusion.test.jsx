@@ -3,10 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../context/ToastContext';
 import EnviosMasivos, { validarEnvio } from './EnviosMasivos';
 import ImpactoPanel, { fraseImpacto } from '../components/ImpactoPanel';
+import MapaPerdidas, { cercaDelCampus, radioPunto } from '../components/MapaPerdidas';
 import AlcanceCampanas from '../components/AlcanceCampanas';
 import PromocionCampana, { conZonaLima } from '../components/PromocionCampana';
 import {
-  enviarEnvioMasivo, getImpacto, getAlcanceCampana, getAlcanceCampanas, getEnviosMasivos, getPromociones, getSugerenciaPromocion,
+  enviarEnvioMasivo, getImpacto, getMapaPerdidas, getAlcanceCampana, getAlcanceCampanas, getEnviosMasivos, getPromociones, getSugerenciaPromocion,
   registrarPromocion, vistaPreviaEnvioMasivo,
 } from '../services/api';
 
@@ -14,8 +15,14 @@ vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
   getAlcanceCampanas: vi.fn(), getAlcanceCampana: vi.fn(), getSugerenciaPromocion: vi.fn(), getPromociones: vi.fn(),
   registrarPromocion: vi.fn(), vistaPreviaEnvioMasivo: vi.fn(), enviarEnvioMasivo: vi.fn(), getEnviosMasivos: vi.fn(),
-  getDestinatariosEnvio: vi.fn(), getImpacto: vi.fn(),
+  getDestinatariosEnvio: vi.fn(), getImpacto: vi.fn(), getMapaPerdidas: vi.fn(),
 }));
+const marcadores = [];
+vi.mock('leaflet', () => ({ default: {
+  map: () => ({ setView() { return this; }, remove() {}, fitBounds() {} }), tileLayer: () => ({ addTo() {} }), polygon: () => ({ bindTooltip() { return this; }, addTo() { return this; }, getBounds() { return { pad() { return this; } }; } }), 
+  layerGroup: () => ({ addTo() { return this; }, remove() {} }), latLngBounds: () => ({ pad() { return this; } }),
+  circleMarker: (pos, opciones) => { marcadores.push({ pos, opciones }); return { bindTooltip() { return this; }, addTo() {} }; },
+} }));
 
 const pagina = (results) => ({ count: results.length, results, next: null, previous: null });
 const montar = async (ui) => { await act(async () => { render(<ToastProvider>{ui}</ToastProvider>); }); };
@@ -149,5 +156,56 @@ describe('Impacto - objetos devueltos por mes y por vía', () => {
   it('sin devoluciones lo dice sin inventar números', () => {
     expect(fraseImpacto({ devueltosUltimos30Dias: 0 })).toMatch(/Todavía no hay/);
     expect(fraseImpacto({ devueltosUltimos30Dias: 1 })).toMatch(/1 objeto en/);
+  });
+});
+
+describe('Mapa de pérdidas', () => {
+  it('dibuja un punto por lugar y muestra la misma información en una tabla accesible', async () => {
+    marcadores.length = 0;
+    getMapaPerdidas.mockResolvedValue({
+      puntos: [
+        { lat: -12.0445, lng: -76.9525, total: 5, perdidos: 4, encontrados: 1, lugar: 'Biblioteca' },
+        { lat: -12.046, lng: -76.95, total: 1, perdidos: 0, encontrados: 1, lugar: 'Cafetería' },
+      ],
+      conCoordenadas: 6, sinCoordenadas: 2,
+    });
+    await montar(<MapaPerdidas />);
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    const filas = screen.getAllByRole('row');
+    expect(within(filas[1]).getByText('Biblioteca')).toBeTruthy();
+    expect(within(filas[1]).getByText('5')).toBeTruthy();
+    expect(screen.getByText(/6 con GPS; 2 sin ubicación/)).toBeTruthy();
+    expect(screen.getByRole('img', { name: /Mapa con 2 lugares/ })).toBeTruthy();
+    expect(marcadores).toHaveLength(2);
+    expect(marcadores[0].opciones.color).toBe('#f04438');
+    expect(marcadores[1].opciones.color).toBe('#1f6feb');
+  });
+
+  it('filtra por tipo y explica cuando no hay ubicaciones', async () => {
+    getMapaPerdidas.mockResolvedValue({ puntos: [], conCoordenadas: 0, sinCoordenadas: 3 });
+    await montar(<MapaPerdidas />);
+    expect(screen.getByText(/Todavía no hay publicaciones con ubicación/)).toBeTruthy();
+    await act(async () => { fireEvent.change(screen.getByRole('combobox', { name: /Qué objetos mostrar/ }), { target: { value: 'PERDIDO' } }); });
+    expect(getMapaPerdidas).toHaveBeenLastCalledWith({ tipo: 'PERDIDO' });
+    expect(radioPunto(10, 10)).toBeGreaterThan(radioPunto(1, 10));
+  });
+});
+
+describe('Mapa de pérdidas en la sede Santa Anita', () => {
+  it('avisa los lugares fuera del campus y los marca en la tabla', async () => {
+    getMapaPerdidas.mockResolvedValue({
+      puntos: [
+        { lat: -12.0439, lng: -76.9529, total: 3, perdidos: 2, encontrados: 1, lugar: 'Biblioteca' },
+        { lat: 19.4326, lng: -99.1332, total: 1, perdidos: 1, encontrados: 0, lugar: 'Comedor principal' },
+      ],
+      conCoordenadas: 4, sinCoordenadas: 0,
+    });
+    await montar(<MapaPerdidas />);
+    expect(screen.getByRole('note').textContent).toMatch(/1 lugar está fuera del campus/);
+    const comedor = screen.getByText('Comedor principal').closest('tr');
+    expect(within(comedor).getByText('Fuera del campus')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Ver la sede completa' })).toBeTruthy();
+    expect(cercaDelCampus({ lat: -12.0445, lng: -76.9525 })).toBe(true);
+    expect(cercaDelCampus({ lat: 19.43, lng: -99.13 })).toBe(false);
   });
 });
