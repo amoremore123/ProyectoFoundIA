@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
+from .envios_masivos import EnvioMasivoViewSet
 from .views import (
     AvisoDestacadoViewSet,
     CampanaViewSet,
@@ -37,6 +38,8 @@ router.register("reportes-mensajes", ReporteMensajeViewSet, basename="reportes-m
 router.register("campanas", CampanaViewSet, basename="campanas")
 # H71: avisos destacados con vigencia (sin DELETE: se retiran)
 router.register("avisos-destacados", AvisoDestacadoViewSet, basename="avisos-destacados")
+# H69: notificaciones masivas (vista previa, confirmación y registro; no se editan ni se borran)
+router.register("envios-masivos", EnvioMasivoViewSet, basename="envios-masivos")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),

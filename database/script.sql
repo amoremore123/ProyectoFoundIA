@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS disposiciones;
 DROP TABLE IF EXISTS custodias;
 DROP TABLE IF EXISTS secuencias_custodia;
 DROP TABLE IF EXISTS notificaciones;
+DROP TABLE IF EXISTS envios_masivos;
 DROP TABLE IF EXISTS contactos;
 DROP TABLE IF EXISTS coincidencias;
 DROP TABLE IF EXISTS fotos;
@@ -650,3 +651,20 @@ CREATE TABLE IF NOT EXISTS avisos_destacados (
     CONSTRAINT chk_aviso_destacado_fechas CHECK (fecha_fin >= fecha_inicio),
     INDEX idx_avisos_destacados_vigencia (fecha_inicio, fecha_fin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H69: notificaciones masivas. Bases existentes: migracion_h69_envios_masivos.sql.
+CREATE TABLE IF NOT EXISTS envios_masivos (
+    id                  BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    titulo              VARCHAR(150)  NOT NULL,
+    mensaje             VARCHAR(1000) NOT NULL,
+    enlace              VARCHAR(255)  NULL,
+    destinatarios       VARCHAR(12)   NOT NULL,
+    total_destinatarios INT           NOT NULL,
+    autor_id            BIGINT        NOT NULL,
+    enviado_en          DATETIME(6)   NOT NULL,
+    CONSTRAINT fk_envio_masivo_autor FOREIGN KEY (autor_id) REFERENCES usuarios (id),
+    CONSTRAINT chk_envio_masivo_destinatarios CHECK (destinatarios IN ('TODOS', 'USUARIOS', 'BIBLIOTECA')),
+    INDEX idx_envios_masivos_enviado (enviado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE notificaciones ADD COLUMN envio_masivo_id BIGINT NULL,
+    ADD CONSTRAINT fk_notificacion_envio_masivo FOREIGN KEY (envio_masivo_id) REFERENCES envios_masivos (id);

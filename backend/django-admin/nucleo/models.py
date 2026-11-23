@@ -286,6 +286,11 @@ class Notificacion(models.Model):
     enlace = models.CharField(max_length=500, null=True, blank=True)
     leida = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(default=timezone.now, blank=True)
+    # H69: el envío masivo que creó este aviso (null en los avisos normales)
+    envio_masivo = models.ForeignKey(
+        "EnvioMasivo", on_delete=models.DO_NOTHING, db_column="envio_masivo_id", null=True, blank=True,
+        related_name="notificaciones",
+    )
 
     class Meta:
         managed = False
@@ -554,6 +559,27 @@ class Campana(models.Model):
 
     def __str__(self):
         return f"Campaña {self.origen}"
+
+
+class EnvioMasivo(models.Model):
+    """H69: aviso enviado a muchas cuentas desde el panel, con su autor y sus destinatarios."""
+
+    titulo = models.CharField(max_length=150)
+    mensaje = models.CharField(max_length=1000)
+    enlace = models.CharField(max_length=255, null=True, blank=True)
+    destinatarios = models.CharField(max_length=12)  # TODOS | USUARIOS | BIBLIOTECA
+    total_destinatarios = models.IntegerField()
+    autor = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="autor_id",
+                              related_name="envios_masivos")
+    enviado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "envios_masivos"
+        ordering = ["-enviado_en", "-id"]
+
+    def __str__(self):
+        return f"Envío masivo {self.titulo}"
 
 
 class AvisoDestacado(models.Model):
