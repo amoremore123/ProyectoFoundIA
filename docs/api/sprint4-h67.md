@@ -124,3 +124,42 @@ Android no necesita cambios: los enlaces de campaña se abren en la web.
   invertido o mayor de 366 días `400`, días de Lima y no de UTC; `401`, `403`, `404`.
 - Con MySQL real: la migración dos veces; visitas y un registro por la API de Spring y los mismos números en el
   tablero de Django.
+
+## Importante para el despliegue (C1)
+
+El límite de 30 visitas por minuto usa la dirección de quien llama. Detrás del proxy inverso con HTTPS (C1)
+todas las visitas llegarían desde la dirección del proxy y compartirían el mismo límite. Al desplegar hay que
+configurar Spring para leer la dirección real (`server.forward-headers-strategy: framework` y que el proxy envíe
+`X-Forwarded-For`). Se deja anotado para C1.
+
+## Verificación del 23/11/2026
+
+- Spring: 8 pruebas nuevas en `AlcanceCampanasIntegrationTest` (suma una vez y el mismo `visitaId` no vuelve a
+  sumar; origen inexistente `204` sin contar; campaña finalizada sí cuenta; formatos inválidos `400`; 31.ª visita
+  del minuto `429` y otro equipo sigue; la tabla solo tiene `id`, `campana_id`, `tipo`, `visita_id` y `fecha`;
+  registro con origen suma sin guardar la cuenta; sin origen, inexistente, mal escrito o `null` registra y no
+  suma; registro fallido no suma). Suite completa: **589 pruebas, 0 fallos**.
+- Django: 8 pruebas nuevas en `test_sprint4_h67.py` (tablero con conversión, total y orden; rango; detalle por día
+  con ceros y rango por defecto, también de una campaña terminada; días de Lima y no de UTC; fechas inválidas,
+  invertidas o de más de 366 días; `401`, `403` y `404`; sin datos personales en la respuesta). Suite completa:
+  **188 pruebas, OK**.
+- MySQL 8.0 de QA, con Spring y Django reales:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h67_alcance_campanas.sql` dos veces sin error |
+| Columnas | Solo `id`, `campana_id`, `tipo`, `visita_id`, `fecha`. La base rechaza un registro con `visita_id` (`ERROR 3819`) |
+| Campaña creada en el panel | Enlace `…/explorar?origen=semana-h67` |
+| 3 visitas + la misma visita repetida | `204` las cuatro; se contaron **3** |
+| Origen inexistente | `204`, no se contó |
+| Formato inválido | `400` con el campo |
+| Registro con origen / sin origen / con origen inexistente | `201` los tres; se contó **1** registro |
+| Tablero (Django) | Semana H67: 3 visitas, 1 registro, 33.3 %: **los mismos números** que guardó Spring |
+| Detalle | Mismo total, y el día de hoy con 3 y 1 |
+| Fechas al revés / usuaria normal | `400` / `403` |
+| Límite | La 31.ª visita del minuto desde el mismo equipo respondió `429` |
+| Instalación nueva | `script.sql`, `seed.sql` y la migración sobre esa base, sin errores |
+
+- **Falta en la web (Yajaira):** guardar el origen y enviar la visita al abrir un enlace de campaña, mandar
+  `origen` en el registro y el tablero en el panel (ver «Lo que necesita la web»). Sin eso, la API funciona pero
+  nadie la llama.
