@@ -90,9 +90,8 @@ public class DespachadorPush {
         return enviados;
     }
 
-    /** Preferencias de H24 por tipo de aviso y canal push de H68; los tipos desconocidos no envían push. */
+    /** Preferencias de H24 por tipo de aviso y canal de ese tipo (H68); los tipos desconocidos no envían push. */
     private boolean permitido(Aviso a) {
-        PreferenciasRequest p = preferencias.obtener(a.usuarioId());
-        return !Boolean.FALSE.equals(p.push()) && PreferenciaNotificacionService.tipoActivo(p, a.tipo());
+        return PreferenciaNotificacionService.permitePush(preferencias.obtener(a.usuarioId()), a.tipo());
     }
 }

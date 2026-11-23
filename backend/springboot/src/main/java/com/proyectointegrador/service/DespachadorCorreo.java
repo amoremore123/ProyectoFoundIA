@@ -97,7 +97,7 @@ public class DespachadorCorreo {
     private String enviar(Aviso a, LocalDateTime ahora) {
         if (!"ACTIVO".equals(a.estado()) || !a.verificado() || a.correo() == null) return OMITIDO;
         PreferenciasRequest p = preferencias.obtener(a.usuarioId());
-        if (!Boolean.TRUE.equals(p.correo()) || !PreferenciaNotificacionService.tipoActivo(p, a.tipo())) return OMITIDO;
+        if (!PreferenciaNotificacionService.permiteCorreo(p, a.tipo())) return OMITIDO;
         if ("MENSAJE_CHAT".equals(a.tipo()) && chatYaAvisado(a, ahora)) return OMITIDO;
         try {
             email.enviarAviso(a.correo(), a.nombre(), a.titulo(), a.mensaje(), enlaceWeb(a.enlace()));

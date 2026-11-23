@@ -621,9 +621,13 @@ CREATE TABLE IF NOT EXISTS restauraciones (
     INDEX idx_restauraciones_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- H68: canal de los avisos (push y correo). Bases existentes: migracion_h68_canal_avisos.sql.
-ALTER TABLE preferencias_notificacion ADD COLUMN canal_push BOOLEAN NOT NULL DEFAULT TRUE;
-ALTER TABLE preferencias_notificacion ADD COLUMN canal_correo BOOLEAN NOT NULL DEFAULT FALSE;
+-- H68: canal de cada tipo de aviso. Bases existentes: migracion_h68_canal_avisos.sql.
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_coincidencias VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_coincidencias CHECK (canal_coincidencias IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_contactos VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_contactos CHECK (canal_contactos IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_reclamos VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_reclamos CHECK (canal_reclamos IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_recordatorios VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_recordatorios CHECK (canal_recordatorios IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_mensajes VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_mensajes CHECK (canal_mensajes IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_sistema VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_sistema CHECK (canal_sistema IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
 ALTER TABLE notificaciones ADD COLUMN correo_enviado_en DATETIME NULL;
 ALTER TABLE notificaciones ADD COLUMN correo_resultado VARCHAR(10) NULL;
 CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fecha_creacion);

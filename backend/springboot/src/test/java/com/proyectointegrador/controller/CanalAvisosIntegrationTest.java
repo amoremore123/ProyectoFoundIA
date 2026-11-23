@@ -120,9 +120,23 @@ class CanalAvisosIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(cuerpo));
     }
 
-    void canales(Usuario u, boolean push, boolean correo) throws Exception {
-        guardar(login(u), "{\"coincidencias\":true,\"contactos\":true,\"reclamos\":true,\"push\":" + push
-                + ",\"correo\":" + correo + "}").andExpect(status().isOk());
+    static final String TIPOS = "\"coincidencias\":true,\"contactos\":true,\"reclamos\":true";
+
+    /** Guarda solo los canales indicados, por ejemplo {"coincidencias":"CORREO"}. */
+    void canales(Usuario u, String canalesJson) throws Exception {
+        guardar(login(u), "{" + TIPOS + ",\"canales\":" + canalesJson + "}").andExpect(status().isOk());
+    }
+
+    /** El mismo canal para los 6 tipos de aviso. */
+    void todos(Usuario u, String canal) throws Exception {
+        String c = "\"" + canal + "\"";
+        canales(u, "{\"coincidencias\":" + c + ",\"contactos\":" + c + ",\"reclamos\":" + c
+                + ",\"recordatorios\":" + c + ",\"mensajes\":" + c + ",\"sistema\":" + c + "}");
+    }
+
+    void registrarTelefono(Usuario u) throws Exception {
+        api.perform(post("/api/dispositivos").header("Authorization", "Bearer " + login(u)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"" + TOKEN + "\",\"plataforma\":\"ANDROID\"}")).andExpect(status().isCreated());
     }
 
     long aviso(Usuario u, String tipo, String enlace, LocalDateTime creado) {
@@ -141,93 +155,124 @@ class CanalAvisosIntegrationTest {
     LocalDateTime ahora() { return LocalDateTime.now(ZoneOffset.UTC); }
 
     @Test
-    @DisplayName("Por defecto push sí y correo no; se guardan y se leen los dos canales")
+    @DisplayName("Por defecto todo es PUSH; se guardan y se leen los canales de cada tipo")
     void preferencias() throws Exception {
         String jwt = login(ana);
         api.perform(get(RUTA).header("Authorization", "Bearer " + jwt)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.push").value(true)).andExpect(jsonPath("$.correo").value(false));
-        guardar(jwt, "{\"coincidencias\":true,\"contactos\":false,\"reclamos\":true,\"push\":false,\"correo\":true}")
-                .andExpect(status().isOk()).andExpect(jsonPath("$.push").value(false))
-                .andExpect(jsonPath("$.correo").value(true)).andExpect(jsonPath("$.contactos").value(false));
-        api.perform(get(RUTA).header("Authorization", "Bearer " + jwt))
-                .andExpect(jsonPath("$.push").value(false)).andExpect(jsonPath("$.correo").value(true));
+                .andExpect(jsonPath("$.canales.coincidencias").value("PUSH"))
+                .andExpect(jsonPath("$.canales.contactos").value("PUSH"))
+                .andExpect(jsonPath("$.canales.reclamos").value("PUSH"))
+                .andExpect(jsonPath("$.canales.recordatorios").value("PUSH"))
+                .andExpect(jsonPath("$.canales.mensajes").value("PUSH"))
+                .andExpect(jsonPath("$.canales.sistema").value("PUSH"));
+        guardar(jwt, "{\"coincidencias\":true,\"contactos\":false,\"reclamos\":true,\"canales\":"
+                + "{\"coincidencias\":\"CORREO\",\"contactos\":\"AMBOS\",\"mensajes\":\"NINGUNO\"}}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contactos").value(false))
+                .andExpect(jsonPath("$.canales.coincidencias").value("CORREO"))
+                .andExpect(jsonPath("$.canales.contactos").value("AMBOS"))
+                .andExpect(jsonPath("$.canales.mensajes").value("NINGUNO"))
+                // Las claves que no llegan conservan lo guardado
+                .andExpect(jsonPath("$.canales.reclamos").value("PUSH"))
+                .andExpect(jsonPath("$.canales.sistema").value("PUSH"));
+        // Enviar una sola clave cambia solo esa
+        guardar(jwt, "{" + TIPOS + ",\"canales\":{\"sistema\":\"CORREO\"}}").andExpect(status().isOk())
+                .andExpect(jsonPath("$.canales.sistema").value("CORREO"))
+                .andExpect(jsonPath("$.canales.coincidencias").value("CORREO"))
+                .andExpect(jsonPath("$.canales.mensajes").value("NINGUNO"));
         // Las preferencias son de cada cuenta
         api.perform(get(RUTA).header("Authorization", "Bearer " + login(luis)))
-                .andExpect(jsonPath("$.push").value(true)).andExpect(jsonPath("$.correo").value(false));
+                .andExpect(jsonPath("$.canales.coincidencias").value("PUSH"));
     }
 
     @Test
-    @DisplayName("Un cliente de H24/H53 que no envía los canales conserva los guardados")
+    @DisplayName("Un cliente de H24/H53 que no envía canales conserva los guardados")
     void clienteAnteriorConservaLosCanales() throws Exception {
         String jwt = login(ana);
-        guardar(jwt, "{\"coincidencias\":true,\"contactos\":true,\"reclamos\":true,\"push\":false,\"correo\":true}")
-                .andExpect(status().isOk());
+        todos(ana, "CORREO");
         guardar(jwt, "{\"coincidencias\":false,\"contactos\":true,\"reclamos\":true}").andExpect(status().isOk())
                 .andExpect(jsonPath("$.coincidencias").value(false))
-                .andExpect(jsonPath("$.push").value(false)).andExpect(jsonPath("$.correo").value(true));
+                .andExpect(jsonPath("$.canales.coincidencias").value("CORREO"))
+                .andExpect(jsonPath("$.canales.mensajes").value("CORREO"));
         guardar(jwt, "{\"coincidencias\":false,\"contactos\":true,\"reclamos\":true,\"recordatorios\":false}")
-                .andExpect(status().isOk()).andExpect(jsonPath("$.correo").value(true));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.canales.recordatorios").value("CORREO"));
     }
 
     @Test
-    @DisplayName("Un canal que no es booleano responde 400 y sin sesión 401")
+    @DisplayName("Un canal inválido, una clave desconocida o un valor no booleano responden 400; sin sesión 401")
     void validaciones() throws Exception {
         String jwt = login(ana);
-        guardar(jwt, "{\"coincidencias\":true,\"contactos\":true,\"reclamos\":true,\"correo\":\"siempre\"}")
-                .andExpect(status().isBadRequest());
-        guardar(jwt, "{\"coincidencias\":true,\"contactos\":true,\"reclamos\":true,\"push\":[]}")
-                .andExpect(status().isBadRequest());
+        for (String malo : new String[]{
+                "{" + TIPOS + ",\"canales\":{\"coincidencias\":\"SIEMPRE\"}}",
+                "{" + TIPOS + ",\"canales\":{\"coincidencias\":\"push\"}}",
+                "{" + TIPOS + ",\"canales\":{\"chat\":\"CORREO\"}}",
+                "{" + TIPOS + ",\"canales\":{\"coincidencias\":true}}",
+                "{" + TIPOS + ",\"canales\":\"CORREO\"}",
+                "{\"coincidencias\":\"si\",\"contactos\":true,\"reclamos\":true}"}) {
+            assertThat(guardar(jwt, malo).andReturn().getResponse().getStatus()).as(malo).isEqualTo(400);
+        }
         api.perform(put(RUTA).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"coincidencias\":true,\"contactos\":true,\"reclamos\":true,\"correo\":true}"))
+                .content("{" + TIPOS + ",\"canales\":{\"coincidencias\":\"CORREO\"}}"))
                 .andExpect(status().isUnauthorized());
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM preferencias_notificacion", Integer.class)).isZero();
     }
 
     @Test
-    @DisplayName("Con push apagado no se envía al teléfono, pero el aviso queda en la bandeja")
-    void pushApagado() throws Exception {
-        String jwt = login(ana);
-        api.perform(post("/api/dispositivos").header("Authorization", "Bearer " + jwt).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"" + TOKEN + "\",\"plataforma\":\"ANDROID\"}")).andExpect(status().isCreated());
-        canales(ana, false, false);
+    @DisplayName("Con el tipo en «solo correo» o NINGUNO no se manda push; el aviso queda en la bandeja")
+    void soloCorreoNoMandaPush() throws Exception {
+        registrarTelefono(ana);
+        canales(ana, "{\"coincidencias\":\"CORREO\",\"contactos\":\"NINGUNO\"}");
         aviso(ana, "COINCIDENCIA_NUEVA");
+        aviso(ana, "CONTACTO_RECIBIDO");
         assertThat(push.despachar()).isZero();
         assertThat(firebase.enviados).isEmpty();
-        api.perform(get("/api/notificaciones").header("Authorization", "Bearer " + jwt)).andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].titulo").value("Nueva coincidencia"));
+        api.perform(get("/api/notificaciones").header("Authorization", "Bearer " + login(ana))).andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)));
 
-        canales(ana, true, false);
+        // El canal de un tipo no afecta a los demás: los mensajes siguen en PUSH
+        aviso(ana, "MENSAJE_CHAT", "/conversaciones/7", ahora());
+        assertThat(push.despachar()).isEqualTo(1);
+        // Y con AMBOS vuelve a salir por push
+        canales(ana, "{\"coincidencias\":\"AMBOS\"}");
         aviso(ana, "COINCIDENCIA_NUEVA");
         assertThat(push.despachar()).isEqualTo(1);
-        assertThat(firebase.enviados).containsExactly(TOKEN);
+        assertThat(firebase.enviados).containsExactly(TOKEN, TOKEN);
     }
 
     @Test
-    @DisplayName("Con correo activo llega un correo por aviso, con el enlace a la web, una sola vez")
+    @DisplayName("Con CORREO o AMBOS llega un correo por aviso, con el enlace a la web, una sola vez")
     void correoActivo() throws Exception {
-        canales(ana, true, true);
+        canales(ana, "{\"coincidencias\":\"CORREO\",\"contactos\":\"AMBOS\"}");
         long id = aviso(ana, "COINCIDENCIA_NUEVA");
-        assertThat(correo.despachar()).isEqualTo(1);
-        verify(email).enviarAviso(eq("ana-h68@prueba.invalid"), eq("Ana"), eq("Nueva coincidencia"),
+        long contacto = aviso(ana, "CONTACTO_RECIBIDO");
+        assertThat(correo.despachar()).isEqualTo(2);
+        // Los dos avisos de prueba tienen el mismo título y texto: la misma llamada, dos veces
+        verify(email, times(2)).enviarAviso(eq("ana-h68@prueba.invalid"), eq("Ana"), eq("Nueva coincidencia"),
                 eq("Hay una nueva coincidencia para tu publicación #5."), eq("https://foundia.test/notificaciones"));
         assertThat(resultado(id)).isEqualTo("ENVIADO");
-        // Una segunda vuelta no lo vuelve a enviar
+        assertThat(resultado(contacto)).isEqualTo("ENVIADO");
+        // Una segunda vuelta no los vuelve a enviar
         assertThat(correo.despachar()).isZero();
-        verify(email, times(1)).enviarAviso(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(email, times(2)).enviarAviso(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
-    @DisplayName("Sin el canal, con el tipo apagado o con un tipo desconocido no se envía correo")
+    @DisplayName("Con PUSH, NINGUNO, el tipo apagado o un tipo desconocido no se envía correo")
     void correoOmitido() throws Exception {
-        long sinCanal = aviso(luis, "COINCIDENCIA_NUEVA");  // luis no activó el correo
-        guardar(login(ana), "{\"coincidencias\":false,\"contactos\":true,\"reclamos\":true,\"correo\":true}")
+        long porDefecto = aviso(luis, "COINCIDENCIA_NUEVA");  // luis tiene todo en PUSH
+        guardar(login(ana), "{\"coincidencias\":false,\"contactos\":true,\"reclamos\":true,\"canales\":"
+                + "{\"coincidencias\":\"CORREO\",\"contactos\":\"CORREO\",\"reclamos\":\"NINGUNO\"}}")
                 .andExpect(status().isOk());
         long tipoApagado = aviso(ana, "COINCIDENCIA_NUEVA");
+        long ninguno = aviso(ana, "RECLAMO_RECIBIDO");
+        long soloPush = aviso(ana, "MENSAJE_CHAT", "/conversaciones/7", ahora());
         long desconocido = aviso(ana, "OTRO_TIPO");
         long contacto = aviso(ana, "CONTACTO_RECIBIDO");
         assertThat(correo.despachar()).isEqualTo(1);
-        assertThat(resultado(sinCanal)).isEqualTo("OMITIDO");
+        assertThat(resultado(porDefecto)).isEqualTo("OMITIDO");
         assertThat(resultado(tipoApagado)).isEqualTo("OMITIDO");
+        assertThat(resultado(ninguno)).isEqualTo("OMITIDO");
+        assertThat(resultado(soloPush)).isEqualTo("OMITIDO");
         assertThat(resultado(desconocido)).isEqualTo("OMITIDO");
         assertThat(resultado(contacto)).isEqualTo("ENVIADO");
         verify(email, times(1)).enviarAviso(anyString(), anyString(), anyString(), anyString(), anyString());
@@ -236,8 +281,8 @@ class CanalAvisosIntegrationTest {
     @Test
     @DisplayName("Una cuenta suspendida o sin verificar no recibe correos")
     void cuentaQueNoPuedeRecibir() throws Exception {
-        canales(ana, true, true);
-        canales(luis, true, true);
+        todos(ana, "AMBOS");
+        todos(luis, "CORREO");
         jdbc.update("UPDATE usuarios SET estado = 'SUSPENDIDO' WHERE id = ?", ana.getId());
         jdbc.update("UPDATE usuarios SET verificado = FALSE WHERE id = ?", luis.getId());
         long a = aviso(ana, "COINCIDENCIA_NUEVA");
@@ -251,7 +296,7 @@ class CanalAvisosIntegrationTest {
     @Test
     @DisplayName("Un aviso viejo no se envía por correo al activar el canal")
     void avisoViejo() throws Exception {
-        canales(ana, true, true);
+        todos(ana, "CORREO");
         long viejo = aviso(ana, "COINCIDENCIA_NUEVA", "/objeto/5", ahora().minusHours(2));
         assertThat(correo.despachar()).isZero();
         assertThat(resultado(viejo)).isNull();
@@ -261,7 +306,7 @@ class CanalAvisosIntegrationTest {
     @Test
     @DisplayName("Chat: un correo por conversación cada 30 minutos, con el enlace a la conversación de la web")
     void chatAgrupado() throws Exception {
-        canales(ana, true, true);
+        canales(ana, "{\"mensajes\":\"CORREO\"}");
         long primero = aviso(ana, "MENSAJE_CHAT", "/conversaciones/7", ahora());
         assertThat(correo.despachar()).isEqualTo(1);
         verify(email).enviarAviso(anyString(), anyString(), anyString(), anyString(), eq("https://foundia.test/mensajes/7"));
@@ -283,7 +328,7 @@ class CanalAvisosIntegrationTest {
     @Test
     @DisplayName("Si el servidor de correo falla, el aviso queda en ERROR y no se reintenta")
     void falloDelCorreo() throws Exception {
-        canales(ana, true, true);
+        todos(ana, "CORREO");
         doThrow(new EnvioCorreoException("caído")).when(email)
                 .enviarAviso(anyString(), anyString(), anyString(), anyString(), anyString());
         long id = aviso(ana, "COINCIDENCIA_NUEVA");
@@ -294,9 +339,9 @@ class CanalAvisosIntegrationTest {
     }
 
     @Test
-    @DisplayName("Los avisos que crea Django (RECLAMO, SISTEMA) también salen por correo")
+    @DisplayName("Los avisos que crea Django (RECLAMO, SISTEMA) siguen el canal de su tipo")
     void avisosDeDjango() throws Exception {
-        canales(ana, true, true);
+        canales(ana, "{\"reclamos\":\"CORREO\",\"sistema\":\"AMBOS\"}");
         long reclamo = aviso(ana, "RECLAMO", null, ahora());
         long sistema = aviso(ana, "SISTEMA", null, ahora());
         assertThat(correo.despachar()).isEqualTo(2);
