@@ -37,11 +37,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // H37: el cierre de sesión exige un token válido.
-                        .requestMatchers(HttpMethod.POST, "/api/auth/logout", "/api/auth/logout-all").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout", "/api/auth/logout-all", "/api/auth/firebase-token").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/legal/documentos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
+                        // H71: avisos destacados vigentes, públicos
+                        .requestMatchers(HttpMethod.GET, "/api/avisos-destacados").permitAll()
+                        // H67: visita que llegó por el enlace de una campaña (sin datos personales)
+                        .requestMatchers(HttpMethod.POST, "/api/campanas/visitas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/objetos", "/api/objetos/**").permitAll()
+                        // H64: las fotos de perfil son privadas; se ven solo con sesión en /api/perfil/foto
+                        .requestMatchers("/uploads/perfiles/**").denyAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/coincidencias/**").permitAll()
                         // H41: al escanear la etiqueta de custodia se ve el objeto (sin datos personales)

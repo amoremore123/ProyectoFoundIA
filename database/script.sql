@@ -18,7 +18,22 @@ USE objetos_perdidos_db;
 -- =====================================================================
 -- 1. USUARIOS
 -- =====================================================================
+DROP TABLE IF EXISTS dispositivos;
+DROP TABLE IF EXISTS reportes_mensaje;
+DROP TABLE IF EXISTS lecturas_chat;
+DROP TABLE IF EXISTS mensajes_chat;
+DROP TABLE IF EXISTS conversaciones;
+DROP TABLE IF EXISTS bloqueos_chat;
+DROP TABLE IF EXISTS promociones_campana;
+DROP TABLE IF EXISTS alcance_campanas;
+DROP TABLE IF EXISTS avisos_destacados;
+DROP TABLE IF EXISTS campanas;
+DROP TABLE IF EXISTS invitaciones;
+DROP TABLE IF EXISTS solicitudes_eliminacion;
+DROP TABLE IF EXISTS tokens_recuperacion_password;
+DROP TABLE IF EXISTS eventos_coincidencia;
 DROP TABLE IF EXISTS cambios_rol;
+DROP TABLE IF EXISTS restauraciones;
 DROP TABLE IF EXISTS respaldos;
 DROP TABLE IF EXISTS tokens_revocados;
 DROP TABLE IF EXISTS reportes;
@@ -30,6 +45,7 @@ DROP TABLE IF EXISTS disposiciones;
 DROP TABLE IF EXISTS custodias;
 DROP TABLE IF EXISTS secuencias_custodia;
 DROP TABLE IF EXISTS notificaciones;
+DROP TABLE IF EXISTS envios_masivos;
 DROP TABLE IF EXISTS contactos;
 DROP TABLE IF EXISTS coincidencias;
 DROP TABLE IF EXISTS fotos;
@@ -438,8 +454,10 @@ CREATE TABLE IF NOT EXISTS tokens_revocados (
 
 -- H38: registro de respaldos lógicos. En bases existentes usar migracion_h38_respaldos.sql.
 -- Solo guarda metadatos; el archivo .sql.gz y su .sha256 viven en el volumen respaldos_data.
+-- H59: tipo BASE (MySQL) o FOTOS (volumen uploads_data). Bases existentes: migracion_h59_respaldo_fotos.sql.
 CREATE TABLE IF NOT EXISTS respaldos (
     id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    tipo           VARCHAR(10)  NOT NULL DEFAULT 'BASE',
     nombre_archivo VARCHAR(255) NOT NULL,
     huella_sha256  CHAR(64)     NULL,
     tamano_bytes   BIGINT       NULL,
@@ -449,7 +467,9 @@ CREATE TABLE IF NOT EXISTS respaldos (
     mensaje        VARCHAR(500) NULL,
     CONSTRAINT uk_respaldo_archivo UNIQUE (nombre_archivo),
     CONSTRAINT chk_respaldo_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADO', 'FALLIDO')),
-    INDEX idx_respaldos_iniciado (iniciado_en)
+    CONSTRAINT chk_respaldo_tipo CHECK (tipo IN ('BASE', 'FOTOS')),
+    INDEX idx_respaldos_iniciado (iniciado_en),
+    INDEX idx_respaldos_tipo_iniciado (tipo, iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- H40: invitaciones sin identidad en el enlace.
@@ -460,3 +480,224 @@ CREATE TABLE IF NOT EXISTS invitaciones (
     creada_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_invitacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- H60: campañas de difusión con enlace de origen. Bases existentes: migracion_h60_campanas.sql.
+CREATE TABLE IF NOT EXISTS campanas (
+    id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nombre              VARCHAR(120) NOT NULL,
+    descripcion         VARCHAR(500) NULL,
+    origen              VARCHAR(40)  NOT NULL,
+    destino             VARCHAR(255) NOT NULL DEFAULT '/',
+    fecha_inicio        DATE         NOT NULL,
+    fecha_fin           DATE         NOT NULL,
+    creada_por_id       BIGINT       NOT NULL,
+    finalizada_en       DATETIME(6)  NULL,
+    fecha_creacion      DATETIME(6)  NOT NULL,
+    fecha_actualizacion DATETIME(6)  NOT NULL,
+    CONSTRAINT uk_campanas_origen UNIQUE (origen),
+    CONSTRAINT fk_campanas_creada_por FOREIGN KEY (creada_por_id) REFERENCES usuarios (id) ON DELETE RESTRICT,
+    CONSTRAINT chk_campanas_fechas CHECK (fecha_fin >= fecha_inicio),
+    INDEX idx_campanas_fechas (fecha_inicio, fecha_fin)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H64: foto de perfil privada (ruta interna perfiles/<uuid>.jpg). Bases existentes: migracion_h64_foto_perfil.sql.
+ALTER TABLE usuarios ADD COLUMN foto_perfil_url VARCHAR(80) NULL;
+
+-- H55 a H63: chat interno (ver database/migracion_h55_chat.sql).
+CREATE TABLE IF NOT EXISTS conversaciones (
+    id            BIGINT      NOT NULL AUTO_INCREMENT,
+    tipo          VARCHAR(20) NOT NULL,
+    objeto_id     BIGINT      NOT NULL,
+    contacto_id   BIGINT      NULL,
+    reclamo_id    BIGINT      NULL,
+    usuario_a_id  BIGINT      NOT NULL,
+    usuario_b_id  BIGINT      NULL,
+    estado        VARCHAR(20) NOT NULL DEFAULT 'ABIERTA',
+    creada_en     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_conversaciones_contacto UNIQUE (contacto_id),
+    CONSTRAINT uq_conversaciones_reclamo UNIQUE (reclamo_id),
+    CONSTRAINT fk_conversaciones_objeto FOREIGN KEY (objeto_id) REFERENCES objetos (id),
+    CONSTRAINT fk_conversaciones_contacto FOREIGN KEY (contacto_id) REFERENCES contactos (id),
+    CONSTRAINT fk_conversaciones_reclamo FOREIGN KEY (reclamo_id) REFERENCES reclamos (id),
+    CONSTRAINT fk_conversaciones_usuario_a FOREIGN KEY (usuario_a_id) REFERENCES usuarios (id),
+    CONSTRAINT fk_conversaciones_usuario_b FOREIGN KEY (usuario_b_id) REFERENCES usuarios (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS mensajes_chat (
+    id               BIGINT       NOT NULL AUTO_INCREMENT,
+    conversacion_id  BIGINT       NOT NULL,
+    autor_id         BIGINT       NOT NULL,
+    texto            TEXT         NULL,
+    imagen_url       VARCHAR(500) NULL,
+    enviado_en       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_mensajes_chat_conversacion (conversacion_id, id),
+    KEY idx_mensajes_chat_autor (autor_id, enviado_en),
+    CONSTRAINT fk_mensajes_chat_conversacion FOREIGN KEY (conversacion_id) REFERENCES conversaciones (id) ON DELETE CASCADE,
+    CONSTRAINT fk_mensajes_chat_autor FOREIGN KEY (autor_id) REFERENCES usuarios (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS lecturas_chat (
+    id                  BIGINT   NOT NULL AUTO_INCREMENT,
+    conversacion_id     BIGINT   NOT NULL,
+    usuario_id          BIGINT   NOT NULL,
+    ultimo_mensaje_id   BIGINT   NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_lecturas_chat UNIQUE (conversacion_id, usuario_id),
+    CONSTRAINT fk_lecturas_chat_conversacion FOREIGN KEY (conversacion_id) REFERENCES conversaciones (id) ON DELETE CASCADE,
+    CONSTRAINT fk_lecturas_chat_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS bloqueos_chat (
+    id             BIGINT   NOT NULL AUTO_INCREMENT,
+    bloqueador_id  BIGINT   NOT NULL,
+    bloqueado_id   BIGINT   NOT NULL,
+    creado_en      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_bloqueos_chat UNIQUE (bloqueador_id, bloqueado_id),
+    CONSTRAINT fk_bloqueos_chat_bloqueador FOREIGN KEY (bloqueador_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_bloqueos_chat_bloqueado FOREIGN KEY (bloqueado_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS reportes_mensaje (
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    mensaje_id  BIGINT       NOT NULL,
+    usuario_id  BIGINT       NOT NULL,
+    motivo      VARCHAR(255) NOT NULL,
+    estado      VARCHAR(20)  NOT NULL DEFAULT 'PENDIENTE',
+    creado_en   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- H56: resolución auditada desde el panel (migracion_h56_resolver_reportes_mensaje.sql)
+    accion           VARCHAR(20)   NULL,
+    resolucion       VARCHAR(1000) NULL,
+    resuelto_por_id  BIGINT        NULL,
+    fecha_resolucion DATETIME      NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_reportes_mensaje UNIQUE (mensaje_id, usuario_id),
+    CONSTRAINT fk_reportes_mensaje_resuelto_por FOREIGN KEY (resuelto_por_id) REFERENCES usuarios (id),
+    CONSTRAINT fk_reportes_mensaje_mensaje FOREIGN KEY (mensaje_id) REFERENCES mensajes_chat (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reportes_mensaje_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+-- H57: dispositivos para el push con Firebase y marca de envío. Bases existentes: migracion_h57_dispositivos.sql.
+CREATE TABLE IF NOT EXISTS dispositivos (
+    id               BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    usuario_id       BIGINT       NOT NULL,
+    token            VARCHAR(512) NOT NULL,
+    plataforma       VARCHAR(10)  NOT NULL,
+    sesion_jti       VARCHAR(64)  NULL,
+    fecha_registro   DATETIME     NOT NULL,
+    fecha_ultimo_uso DATETIME     NOT NULL,
+    CONSTRAINT uk_dispositivo_token UNIQUE (token),
+    CONSTRAINT fk_dispositivo_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT chk_dispositivo_plataforma CHECK (plataforma IN ('ANDROID')),
+    INDEX idx_dispositivos_usuario (usuario_id, fecha_ultimo_uso),
+    INDEX idx_dispositivos_sesion (sesion_jti)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE notificaciones ADD COLUMN push_enviado_en DATETIME NULL;
+CREATE INDEX idx_notificaciones_push ON notificaciones (push_enviado_en, fecha_creacion);
+
+-- H65: Idempotency-Key para que un reintento sin conexión no duplique. Bases existentes: migracion_h65_idempotencia.sql.
+ALTER TABLE mensajes_chat ADD COLUMN id_cliente VARCHAR(64) NULL;
+ALTER TABLE mensajes_chat ADD CONSTRAINT uq_mensajes_chat_cliente UNIQUE (autor_id, id_cliente);
+ALTER TABLE objetos ADD COLUMN id_cliente VARCHAR(64) NULL;
+ALTER TABLE objetos ADD CONSTRAINT uq_objetos_cliente UNIQUE (usuario_id, id_cliente);
+
+-- H70: restaurar una versión anterior. Bases existentes: migracion_h70_restauraciones.sql.
+ALTER TABLE respaldos ADD COLUMN eliminado_en DATETIME(6) NULL;
+
+CREATE TABLE IF NOT EXISTS restauraciones (
+    id                 BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    version            VARCHAR(20)   NOT NULL,
+    modo               VARCHAR(10)   NOT NULL,
+    estado             VARCHAR(12)   NOT NULL DEFAULT 'EN_PROCESO',
+    respaldo_base      VARCHAR(255)  NOT NULL,
+    respaldo_fotos     VARCHAR(255)  NOT NULL,
+    respaldo_seguridad VARCHAR(20)   NULL,
+    responsable        VARCHAR(120)  NULL,
+    iniciado_en        DATETIME(6)   NOT NULL,
+    finalizado_en      DATETIME(6)   NULL,
+    mensaje            VARCHAR(1000) NULL,
+    CONSTRAINT chk_restauracion_modo CHECK (modo IN ('ENSAYO', 'APLICADA')),
+    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
+    INDEX idx_restauraciones_iniciado (iniciado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H68: canal de cada tipo de aviso. Bases existentes: migracion_h68_canal_avisos.sql.
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_coincidencias VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_coincidencias CHECK (canal_coincidencias IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_contactos VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_contactos CHECK (canal_contactos IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_reclamos VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_reclamos CHECK (canal_reclamos IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_recordatorios VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_recordatorios CHECK (canal_recordatorios IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_mensajes VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_mensajes CHECK (canal_mensajes IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE preferencias_notificacion ADD COLUMN canal_sistema VARCHAR(8) NOT NULL DEFAULT 'PUSH', ADD CONSTRAINT chk_preferencia_canal_sistema CHECK (canal_sistema IN ('PUSH', 'CORREO', 'AMBOS', 'NINGUNO'));
+ALTER TABLE notificaciones ADD COLUMN correo_enviado_en DATETIME NULL;
+ALTER TABLE notificaciones ADD COLUMN correo_resultado VARCHAR(10) NULL;
+CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fecha_creacion);
+
+-- H71: avisos destacados con vigencia. Bases existentes: migracion_h71_avisos_destacados.sql.
+CREATE TABLE IF NOT EXISTS avisos_destacados (
+    id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    titulo              VARCHAR(80)  NOT NULL,
+    texto               VARCHAR(300) NOT NULL,
+    destino             VARCHAR(255) NULL,
+    campana_id          BIGINT       NULL,
+    fecha_inicio        DATE         NOT NULL,
+    fecha_fin           DATE         NOT NULL,
+    retirado_en         DATETIME(6)  NULL,
+    creado_por_id       BIGINT       NOT NULL,
+    fecha_creacion      DATETIME(6)  NOT NULL,
+    fecha_actualizacion DATETIME(6)  NOT NULL,
+    CONSTRAINT fk_aviso_destacado_campana FOREIGN KEY (campana_id) REFERENCES campanas (id),
+    CONSTRAINT fk_aviso_destacado_autor FOREIGN KEY (creado_por_id) REFERENCES usuarios (id),
+    CONSTRAINT chk_aviso_destacado_fechas CHECK (fecha_fin >= fecha_inicio),
+    INDEX idx_avisos_destacados_vigencia (fecha_inicio, fecha_fin)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H69: notificaciones masivas. Bases existentes: migracion_h69_envios_masivos.sql.
+CREATE TABLE IF NOT EXISTS envios_masivos (
+    id                  BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    titulo              VARCHAR(150)  NOT NULL,
+    mensaje             VARCHAR(1000) NOT NULL,
+    enlace              VARCHAR(255)  NULL,
+    destinatarios       VARCHAR(12)   NOT NULL,
+    total_destinatarios INT           NOT NULL,
+    autor_id            BIGINT        NOT NULL,
+    enviado_en          DATETIME(6)   NOT NULL,
+    CONSTRAINT fk_envio_masivo_autor FOREIGN KEY (autor_id) REFERENCES usuarios (id),
+    CONSTRAINT chk_envio_masivo_destinatarios CHECK (destinatarios IN ('TODOS', 'USUARIOS', 'BIBLIOTECA')),
+    INDEX idx_envios_masivos_enviado (enviado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE notificaciones ADD COLUMN envio_masivo_id BIGINT NULL,
+    ADD CONSTRAINT fk_notificacion_envio_masivo FOREIGN KEY (envio_masivo_id) REFERENCES envios_masivos (id);
+
+-- H67: alcance de las campañas. Bases existentes: migracion_h67_alcance_campanas.sql.
+CREATE TABLE IF NOT EXISTS alcance_campanas (
+    id         BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    campana_id BIGINT      NOT NULL,
+    tipo       VARCHAR(10) NOT NULL,
+    visita_id  VARCHAR(64) NULL,
+    fecha      DATETIME(6) NOT NULL,
+    CONSTRAINT fk_alcance_campana FOREIGN KEY (campana_id) REFERENCES campanas (id),
+    CONSTRAINT uq_alcance_visita UNIQUE (campana_id, visita_id),
+    CONSTRAINT chk_alcance_tipo CHECK (tipo IN ('VISITA', 'REGISTRO')),
+    CONSTRAINT chk_alcance_visita CHECK ((tipo = 'VISITA') = (visita_id IS NOT NULL)),
+    INDEX idx_alcance_campana_fecha (campana_id, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H66: promociones en redes. Bases existentes: migracion_h66_promociones.sql.
+CREATE TABLE IF NOT EXISTS promociones_campana (
+    id                BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    campana_id        BIGINT        NOT NULL,
+    red               VARCHAR(10)   NOT NULL,
+    texto             VARCHAR(2200) NOT NULL,
+    enlace            VARCHAR(400)  NOT NULL,
+    url_publicacion   VARCHAR(500)  NULL,
+    publicada_en      DATETIME(6)   NOT NULL,
+    registrada_por_id BIGINT        NOT NULL,
+    fecha_registro    DATETIME(6)   NOT NULL,
+    CONSTRAINT fk_promocion_campana FOREIGN KEY (campana_id) REFERENCES campanas (id),
+    CONSTRAINT fk_promocion_autor FOREIGN KEY (registrada_por_id) REFERENCES usuarios (id),
+    CONSTRAINT chk_promocion_red CHECK (red IN ('FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'X', 'LINKEDIN', 'WHATSAPP', 'OTRA')),
+    INDEX idx_promociones_campana (campana_id, publicada_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

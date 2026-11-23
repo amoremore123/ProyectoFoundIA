@@ -39,6 +39,15 @@ public record RegisterRequest(
         Boolean aceptaTerminos,
 
         @NotBlank(message = "es obligatoria")
-        String versionLegal
+        String versionLegal,
+
+        /** H67: origen de la campaña por la que llegó (opcional; si no es válido, no se cuenta). */
+        @Size(max = 64, message = "no debe superar los 64 caracteres")
+        String origen
 ) {
+    /** Constructor anterior a H67, sin origen. */
+    public RegisterRequest(String nombre, String apellido, String correo, String password,
+                           Boolean aceptaTerminos, String versionLegal) {
+        this(nombre, apellido, correo, password, aceptaTerminos, versionLegal, null);
+    }
 }

@@ -50,6 +50,32 @@ public class EmailService {
         }
     }
 
+    /** H68: aviso de la bandeja enviado por correo, para quien eligió ese canal. */
+    public void enviarAviso(String destinatario, String nombre, String titulo, String texto, String enlace) {
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setFrom(remitente);
+        mensaje.setTo(destinatario);
+        mensaje.setSubject("FoundIA | " + titulo);
+        mensaje.setText("""
+                Hola %s,
+
+                %s
+
+                Míralo en FoundIA: %s
+
+                Recibes este correo porque activaste los avisos por correo. Puedes apagarlos en
+                Notificaciones > Preferencias; los avisos seguirán en tu bandeja.
+
+                Equipo FoundIA
+                """.formatted(nombre, texto, enlace));
+        try {
+            mailSender.send(mensaje);
+        } catch (MailException ex) {
+            log.warn("No se pudo enviar un aviso por correo: {}", ex.getClass().getSimpleName());
+            throw new EnvioCorreoException("No pudimos enviar el aviso por correo.");
+        }
+    }
+
     public void enviarCodigoVerificacion(String destinatario, String nombre, String codigo, long minutosVigencia) {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setFrom(remitente);

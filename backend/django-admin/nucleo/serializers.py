@@ -1,6 +1,12 @@
+import re
+from urllib.parse import urlencode
+
+from django.conf import settings
 from rest_framework import serializers
 
-from .models import Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, Respaldo, Usuario
+from .models import (
+    AvisoDestacado, Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Restauracion, Usuario,
+)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -263,11 +269,197 @@ class RespaldoSerializer(serializers.ModelSerializer):
     tamanoBytes = serializers.IntegerField(source="tamano_bytes", read_only=True)
     iniciadoEn = serializers.DateTimeField(source="iniciado_en", read_only=True)
     finalizadoEn = serializers.DateTimeField(source="finalizado_en", read_only=True)
+    eliminadoEn = serializers.DateTimeField(source="eliminado_en", read_only=True)
 
     class Meta:
         model = Respaldo
         fields = [
-            "id", "nombreArchivo", "huellaSha256", "tamanoBytes",
-            "estado", "iniciadoEn", "finalizadoEn", "mensaje",
+            "id", "tipo", "nombreArchivo", "huellaSha256", "tamanoBytes",
+            "estado", "iniciadoEn", "finalizadoEn", "mensaje", "eliminadoEn",
         ]
         read_only_fields = fields
+
+
+class RestauracionSerializer(serializers.ModelSerializer):
+    """H70: solo lectura; la escribe scripts/restaurar_version.sh."""
+
+    respaldoBase = serializers.CharField(source="respaldo_base", read_only=True)
+    respaldoFotos = serializers.CharField(source="respaldo_fotos", read_only=True)
+    respaldoSeguridad = serializers.CharField(source="respaldo_seguridad", read_only=True)
+    iniciadoEn = serializers.DateTimeField(source="iniciado_en", read_only=True)
+    finalizadoEn = serializers.DateTimeField(source="finalizado_en", read_only=True)
+
+    class Meta:
+        model = Restauracion
+        fields = [
+            "id", "version", "modo", "estado", "respaldoBase", "respaldoFotos",
+            "respaldoSeguridad", "responsable", "iniciadoEn", "finalizadoEn", "mensaje",
+        ]
+        read_only_fields = fields
+
+
+class CampanaSerializer(serializers.ModelSerializer):
+    """H60: campaña de difusión. El servidor pone el autor, las fechas de registro y el enlace."""
+
+    ORIGEN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+    fechaInicio = serializers.DateField(source="fecha_inicio")
+    fechaFin = serializers.DateField(source="fecha_fin")
+    descripcion = serializers.CharField(
+        max_length=500, required=False, allow_blank=True, allow_null=True, trim_whitespace=True)
+    nombre = serializers.CharField(min_length=3, max_length=120, trim_whitespace=True)
+    origen = serializers.CharField(min_length=3, max_length=40, trim_whitespace=True)
+    destino = serializers.CharField(max_length=255, required=False, trim_whitespace=True)
+    enlace = serializers.SerializerMethodField()
+    estado = serializers.SerializerMethodField()
+    creadaPor = serializers.SerializerMethodField()
+    finalizadaEn = serializers.DateTimeField(source="finalizada_en", read_only=True)
+    fechaCreacion = serializers.DateTimeField(source="fecha_creacion", read_only=True)
+    fechaActualizacion = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+
+    class Meta:
+        model = Campana
+        fields = [
+            "id", "nombre", "descripcion", "origen", "destino", "enlace",
+            "fechaInicio", "fechaFin", "estado", "finalizadaEn", "creadaPor", "fechaCreacion", "fechaActualizacion",
+        ]
+        read_only_fields = ["id"]
+
+    def get_enlace(self, obj) -> str:
+        return f"{settings.FOUNDIA_WEB_URL}{obj.destino}?{urlencode({'origen': obj.origen})}"
+
+    def get_estado(self, obj) -> str:
+        return obj.estado()
+
+    def get_creadaPor(self, obj) -> dict:
+        return {"id": obj.creada_por_id,
+                "nombre": f"{obj.creada_por.nombre} {obj.creada_por.apellido}".strip()}
+
+    def validate_origen(self, valor):
+        if self.instance is not None and valor != self.instance.origen:
+            raise serializers.ValidationError("El origen no se puede cambiar: el enlace ya pudo compartirse.")
+        if not self.ORIGEN.match(valor):
+            raise serializers.ValidationError("Usa solo minúsculas, números y guiones (por ejemplo, semana-perdidos-2026).")
+        repetido = Campana.objects.filter(origen=valor)
+        if self.instance is not None:
+            repetido = repetido.exclude(pk=self.instance.pk)
+        if repetido.exists():
+            raise serializers.ValidationError("Ya existe una campaña con ese origen.")
+        return valor
+
+    def validate_destino(self, valor):
+        valor = valor or "/"
+        # Solo rutas de la propia web: nada de «https://…» ni «//otro-dominio»
+        if not valor.startswith("/") or valor.startswith("//") or "\\" in valor or "?" in valor or "#" in valor:
+            raise serializers.ValidationError("Debe ser una ruta de la web que empiece con «/», sin dominio ni parámetros.")
+        return valor
+
+    def validate(self, attrs):
+        inicio = attrs.get("fecha_inicio", getattr(self.instance, "fecha_inicio", None))
+        fin = attrs.get("fecha_fin", getattr(self.instance, "fecha_fin", None))
+        if inicio and fin and fin < inicio:
+            raise serializers.ValidationError({"fechaFin": "Debe ser igual o posterior a la fecha de inicio."})
+        if "descripcion" in attrs and not attrs["descripcion"]:
+            attrs["descripcion"] = None
+        return attrs
+
+
+class AvisoDestacadoSerializer(serializers.ModelSerializer):
+    """H71: aviso destacado con vigencia. El servidor pone el autor y las fechas de registro."""
+
+    titulo = serializers.CharField(min_length=3, max_length=80, trim_whitespace=True)
+    texto = serializers.CharField(min_length=3, max_length=300, trim_whitespace=True)
+    destino = serializers.CharField(
+        max_length=255, required=False, allow_blank=True, allow_null=True, trim_whitespace=True)
+    campanaId = serializers.PrimaryKeyRelatedField(
+        source="campana", queryset=Campana.objects.all(), required=False, allow_null=True,
+        error_messages={"does_not_exist": "No existe la campaña {pk_value}."})
+    fechaInicio = serializers.DateField(source="fecha_inicio")
+    fechaFin = serializers.DateField(source="fecha_fin")
+    enlace = serializers.SerializerMethodField()
+    estado = serializers.SerializerMethodField()
+    retiradoEn = serializers.DateTimeField(source="retirado_en", read_only=True)
+    creadoPor = serializers.SerializerMethodField()
+    fechaCreacion = serializers.DateTimeField(source="fecha_creacion", read_only=True)
+    fechaActualizacion = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+
+    class Meta:
+        model = AvisoDestacado
+        fields = [
+            "id", "titulo", "texto", "destino", "campanaId", "enlace", "fechaInicio", "fechaFin",
+            "estado", "retiradoEn", "creadoPor", "fechaCreacion", "fechaActualizacion",
+        ]
+        read_only_fields = ["id"]
+
+    def get_enlace(self, obj):
+        return obj.enlace()
+
+    def get_estado(self, obj) -> str:
+        return obj.estado()
+
+    def get_creadoPor(self, obj) -> dict:
+        return {"id": obj.creado_por_id,
+                "nombre": f"{obj.creado_por.nombre} {obj.creado_por.apellido}".strip()}
+
+    def validate_destino(self, valor):
+        if not valor:
+            return None
+        # Solo rutas de la propia web, igual que el destino de las campañas (H60)
+        if not valor.startswith("/") or valor.startswith("//") or "\\" in valor or "?" in valor or "#" in valor:
+            raise serializers.ValidationError("Debe ser una ruta de la web que empiece con «/», sin dominio ni parámetros.")
+        return valor
+
+    def validate(self, attrs):
+        if self.instance is not None and self.instance.retirado_en is not None:
+            raise serializers.ValidationError({"detail": "Un aviso retirado no se edita: crea uno nuevo."})
+        inicio = attrs.get("fecha_inicio", getattr(self.instance, "fecha_inicio", None))
+        fin = attrs.get("fecha_fin", getattr(self.instance, "fecha_fin", None))
+        if inicio and fin and fin < inicio:
+            raise serializers.ValidationError({"fechaFin": "Debe ser igual o posterior a la fecha de inicio."})
+        destino = attrs.get("destino", getattr(self.instance, "destino", None))
+        campana = attrs.get("campana", getattr(self.instance, "campana", None))
+        if destino and campana is not None:
+            raise serializers.ValidationError(
+                {"destino": "Usa una ruta o una campaña, no las dos: con campaña se abre el enlace de la campaña."})
+        return attrs
+
+
+def _persona(usuario, con_estado=False):
+    if usuario is None:
+        return None
+    datos = {"id": usuario.id, "nombre": f"{usuario.nombre} {usuario.apellido}".strip()}
+    if con_estado:
+        datos["estado"] = usuario.estado
+    return datos
+
+
+class ReporteMensajeSerializer(serializers.ModelSerializer):
+    """H56: reporte de un mensaje del chat con el texto y el autor, sin correos ni teléfonos."""
+
+    fechaReporte = serializers.DateTimeField(source="creado_en", read_only=True)
+    conversacionId = serializers.IntegerField(source="mensaje.conversacion_id", read_only=True)
+    mensaje = serializers.SerializerMethodField()
+    autor = serializers.SerializerMethodField()
+    reportadoPor = serializers.SerializerMethodField()
+    resueltoPor = serializers.SerializerMethodField()
+    fechaResolucion = serializers.DateTimeField(source="fecha_resolucion", read_only=True)
+
+    class Meta:
+        model = ReporteMensaje
+        fields = ["id", "estado", "motivo", "fechaReporte", "conversacionId", "mensaje", "autor",
+                  "reportadoPor", "accion", "resolucion", "resueltoPor", "fechaResolucion"]
+        read_only_fields = fields
+
+    def get_mensaje(self, obj) -> dict:
+        m = obj.mensaje
+        return {"id": m.id, "texto": m.texto, "imagenUrl": m.imagen_url,
+                "enviadoEn": serializers.DateTimeField().to_representation(m.enviado_en)}
+
+    def get_autor(self, obj) -> dict:
+        return _persona(obj.mensaje.autor, con_estado=True)
+
+    def get_reportadoPor(self, obj) -> dict:
+        return _persona(obj.usuario)
+
+    def get_resueltoPor(self, obj):
+        return _persona(obj.resuelto_por)

@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from datetime import datetime, timedelta, timezone as dt_timezone
 
@@ -24,8 +25,12 @@ from .custodia import (
 from .disposicion import (
     DESTINOS, MOTIVO_MAX, MOTIVO_MIN, acta_pdf, codigo_acta, dias_en_custodia, limite_vencimiento, plazo_dias,
 )
+from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
+    AvisoDestacado,
     ROL_CHOICES,
+    Campana,
+    Dispositivo,
     CambioRol,
     Categoria,
     Custodia,
@@ -34,10 +39,12 @@ from .models import (
     Objeto,
     Reclamo,
     Reporte,
-    Respaldo,
+    ReporteMensaje,
+    Respaldo, Restauracion,
     SecuenciaCustodia,
     TokenRevocado,
     Usuario,
+    hoy_en_lima,
 )
 from .authentication import get_jwt_secret, sello_credencial
 from .exportacion import FORMATO_PDF, FORMATO_XLSX, excel_reporte, nombre_archivo, pdf_reporte
@@ -49,6 +56,8 @@ from .reclamos_custodia import (
     token_retiro_vigente,
 )
 from .serializers import (
+    AvisoDestacadoSerializer,
+    CampanaSerializer,
     CategoriaSerializer,
     CustodiaCreateSerializer,
     CustodiaObjetoSerializer,
@@ -58,7 +67,8 @@ from .serializers import (
     ReclamoResolucionSerializer,
     ReclamoSerializer,
     ReporteSerializer,
-    RespaldoSerializer,
+    ReporteMensajeSerializer,
+    RespaldoSerializer, RestauracionSerializer,
     RetiroSerializer,
     UsuarioSerializer,
 )
@@ -168,6 +178,8 @@ class LogoutView(APIView):
             # Un token legado sin jti no se puede revocar de forma individual.
             Usuario.objects.filter(pk=request.user.pk).update(
                 sesion_version=F("sesion_version") + 1)
+            Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
+            revocar_firebase(request.user.pk)  # H72
             return Response({"mensaje": "Sesión cerrada en todos los dispositivos"})
 
         exp = payload.get("exp")
@@ -183,6 +195,8 @@ class LogoutView(APIView):
                 "expira_en": expira,
             },
         )
+        # H57: el teléfono de esta sesión deja de recibir push
+        Dispositivo.objects.filter(sesion_jti=jti).delete()
         return Response({"mensaje": "Sesión cerrada"})
 
 
@@ -194,6 +208,8 @@ class LogoutAllView(APIView):
     def post(self, request):
         Usuario.objects.filter(pk=request.user.pk).update(
             sesion_version=F("sesion_version") + 1)
+        Dispositivo.objects.filter(usuario_id=request.user.pk).delete()  # H57
+        revocar_firebase(request.user.pk)  # H72
         return Response({"mensaje": "Sesiones cerradas en todos los dispositivos"})
 
 
@@ -291,6 +307,10 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             )
         usuario.estado = estado
         usuario.save(update_fields=["estado", "fecha_actualizacion"])
+        if estado == "SUSPENDIDO":
+            # H57: una cuenta suspendida no recibe push; H72: ni conserva su sesión de Firebase
+            Dispositivo.objects.filter(usuario_id=usuario.pk).delete()
+            revocar_firebase(usuario.pk)
         return Response(UsuarioSerializer(usuario).data)
 
     def _cambiar_rol(self, request, usuario):
@@ -926,15 +946,233 @@ class RespaldoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
     Solo lectura: el servicio programado de Docker Compose es el único que
     crea y actualiza filas. `ultimo/` devuelve el respaldo más reciente o
     `{"ultimo": null}` si todavía no se ejecutó ninguno.
+
+    H59: `?tipo=BASE|FOTOS` filtra la lista. `ultimo/` sin tipo sigue
+    devolviendo el último respaldo de la base, como en H38.
     """
 
     queryset = Respaldo.objects.all()
     serializer_class = RespaldoSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
 
+    def _tipo(self, por_defecto=None):
+        tipo = self.request.query_params.get("tipo", por_defecto)
+        if tipo is not None and tipo not in Respaldo.TIPOS:
+            raise ValidationError({"tipo": "Debe ser BASE o FOTOS."})
+        return tipo
+
+    def get_queryset(self):
+        consulta = Respaldo.objects.all()
+        tipo = self._tipo()
+        return consulta.filter(tipo=tipo) if tipo else consulta
+
     @action(detail=False, methods=["get"])
     def ultimo(self, request):
-        respaldo = self.get_queryset().first()
+        respaldo = Respaldo.objects.filter(tipo=self._tipo("BASE")).first()
         return Response({
             "ultimo": RespaldoSerializer(respaldo).data if respaldo else None,
         })
+
+    @action(detail=False, methods=["get"])
+    def versiones(self, request):
+        """H70 - Versiones restaurables: el respaldo de la base y el de fotos de una misma ejecución."""
+        bases = Respaldo.objects.filter(tipo="BASE", estado="COMPLETADO")
+        pagina = self.paginate_queryset(bases)
+        fotos = []
+        if pagina:
+            desde = min(b.iniciado_en for b in pagina) - DESFASE_VERSION
+            hasta = max(b.iniciado_en for b in pagina) + DESFASE_VERSION
+            fotos = list(Respaldo.objects.filter(
+                tipo="FOTOS", estado="COMPLETADO", iniciado_en__range=(desde, hasta)))
+        return self.get_paginated_response([_version(base, fotos) for base in pagina])
+
+
+# H70: diferencia máxima entre el respaldo de la base y el de fotos de una misma ejecución
+# (la misma que usan scripts/recuperar_todo.sh y scripts/restaurar_version.sh).
+DESFASE_VERSION = timedelta(hours=1)
+MARCA_VERSION = re.compile(r"\d{8}T\d{6}Z")
+
+
+def _archivo_version(respaldo):
+    if respaldo is None:
+        return None
+    return {
+        "id": respaldo.id,
+        "nombreArchivo": respaldo.nombre_archivo,
+        "tamanoBytes": respaldo.tamano_bytes,
+        "eliminadoEn": RespaldoSerializer(respaldo).data["eliminadoEn"],
+    }
+
+
+def _version(base, fotos):
+    cercanas = [f for f in fotos if abs(f.iniciado_en - base.iniciado_en) <= DESFASE_VERSION]
+    par = min(cercanas, key=lambda f: abs(f.iniciado_en - base.iniciado_en), default=None)
+    marca = MARCA_VERSION.search(base.nombre_archivo)
+    if base.eliminado_en or (par and par.eliminado_en):
+        motivo = "Los archivos se borraron por la retención."
+    elif par is None:
+        motivo = "No hay respaldo de fotos de la misma ejecución."
+    else:
+        motivo = None
+    return {
+        "version": marca.group(0) if marca else None,
+        "fecha": RespaldoSerializer(base).data["iniciadoEn"],
+        "disponible": motivo is None,
+        "motivo": motivo,
+        "base": _archivo_version(base),
+        "fotos": _archivo_version(par),
+    }
+
+
+class RestauracionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H70 - GET /api/admin/restauraciones/ y /{id}/: ensayos y restauraciones aplicadas.
+
+    Solo lectura: las registra scripts/restaurar_version.sh. El panel no restaura.
+    """
+
+    queryset = Restauracion.objects.all()
+    serializer_class = RestauracionSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+
+class AvisoDestacadoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """H71 - Avisos destacados, solo ADMIN.
+
+    GET/POST /api/admin/avisos-destacados/ · GET/PUT/PATCH /api/admin/avisos-destacados/{id}/
+    POST /api/admin/avisos-destacados/{id}/retirar/. No hay DELETE: queda el historial.
+    Spring los muestra sin sesión en GET /api/avisos-destacados mientras están vigentes.
+    """
+
+    serializer_class = AvisoDestacadoSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    def get_queryset(self):
+        consulta = AvisoDestacado.objects.select_related("creado_por", "campana").all()
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in AvisoDestacado.ESTADOS:
+            raise ValidationError({"estado": "Usa PROGRAMADO, VIGENTE, VENCIDO o RETIRADO."})
+        if estado == "RETIRADO":
+            return consulta.filter(retirado_en__isnull=False)
+        hoy = hoy_en_lima()
+        sin_retirar = consulta.filter(retirado_en__isnull=True)
+        if estado == "PROGRAMADO":
+            return sin_retirar.filter(fecha_inicio__gt=hoy)
+        if estado == "VENCIDO":
+            return sin_retirar.filter(fecha_fin__lt=hoy)
+        return sin_retirar.filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+
+    def perform_create(self, serializer):
+        ahora = timezone.now()
+        serializer.save(creado_por=self.request.user, fecha_creacion=ahora, fecha_actualizacion=ahora)
+
+    def perform_update(self, serializer):
+        serializer.save(fecha_actualizacion=timezone.now())
+
+    @action(detail=True, methods=["post"])
+    def retirar(self, request, pk=None):
+        aviso = self.get_object()
+        if aviso.retirado_en is None:
+            ahora = timezone.now()
+            aviso.retirado_en = ahora
+            aviso.fecha_actualizacion = ahora
+            aviso.save(update_fields=["retirado_en", "fecha_actualizacion"])
+        return Response(AvisoDestacadoSerializer(aviso).data)
+
+
+class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                     mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """H60 - Campañas de difusión, solo ADMIN.
+
+    GET/POST /api/admin/campanas/ · GET/PUT/PATCH /api/admin/campanas/{id}/
+    POST /api/admin/campanas/{id}/finalizar/. No hay DELETE: una campaña se
+    finaliza, no se borra, porque su origen sigue contando visitas (H67).
+    """
+
+    serializer_class = CampanaSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+    ESTADOS = ("PROGRAMADA", "ACTIVA", "FINALIZADA")
+
+    def get_queryset(self):
+        consulta = Campana.objects.select_related("creada_por").all()
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in self.ESTADOS:
+            raise ValidationError({"estado": "Usa PROGRAMADA, ACTIVA o FINALIZADA."})
+        hoy = hoy_en_lima()
+        if estado == "FINALIZADA":
+            return consulta.filter(Q(finalizada_en__isnull=False) | Q(fecha_fin__lt=hoy))
+        vigentes = consulta.filter(finalizada_en__isnull=True)
+        if estado == "PROGRAMADA":
+            return vigentes.filter(fecha_inicio__gt=hoy)
+        return vigentes.filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+
+    def perform_create(self, serializer):
+        ahora = timezone.now()
+        serializer.save(creada_por=self.request.user, fecha_creacion=ahora, fecha_actualizacion=ahora)
+
+    def perform_update(self, serializer):
+        serializer.save(fecha_actualizacion=timezone.now())
+
+    @action(detail=True, methods=["post"])
+    def finalizar(self, request, pk=None):
+        campana = self.get_object()
+        hoy = hoy_en_lima()
+        estado = campana.estado(hoy)
+        if estado == "PROGRAMADA":
+            return Response({"detail": "La campaña aún no empieza: cambia sus fechas en lugar de finalizarla."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if estado == "ACTIVA":
+            # Termina hoy: la fecha de fin refleja el último día real de la campaña
+            ahora = timezone.now()
+            campana.fecha_fin = hoy
+            campana.finalizada_en = ahora
+            campana.fecha_actualizacion = ahora
+            campana.save(update_fields=["fecha_fin", "finalizada_en", "fecha_actualizacion"])
+        # Ya finalizada: se responde igual, sin cambios (repetir es seguro)
+        return Response(self.get_serializer(campana).data)
+
+    @action(detail=False, methods=["get"], url_path="alcance")
+    def tablero_alcance(self, request):
+        """H67 - Visitas y registros de cada campaña en un rango de fechas de Lima."""
+        from . import alcance_campanas as alcance
+        desde, hasta = alcance.rango(request.query_params, *alcance.rango_por_defecto_tablero())
+        campanas = Campana.objects.select_related("creada_por").order_by("-fecha_inicio", "-id")
+        return Response(alcance.tablero(campanas, desde, hasta))
+
+    @action(detail=True, methods=["get"], url_path="alcance")
+    def alcance(self, request, pk=None):
+        """H67 - Una campaña, con el detalle por día."""
+        from . import alcance_campanas as alcance
+        campana = self.get_object()
+        desde, hasta = alcance.rango(request.query_params, *alcance.rango_por_defecto_campana(campana))
+        return Response(alcance.detalle(campana, desde, hasta))
+
+
+class ReporteMensajeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """H56 - GET /api/admin/reportes-mensajes/ y /{id}/ · POST /{id}/resolver/, solo ADMIN.
+
+    Los reportes los crea el chat (Spring); aquí solo se consultan y se resuelven
+    con DESCARTAR, ADVERTIR o SUSPENDER. No hay alta, edición ni borrado.
+    """
+
+    serializer_class = ReporteMensajeSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+    ESTADOS = ("PENDIENTE", "RESUELTO", "RECHAZADO")
+
+    def get_queryset(self):
+        consulta = ReporteMensaje.objects.select_related("mensaje__autor", "usuario", "resuelto_por")
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in self.ESTADOS:
+            raise ValidationError({"estado": "Usa PENDIENTE, RESUELTO o RECHAZADO."})
+        return consulta.filter(estado=estado)
+
+    @action(detail=True, methods=["post"])
+    def resolver(self, request, pk=None):
+        from .reportes_mensaje import resolver_reporte_mensaje
+        return resolver_reporte_mensaje(request, pk)

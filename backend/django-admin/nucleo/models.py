@@ -12,6 +12,9 @@ CRITICO:
   (fecha_registro, fecha_objeto, fecha_publicacion, fecha_actualizacion,
   fecha_subida, fecha_creacion, fecha_contacto, fecha_reporte, fecha_resolucion).
 """
+import datetime as _dt
+from urllib.parse import urlencode
+
 from django.db import models
 from django.utils import timezone
 
@@ -283,6 +286,11 @@ class Notificacion(models.Model):
     enlace = models.CharField(max_length=500, null=True, blank=True)
     leida = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(default=timezone.now, blank=True)
+    # H69: el envío masivo que creó este aviso (null en los avisos normales)
+    envio_masivo = models.ForeignKey(
+        "EnvioMasivo", on_delete=models.DO_NOTHING, db_column="envio_masivo_id", null=True, blank=True,
+        related_name="notificaciones",
+    )
 
     class Meta:
         managed = False
@@ -463,6 +471,9 @@ class Respaldo(models.Model):
     esta tabla solo permite consultar el resultado desde el panel.
     """
 
+    TIPOS = ("BASE", "FOTOS")  # H59: base de datos o volumen de fotos
+
+    tipo = models.CharField(max_length=10, default="BASE")
     nombre_archivo = models.CharField(max_length=255, unique=True)
     huella_sha256 = models.CharField(max_length=64, null=True, blank=True)
     tamano_bytes = models.BigIntegerField(null=True, blank=True)
@@ -470,6 +481,8 @@ class Respaldo(models.Model):
     iniciado_en = models.DateTimeField()
     finalizado_en = models.DateTimeField(null=True, blank=True)
     mensaje = models.CharField(max_length=500, null=True, blank=True)
+    # H70: la retención borró el archivo; la fila queda como historial.
+    eliminado_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -478,3 +491,242 @@ class Respaldo(models.Model):
 
     def __str__(self):
         return f"Respaldo {self.nombre_archivo} ({self.estado})"
+
+
+class Restauracion(models.Model):
+    """H70: cada ensayo o restauración aplicada de una versión anterior.
+
+    La escribe scripts/restaurar_version.sh; el panel solo la consulta.
+    """
+
+    version = models.CharField(max_length=20)
+    modo = models.CharField(max_length=10)  # ENSAYO | APLICADA
+    estado = models.CharField(max_length=12, default="EN_PROCESO")  # EN_PROCESO | COMPLETADA | FALLIDA
+    respaldo_base = models.CharField(max_length=255)
+    respaldo_fotos = models.CharField(max_length=255)
+    respaldo_seguridad = models.CharField(max_length=20, null=True, blank=True)
+    responsable = models.CharField(max_length=120, null=True, blank=True)
+    iniciado_en = models.DateTimeField()
+    finalizado_en = models.DateTimeField(null=True, blank=True)
+    mensaje = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "restauraciones"
+        ordering = ["-iniciado_en", "-id"]
+
+    def __str__(self):
+        return f"Restauración {self.version} ({self.modo}, {self.estado})"
+
+
+ZONA_LIMA = _dt.timezone(_dt.timedelta(hours=-5), "America/Lima")  # Perú no usa horario de verano
+
+
+def hoy_en_lima():
+    return timezone.now().astimezone(ZONA_LIMA).date()
+
+
+class Campana(models.Model):
+    """H60: campaña de difusión con enlace de origen para medir su alcance (H67)."""
+
+    nombre = models.CharField(max_length=120)
+    descripcion = models.CharField(max_length=500, null=True, blank=True)
+    origen = models.CharField(max_length=40, unique=True)
+    destino = models.CharField(max_length=255, default="/")
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    creada_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="creada_por_id",
+        related_name="campanas_creadas",
+    )
+    finalizada_en = models.DateTimeField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "campanas"
+        ordering = ["-fecha_inicio", "-id"]
+
+    def estado(self, hoy=None):
+        # Las fechas de la campaña son del calendario de Lima, aunque Django trabaje en UTC
+        hoy = hoy or hoy_en_lima()
+        if hoy < self.fecha_inicio:
+            return "PROGRAMADA"
+        if self.finalizada_en is not None or hoy > self.fecha_fin:
+            return "FINALIZADA"
+        return "ACTIVA"
+
+    def __str__(self):
+        return f"Campaña {self.origen}"
+
+
+class PromocionCampana(models.Model):
+    """H66: una promoción de campaña publicada a mano en una red social y registrada en el panel."""
+
+    campana = models.ForeignKey(Campana, on_delete=models.DO_NOTHING, db_column="campana_id",
+                                related_name="promociones")
+    red = models.CharField(max_length=10)
+    texto = models.CharField(max_length=2200)
+    enlace = models.CharField(max_length=400)
+    url_publicacion = models.CharField(max_length=500, null=True, blank=True)
+    publicada_en = models.DateTimeField()
+    registrada_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="registrada_por_id",
+                                       related_name="promociones_registradas")
+    fecha_registro = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "promociones_campana"
+        ordering = ["-publicada_en", "-id"]
+
+    def __str__(self):
+        return f"Promoción {self.red} de {self.campana_id}"
+
+
+class AlcanceCampana(models.Model):
+    """H67: una visita o un registro que llegó por el enlace de una campaña. Lo escribe Spring.
+
+    Sin datos personales: ni IP ni cuenta; las visitas solo tienen un identificador al azar de la web.
+    """
+
+    campana = models.ForeignKey(Campana, on_delete=models.DO_NOTHING, db_column="campana_id",
+                                related_name="alcance")
+    tipo = models.CharField(max_length=10)  # VISITA | REGISTRO
+    visita_id = models.CharField(max_length=64, null=True, blank=True)
+    fecha = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "alcance_campanas"
+
+
+class EnvioMasivo(models.Model):
+    """H69: aviso enviado a muchas cuentas desde el panel, con su autor y sus destinatarios."""
+
+    titulo = models.CharField(max_length=150)
+    mensaje = models.CharField(max_length=1000)
+    enlace = models.CharField(max_length=255, null=True, blank=True)
+    destinatarios = models.CharField(max_length=12)  # TODOS | USUARIOS | BIBLIOTECA
+    total_destinatarios = models.IntegerField()
+    autor = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="autor_id",
+                              related_name="envios_masivos")
+    enviado_en = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "envios_masivos"
+        ordering = ["-enviado_en", "-id"]
+
+    def __str__(self):
+        return f"Envío masivo {self.titulo}"
+
+
+class AvisoDestacado(models.Model):
+    """H71: aviso que todos ven arriba en la web y en la app mientras está vigente.
+
+    Lo administra el panel (Django); Spring lo expone sin sesión en GET /api/avisos-destacados.
+    """
+
+    titulo = models.CharField(max_length=80)
+    texto = models.CharField(max_length=300)
+    destino = models.CharField(max_length=255, null=True, blank=True)
+    campana = models.ForeignKey(
+        Campana, on_delete=models.DO_NOTHING, db_column="campana_id", null=True, blank=True,
+        related_name="avisos_destacados",
+    )
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    retirado_en = models.DateTimeField(null=True, blank=True)
+    creado_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="creado_por_id", related_name="avisos_destacados",
+    )
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(default=timezone.now)
+
+    ESTADOS = ("PROGRAMADO", "VIGENTE", "VENCIDO", "RETIRADO")
+
+    class Meta:
+        managed = False
+        db_table = "avisos_destacados"
+        ordering = ["-fecha_inicio", "-id"]
+
+    def estado(self, hoy=None):
+        # Fechas del calendario de Lima, como las campañas (H60)
+        if self.retirado_en is not None:
+            return "RETIRADO"
+        hoy = hoy or hoy_en_lima()
+        if hoy < self.fecha_inicio:
+            return "PROGRAMADO"
+        if hoy > self.fecha_fin:
+            return "VENCIDO"
+        return "VIGENTE"
+
+    def enlace(self):
+        if self.campana_id:
+            return f"{self.campana.destino}?{urlencode({'origen': self.campana.origen})}"
+        return self.destino or None
+
+    def __str__(self):
+        return f"Aviso destacado {self.titulo}"
+
+
+class MensajeChat(models.Model):
+    """H55: mensaje del chat (lo escribe Spring); Django solo lo lee para moderar (H56)."""
+
+    conversacion_id = models.BigIntegerField()
+    autor = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="autor_id", related_name="mensajes_chat",
+    )
+    texto = models.TextField(null=True, blank=True)
+    imagen_url = models.CharField(max_length=500, null=True, blank=True)
+    enviado_en = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "mensajes_chat"
+
+
+class ReporteMensaje(models.Model):
+    """H56: reporte de un mensaje del chat; lo crea Spring y se resuelve desde el panel."""
+
+    ACCIONES = {"DESCARTAR": "RECHAZADO", "ADVERTIR": "RESUELTO", "SUSPENDER": "RESUELTO"}
+
+    mensaje = models.ForeignKey(
+        MensajeChat, on_delete=models.DO_NOTHING, db_column="mensaje_id", related_name="reportes",
+    )
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id", related_name="reportes_mensaje_hechos",
+    )
+    motivo = models.CharField(max_length=255)
+    estado = models.CharField(max_length=20, default="PENDIENTE")
+    creado_en = models.DateTimeField(default=timezone.now)
+    accion = models.CharField(max_length=20, null=True, blank=True)
+    resolucion = models.CharField(max_length=1000, null=True, blank=True)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="resuelto_por_id", null=True, blank=True,
+        related_name="reportes_mensaje_resueltos",
+    )
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "reportes_mensaje"
+        ordering = ["creado_en", "id"]
+
+
+class Dispositivo(models.Model):
+    """H57: teléfono que recibe push (lo registra Spring). Django solo lo borra al cerrar sesión o suspender."""
+
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, db_column="usuario_id", related_name="dispositivos",
+    )
+    token = models.CharField(max_length=512, unique=True)
+    plataforma = models.CharField(max_length=10)
+    sesion_jti = models.CharField(max_length=64, null=True, blank=True)
+    fecha_registro = models.DateTimeField(default=timezone.now)
+    fecha_ultimo_uso = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "dispositivos"

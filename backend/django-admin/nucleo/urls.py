@@ -1,7 +1,11 @@
 from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
+from .envios_masivos import EnvioMasivoViewSet
+from .promociones import PromocionViewSet
 from .views import (
+    AvisoDestacadoViewSet,
+    CampanaViewSet,
     CategoriaViewSet,
     CustodiaViewSet,
     DashboardExportView,
@@ -11,8 +15,10 @@ from .views import (
     LogoutView,
     ObjetoViewSet,
     ReclamoViewSet,
+    ReporteMensajeViewSet,
     ReporteViewSet,
     RespaldoViewSet,
+    RestauracionViewSet,
     UsuarioViewSet,
 )
 
@@ -25,6 +31,18 @@ router.register("reclamos", ReclamoViewSet, basename="reclamos")
 router.register("categorias", CategoriaViewSet, basename="categorias")
 router.register("reportes", ReporteViewSet, basename="reportes")
 router.register("respaldos", RespaldoViewSet, basename="respaldos")
+# H70: historial de restauraciones (solo lectura; restaura scripts/restaurar_version.sh)
+router.register("restauraciones", RestauracionViewSet, basename="restauraciones")
+# H56: resolver los reportes de mensajes del chat
+router.register("reportes-mensajes", ReporteMensajeViewSet, basename="reportes-mensajes")
+# H60: campañas de difusión (sin DELETE: se finalizan)
+router.register("campanas", CampanaViewSet, basename="campanas")
+# H71: avisos destacados con vigencia (sin DELETE: se retiran)
+router.register("avisos-destacados", AvisoDestacadoViewSet, basename="avisos-destacados")
+# H69: notificaciones masivas (vista previa, confirmación y registro; no se editan ni se borran)
+router.register("envios-masivos", EnvioMasivoViewSet, basename="envios-masivos")
+# H66: promociones en redes (se preparan y se registran; no se publican desde FoundIA)
+router.register("promociones", PromocionViewSet, basename="promociones")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),

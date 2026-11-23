@@ -59,6 +59,71 @@ en las cinco capas: Spring, Django, web de usuario, panel y Android.
 
 4. **Nada pasa a `main` sin la autorización escrita del equipo**, y nunca con push forzado.
 
+### Antes de usar el backend del Sprint 4: aplicar 13 migraciones
+
+El Sprint 4 agrega cambios a la base de datos. Tu MySQL local **no los tiene** hasta que apliques
+las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de levantar Spring**:
+
+| Migración | Historia | Qué agrega |
+| --- | --- | --- |
+| `database/migracion_h55_chat.sql` | H55 a H63 | Tablas del chat |
+| `database/migracion_h56_resolver_reportes_mensaje.sql` | H56 | Resolución de reportes de mensajes (después de la del chat) |
+| `database/migracion_h57_dispositivos.sql` | H57 | Tabla `dispositivos` y marca de push en `notificaciones` |
+| `database/migracion_h68_canal_avisos.sql` | H68 | Canal de cada tipo de aviso (push, correo, ambos o solo la bandeja). Si ya aplicaste la versión anterior, vuelve a ejecutarla: pasa lo guardado |
+| `database/migracion_h65_idempotencia.sql` | H65 | Clave `Idempotency-Key` para que los reintentos no dupliquen |
+| `database/migracion_h69_envios_masivos.sql` | H69 | Tabla `envios_masivos` y el envío de cada aviso en `notificaciones` |
+| `database/migracion_h70_restauraciones.sql` | H70 | Versiones restaurables: `respaldos.eliminado_en` y tabla `restauraciones` (sin ella, el panel de respaldos falla) |
+| `database/migracion_h59_respaldo_fotos.sql` | H59 | Columna `tipo` en `respaldos` |
+| `database/migracion_h60_campanas.sql` | H60 | Tabla `campanas` |
+| `database/migracion_h66_promociones.sql` | H66 | Tabla `promociones_campana` (después de la de H60) |
+| `database/migracion_h67_alcance_campanas.sql` | H67 | Tabla `alcance_campanas` (después de la de H60) |
+| `database/migracion_h71_avisos_destacados.sql` | H71 | Tabla `avisos_destacados` (después de la de H60) |
+| `database/migracion_h64_foto_perfil.sql` | H64 | Columna `foto_perfil_url` en `usuarios` |
+
+> **La de H64 es obligatoria:** sin esa columna, Spring falla al buscar usuarios (por ejemplo, al
+> iniciar sesión).
+
+1. Saca un respaldo antes (funciona aunque todavía no apliques las migraciones):
+
+   ```bash
+   docker compose build respaldo
+   docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
+   ```
+
+2. Aplica las 13 migraciones con MySQL encendido (`docker compose up -d mysql`).
+
+   En **Git Bash**:
+
+   ```bash
+   for m in h55_chat h56_resolver_reportes_mensaje h57_dispositivos h59_respaldo_fotos h60_campanas h64_foto_perfil h65_idempotencia h66_promociones h67_alcance_campanas h68_canal_avisos h69_envios_masivos h70_restauraciones h71_avisos_destacados; do docker exec -i foundia-mysql mysql -uroot -proot < database/migracion_$m.sql; done
+   ```
+
+   En **PowerShell** (el `<` de PowerShell no funciona aquí; se usa `cmd`):
+
+   ```powershell
+   foreach ($m in 'h55_chat','h56_resolver_reportes_mensaje','h57_dispositivos','h59_respaldo_fotos','h60_campanas','h64_foto_perfil','h65_idempotencia','h66_promociones','h67_alcance_campanas','h68_canal_avisos','h69_envios_masivos','h70_restauraciones','h71_avisos_destacados') { cmd /c "docker exec -i foundia-mysql mysql -uroot -proot < database\migracion_$m.sql" }
+   ```
+
+3. Levanta lo demás: `docker compose up -d --build`.
+
+Son **re-ejecutables**: si ya estaban aplicadas, solo muestran «ya existe» y no cambian nada.
+
+**M1 (datos):** cuando el equipo confirme las dos categorías de prueba, aplica también
+`database/datos_m1_desactivar_categorias_qa.sql` (las desactiva por nombre, sin borrar nada).
+Detalle en [`docs/api/sprint4-m1.md`](docs/api/sprint4-m1.md).
+**No** uses `docker compose down -v` ni vuelvas a importar `script.sql` o `seed.sql`: borrarían tus datos.
+Si tu contenedor de MySQL no se llama `foundia-mysql`, revisa el nombre con `docker ps`.
+
+**Push con Firebase (H57), opcional:** sin configurarlo el push queda apagado y todo lo demás funciona.
+Para activarlo, en el `.env` de la raíz (que Git ignora) pon la cuenta de servicio **en una sola línea**:
+
+```text
+FIREBASE_CREDENCIALES_JSON={"type":"service_account","project_id":"…","private_key":"…",…}
+```
+
+La clave se pide por privado a quien administra el proyecto de Firebase. **Nunca** la copies dentro de
+la carpeta del proyecto ni la subas a Git.
+
 ## Sprint 2 (H21–H24, H26–H31, H33–H35 y H39)
 
 Estado al **06/11/2026: Sprint 2 completado** para las pruebas locales del equipo.

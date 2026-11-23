@@ -20,6 +20,10 @@ import java.util.UUID;
 @Service
 public class AlmacenamientoImagenService {
 
+    /** H64: subcarpeta privada de las fotos de perfil dentro del directorio de imágenes. */
+    public static final String CARPETA_PERFILES = "perfiles";
+    private static final String RUTA_PERFIL = "perfiles/[0-9a-fA-F-]{36}\\.(jpg|png)";
+
     private final Path directorio;
     private final long maximoBytes;
     private final long maximoPixeles;
@@ -34,6 +38,41 @@ public class AlmacenamientoImagenService {
     }
 
     public ImagenGuardada guardar(MultipartFile archivo) {
+        String nombre = guardarEn(archivo, directorio);
+        return new ImagenGuardada(nombre, "/uploads/" + nombre);
+    }
+
+    /**
+     * H64: guarda la foto de perfil en la subcarpeta privada {@code perfiles/}, con las
+     * mismas reglas que las fotos de publicaciones. Devuelve la ruta interna
+     * ({@code perfiles/<uuid>.jpg}); la ruta pública {@code /uploads/perfiles/**} está bloqueada.
+     */
+    public String guardarPerfil(MultipartFile archivo) {
+        return CARPETA_PERFILES + "/" + guardarEn(archivo, directorio.resolve(CARPETA_PERFILES));
+    }
+
+    /** H64: archivo de una foto de perfil, o vacío si la ruta no es válida o no existe. */
+    public java.util.Optional<Path> archivoPerfil(String ruta) {
+        if (ruta == null || !ruta.matches(RUTA_PERFIL)) {
+            return java.util.Optional.empty();
+        }
+        Path archivo = directorio.resolve(ruta).normalize();
+        return archivo.startsWith(directorio.resolve(CARPETA_PERFILES)) && Files.isRegularFile(archivo)
+                ? java.util.Optional.of(archivo) : java.util.Optional.empty();
+    }
+
+    /** H64: borra una foto de perfil; no hace nada con rutas que no sean de {@code perfiles/}. */
+    public void eliminarPerfil(String ruta) {
+        archivoPerfil(ruta).ifPresent(archivo -> {
+            try {
+                Files.deleteIfExists(archivo);
+            } catch (IOException ignored) {
+                // La limpieza es compensatoria; un archivo huérfano no afecta a la cuenta.
+            }
+        });
+    }
+
+    private String guardarEn(MultipartFile archivo, Path carpeta) {
         if (archivo == null || archivo.isEmpty()) {
             throw new ImagenInvalidaException("Selecciona una imagen JPEG o PNG.");
         }
@@ -49,15 +88,15 @@ public class AlmacenamientoImagenService {
         }
         String extension = validarImagen(contenido);
         String nombre = UUID.randomUUID() + extension;
-        Path destino = directorio.resolve(nombre).normalize();
-        if (!destino.getParent().equals(directorio)) {
+        Path destino = carpeta.resolve(nombre).normalize();
+        if (!destino.getParent().equals(carpeta.normalize())) {
             throw new ImagenInvalidaException("El nombre de archivo no es válido.");
         }
 
         try {
-            Files.createDirectories(directorio);
+            Files.createDirectories(carpeta);
             Files.write(destino, contenido, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-            return new ImagenGuardada(nombre, "/uploads/" + nombre);
+            return nombre;
         } catch (IOException ex) {
             throw new IllegalStateException("No se pudo guardar la imagen.", ex);
         }

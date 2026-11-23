@@ -100,6 +100,10 @@ public class Usuario {
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
+    /** H64: ruta interna de la foto de perfil (perfiles/<uuid>.jpg); nunca se expone tal cual. */
+    @Column(name = "foto_perfil_url", length = 80)
+    private String fotoPerfilUrl;
+
     @PrePersist
     void prePersist() {
         LocalDateTime ahora = LocalDateTime.now(java.time.ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);

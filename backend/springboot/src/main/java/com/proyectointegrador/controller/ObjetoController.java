@@ -90,9 +90,12 @@ public class ObjetoController {
     }
 
     @PostMapping
-    public ResponseEntity<ObjetoResponse> crear(@Valid @RequestBody ObjetoRequest request) {
+    public ResponseEntity<ObjetoResponse> crear(@Valid @RequestBody ObjetoRequest request,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String clave) {
         UserPrincipal usuario = usuarioActual();
-        return ResponseEntity.status(HttpStatus.CREATED).body(objetoService.crear(request, usuario.getId()));
+        var publicacion = objetoService.crear(request, usuario.getId(), clave);
+        // H65: 200 si era un reintento con la misma Idempotency-Key
+        return ResponseEntity.status(publicacion.repetido() ? HttpStatus.OK : HttpStatus.CREATED).body(publicacion.objeto());
     }
 
     @PutMapping("/{id}")

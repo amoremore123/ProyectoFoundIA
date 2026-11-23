@@ -49,6 +49,20 @@ app:
   web:
     # H35: dirección de la web de usuario para armar el enlace de recuperación
     url: ${WEB_URL:http://localhost:5173}
+  # H57: push con Firebase Cloud Messaging. Sin cuenta de servicio el push queda apagado
+  # y los avisos se guardan igual. La cuenta de servicio va solo en variables de entorno.
+  push:
+    firebase-credenciales-json: ${FIREBASE_CREDENCIALES_JSON:}
+    firebase-proyecto-id: ${FIREBASE_PROYECTO_ID:}
+    intervalo-ms: ${PUSH_INTERVALO_MS:15000}
+    retraso-inicial-ms: ${PUSH_RETRASO_INICIAL_MS:20000}
+    ventana-minutos: ${PUSH_VENTANA_MINUTOS:30}
+  # H68: avisos por correo para quien eligió ese canal (usa el mismo servidor de correo de arriba).
+  correo-avisos:
+    intervalo-ms: ${CORREO_AVISOS_INTERVALO_MS:60000}
+    retraso-inicial-ms: ${CORREO_AVISOS_RETRASO_INICIAL_MS:30000}
+    ventana-minutos: ${CORREO_AVISOS_VENTANA_MINUTOS:30}
+    chat-minutos: ${CORREO_AVISOS_CHAT_MINUTOS:30}
   # H53: recordatorios de objetos perdidos sin resolver.
   recordatorios:
     habilitados: ${RECORDATORIOS_HABILITADOS:true}
