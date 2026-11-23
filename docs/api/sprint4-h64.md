@@ -8,8 +8,8 @@ Prioridad «Debería» del Sprint 4.
 La foto de perfil **no es pública**, a diferencia de las fotos de las publicaciones:
 
 - Solo la ve **la propia persona**, con sesión, en `GET /api/perfil/foto`.
-- Cuando exista el chat (H55), la verá también **quien conversa con ella**, con una ruta propia del
-  chat que se definirá en ese contrato. Hasta entonces nadie más la ve.
+- También la ve **quien conversa con ella** en el chat (H55), con `GET /api/conversaciones/{id}/foto`
+  (agregada el 23/11/2026; ver «Foto en el chat»). Nadie más la ve.
 - **No aparece** en las publicaciones, las coincidencias ni ninguna respuesta pública.
 - El archivo se guarda en `perfiles/` dentro del volumen de fotos, y la ruta pública
   `/uploads/perfiles/**` está **bloqueada**: responde `401` con o sin sesión y nunca entrega la
@@ -45,6 +45,25 @@ Devuelve la imagen (`image/jpeg` o `image/png`) con `Cache-Control: private, max
 ### `DELETE /api/perfil/foto`
 
 Quita la foto y borra el archivo. `204`, también si no tenía foto (repetirlo es seguro).
+
+### `GET /api/conversaciones/{id}/foto` (foto en el chat)
+
+Devuelve la foto de perfil de **la otra persona** de la conversación `{id}`, con caché privada de 1 hora.
+
+| Conversación | Quién pide | Qué foto |
+| --- | --- | --- |
+| Entre personas (H55) | Cualquiera de las dos | La de la otra |
+| Con la biblioteca (H63) | El personal (`BIBLIOTECA` o `ADMIN`) | La de quien reclamó |
+| Con la biblioteca (H63) | Quien reclamó | Ninguna (`404`): habla con «Biblioteca», no con una persona del personal |
+
+| Código | Caso |
+| --- | --- |
+| `200` | La imagen (`image/jpeg` o `image/png`) |
+| `401` | Sin sesión |
+| `404` | La conversación no existe o no es tuya (igual que el chat: no se revela que existe), la otra persona no tiene foto, o la conversación está **bloqueada** por cualquiera de las dos |
+
+La lista y el detalle de conversaciones agregan `otro.tieneFoto` (`true` o `false`) para que la web y la app
+sepan si pedirla. Una conversación en solo lectura (H61) sigue mostrando la foto.
 
 ### Perfil y sesión
 
@@ -103,3 +122,28 @@ recuperación (H58) sin cambios.
 - Sin sesión: `401`. Cada cuenta solo obtiene su propia foto.
 - `/uploads/perfiles/<archivo>`: nunca `200` (`401` en el servidor real, con y sin sesión).
 - La foto no aparece en `GET /api/objetos/{id}` ni en `publicadoPor`.
+
+## Verificación del 23/11/2026 (foto en el chat)
+
+Al revisar H64 contra el Sprint 4 faltaba «exponer la foto a quien conversa con él»: la ruta del chat quedó
+pendiente en este contrato y no se había hecho al integrar el chat. Se agregó `GET /api/conversaciones/{id}/foto`
+y `otro.tieneFoto`.
+
+- Spring: 3 pruebas nuevas en `ChatIntegrationTest` (quien conversa ve la foto con caché privada y los mismos
+  bytes; la otra persona sin foto, una tercera, una conversación inexistente `404` y sin sesión `401`; con la
+  conversación bloqueada ninguna de las dos la ve y vuelve al desbloquear; con la biblioteca, el personal ve la
+  foto de quien reclama y quien reclama no ve la del personal). Las fotos de estas pruebas van ahora a una
+  carpeta temporal. Siguen pasando las 7 de `FotoPerfilIntegrationTest`. Suite completa: **592 pruebas, 0 fallos**.
+- MySQL 8.0 de QA (conversación entre Ana y Luis):
+
+| Caso | Resultado |
+| --- | --- |
+| Luis sube su foto | `200` |
+| Ana pide la foto en la conversación | `200`, `image/png`, `max-age=3600, private`, los mismos bytes |
+| Detalle para Ana | `otro`: `{ id: 3, nombre: "Luis", tieneFoto: true }` |
+| Luis pide la de Ana (no tiene) / el admin, ajeno / sin sesión | `404` / `404` / `401` |
+| Archivo por la ruta pública `/uploads/perfiles/...` | Sigue `401` |
+
+- El caso de la biblioteca se probó con las pruebas automáticas, no en QA.
+- **Falta en la web (Yajaira) y en Android (Amore):** mostrar la foto de la otra persona en el chat cuando
+  `otro.tieneFoto` es `true` (pedirla con la sesión; no es una ruta pública).
