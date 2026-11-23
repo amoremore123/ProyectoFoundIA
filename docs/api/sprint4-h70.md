@@ -190,3 +190,31 @@ CREATE TABLE IF NOT EXISTS restauraciones (
     anterior responde `401`).
   - Deshacer: restaurar el respaldo de seguridad devuelve los datos de antes.
   - La retención marca `eliminado_en` y la versión aparece como no disponible.
+
+## Verificación del 22/11/2026
+
+- Django: 13 pruebas nuevas en `test_sprint4_h70.py` (par completo, fotos más cercanas, sin par, retención,
+  `FALLIDO`/`EN_PROCESO` fuera, fotos `FALLIDO` no cuentan, orden y paginación, `eliminadoEn` en la lista,
+  historial y detalle, escrituras `405`, `401` y `403`). Suite completa: **157 pruebas, OK**.
+- MySQL 8.0 de QA (proyecto aislado `foundia-qa`, datos de demostración):
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h70_restauraciones.sql` dos veces sin error |
+| Versión A | Respaldo `20261123T011617Z`: 18 publicaciones, 8 fotos registradas, 6 archivos |
+| Cambio posterior | Una publicación nueva por la API (`201`) y una foto más: 19 publicaciones, 7 archivos |
+| Listar | Muestra las versiones y marca «SIN PAR» la que no tiene fotos de la misma ejecución |
+| Ensayo de A | 6 s. Muestra `objetos 19 -> 18`, `archivos de fotos 7 -> 6` y 1 publicación que se perdería. La base y las fotos en uso no cambiaron; la base aislada se borró al terminar |
+| Rechazos | Versión inexistente, marca inválida, sin par de fotos y huella alterada: se niegan sin tocar nada (la de huella queda `FALLIDA` con el motivo) |
+| Esquema anterior | Una versión sin `respaldos.eliminado_en`: el ensayo lo muestra y aplicar se niega (`La base en uso no cambió`), sin dejar la base aislada |
+| Sin responsable | Aplicar sin `RESTAURACION_RESPONSABLE` se niega |
+| **Aplicar A** | **14 s**, con la API detenida. Respaldo de seguridad `20261123T012024Z`. La base quedó igual a A (solo faltó la publicación posterior) y los 6 archivos con el mismo SHA-256 que en A |
+| Historial | Las 4 filas de `respaldos` y las 6 de `restauraciones` (ensayos y fallos incluidos) se conservaron |
+| Sesiones | `sesion_version` de 0, 1, 0, 0 a 1, 2, 1, 1. El JWT de antes respondió **`401`** en `/api/perfil`; un inicio de sesión nuevo, `200` |
+| **Deshacer** | Aplicar la versión de seguridad devolvió la base y los 7 archivos **idénticos** a antes de restaurar (13 s). `sesion_version` subió a 2, 3, 2, 2: no se reutilizó ninguna versión de sesión |
+| Retención | Con archivos de 10 días y `RESPALDO_RETENCION_DIAS=1`, borró los de A y marcó sus 2 filas con `eliminado_en` |
+| Panel (Django real) | `versiones/` `200`: 4 versiones, A con `disponible: false` y «Los archivos se borraron por la retención.»; `restauraciones/` `200` con 7 filas y `respaldoSeguridad`; `POST` `405`; `eliminadoEn` en `/api/admin/respaldos/` |
+
+- Encontrado y corregido durante la prueba: la imagen de respaldo no trae `diff`, y la primera versión del
+  script daba siempre «esquema distinto». Ahora compara con `sort` y `comm`, que sí están en la imagen.
+- **Falta en la web (Yajaira):** mostrar las versiones, el comando y el historial (ver «Lo que necesita la web»).
