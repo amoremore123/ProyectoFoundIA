@@ -100,6 +100,10 @@ las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de l
 3. Levanta lo demás: `docker compose up -d --build`.
 
 Son **re-ejecutables**: si ya estaban aplicadas, solo muestran «ya existe» y no cambian nada.
+
+**M1 (datos):** cuando el equipo confirme las dos categorías de prueba, aplica también
+`database/datos_m1_desactivar_categorias_qa.sql` (las desactiva por nombre, sin borrar nada).
+Detalle en [`docs/api/sprint4-m1.md`](docs/api/sprint4-m1.md).
 **No** uses `docker compose down -v` ni vuelvas a importar `script.sql` o `seed.sql`: borrarían tus datos.
 Si tu contenedor de MySQL no se llama `foundia-mysql`, revisa el nombre con `docker ps`.
 
