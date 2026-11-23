@@ -561,6 +561,23 @@ class Campana(models.Model):
         return f"Campaña {self.origen}"
 
 
+class AlcanceCampana(models.Model):
+    """H67: una visita o un registro que llegó por el enlace de una campaña. Lo escribe Spring.
+
+    Sin datos personales: ni IP ni cuenta; las visitas solo tienen un identificador al azar de la web.
+    """
+
+    campana = models.ForeignKey(Campana, on_delete=models.DO_NOTHING, db_column="campana_id",
+                                related_name="alcance")
+    tipo = models.CharField(max_length=10)  # VISITA | REGISTRO
+    visita_id = models.CharField(max_length=64, null=True, blank=True)
+    fecha = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "alcance_campanas"
+
+
 class EnvioMasivo(models.Model):
     """H69: aviso enviado a muchas cuentas desde el panel, con su autor y sus destinatarios."""
 

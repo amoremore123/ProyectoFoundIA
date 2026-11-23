@@ -1135,6 +1135,22 @@ class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cr
         # Ya finalizada: se responde igual, sin cambios (repetir es seguro)
         return Response(self.get_serializer(campana).data)
 
+    @action(detail=False, methods=["get"], url_path="alcance")
+    def tablero_alcance(self, request):
+        """H67 - Visitas y registros de cada campaña en un rango de fechas de Lima."""
+        from . import alcance_campanas as alcance
+        desde, hasta = alcance.rango(request.query_params, *alcance.rango_por_defecto_tablero())
+        campanas = Campana.objects.select_related("creada_por").order_by("-fecha_inicio", "-id")
+        return Response(alcance.tablero(campanas, desde, hasta))
+
+    @action(detail=True, methods=["get"], url_path="alcance")
+    def alcance(self, request, pk=None):
+        """H67 - Una campaña, con el detalle por día."""
+        from . import alcance_campanas as alcance
+        campana = self.get_object()
+        desde, hasta = alcance.rango(request.query_params, *alcance.rango_por_defecto_campana(campana))
+        return Response(alcance.detalle(campana, desde, hasta))
+
 
 class ReporteMensajeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """H56 - GET /api/admin/reportes-mensajes/ y /{id}/ · POST /{id}/resolver/, solo ADMIN.
