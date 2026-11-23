@@ -343,6 +343,12 @@ export const quitarFotoPerfil = async () => {
   await api.delete('/api/perfil/foto');
 };
 
+// Reconocimiento a quien devuelve: objetos que entregué en la biblioteca y mi insignia (solo la cuenta propia)
+export const getReconocimiento = async () => {
+  const { data } = await api.get('/api/perfil/reconocimiento');
+  return data;
+};
+
 // H34: solicitud de eliminación de la cuenta (no ejecuta un borrado)
 export const getSolicitudEliminacion = async ({ signal } = {}) => {
   const { data } = await api.get('/api/perfil/solicitud-eliminacion', { signal });

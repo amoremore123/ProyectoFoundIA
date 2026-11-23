@@ -234,3 +234,15 @@ html[data-tema='oscuro'] .foto-perfil-quitar { color: #fda29b; }
 .foto-perfil .campo-error, .foto-perfil [role='status'] { grid-column: 1 / -1; margin: 0; }
 /* El selector de archivo queda oculto a la vista, pero el botón visible lo abre */
 .foto-perfil-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Reconocimiento a quien devuelve (privado) */
+.reconocimiento { display: grid; gap: 10px; }
+.reconocimiento-titulo { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.reconocimiento-insignia { display: flex; align-items: center; gap: 12px; }
+.reconocimiento-medalla { width: 46px; height: 46px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffd60a, #f79009); color: #12355b; box-shadow: 0 0 0 3px rgba(255, 214, 10, .25); }
+.reconocimiento-nivel { margin: 0; font-weight: 800; font-size: 16px; color: var(--text); }
+.reconocimiento-insignia .nota-suave, .reconocimiento-progreso .nota-suave { margin: 0; }
+.reconocimiento-cifras { margin: 0; color: var(--text); }
+.reconocimiento-barra { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.reconocimiento-barra span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ffd60a, #f79009); }
+.reconocimiento-privado { margin: 0; font-size: 12px; }

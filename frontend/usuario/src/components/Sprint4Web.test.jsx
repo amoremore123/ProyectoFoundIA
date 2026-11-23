@@ -3,11 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AvisosDestacados, { enlaceAviso } from './AvisosDestacados';
 import PreferenciasNotificaciones from './PreferenciasNotificaciones';
-import { getAvisosDestacados, getPreferenciasNotificaciones, guardarPreferenciasNotificaciones } from '../services/api';
+import ReconocimientoPerfil from './ReconocimientoPerfil';
+import { getAvisosDestacados, getPreferenciasNotificaciones, getReconocimiento, guardarPreferenciasNotificaciones } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
-  getAvisosDestacados: vi.fn(), getPreferenciasNotificaciones: vi.fn(), guardarPreferenciasNotificaciones: vi.fn(),
+  getAvisosDestacados: vi.fn(), getPreferenciasNotificaciones: vi.fn(), guardarPreferenciasNotificaciones: vi.fn(), getReconocimiento: vi.fn(),
 }));
 
 beforeEach(() => vi.resetAllMocks());
@@ -75,5 +76,34 @@ describe('H68 - elegir el canal de cada tipo de aviso', () => {
     expect(screen.getByRole('combobox', { name: 'Solicitudes de contacto' }).value).toBe('AMBOS');
     expect(screen.getByRole('combobox', { name: 'Reclamos' }).value).toBe('PUSH');
     expect(screen.getByRole('checkbox', { name: /Solicitudes de contacto/ }).checked).toBe(false);
+  });
+});
+
+describe('Reconocimiento a quien devuelve', () => {
+  it('muestra la insignia, lo entregado, lo devuelto y cuánto falta para el siguiente nivel', async () => {
+    getReconocimiento.mockResolvedValue({
+      entregados: 3, devueltos: 2, nivel: { minimo: 3, nombre: 'Buen compañero', descripcion: 'Ya entregaste 3 objetos.' },
+      siguiente: { nombre: 'Guardián de Tecsup', faltan: 2 },
+    });
+    await act(async () => { render(<ReconocimientoPerfil />); });
+    expect(screen.getByText('Buen compañero')).toBeTruthy();
+    expect(screen.getByText(/ya volvieron a su dueño/)).toBeTruthy();
+    const barra = screen.getByRole('progressbar', { name: /Guardián de Tecsup/ });
+    expect(barra.getAttribute('aria-valuenow')).toBe('3');
+    expect(barra.getAttribute('aria-valuemax')).toBe('5');
+    expect(screen.getByText('Te faltan 2 entregas para «Guardián de Tecsup».')).toBeTruthy();
+    expect(screen.getByText(/Solo tú ves esto/)).toBeTruthy();
+  });
+
+  it('sin entregas anima a entregar; si falla no muestra nada', async () => {
+    getReconocimiento.mockResolvedValueOnce({ entregados: 0, devueltos: 0, nivel: null, siguiente: { nombre: 'Primera entrega', faltan: 1 } });
+    await act(async () => { render(<ReconocimientoPerfil />); });
+    expect(screen.getByText(/entrégalo en la biblioteca/)).toBeTruthy();
+    expect(screen.getByText('Te falta 1 entrega para «Primera entrega».')).toBeTruthy();
+    cleanup();
+    getReconocimiento.mockRejectedValueOnce(new Error('Network Error'));
+    const { container } = render(<ReconocimientoPerfil />);
+    await act(async () => {});
+    expect(container.textContent).toBe('');
   });
 });
