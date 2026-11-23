@@ -86,6 +86,22 @@ public class ClienteIaCompatibleOpenAi implements ClienteIa {
         return enviar(cuerpo);
     }
 
+    @Override
+    public String completarJsonConImagenes(String instrucciones, String texto, List<String> imagenesDataUrl) {
+        List<Map<String, Object>> contenido = new java.util.ArrayList<>();
+        contenido.add(Map.of("type", "text", "text", texto));
+        imagenesDataUrl.forEach(url -> contenido.add(Map.of("type", "image_url", "image_url", Map.of("url", url))));
+        Map<String, Object> cuerpo = new java.util.LinkedHashMap<>();
+        cuerpo.put("model", modeloVision);
+        cuerpo.put("temperature", 0);
+        cuerpo.put("max_tokens", 300);
+        cuerpo.put("response_format", Map.of("type", "json_object"));
+        cuerpo.put("messages", List.of(
+                Map.of("role", "system", "content", instrucciones),
+                Map.of("role", "user", "content", contenido)));
+        return enviar(cuerpo);
+    }
+
     private String enviar(Map<String, Object> cuerpo) {
         JsonNode respuesta = http.post()
                 .uri("/chat/completions")

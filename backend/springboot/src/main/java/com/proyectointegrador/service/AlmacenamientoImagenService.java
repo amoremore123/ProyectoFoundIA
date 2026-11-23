@@ -102,6 +102,16 @@ public class AlmacenamientoImagenService {
         }
     }
 
+    /** Coincidencias por imagen: archivo de la foto de una publicación, o vacío si el nombre no es válido. */
+    public java.util.Optional<Path> archivoPublicacion(String nombre) {
+        if (nombre == null || !nombre.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) {
+            return java.util.Optional.empty();
+        }
+        Path archivo = directorio.resolve(nombre).normalize();
+        return archivo.getParent().equals(directorio) && Files.isRegularFile(archivo)
+                ? java.util.Optional.of(archivo) : java.util.Optional.empty();
+    }
+
     public void eliminar(String nombre) {
         if (nombre == null || !nombre.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) {
             return;

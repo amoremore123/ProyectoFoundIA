@@ -274,6 +274,12 @@ export const getCoincidencias = async (id) => {
   return data;
 };
 
+// Coincidencias por imagen: la IA compara la foto de mi publicación con las de sus coincidencias
+export const compararFotosCoincidencias = async (id) => {
+  const { data } = await api.post(`/api/objetos/${id}/coincidencias/comparar-fotos`);
+  return data;
+};
+
 export const getDetalleCoincidencia = async (id, { signal } = {}) => {
   const { data } = await api.get(`/api/coincidencias/${encodeURIComponent(id)}`, { signal });
   return data;

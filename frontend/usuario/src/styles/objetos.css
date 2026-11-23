@@ -43,3 +43,15 @@
 @media (prefers-reduced-motion: reduce) {
   .objeto-card, .categoria-visual, .ilustracion-objeto svg { transition: none; transform: none !important; }
 }
+
+/* Coincidencias por imagen: botón para comparar y resultado de la IA en cada tarjeta */
+.comparar-fotos { display: grid; gap: 6px; justify-items: start; margin: 4px 0 16px; }
+.comparar-fotos .btn { display: inline-flex; align-items: center; gap: 8px; }
+.comparar-fotos .nota-suave { margin: 0; }
+.parecido-foto { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 14px; }
+.parecido-foto p { margin: 0; }
+.parecido-motivo { color: var(--text-muted); margin-top: 2px !important; }
+.parecido-alto { background: var(--success-50, #ecfdf3); border-color: #abefc6; }
+.parecido-medio { background: var(--amarillo-50); }
+.parecido-bajo, .parecido-sin { background: transparent; color: var(--text-muted); }
+html[data-tema='oscuro'] .parecido-alto { border-color: #1f4a35; }

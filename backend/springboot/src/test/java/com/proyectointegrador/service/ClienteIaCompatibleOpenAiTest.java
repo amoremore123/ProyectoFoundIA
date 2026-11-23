@@ -75,6 +75,20 @@ class ClienteIaCompatibleOpenAiTest {
     }
 
     @Test
+    @DisplayName("Coincidencias por imagen: envía las dos fotos al modelo de visión en un solo mensaje")
+    void variasImagenes() throws IOException {
+        AtomicReference<String> autorizacion = new AtomicReference<>();
+        AtomicReference<String> cuerpo = new AtomicReference<>();
+        String url = iniciar(0, "{\"choices\":[{\"message\":{\"content\":\"{\\\"parecido\\\":70}\"}}]}", autorizacion, cuerpo);
+
+        ClienteIaCompatibleOpenAi cliente = new ClienteIaCompatibleOpenAi(RestClient.builder(), url, "texto", "vision", "clave-falsa", 2000);
+
+        assertThat(cliente.completarJsonConImagenes("instrucciones", "compara", java.util.List.of("data:image/jpeg;base64,AAA", "data:image/jpeg;base64,BBB")))
+                .isEqualTo("{\"parecido\":70}");
+        assertThat(cuerpo.get()).contains("\"model\":\"vision\"", "base64,AAA", "base64,BBB", "compara");
+    }
+
+    @Test
     @DisplayName("Sin clave queda como no configurado")
     void sinClave() {
         assertThat(new ClienteIaCompatibleOpenAi(RestClient.builder(), "http://127.0.0.1:9", "m", "  ", 1000).configurado()).isFalse();

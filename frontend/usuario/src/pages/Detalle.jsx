@@ -9,6 +9,7 @@ import Icono from '../components/Icono';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import EstadoReclamoCustodia from '../components/EstadoReclamoCustodia';
+import { CompararFotosIa, ParecidoFoto } from '../components/ComparacionFotos';
 import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, iniciarConversacion, mensajeError, reclamarObjeto, statusDe } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -52,6 +53,8 @@ export default function Detalle() {
   const location = useLocation();
   const navigate = useNavigate();
   const [abriendoChat, setAbriendoChat] = useState(null);
+  // Coincidencias por imagen: resultado de la IA por objeto candidato
+  const [parecidoFotos, setParecidoFotos] = useState({});
   const reclamoDesdeFindi = useRef(Boolean(location.state?.abrirReclamo));
 
   const cargar = useCallback(async () => {
@@ -214,6 +217,8 @@ export default function Detalle() {
     : '—';
   const puedeContactar = Boolean(token && user && objeto.tipo === 'PERDIDO'
     && String(user.id) === String(objeto.publicadoPor?.id));
+  const esMia = Boolean(token && user && String(user.id) === String(objeto.publicadoPor?.id));
+  const puedeCompararFotos = esMia && objeto.estado === 'ACTIVO' && (objeto.fotos?.length || 0) > 0;
   const esReclamable = objeto.tipo === 'ENCONTRADO' && ['ACTIVO', 'EN_CUSTODIA'].includes(objeto.estado);
   const puedeReclamar = Boolean(token && user && esReclamable && String(user.id) !== String(objeto.publicadoPor?.id));
   const reclamoSinSesion = esReclamable && !token;
@@ -330,6 +335,8 @@ export default function Detalle() {
             <p>No hay coincidencias sugeridas por ahora.</p>
           </div>
         ) : (
+          <>
+          {puedeCompararFotos && <CompararFotosIa objetoId={objeto.id} onResultados={setParecidoFotos} />}
           <ul className="lista-coincidencias">
             {coincidencias.map((c) => (
               <li key={c.objetoId} className="tarjeta coincidencia-card">
@@ -352,6 +359,7 @@ export default function Detalle() {
                   />
                 </div>
                 <span className="coincidencia-porcentaje">{Number(c.porcentaje) || 0}% de similitud</span>
+                <ParecidoFoto resultado={parecidoFotos[c.objetoId]} />
                 {puedeContactar && (
                   <div className="coincidencia-contacto">
                     {contactos[c.objetoId] ? (
@@ -390,6 +398,7 @@ export default function Detalle() {
               </li>
             ))}
           </ul>
+          </>
         )}
       </section>}
 

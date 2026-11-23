@@ -16,4 +16,12 @@ public interface ClienteIa {
     default String completarJsonConImagen(String instrucciones, String texto, String imagenDataUrl) {
         throw new UnsupportedOperationException("Este proveedor no acepta imágenes");
     }
+
+    /**
+     * Coincidencias por imagen: igual que {@link #completarJsonConImagen} pero con varias imágenes
+     * (data URL JPEG) en el mismo mensaje. Por defecto no está disponible.
+     */
+    default String completarJsonConImagenes(String instrucciones, String texto, java.util.List<String> imagenesDataUrl) {
+        throw new UnsupportedOperationException("Este proveedor no acepta imágenes");
+    }
 }

@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
 import Detalle from './Detalle';
-import { getCoincidencias, getMiReclamoCustodia, getObjeto, getQrRetiro, iniciarContacto, reclamarObjeto } from '../services/api';
+import { compararFotosCoincidencias, getCoincidencias, getMiReclamoCustodia, getObjeto, getQrRetiro, iniciarContacto, reclamarObjeto } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
@@ -13,6 +13,7 @@ vi.mock('../services/api', async (importOriginal) => ({
   reclamarObjeto: vi.fn(),
   getMiReclamoCustodia: vi.fn(async () => ({ estado: 'SIN_RECLAMO' })),
   getQrRetiro: vi.fn(),
+  compararFotosCoincidencias: vi.fn(),
 }));
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
 
@@ -237,5 +238,43 @@ describe('H20 - reclamo de un objeto encontrado', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reclamar este objeto' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sí, reclamar' }));
     expect(await screen.findByRole('heading', { name: 'Reclamo en revisión' })).toBeTruthy();
+  });
+});
+
+describe('Coincidencias por imagen: comparar fotos con IA', () => {
+  it('quien publicó con foto compara y ve el resultado en cada coincidencia', async () => {
+    getObjeto.mockResolvedValue({ ...objetoPerdido, fotos: [{ id: 1, url: '/uploads/a.png' }] });
+    compararFotosCoincidencias.mockResolvedValue({
+      resultados: [{ objetoId: 27, coincidenciaId: '15-27', parecido: 86, nivel: 'ALTO', motivo: 'Mismo llavero y color' }],
+      sinFoto: 2,
+    });
+    renderizar(true);
+    fireEvent.click(await screen.findByRole('button', { name: /Comparar fotos con IA/ }));
+
+    expect(await screen.findByText('Mismo llavero y color')).toBeTruthy();
+    expect(screen.getByText('Foto muy parecida')).toBeTruthy();
+    expect(screen.getByText(/86%/)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toMatch(/Se compararon 1 foto\. 2 sin foto/);
+    expect(compararFotosCoincidencias).toHaveBeenCalledWith(15);
+  });
+
+  it('si la IA no está disponible muestra el error y deja reintentar', async () => {
+    getObjeto.mockResolvedValue({ ...objetoPerdido, fotos: [{ id: 1, url: '/uploads/a.png' }] });
+    compararFotosCoincidencias.mockRejectedValue({ response: { status: 503, data: { mensaje: 'La IA no está configurada' } } });
+    renderizar(true);
+    fireEvent.click(await screen.findByRole('button', { name: /Comparar fotos con IA/ }));
+    expect((await screen.findByRole('alert')).textContent).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Comparar fotos con IA/ })).toBeTruthy();
+  });
+
+  it('sin foto propia o sin sesión no ofrece comparar', async () => {
+    renderizar(true);
+    await screen.findByRole('heading', { name: 'Mochila encontrada' });
+    expect(screen.queryByRole('button', { name: /Comparar fotos/ })).toBeNull();
+    cleanup();
+    getObjeto.mockResolvedValue({ ...objetoPerdido, fotos: [{ id: 1, url: '/uploads/a.png' }] });
+    renderizar(false);
+    await screen.findByRole('heading', { name: 'Mochila encontrada' });
+    expect(screen.queryByRole('button', { name: /Comparar fotos/ })).toBeNull();
   });
 });
