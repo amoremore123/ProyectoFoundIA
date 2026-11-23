@@ -25,10 +25,14 @@ con su propia pantalla.
 | | `?embebido=1`: Términos y Privacidad sin menú, recordado al navegar; `?embebido=0` lo quita | H73 |
 | `e2e/chat.e2e.js` | Quien perdió contacta y abre el chat; quien encontró lo ve «sin leer» en otro navegador y responde; el mensaje llega sin recargar; reportar un mensaje; bloquear impide escribir a los dos y desbloquear lo restablece | H55, H56 |
 | | Quien reclamó un objeto en custodia escribe a la biblioteca y le envía una foto | H62, H63 |
+| | La biblioteca ve el mensaje en su bandeja del panel, responde y la respuesta llega sin recargar | H63 |
 | | Una conversación ajena no se abre | H55 |
+| `e2e/sprint4-avisos.e2e.js` | Un aviso destacado creado en el panel aparece en Inicio, abre su página y desaparece al retirarlo | H71 |
+| | Elegir recibir los avisos por correo se guarda en la cuenta | H68 |
+| | Un mensaje del chat reportado en la web se resuelve en el panel y el autor recibe la advertencia sin saber quién reportó | H56 |
+| | El panel muestra las versiones restaurables y el comando para ensayarlas, sin restaurar desde la web | H70 |
 
-Quedan fuera hasta que exista su backend: restaurar desde el panel (H70) y las historias de difusión
-(H66, H67, H69, H71). El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
+Quedan fuera hasta que exista su backend: las historias de difusión H66, H67 y H69. El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
 
 ## Resultado del 21/11/2026
 
@@ -86,6 +90,12 @@ ejecución y no se guardan.
 
 ## Actualización del 22/11/2026: chat
 
-**16 de 16 pruebas en verde** (3,1 minutos), con la API de `dev/leonel` más `cierre/sprint4` (chat) y
-la migración `migracion_h55_chat.sql` aplicada tras un respaldo. Se agregaron las tres pruebas de
-`e2e/chat.e2e.js`.
+**17 de 17 pruebas en verde**, con la API de `dev/leonel` más `cierre/sprint4` (chat) y
+la migración `migracion_h55_chat.sql` aplicada tras un respaldo. Se agregaron las cuatro pruebas de
+`e2e/chat.e2e.js`, incluida la bandeja de la biblioteca en el panel (H63).
+
+## Actualización del 23/11/2026: H56, H68, H70 y H71
+
+**21 de 21 pruebas en verde** (4,6 minutos) con la API de `dev/leonel` (incluye el chat) y las migraciones de
+H56, H57, H65, H68, H70, H71 y el script de M1 aplicados tras un respaldo. Se agregaron las cuatro pruebas de
+`e2e/sprint4-avisos.e2e.js`.
