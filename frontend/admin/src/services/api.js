@@ -29,6 +29,39 @@ api.interceptors.response.use(
   }
 );
 
+// H63: el chat vive en la API de Spring. El panel usa el mismo token (Spring y Django comparten el
+// secreto JWT); con 401 se sale del panel igual que con Django.
+export const CHAT_URL = import.meta.env.VITE_SPRING_URL || 'http://localhost:8081';
+const chatApi = axios.create({ baseURL: CHAT_URL });
+chatApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('admin_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+chatApi.interceptors.response.use((r) => r, (error) => {
+  if (error.response?.status === 401 && localStorage.getItem('admin_token')) {
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_usuario');
+    window.location.href = '/login?motivo=sesion-vencida';
+  }
+  return Promise.reject(error);
+});
+
+// Bandeja de la biblioteca: solo las conversaciones por reclamo (CON_BIBLIOTECA)
+export const getBandejaChat = async () => {
+  const { data } = await chatApi.get('/api/conversaciones');
+  return (Array.isArray(data) ? data : []).filter((c) => c.tipo === 'CON_BIBLIOTECA');
+};
+export const getMensajesChat = async (id, despuesDe = 0) => {
+  const { data } = await chatApi.get(`/api/conversaciones/${id}/mensajes`, { params: { despuesDe } });
+  return data;
+};
+export const responderChat = async (id, texto) => {
+  const { data } = await chatApi.post(`/api/conversaciones/${id}/mensajes`, { texto });
+  return data;
+};
+export const marcarChatLeido = async (id) => { await chatApi.post(`/api/conversaciones/${id}/leida`); };
+
 // Django responde los errores en "detail"; axios trae sus mensajes en inglés.
 export function mensajeError(error, fallback = 'Ocurrió un error inesperado') {
   const data = error?.response?.data;
@@ -169,6 +202,33 @@ export const editarCampana = async (id, datos) => {
 
 export const finalizarCampana = async (id) => {
   const { data } = await api.post(`/api/admin/campanas/${id}/finalizar/`);
+  return data;
+};
+
+// H71: avisos destacados con vigencia (solo ADMIN). No se borran: se retiran.
+export const getAvisosDestacados = async (filtros, numero) => pagina('/api/admin/avisos-destacados/', filtros, numero);
+export const crearAvisoDestacado = async (datos) => {
+  const { data } = await api.post('/api/admin/avisos-destacados/', datos);
+  return data;
+};
+export const editarAvisoDestacado = async (id, datos) => {
+  const { data } = await api.patch(`/api/admin/avisos-destacados/${id}/`, datos);
+  return data;
+};
+export const retirarAvisoDestacado = async (id) => {
+  const { data } = await api.post(`/api/admin/avisos-destacados/${id}/retirar/`);
+  return data;
+};
+
+// H70: versiones restaurables (base + fotos de la misma ejecución) e historial de restauraciones.
+// Solo lectura: restaurar se hace con scripts/restaurar_version.sh en el servidor, nunca desde el panel.
+export const getVersionesRespaldo = async (numero) => pagina('/api/admin/respaldos/versiones/', {}, numero);
+export const getRestauraciones = async (numero) => pagina('/api/admin/restauraciones/', {}, numero);
+
+// H56: reportes de mensajes del chat (solo ADMIN): descartar, advertir o suspender al autor
+export const getReportesMensajes = async (filtros, numero) => pagina('/api/admin/reportes-mensajes/', filtros, numero);
+export const resolverReporteMensaje = async (id, { accion, resolucion }) => {
+  const { data } = await api.post(`/api/admin/reportes-mensajes/${id}/resolver/`, { accion, resolucion });
   return data;
 };
 

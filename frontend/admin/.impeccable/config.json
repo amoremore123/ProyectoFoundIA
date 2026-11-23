@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/styles/panel.css"
+        ],
+        "createdAt": "2026-11-10T03:50:25.732Z",
+        "reason": "Claude: .panel-banner::after draws the yellow/orange swoosh arc from the approved admin mockup via border-top on a 50%-radius ellipse; decorative pseudo-element, not a card"
+      }
+    ]
+  }
+}

@@ -2,10 +2,10 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Respaldos from './Respaldos';
 import { huellaCorta } from '../components/UltimoRespaldo';
-import { getRespaldos, getUltimoRespaldo } from '../services/api';
+import { getRespaldos, getRestauraciones, getUltimoRespaldo, getVersionesRespaldo } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
-  ...await importOriginal(), getRespaldos: vi.fn(), getUltimoRespaldo: vi.fn(),
+  ...await importOriginal(), getRespaldos: vi.fn(), getUltimoRespaldo: vi.fn(), getVersionesRespaldo: vi.fn(), getRestauraciones: vi.fn(),
 }));
 
 const HUELLA = 'a'.repeat(58) + 'b12345';
@@ -18,6 +18,8 @@ beforeEach(() => {
   vi.resetAllMocks();
   getUltimoRespaldo.mockImplementation(async (tipo) => (tipo === 'FOTOS' ? FOTOS : BASE));
   getRespaldos.mockResolvedValue(pagina([FALLIDO, FOTOS, BASE]));
+  getVersionesRespaldo.mockResolvedValue(pagina([]));
+  getRestauraciones.mockResolvedValue(pagina([]));
 });
 afterEach(cleanup);
 

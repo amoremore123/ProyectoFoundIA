@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Icono from '../components/Icono';
 import UltimoRespaldo, { huellaCorta, tamanoLegible } from '../components/UltimoRespaldo';
+import VersionesRestaurables from '../components/VersionesRestaurables';
 import { getRespaldos, mensajeError } from '../services/api';
 import { fechaHora, Paginacion } from './Custodia';
 
@@ -133,10 +134,12 @@ export default function Respaldos() {
           <li><strong>Levanta el resto de los servicios</strong> y comprueba en la web que las publicaciones y sus fotos se ven.</li>
         </ol>
         <p className="nota-tabla">
-          Para elegir aquí un respaldo anterior y restaurarlo (H70) falta la API correspondiente; por ahora no se
-          puede restaurar desde el panel.
+          Para volver a una versión anterior concreta (H70), usa la sección «Versiones a las que se puede volver».
         </p>
       </section>
+
+      {/* H70: versiones restaurables e historial (solo lectura) */}
+      <VersionesRestaurables />
     </div>
   );
 }

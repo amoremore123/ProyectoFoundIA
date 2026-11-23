@@ -13,6 +13,8 @@ const menu = [
   { to: '/', icono: 'panel', label: 'Dashboard', exact: true },
   // H26/H28: denuncias de publicaciones
   { to: '/reportes', icono: 'bandera', label: 'Reportes' },
+  // H56: reportes de mensajes del chat
+  { to: '/reportes-chat', icono: 'correo', label: 'Reportes del chat' },
   { to: '/publicaciones', icono: 'caja', label: 'Objetos' },
   { to: '/usuarios', icono: 'usuarios', label: 'Usuarios' },
   { to: '/categorias', icono: 'etiqueta', label: 'Categorías' },
@@ -20,12 +22,16 @@ const menu = [
   // H41/H43: biblioteca
   { to: '/custodia', icono: 'qr', label: 'Custodia' },
   { to: '/reclamos', icono: 'bandeja', label: 'Reclamos' },
+  // H63: conversaciones de quienes reclamaron un objeto en custodia
+  { to: '/mensajes', icono: 'correo', label: 'Mensajes' },
   // H54: objetos no reclamados
   { to: '/vencidos', icono: 'reloj', label: 'Vencidos' },
   // H58/H59: respaldos de la base y de las fotos (solo ADMIN)
   { to: '/respaldos', icono: 'escudo', label: 'Respaldos' },
   // H60: campañas de difusión (solo ADMIN)
   { to: '/campanas', icono: 'megafono', label: 'Campañas' },
+  // H71: avisos destacados con vigencia (solo ADMIN)
+  { to: '/avisos', icono: 'campana', label: 'Avisos' },
 ];
 
 export default function AdminLayout() {

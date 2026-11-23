@@ -1,6 +1,6 @@
 // H36: qué ve cada rol en el panel. BIBLIOTECA solo atiende custodia y reclamos;
 // las rutas de sistema responden 403 para ese rol, así que ni se muestran ni se piden.
-export const RUTAS_BIBLIOTECA = ['/custodia', '/reclamos', '/vencidos'];
+export const RUTAS_BIBLIOTECA = ['/custodia', '/reclamos', '/mensajes', '/vencidos'];
 
 export function esAdmin(usuario) {
   return usuario?.rol === 'ADMIN';
