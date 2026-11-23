@@ -59,7 +59,7 @@ en las cinco capas: Spring, Django, web de usuario, panel y Android.
 
 4. **Nada pasa a `main` sin la autorización escrita del equipo**, y nunca con push forzado.
 
-### Antes de usar el backend del Sprint 4: aplicar 8 migraciones
+### Antes de usar el backend del Sprint 4: aplicar 9 migraciones
 
 El Sprint 4 agrega cambios a la base de datos. Tu MySQL local **no los tiene** hasta que apliques
 las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de levantar Spring**:
@@ -69,6 +69,7 @@ las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de l
 | `database/migracion_h55_chat.sql` | H55 a H63 | Tablas del chat |
 | `database/migracion_h56_resolver_reportes_mensaje.sql` | H56 | Resolución de reportes de mensajes (después de la del chat) |
 | `database/migracion_h57_dispositivos.sql` | H57 | Tabla `dispositivos` y marca de push en `notificaciones` |
+| `database/migracion_h68_canal_avisos.sql` | H68 | Canal de los avisos (push y correo) en preferencias y notificaciones |
 | `database/migracion_h65_idempotencia.sql` | H65 | Clave `Idempotency-Key` para que los reintentos no dupliquen |
 | `database/migracion_h70_restauraciones.sql` | H70 | Versiones restaurables: `respaldos.eliminado_en` y tabla `restauraciones` (sin ella, el panel de respaldos falla) |
 | `database/migracion_h59_respaldo_fotos.sql` | H59 | Columna `tipo` en `respaldos` |
@@ -85,18 +86,18 @@ las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de l
    docker compose run --rm -e RESPALDO_UNA_VEZ=1 respaldo
    ```
 
-2. Aplica las 8 migraciones con MySQL encendido (`docker compose up -d mysql`).
+2. Aplica las 9 migraciones con MySQL encendido (`docker compose up -d mysql`).
 
    En **Git Bash**:
 
    ```bash
-   for m in h55_chat h56_resolver_reportes_mensaje h57_dispositivos h59_respaldo_fotos h60_campanas h64_foto_perfil h65_idempotencia h70_restauraciones; do docker exec -i foundia-mysql mysql -uroot -proot < database/migracion_$m.sql; done
+   for m in h55_chat h56_resolver_reportes_mensaje h57_dispositivos h59_respaldo_fotos h60_campanas h64_foto_perfil h65_idempotencia h68_canal_avisos h70_restauraciones; do docker exec -i foundia-mysql mysql -uroot -proot < database/migracion_$m.sql; done
    ```
 
    En **PowerShell** (el `<` de PowerShell no funciona aquí; se usa `cmd`):
 
    ```powershell
-   foreach ($m in 'h55_chat','h56_resolver_reportes_mensaje','h57_dispositivos','h59_respaldo_fotos','h60_campanas','h64_foto_perfil','h65_idempotencia','h70_restauraciones') { cmd /c "docker exec -i foundia-mysql mysql -uroot -proot < database\migracion_$m.sql" }
+   foreach ($m in 'h55_chat','h56_resolver_reportes_mensaje','h57_dispositivos','h59_respaldo_fotos','h60_campanas','h64_foto_perfil','h65_idempotencia','h68_canal_avisos','h70_restauraciones') { cmd /c "docker exec -i foundia-mysql mysql -uroot -proot < database\migracion_$m.sql" }
    ```
 
 3. Levanta lo demás: `docker compose up -d --build`.
