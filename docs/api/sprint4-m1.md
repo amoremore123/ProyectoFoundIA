@@ -7,7 +7,8 @@ Durante las pruebas del Sprint 3 quedaron dos categorías sin sentido que aparec
 
 ## Cómo se aplica
 
-> **Antes de aplicarlo:** el equipo confirma que son estas dos categorías (paso 1 del reparto).
+> **Confirmado por el equipo el 22/11/2026:** son estas dos categorías (paso 1 del reparto).
+> Cada integrante aplica el script en su propia base.
 
 Script: `database/datos_m1_desactivar_categorias_qa.sql`.
 
@@ -47,7 +48,7 @@ Lo define el contrato de categorías de H26 ([categorias-sprint2.md](categorias-
 > H26. Lo que se comprueba es lo que pide la misma prueba para el usuario: que **el selector para publicar no
 > las muestre**. No se cambió la API pública para no romper los filtros de H7.
 
-## Verificación del 23/11/2026 (MySQL 8.0 de QA)
+## Verificación del 22/11/2026 (MySQL 8.0 de QA)
 
 Se crearon las dos categorías y una publicación que usa «Accesorios QA semanal», como en las bases del equipo.
 
@@ -72,3 +73,12 @@ sugerida en Publicar (no en el filtro de búsqueda de Inicio, que debe conservar
 ```jsx
 {categorias.filter((c) => c.estado !== false).map((c) => ( … ))}
 ```
+
+## Registro de aplicación
+
+| Base | Quién | Fecha | Resultado |
+| --- | --- | --- | --- |
+| QA aislada de prueba (`foundia-qa`) | Leonel | 22/11/2026 | 2 desactivadas; segunda ejecución 0 |
+| Base local de Leonel | — | — | No hay una base local en este equipo en este momento; se aplicará al recrearla |
+| Base local de Yajaira | | | |
+| Base local de Amore | | | |
