@@ -246,13 +246,36 @@ ejecutar_respaldo_fotos() {
     return 0
 }
 
+# H70: la columna `eliminado_en` existe solo si se aplicó migracion_h70_restauraciones.sql.
+tiene_columna_eliminado() {
+    local n
+    n="$("${mysql_cmd[@]}" -e \
+        "SELECT COUNT(*) FROM information_schema.columns
+          WHERE table_schema='$DB_NAME' AND table_name='respaldos' AND column_name='eliminado_en';")" || return 1
+    [[ "$n" == "1" ]]
+}
+
 aplicar_retencion() {
     (( RESPALDO_RETENCION_DIAS > 0 )) || return 0
+    local borrados archivo nombre
     # Solo borra archivos del volumen de respaldos; las filas quedan como historial.
-    find "$RESPALDO_DIR" -maxdepth 1 -type f \
+    borrados="$(find "$RESPALDO_DIR" -maxdepth 1 -type f \
         \( -name "${RESPALDO_PREFIJO}_*.sql.gz" -o -name "${RESPALDO_PREFIJO}_*.sql.gz.sha256" \
            -o -name "${RESPALDO_PREFIJO}_fotos_*.tar.gz" -o -name "${RESPALDO_PREFIJO}_fotos_*.tar.gz.sha256" \) \
-        -mtime +"$RESPALDO_RETENCION_DIAS" -print -delete || true
+        -mtime +"$RESPALDO_RETENCION_DIAS" -print -delete)" || true
+    [[ -n "$borrados" ]] || return 0
+    while IFS= read -r archivo; do log "Retención: borrado $archivo"; done <<<"$borrados"
+    # H70: la fila queda, pero marcada, para que el panel no la ofrezca como versión disponible.
+    tiene_columna_eliminado || return 0
+    while IFS= read -r archivo; do
+        nombre="$(basename "$archivo")"
+        [[ "$nombre" == *.sha256 ]] && continue
+        [[ "$nombre" =~ ^[A-Za-z0-9_.-]+$ ]] || continue
+        "${mysql_cmd[@]}" -e \
+            "UPDATE respaldos SET eliminado_en=UTC_TIMESTAMP(6)
+              WHERE nombre_archivo='$nombre' AND eliminado_en IS NULL;" \
+            || log "No se pudo marcar $nombre como eliminado."
+    done <<<"$borrados"
 }
 
 while true; do

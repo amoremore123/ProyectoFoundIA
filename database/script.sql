@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS solicitudes_eliminacion;
 DROP TABLE IF EXISTS tokens_recuperacion_password;
 DROP TABLE IF EXISTS eventos_coincidencia;
 DROP TABLE IF EXISTS cambios_rol;
+DROP TABLE IF EXISTS restauraciones;
 DROP TABLE IF EXISTS respaldos;
 DROP TABLE IF EXISTS tokens_revocados;
 DROP TABLE IF EXISTS reportes;
@@ -598,3 +599,23 @@ ALTER TABLE mensajes_chat ADD COLUMN id_cliente VARCHAR(64) NULL;
 ALTER TABLE mensajes_chat ADD CONSTRAINT uq_mensajes_chat_cliente UNIQUE (autor_id, id_cliente);
 ALTER TABLE objetos ADD COLUMN id_cliente VARCHAR(64) NULL;
 ALTER TABLE objetos ADD CONSTRAINT uq_objetos_cliente UNIQUE (usuario_id, id_cliente);
+
+-- H70: restaurar una versión anterior. Bases existentes: migracion_h70_restauraciones.sql.
+ALTER TABLE respaldos ADD COLUMN eliminado_en DATETIME(6) NULL;
+
+CREATE TABLE IF NOT EXISTS restauraciones (
+    id                 BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    version            VARCHAR(20)   NOT NULL,
+    modo               VARCHAR(10)   NOT NULL,
+    estado             VARCHAR(12)   NOT NULL DEFAULT 'EN_PROCESO',
+    respaldo_base      VARCHAR(255)  NOT NULL,
+    respaldo_fotos     VARCHAR(255)  NOT NULL,
+    respaldo_seguridad VARCHAR(20)   NULL,
+    responsable        VARCHAR(120)  NULL,
+    iniciado_en        DATETIME(6)   NOT NULL,
+    finalizado_en      DATETIME(6)   NULL,
+    mensaje            VARCHAR(1000) NULL,
+    CONSTRAINT chk_restauracion_modo CHECK (modo IN ('ENSAYO', 'APLICADA')),
+    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
+    INDEX idx_restauraciones_iniciado (iniciado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
