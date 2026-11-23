@@ -136,3 +136,33 @@ ALTER TABLE notificaciones ADD COLUMN envio_masivo_id BIGINT NULL;  -- FK envios
 - Permisos: un usuario normal `403` en todas las rutas; sin sesión `401`.
 - Con MySQL real: la migración dos veces, un envío real llega a la bandeja de cada cuenta por la API de Spring y
   el despachador de correo lo trata según el canal de «sistema».
+
+## Verificación del 23/11/2026
+
+- Django: 12 pruebas nuevas en `test_sprint4_h69.py` (vista previa por grupo y solo activas, sin correos y sin
+  enviar nada; un aviso `SISTEMA` por destinatario ligado al envío; validaciones; confirmación sin código,
+  alterada, basura, de otro texto, grupo o enlace y de otro administrador; código vencido; cambió la cantidad de
+  cuentas; más de 1000 destinatarios; grupo vacío; cuarto envío del día `429` entre todos los administradores y
+  el de ayer no cuenta; historial en orden, detalle y destinatarios con leídas; `PUT`, `PATCH` y `DELETE` `405`;
+  `401` y `403` para usuario y biblioteca). Suite completa: **180 pruebas, OK**.
+- Encontrado y corregido con esas pruebas: con el conteo de leídas, Django no aplicaba el orden del modelo y el
+  historial salía del más viejo al más nuevo. Ahora el orden se pide explícito.
+- MySQL 8.0 de QA, con el panel (Django), la API de Spring y Mailpit reales:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h69_envios_masivos.sql` dos veces sin error; columna y 3 restricciones creadas |
+| Una usuaria pide la vista previa | `403` |
+| Vista previa a `USUARIOS` | `200`: 2 cuentas (Ana y Luis; Carla está suspendida), sin correos en la muestra |
+| Enviar sin código / con otro texto | `400` / `400`, sin enviar nada |
+| Enviar | `201`, total 2, autor registrado |
+| Bandejas (API de Spring) | Ana y Luis lo ven como aviso `SISTEMA`; Carla no lo recibió |
+| Leídas | Ana lo marcó leído: destinatarios muestra Ana leída y Luis no; el historial cuenta 1 leída |
+| `DELETE` | `405` |
+| Cuarto envío del día | `429` |
+| Correo (H68) | Ana tenía «sistema» en `CORREO`: 3 correos en Mailpit; Luis («sistema» en `NINGUNO`): `OMITIDO` |
+| Instalación nueva | `script.sql`, `seed.sql` y la migración sobre esa base, sin errores |
+
+- No cambió código de Spring: los avisos masivos son filas normales de `notificaciones` que Spring ya lee.
+- **Falta en la web (Yajaira):** el formulario con vista previa y confirmación y el historial (ver «Lo que
+  necesita la web»). Android no necesita cambios.
