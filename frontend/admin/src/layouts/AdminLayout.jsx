@@ -32,6 +32,8 @@ const menu = [
   { to: '/campanas', icono: 'megafono', label: 'Campañas' },
   // H71: avisos destacados con vigencia (solo ADMIN)
   { to: '/avisos', icono: 'campana', label: 'Avisos' },
+  // H69: avisos masivos con vista previa y confirmación (solo ADMIN)
+  { to: '/envios-masivos', icono: 'megafono', label: 'Avisos masivos' },
 ];
 
 export default function AdminLayout() {

@@ -18,6 +18,7 @@ import Campanas from './pages/Campanas';
 import MensajesBiblioteca from './pages/MensajesBiblioteca';
 import AvisosDestacados from './pages/AvisosDestacados';
 import ReportesChat from './pages/ReportesChat';
+import EnviosMasivos from './pages/EnviosMasivos';
 import { inicioDe, puedeVer } from './config/permisos';
 
 function RutaProtegida({ children }) {
@@ -70,6 +71,8 @@ export default function App() {
                 <Route path="/campanas" element={<SoloRol ruta="/campanas"><Campanas /></SoloRol>} />
                 {/* H71 (Sprint 4): solo ADMIN */}
                 <Route path="/avisos" element={<SoloRol ruta="/avisos"><AvisosDestacados /></SoloRol>} />
+                {/* H69 (Sprint 4): solo ADMIN */}
+                <Route path="/envios-masivos" element={<SoloRol ruta="/envios-masivos"><EnviosMasivos /></SoloRol>} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

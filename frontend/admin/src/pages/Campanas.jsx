@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
+import AlcanceCampanas from '../components/AlcanceCampanas';
+import PromocionCampana from '../components/PromocionCampana';
 import { useToast } from '../context/ToastContext';
 import {
   crearCampana, editarCampana, erroresDeValidacion, finalizarCampana, getCampanas, mensajeError, statusDe,
@@ -80,6 +82,8 @@ export default function Campanas() {
   const [porFinalizar, setPorFinalizar] = useState(null);
   const [finalizando, setFinalizando] = useState(false);
   const [copiado, setCopiado] = useState(null);
+  // H66: campaña que se está promocionando en redes
+  const [promocionando, setPromocionando] = useState(null);
   const panel = useRef(null);
 
   const cargar = useCallback(async () => {
@@ -259,6 +263,8 @@ export default function Campanas() {
         </form>
       )}
 
+      {promocionando && <PromocionCampana key={promocionando.id} campana={promocionando} onCerrar={() => setPromocionando(null)} />}
+
       <div className="filtro-segmentos" role="group" aria-label="Filtrar campañas por estado">
         {SEGMENTOS.map((s) => (
           <button key={s.valor || 'todas'} type="button" className={`btn btn-mini ${estado === s.valor ? 'btn-primario' : 'btn-fantasma'}`}
@@ -311,6 +317,10 @@ export default function Campanas() {
                             <button type="button" className="btn btn-fantasma btn-mini" onClick={() => abrirEdicion(c)}
                               aria-label={`Editar ${c.nombre}`}>Editar</button>
                           )}
+                          {c.estado !== 'FINALIZADA' && (
+                            <button type="button" className="btn btn-fantasma btn-mini" onClick={() => setPromocionando(c)}
+                              aria-label={`Promocionar ${c.nombre} en redes`}>Promocionar</button>
+                          )}
                           {c.estado === 'ACTIVA' && (
                             <button type="button" className="btn btn-peligro btn-mini" onClick={() => setPorFinalizar(c)}
                               aria-label={`Finalizar ${c.nombre}`}>Finalizar</button>
@@ -327,6 +337,9 @@ export default function Campanas() {
           <Paginacion pagina={pagina} lista={lista} onCambiar={setPagina} />
         </>
       )}
+
+      {/* H67: alcance de cada campaña por rango de fechas */}
+      <AlcanceCampanas />
 
       <ConfirmarDialogo
         abierto={Boolean(porFinalizar)}

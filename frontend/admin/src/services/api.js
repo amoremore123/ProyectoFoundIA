@@ -232,6 +232,45 @@ export const resolverReporteMensaje = async (id, { accion, resolucion }) => {
   return data;
 };
 
+// H67: alcance de las campañas (visitas y registros por origen, sin datos personales)
+export const getAlcanceCampanas = async ({ desde, hasta } = {}) => {
+  const params = {};
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  const { data } = await api.get('/api/admin/campanas/alcance/', { params });
+  return data;
+};
+export const getAlcanceCampana = async (id, { desde, hasta } = {}) => {
+  const params = {};
+  if (desde) params.desde = desde;
+  if (hasta) params.hasta = hasta;
+  const { data } = await api.get(`/api/admin/campanas/${id}/alcance/`, { params });
+  return data;
+};
+
+// H66: promociones en redes (preparar el texto y registrar lo publicado)
+export const getSugerenciaPromocion = async (campana, red) => {
+  const { data } = await api.get('/api/admin/promociones/sugerencia/', { params: { campana, red } });
+  return data;
+};
+export const getPromociones = async (filtros, numero) => pagina('/api/admin/promociones/', filtros, numero);
+export const registrarPromocion = async (datos) => {
+  const { data } = await api.post('/api/admin/promociones/', datos);
+  return data;
+};
+
+// H69: avisos masivos con vista previa, código de confirmación y registro
+export const vistaPreviaEnvioMasivo = async (datos) => {
+  const { data } = await api.post('/api/admin/envios-masivos/vista-previa/', datos);
+  return data;
+};
+export const enviarEnvioMasivo = async (datos) => {
+  const { data } = await api.post('/api/admin/envios-masivos/', datos);
+  return data;
+};
+export const getEnviosMasivos = async (numero) => pagina('/api/admin/envios-masivos/', {}, numero);
+export const getDestinatariosEnvio = async (id, numero) => pagina(`/api/admin/envios-masivos/${id}/destinatarios/`, {}, numero);
+
 // H59: historial de respaldos, filtrable por tipo (BASE o FOTOS)
 export const getRespaldos = async (filtros, numero) => pagina('/api/admin/respaldos/', filtros, numero);
 

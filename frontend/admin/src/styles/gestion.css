@@ -97,3 +97,25 @@
 .reporte-chat-mensaje p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
 .reporte-chat-mensaje img { max-width: 220px; border-radius: 8px; }
 .resolver-opciones-columna { flex-direction: column; align-items: flex-start; }
+
+/* H66: promociones en redes */
+.promocion-preparar { align-self: end; }
+.promocion-form { display: grid; gap: 12px; }
+.promocion-excedido { color: #b42318; font-weight: 700; }
+.promocion-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.promocion-lista li { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+
+/* H67: alcance de las campañas */
+.alcance-rango { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.alcance-rango .campo { margin: 0; }
+.alcance-detalle { display: grid; gap: 10px; }
+.alcance-barras { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.alcance-barras li { display: grid; grid-template-columns: 70px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13px; }
+.alcance-barra { height: 10px; border-radius: 999px; background: var(--surface-2, #f2f4f7); overflow: hidden; }
+.alcance-barra span { display: block; height: 100%; background: #1f6feb; border-radius: 999px; }
+.alcance-cifras { color: var(--text-soft); white-space: nowrap; }
+
+/* H69: vista previa del aviso masivo */
+.masivo-vista { padding: 12px 14px; border-radius: 8px; background: rgba(31, 111, 235, .08); border: 1px solid rgba(31, 111, 235, .3); display: grid; gap: 4px; }
+.masivo-vista p { margin: 0; }
+
