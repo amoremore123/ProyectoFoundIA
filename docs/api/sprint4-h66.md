@@ -118,3 +118,32 @@ CREATE TABLE IF NOT EXISTS promociones_campana (
 - Corregir: se puede cambiar texto, fecha y dirección; la campaña y la red no; `DELETE` `405`.
 - Lista con filtros por campaña y red; `401`, `403`, `404`.
 - Con MySQL real: la migración dos veces y una promoción registrada que aparece en la lista.
+
+## Verificación del 23/11/2026
+
+- Django: 10 pruebas nuevas en `test_sprint4_h66.py` (sugerencia con el enlace de origen y sin guardar nada; en `X`
+  no pasa de 280, acorta la descripción con «…» y no corta el enlace; sugerencia con datos inválidos `400`;
+  registrar guarda texto, enlace, fecha y autor; el enlace lo pone el servidor aunque se mande otro; sin dirección
+  de publicación; validaciones de red, largo por red, fecha futura, sin zona o mal escrita, dirección `http`, de
+  otra red, de un dominio que imita a la red o con usuario y clave, campaña inexistente o faltante; 280 exactos en
+  `X` y `OTRA` con cualquier `https`; corregir texto y dirección, pero no campaña ni red, y la dirección se valida
+  con la red guardada; `DELETE` `405`; lista con filtros y orden; `401`, `403`, `404`). Suite completa:
+  **198 pruebas, OK**.
+- MySQL 8.0 de QA, con el panel (Django) real:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h66_promociones.sql` dos veces sin error |
+| Sugerencia para `X` | `200`, 94 caracteres, con el enlace `…/explorar?origen=semana-h67` |
+| Registrar | `201`, con el enlace de la campaña, la fecha en UTC y el autor; la fila quedó en la base |
+| Dirección de Instagram en una promoción de `X` | `400` con el motivo |
+| Fecha sin zona horaria | `400` |
+| Corregir el texto / cambiar la red | `200` / `400` |
+| `DELETE` | `405` |
+| Lista de la campaña | La promoción con el texto corregido |
+| Instalación nueva | `script.sql`, `seed.sql` y la migración sobre esa base, sin errores |
+
+- FoundIA no publica en ninguna red ni guarda claves de redes: solo prepara el texto y registra lo publicado,
+  como pide el Sprint 4.
+- **Falta en la web (Yajaira):** preparar el texto con el botón «Copiar», el formulario para registrar la
+  publicación y la lista (ver «Lo que necesita la web»).
