@@ -83,3 +83,19 @@ La restricción única protege también el caso de dos reintentos que llegan a l
 - Publicar dos veces con la misma clave: una sola publicación.
 - Con MySQL real: la migración se aplica dos veces y la restricción única rechaza un duplicado directo.
 
+
+## Verificación del 22/11/2026
+
+- Spring: 5 pruebas nuevas en `ChatIntegrationTest`: reintento con la misma clave (`201` y luego `200`, mismo
+  `id`, un solo mensaje y un solo aviso, aunque el reintento traiga otro texto); sin clave se comporta como
+  antes; la clave es por cuenta; el reintento se devuelve aunque la conversación ya esté en solo lectura
+  (y un envío nuevo ahí sigue dando `409`); clave en otra conversación `409`; formato inválido `400`;
+  publicar dos veces con la misma clave crea una sola publicación. Se ajustó `ObjetoControllerTest` a la
+  nueva firma. Suite completa: **539 pruebas, 0 fallos**.
+- MySQL 8.0 de QA: `migracion_h65_idempotencia.sql` se ejecutó dos veces sin error. Un `INSERT` directo
+  con la misma clave y autor fue rechazado por la base (`ERROR 1062 … uq_mensajes_chat_cliente`).
+- Por la API real: un mensaje enviado dos veces con la misma clave respondió `201` y `200` con el mismo `id`
+  y quedó guardado **una vez**; una publicación igual (`201`, `200`, una sola fila); sin clave, `201` como
+  antes; clave inválida, `400`.
+- **Falta en Android (Amore):** hoy la cola de salida no envía `Idempotency-Key` (ver «Lo que necesita
+  Android»). Hasta entonces el servidor ya está listo, pero un reintento de la app todavía puede duplicar.
