@@ -13,7 +13,7 @@ export default defineConfig({
   // Las pruebas comparten la misma base de datos: una a la vez para que no se pisen
   workers: 1,
   fullyParallel: false,
-  timeout: 60_000,
+  timeout: 90_000, // con todos los servicios en la misma laptop algunos recorridos tardan
   expect: { timeout: 10_000 },
   retries: 0,
   reporter: [['list'], ['html', { outputFolder: 'e2e-informe', open: 'never' }]],
@@ -31,6 +31,6 @@ export default defineConfig({
     command: 'npm run dev',
     url: process.env.E2E_WEB || 'http://localhost:5173',
     reuseExistingServer: true,
-    timeout: 60_000,
+    timeout: 90_000, // con todos los servicios en la misma laptop algunos recorridos tardan
   },
 });

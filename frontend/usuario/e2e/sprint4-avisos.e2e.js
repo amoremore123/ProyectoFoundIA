@@ -17,7 +17,7 @@ test.describe('Sprint 4: avisos, canales, reportes del chat y versiones', () => 
   test('H71: un aviso creado en el panel aparece en Inicio y desaparece al retirarlo', async ({ page, browser }) => {
     const titulo = `Aviso e2e ${sufijo()}`;
     const { contexto, panel } = await entrarAlPanel(browser);
-    await panel.getByRole('link', { name: 'Avisos' }).click();
+    await panel.getByRole('link', { name: 'Avisos', exact: true }).click();
     await panel.getByRole('button', { name: /Nuevo aviso/ }).click();
     await panel.getByLabel('Título *').fill(titulo);
     await panel.getByLabel('Texto *').fill('La biblioteca atiende hasta las 6 p. m. esta semana.');
@@ -42,17 +42,21 @@ test.describe('Sprint 4: avisos, canales, reportes del chat y versiones', () => 
     await expect(page.getByText(titulo)).toHaveCount(0);
   });
 
-  test('H68: elegir recibir los avisos por correo se guarda en la cuenta', async ({ page }) => {
+  test('H68: el canal de cada tipo de aviso se guarda en la cuenta', async ({ page }) => {
     const cuenta = await crearCuenta('canal');
     await entrarConSesion(page, cuenta, '/notificaciones');
     await page.getByText('Preferencias de avisos').click();
-    const correo = page.getByRole('checkbox', { name: /Correo electrónico/ });
-    await expect(correo).not.toBeChecked();
-    await correo.check();
+    await expect(page.getByRole('combobox', { name: 'Mensajes del chat' })).toHaveValue('PUSH');
+    await page.getByRole('combobox', { name: 'Posibles coincidencias' }).selectOption('CORREO');
+    await page.getByRole('combobox', { name: 'Mensajes del chat' }).selectOption('AMBOS');
+    await page.getByRole('combobox', { name: 'Avisos de la biblioteca' }).selectOption('NINGUNO');
     await page.getByRole('button', { name: 'Guardar preferencias' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Preferencias guardadas' })).toBeVisible();
     const guardadas = await fetch(`${API}/api/notificaciones/preferencias`, { headers: { Authorization: `Bearer ${cuenta.token}` } }).then((r) => r.json());
-    expect(guardadas).toMatchObject({ correo: true, push: true });
+    expect(guardadas.canales).toMatchObject({ coincidencias: 'CORREO', mensajes: 'AMBOS', sistema: 'NINGUNO', reclamos: 'PUSH' });
+    await page.reload();
+    await page.getByText('Preferencias de avisos').click();
+    await expect(page.getByRole('combobox', { name: 'Mensajes del chat' })).toHaveValue('AMBOS');
   });
 
   test('H56: un mensaje reportado en el chat se resuelve en el panel y el autor recibe la advertencia', async ({ page, browser }) => {
@@ -78,7 +82,15 @@ test.describe('Sprint 4: avisos, canales, reportes del chat y versiones', () => 
     // El administrador lo ve y advierte al autor
     const { contexto, panel } = await entrarAlPanel(browser);
     await panel.getByRole('link', { name: 'Reportes del chat' }).click();
+    // La bandeja va del más antiguo al más nuevo, de 10 en 10: se avanza hasta encontrarlo
     const fila = panel.getByRole('row').filter({ hasText: `Pásame tu número ${marca}` });
+    await expect(panel.getByRole('table')).toBeVisible();
+    for (let vuelta = 0; vuelta < 30 && !(await fila.count()); vuelta += 1) {
+      const siguiente = panel.getByRole('button', { name: /Siguiente/ });
+      if (!(await siguiente.count()) || await siguiente.isDisabled()) break;
+      await siguiente.click();
+      await panel.waitForTimeout(400);
+    }
     await expect(fila).toContainText(reporta.nombre);
     await fila.getByRole('button', { name: /Resolver reporte/ }).click();
     await panel.getByLabel(/Motivo de la decisión/).fill('No pidas datos personales en el chat');

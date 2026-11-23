@@ -28,11 +28,15 @@ con su propia pantalla.
 | | La biblioteca ve el mensaje en su bandeja del panel, responde y la respuesta llega sin recargar | H63 |
 | | Una conversación ajena no se abre | H55 |
 | `e2e/sprint4-avisos.e2e.js` | Un aviso destacado creado en el panel aparece en Inicio, abre su página y desaparece al retirarlo | H71 |
-| | Elegir recibir los avisos por correo se guarda en la cuenta | H68 |
+| | El canal de cada tipo de aviso (teléfono, correo, ambos o solo la bandeja) se guarda en la cuenta | H68 |
 | | Un mensaje del chat reportado en la web se resuelve en el panel y el autor recibe la advertencia sin saber quién reportó | H56 |
 | | El panel muestra las versiones restaurables y el comando para ensayarlas, sin restaurar desde la web | H70 |
+| `e2e/sprint4-difusion.e2e.js` | Una visita y un registro por el enlace de una campaña aparecen en el tablero de alcance del panel (y una recarga no vuelve a contar) | H67 |
+| | El panel prepara el texto de una campaña para X con su enlace y registra lo publicado | H66 |
+| | Un aviso masivo para el personal de biblioteca se envía tras la vista previa y llega a su bandeja | H69 |
+| | En el chat se ve la foto de perfil de la otra persona | H64 |
 
-Quedan fuera hasta que exista su backend: las historias de difusión H66, H67 y H69. El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
+Todas las historias web del Sprint 4 con backend están cubiertas. El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
 
 ## Resultado del 21/11/2026
 
@@ -99,3 +103,11 @@ la migración `migracion_h55_chat.sql` aplicada tras un respaldo. Se agregaron l
 **21 de 21 pruebas en verde** (4,6 minutos) con la API de `dev/leonel` (incluye el chat) y las migraciones de
 H56, H57, H65, H68, H70, H71 y el script de M1 aplicados tras un respaldo. Se agregaron las cuatro pruebas de
 `e2e/sprint4-avisos.e2e.js`.
+
+## Actualización del 23/11/2026 (tarde): H66, H67, H69, H64 y el nuevo H68
+
+**25 pruebas.** En la corrida completa (9,1 minutos) pasaron 24; la de custodia superó el tiempo máximo al
+cargar una página con la laptop muy exigida y pasó al repetirla sola (28,7 s). Se agregó
+`e2e/sprint4-difusion.e2e.js` y se actualizó la prueba de H68 al canal por tipo de aviso. El tiempo máximo por
+prueba subió a 90 s. La bandeja de reportes del chat va del más antiguo al más nuevo, así que la prueba de H56
+avanza de página hasta encontrar su reporte.
