@@ -1,11 +1,12 @@
 # H65 — Envíos sin conexión que no se duplican
 
-Responsable del backend: Leonel (Spring). Android: Amore (cola de salida en Room con WorkManager).
+Responsable del backend: Leonel (Spring). Android: Amore (cola de salida en Room, `mensajes_pendientes`).
 Prioridad «Debería» del Sprint 4.
 
 ## El problema
 
-Android guarda lo que se escribe sin red en una cola y lo reenvía al volver la conexión. Si un envío llega
+Android guarda los mensajes de texto que se escriben sin red en una cola (`mensajes_pendientes` en Room) y
+`ChatViewModels.enviarPendientes()` los reenvía en orden al volver la conexión. Si un envío llega
 al servidor pero la respuesta se pierde (señal débil, la app se cierra), la app cree que falló y lo reenvía:
 sin H65 el servidor lo guardaría **dos veces**.
 
@@ -27,7 +28,7 @@ Content-Type: application/json
 | Ruta | Con `Idempotency-Key` repetida |
 | --- | --- |
 | `POST /api/conversaciones/{id}/mensajes` (texto, H55) | Devuelve el mismo mensaje |
-| `POST /api/conversaciones/{id}/mensajes` (foto, H62) | Devuelve el mismo mensaje; la foto nueva no se guarda |
+| `POST /api/conversaciones/{id}/mensajes` (foto, H62) | Devuelve el mismo mensaje; la foto nueva no se guarda (hoy la app no pone fotos en la cola) |
 | `POST /api/objetos` (publicar) | Devuelve la misma publicación |
 
 Reglas:
@@ -66,11 +67,16 @@ La restricción única protege también el caso de dos reintentos que llegan a l
 
 ## Lo que necesita Android (Amore)
 
+Revisado contra `origin/mobile/android` (8ed7330, 21/11/2026): la cola solo guarda texto y la base Room está
+en la versión 3.
+
 - Agregar a `MensajePendienteEntity` un campo `idCliente` (UUID) generado **al encolar**, y una migración de
-  Room para las filas ya guardadas (generarles uno).
-- Enviar `@Header("Idempotency-Key") idCliente` en `enviarMensaje` y `enviarMensajeConFoto` en cada reintento.
-- Tratar `200` igual que `201` (es el mismo mensaje).
-- Si más adelante se agrega la cola de publicaciones, lo mismo en `POST /api/objetos`.
+  Room 3 → 4 que agregue la columna y les dé un valor único a las filas ya guardadas.
+- Enviar `@Header("Idempotency-Key")` en `enviarMensaje` y pasar `pendiente.idCliente` desde
+  `enviarPendientes()` en cada reintento.
+- `200` y `201` son éxito para Retrofit y traen el mismo `MensajeChat`: no hace falta tratarlos distinto.
+- Si más adelante se ponen fotos o publicaciones en la cola, lo mismo en `enviarMensajeConFoto` y en
+  `POST /api/objetos`.
 
 ## Pruebas que se deben ejecutar y registrar
 
