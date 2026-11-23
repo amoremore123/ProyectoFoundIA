@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from .models import (
-    Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Restauracion, Usuario,
+    AvisoDestacado, Campana, Categoria, Custodia, Notificacion, Objeto, Reclamo, Reporte, ReporteMensaje, Respaldo, Restauracion, Usuario,
 )
 
 
@@ -361,6 +361,66 @@ class CampanaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"fechaFin": "Debe ser igual o posterior a la fecha de inicio."})
         if "descripcion" in attrs and not attrs["descripcion"]:
             attrs["descripcion"] = None
+        return attrs
+
+
+class AvisoDestacadoSerializer(serializers.ModelSerializer):
+    """H71: aviso destacado con vigencia. El servidor pone el autor y las fechas de registro."""
+
+    titulo = serializers.CharField(min_length=3, max_length=80, trim_whitespace=True)
+    texto = serializers.CharField(min_length=3, max_length=300, trim_whitespace=True)
+    destino = serializers.CharField(
+        max_length=255, required=False, allow_blank=True, allow_null=True, trim_whitespace=True)
+    campanaId = serializers.PrimaryKeyRelatedField(
+        source="campana", queryset=Campana.objects.all(), required=False, allow_null=True,
+        error_messages={"does_not_exist": "No existe la campaña {pk_value}."})
+    fechaInicio = serializers.DateField(source="fecha_inicio")
+    fechaFin = serializers.DateField(source="fecha_fin")
+    enlace = serializers.SerializerMethodField()
+    estado = serializers.SerializerMethodField()
+    retiradoEn = serializers.DateTimeField(source="retirado_en", read_only=True)
+    creadoPor = serializers.SerializerMethodField()
+    fechaCreacion = serializers.DateTimeField(source="fecha_creacion", read_only=True)
+    fechaActualizacion = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+
+    class Meta:
+        model = AvisoDestacado
+        fields = [
+            "id", "titulo", "texto", "destino", "campanaId", "enlace", "fechaInicio", "fechaFin",
+            "estado", "retiradoEn", "creadoPor", "fechaCreacion", "fechaActualizacion",
+        ]
+        read_only_fields = ["id"]
+
+    def get_enlace(self, obj):
+        return obj.enlace()
+
+    def get_estado(self, obj) -> str:
+        return obj.estado()
+
+    def get_creadoPor(self, obj) -> dict:
+        return {"id": obj.creado_por_id,
+                "nombre": f"{obj.creado_por.nombre} {obj.creado_por.apellido}".strip()}
+
+    def validate_destino(self, valor):
+        if not valor:
+            return None
+        # Solo rutas de la propia web, igual que el destino de las campañas (H60)
+        if not valor.startswith("/") or valor.startswith("//") or "\\" in valor or "?" in valor or "#" in valor:
+            raise serializers.ValidationError("Debe ser una ruta de la web que empiece con «/», sin dominio ni parámetros.")
+        return valor
+
+    def validate(self, attrs):
+        if self.instance is not None and self.instance.retirado_en is not None:
+            raise serializers.ValidationError({"detail": "Un aviso retirado no se edita: crea uno nuevo."})
+        inicio = attrs.get("fecha_inicio", getattr(self.instance, "fecha_inicio", None))
+        fin = attrs.get("fecha_fin", getattr(self.instance, "fecha_fin", None))
+        if inicio and fin and fin < inicio:
+            raise serializers.ValidationError({"fechaFin": "Debe ser igual o posterior a la fecha de inicio."})
+        destino = attrs.get("destino", getattr(self.instance, "destino", None))
+        campana = attrs.get("campana", getattr(self.instance, "campana", None))
+        if destino and campana is not None:
+            raise serializers.ValidationError(
+                {"destino": "Usa una ruta o una campaña, no las dos: con campaña se abre el enlace de la campaña."})
         return attrs
 
 

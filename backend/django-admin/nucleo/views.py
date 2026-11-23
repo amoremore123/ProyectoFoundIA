@@ -27,6 +27,7 @@ from .disposicion import (
 )
 from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
+    AvisoDestacado,
     ROL_CHOICES,
     Campana,
     Dispositivo,
@@ -55,6 +56,7 @@ from .reclamos_custodia import (
     token_retiro_vigente,
 )
 from .serializers import (
+    AvisoDestacadoSerializer,
     CampanaSerializer,
     CategoriaSerializer,
     CustodiaCreateSerializer,
@@ -1031,6 +1033,53 @@ class RestauracionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, view
     queryset = Restauracion.objects.all()
     serializer_class = RestauracionSerializer
     permission_classes = [IsAuthenticated, EsAdmin]
+
+
+class AvisoDestacadoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    """H71 - Avisos destacados, solo ADMIN.
+
+    GET/POST /api/admin/avisos-destacados/ · GET/PUT/PATCH /api/admin/avisos-destacados/{id}/
+    POST /api/admin/avisos-destacados/{id}/retirar/. No hay DELETE: queda el historial.
+    Spring los muestra sin sesión en GET /api/avisos-destacados mientras están vigentes.
+    """
+
+    serializer_class = AvisoDestacadoSerializer
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    def get_queryset(self):
+        consulta = AvisoDestacado.objects.select_related("creado_por", "campana").all()
+        estado = self.request.query_params.get("estado")
+        if estado is None:
+            return consulta
+        if estado not in AvisoDestacado.ESTADOS:
+            raise ValidationError({"estado": "Usa PROGRAMADO, VIGENTE, VENCIDO o RETIRADO."})
+        if estado == "RETIRADO":
+            return consulta.filter(retirado_en__isnull=False)
+        hoy = hoy_en_lima()
+        sin_retirar = consulta.filter(retirado_en__isnull=True)
+        if estado == "PROGRAMADO":
+            return sin_retirar.filter(fecha_inicio__gt=hoy)
+        if estado == "VENCIDO":
+            return sin_retirar.filter(fecha_fin__lt=hoy)
+        return sin_retirar.filter(fecha_inicio__lte=hoy, fecha_fin__gte=hoy)
+
+    def perform_create(self, serializer):
+        ahora = timezone.now()
+        serializer.save(creado_por=self.request.user, fecha_creacion=ahora, fecha_actualizacion=ahora)
+
+    def perform_update(self, serializer):
+        serializer.save(fecha_actualizacion=timezone.now())
+
+    @action(detail=True, methods=["post"])
+    def retirar(self, request, pk=None):
+        aviso = self.get_object()
+        if aviso.retirado_en is None:
+            ahora = timezone.now()
+            aviso.retirado_en = ahora
+            aviso.fecha_actualizacion = ahora
+            aviso.save(update_fields=["retirado_en", "fecha_actualizacion"])
+        return Response(AvisoDestacadoSerializer(aviso).data)
 
 
 class CampanaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,

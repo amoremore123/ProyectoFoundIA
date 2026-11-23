@@ -13,6 +13,7 @@ CRITICO:
   fecha_subida, fecha_creacion, fecha_contacto, fecha_reporte, fecha_resolucion).
 """
 import datetime as _dt
+from urllib.parse import urlencode
 
 from django.db import models
 from django.utils import timezone
@@ -553,6 +554,55 @@ class Campana(models.Model):
 
     def __str__(self):
         return f"Campaña {self.origen}"
+
+
+class AvisoDestacado(models.Model):
+    """H71: aviso que todos ven arriba en la web y en la app mientras está vigente.
+
+    Lo administra el panel (Django); Spring lo expone sin sesión en GET /api/avisos-destacados.
+    """
+
+    titulo = models.CharField(max_length=80)
+    texto = models.CharField(max_length=300)
+    destino = models.CharField(max_length=255, null=True, blank=True)
+    campana = models.ForeignKey(
+        Campana, on_delete=models.DO_NOTHING, db_column="campana_id", null=True, blank=True,
+        related_name="avisos_destacados",
+    )
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    retirado_en = models.DateTimeField(null=True, blank=True)
+    creado_por = models.ForeignKey(
+        Usuario, on_delete=models.DO_NOTHING, db_column="creado_por_id", related_name="avisos_destacados",
+    )
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(default=timezone.now)
+
+    ESTADOS = ("PROGRAMADO", "VIGENTE", "VENCIDO", "RETIRADO")
+
+    class Meta:
+        managed = False
+        db_table = "avisos_destacados"
+        ordering = ["-fecha_inicio", "-id"]
+
+    def estado(self, hoy=None):
+        # Fechas del calendario de Lima, como las campañas (H60)
+        if self.retirado_en is not None:
+            return "RETIRADO"
+        hoy = hoy or hoy_en_lima()
+        if hoy < self.fecha_inicio:
+            return "PROGRAMADO"
+        if hoy > self.fecha_fin:
+            return "VENCIDO"
+        return "VIGENTE"
+
+    def enlace(self):
+        if self.campana_id:
+            return f"{self.campana.destino}?{urlencode({'origen': self.campana.origen})}"
+        return self.destino or None
+
+    def __str__(self):
+        return f"Aviso destacado {self.titulo}"
 
 
 class MensajeChat(models.Model):

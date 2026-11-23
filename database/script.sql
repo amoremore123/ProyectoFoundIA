@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS lecturas_chat;
 DROP TABLE IF EXISTS mensajes_chat;
 DROP TABLE IF EXISTS conversaciones;
 DROP TABLE IF EXISTS bloqueos_chat;
+DROP TABLE IF EXISTS avisos_destacados;
 DROP TABLE IF EXISTS campanas;
 DROP TABLE IF EXISTS invitaciones;
 DROP TABLE IF EXISTS solicitudes_eliminacion;
@@ -626,3 +627,22 @@ ALTER TABLE preferencias_notificacion ADD COLUMN canal_correo BOOLEAN NOT NULL D
 ALTER TABLE notificaciones ADD COLUMN correo_enviado_en DATETIME NULL;
 ALTER TABLE notificaciones ADD COLUMN correo_resultado VARCHAR(10) NULL;
 CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fecha_creacion);
+
+-- H71: avisos destacados con vigencia. Bases existentes: migracion_h71_avisos_destacados.sql.
+CREATE TABLE IF NOT EXISTS avisos_destacados (
+    id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    titulo              VARCHAR(80)  NOT NULL,
+    texto               VARCHAR(300) NOT NULL,
+    destino             VARCHAR(255) NULL,
+    campana_id          BIGINT       NULL,
+    fecha_inicio        DATE         NOT NULL,
+    fecha_fin           DATE         NOT NULL,
+    retirado_en         DATETIME(6)  NULL,
+    creado_por_id       BIGINT       NOT NULL,
+    fecha_creacion      DATETIME(6)  NOT NULL,
+    fecha_actualizacion DATETIME(6)  NOT NULL,
+    CONSTRAINT fk_aviso_destacado_campana FOREIGN KEY (campana_id) REFERENCES campanas (id),
+    CONSTRAINT fk_aviso_destacado_autor FOREIGN KEY (creado_por_id) REFERENCES usuarios (id),
+    CONSTRAINT chk_aviso_destacado_fechas CHECK (fecha_fin >= fecha_inicio),
+    INDEX idx_avisos_destacados_vigencia (fecha_inicio, fecha_fin)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
