@@ -117,4 +117,6 @@ CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fec
   cubierta por las pruebas con Firebase simulado y usa el mismo despachador verificado en H57.
 - Fuera de H68, encontrado al probar: un método HTTP no permitido (por ejemplo `POST` a esta ruta) responde
   `500` en vez de `405`, porque el manejador global de errores no reconoce ese caso. Ya pasaba antes de H68.
+  **Corregido después** en un commit aparte: ahora responde `405` con el encabezado `Allow`, y un tipo de
+  contenido no admitido responde `415` (verificado con la API real).
 - **Falta en la web (Yajaira) y en Android (Amore):** los dos interruptores (ver «Lo que necesitan la web y Android»).

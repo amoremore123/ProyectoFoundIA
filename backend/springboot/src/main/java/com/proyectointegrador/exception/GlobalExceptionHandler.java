@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -195,6 +198,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "Recurso no encontrado", request);
+    }
+
+    // Errores del cliente que antes caían en el manejador genérico y respondían 500.
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleMetodoNoPermitido(HttpRequestMethodNotSupportedException ex,
+                                                            HttpServletRequest request) {
+        ApiError body = ApiError.of(HttpStatus.METHOD_NOT_ALLOWED,
+                "El método " + ex.getMethod() + " no está permitido en esta ruta", request.getRequestURI());
+        ResponseEntity.BodyBuilder respuesta = ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED);
+        if (ex.getSupportedHttpMethods() != null && !ex.getSupportedHttpMethods().isEmpty()) {
+            respuesta.allow(ex.getSupportedHttpMethods().toArray(HttpMethod[]::new));
+        }
+        return respuesta.body(body);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiError> handleTipoNoAdmitido(HttpMediaTypeNotSupportedException ex,
+                                                         HttpServletRequest request) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Tipo de contenido no admitido en esta ruta", request);
     }
 
     @ExceptionHandler(Exception.class)
