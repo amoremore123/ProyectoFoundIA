@@ -21,12 +21,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import javax.imageio.ImageIO;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -35,6 +42,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +63,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class ChatIntegrationTest {
+
+    // Las fotos (H62 y H64) van a una carpeta temporal, no a la del proyecto
+    @DynamicPropertySource
+    static void carpetaDeFotos(DynamicPropertyRegistry registro) {
+        registro.add("app.upload.directory",
+                () -> Path.of(System.getProperty("java.io.tmpdir"), "foundia-chat-" + UUID.randomUUID()).toString());
+    }
 
     @Autowired
     private EntityManager em;
@@ -431,5 +449,90 @@ class ChatIntegrationTest {
         em.flush();
         assertThat(contar("SELECT COUNT(o) FROM Objeto o WHERE o.usuario.id = ?1 AND o.nombre = 'Paraguas negro'",
                 perdedor.getId())).isEqualTo(1);
+    }
+
+    // --- H64: foto de perfil de la otra persona en el chat ---
+
+    private static byte[] png(int lado) throws Exception {
+        BufferedImage img = new BufferedImage(lado, lado, BufferedImage.TYPE_INT_RGB);
+        img.setRGB(0, 0, 0x336699);
+        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+        ImageIO.write(img, "png", salida);
+        return salida.toByteArray();
+    }
+
+    private void subirFotoDePerfil(Usuario u, byte[] datos) throws Exception {
+        mvc.perform(multipart("/api/perfil/foto").file(new MockMultipartFile("archivo", "yo.png", "image/png", datos))
+                        .with(como(u)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("H64: quien conversa ve la foto de la otra persona; una tercera persona no")
+    void fotoDePerfilEnElChat() throws Exception {
+        long id = iniciarEntrePersonas();
+        byte[] foto = png(6);
+        subirFotoDePerfil(hallador, foto);
+
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(perdedor)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                .andExpect(header().string("Cache-Control", containsString("private")))
+                .andExpect(content().bytes(foto));
+        mvc.perform(get("/api/conversaciones/{id}", id).with(como(perdedor)))
+                .andExpect(jsonPath("$.otro.tieneFoto").value(true));
+        // La otra persona (sin foto) y una tercera reciben 404; sin sesión, 401
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(hallador))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/conversaciones/{id}", id).with(como(hallador)))
+                .andExpect(jsonPath("$.otro.tieneFoto").value(false));
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(tercero))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/conversaciones/{id}/foto", id)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/conversaciones/{id}/foto", 999999L).with(como(perdedor))).andExpect(status().isNotFound());
+        // La lista de conversaciones también indica que hay foto
+        mvc.perform(get("/api/conversaciones").with(como(perdedor)))
+                .andExpect(jsonPath("$[0].otro.tieneFoto").value(true));
+    }
+
+    @Test
+    @DisplayName("H64: con la conversación bloqueada no se ve la foto, y vuelve al desbloquear")
+    void fotoDePerfilConBloqueo() throws Exception {
+        long id = iniciarEntrePersonas();
+        subirFotoDePerfil(hallador, png(5));
+        subirFotoDePerfil(perdedor, png(7));
+        mvc.perform(post("/api/conversaciones/{id}/bloqueo", id).with(como(perdedor))).andExpect(status().isOk());
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(perdedor))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(hallador))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/conversaciones/{id}", id).with(como(hallador)))
+                .andExpect(jsonPath("$.otro.tieneFoto").value(false));
+        mvc.perform(delete("/api/conversaciones/{id}/bloqueo", id).with(como(perdedor))).andExpect(status().isOk());
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(perdedor))).andExpect(status().isOk());
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(hallador))).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("H64: en el chat con la biblioteca el personal ve la foto de quien reclama, y no al revés")
+    void fotoDePerfilConLaBiblioteca() throws Exception {
+        Objeto custodia = objeto(bibliotecaria, TipoObjeto.ENCONTRADO, "Mochila en custodia");
+        custodia.setEstado(EstadoObjeto.EN_CUSTODIA);
+        Reclamo reclamo = new Reclamo();
+        reclamo.setObjeto(custodia);
+        reclamo.setUsuario(tercero);
+        em.persist(reclamo);
+        em.flush();
+        String cuerpo = mvc.perform(post("/api/conversaciones").with(como(tercero))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reclamoId\":" + reclamo.getId() + "}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        long id = ((Number) JsonPath.read(cuerpo, "$.id")).longValue();
+        subirFotoDePerfil(tercero, png(4));
+        subirFotoDePerfil(bibliotecaria, png(9));
+
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(bibliotecaria))).andExpect(status().isOk());
+        // Quien reclama habla con «Biblioteca», no con una persona del personal
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(tercero))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/conversaciones/{id}", id).with(como(tercero)))
+                .andExpect(jsonPath("$.otro.nombre").value("Biblioteca"))
+                .andExpect(jsonPath("$.otro.tieneFoto").value(false));
+        // Una persona ajena al reclamo tampoco
+        mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(perdedor))).andExpect(status().isNotFound());
     }
 }

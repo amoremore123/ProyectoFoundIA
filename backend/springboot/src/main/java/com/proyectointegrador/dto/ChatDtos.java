@@ -22,7 +22,8 @@ public final class ChatDtos {
     public record ReportarRequest(@NotBlank @Size(min = 3, max = 255) String motivo) {
     }
 
-    public record Participante(Long id, String nombre) {
+    /** H64: {@code tieneFoto} indica si se puede pedir su foto en GET /api/conversaciones/{id}/foto. */
+    public record Participante(Long id, String nombre, boolean tieneFoto) {
     }
 
     public record MensajeResponse(Long id, Long autorId, String autorNombre, String texto, String imagenUrl,

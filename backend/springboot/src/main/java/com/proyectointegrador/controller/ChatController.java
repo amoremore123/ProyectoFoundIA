@@ -78,6 +78,20 @@ public class ChatController {
         return respuesta(chat.enviar(id, yo(), texto, foto, clave));
     }
 
+    /** H64: foto de perfil de la otra persona, solo para quien participa. */
+    @GetMapping("/{id}/foto")
+    public ResponseEntity<org.springframework.core.io.Resource> fotoDelOtro(@PathVariable Long id) {
+        return chat.fotoDelOtro(id, yo())
+                .map(archivo -> ResponseEntity.ok()
+                        .contentType(archivo.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG)
+                        .cacheControl(org.springframework.http.CacheControl
+                                .maxAge(java.time.Duration.ofHours(1)).cachePrivate())
+                        .<org.springframework.core.io.Resource>body(
+                                new org.springframework.core.io.FileSystemResource(archivo)))
+                .orElseThrow(() -> new com.proyectointegrador.exception.ResourceNotFoundException(
+                        "No hay foto de perfil para mostrar"));
+    }
+
     @PostMapping("/{id}/leida")
     public ResponseEntity<Void> leida(@PathVariable Long id) {
         chat.marcarLeida(id, yo());

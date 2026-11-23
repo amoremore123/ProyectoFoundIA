@@ -55,12 +55,14 @@ public class ChatService {
     private final UsuarioRepository usuarios;
     private final NotificacionService notificaciones;
     private final AlmacenamientoImagenService imagenes;
+    private final FotoPerfilService fotosPerfil;
 
     public ChatService(ConversacionRepository conversaciones, MensajeChatRepository mensajes,
                        LecturaChatRepository lecturas, BloqueoChatRepository bloqueos,
                        ReporteMensajeRepository reportes, ContactoRepository contactos,
                        ReclamoRepository reclamos, UsuarioRepository usuarios,
-                       NotificacionService notificaciones, AlmacenamientoImagenService imagenes) {
+                       NotificacionService notificaciones, AlmacenamientoImagenService imagenes,
+                       FotoPerfilService fotosPerfil) {
         this.conversaciones = conversaciones;
         this.mensajes = mensajes;
         this.lecturas = lecturas;
@@ -71,6 +73,7 @@ public class ChatService {
         this.usuarios = usuarios;
         this.notificaciones = notificaciones;
         this.imagenes = imagenes;
+        this.fotosPerfil = fotosPerfil;
     }
 
     private static boolean esPersonal(Usuario u) {
@@ -263,6 +266,20 @@ public class ChatService {
         reportes.saveAndFlush(r);
     }
 
+    /**
+     * H64: la foto de perfil de la otra persona de la conversación. Vacío si no participas (igual que no
+     * existir), si la otra persona es «Biblioteca», si no tiene foto o si la conversación está bloqueada.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Optional<java.nio.file.Path> fotoDelOtro(Long id, Long usuarioId) {
+        Usuario yo = usuario(usuarioId);
+        Conversacion c = propia(id, yo);
+        if (c.getTipo() == TipoConversacion.CON_BIBLIOTECA && !esPersonal(yo)) return java.util.Optional.empty();
+        Usuario otro = otro(c, yo);
+        if (otro == null || bloqueada(c, yo)) return java.util.Optional.empty();
+        return fotosPerfil.archivo(otro.getId());
+    }
+
     // --- reglas ---
 
     private Conversacion propia(Long id, Usuario yo) {
@@ -340,8 +357,9 @@ public class ChatService {
     private ConversacionResponse respuesta(Conversacion c, Usuario yo) {
         Usuario otro = otro(c, yo);
         Participante participante = c.getTipo() == TipoConversacion.CON_BIBLIOTECA && !esPersonal(yo)
-                ? new Participante(null, "Biblioteca")
-                : otro == null ? null : new Participante(otro.getId(), otro.getNombre());
+                ? new Participante(null, "Biblioteca", false)
+                : otro == null ? null : new Participante(otro.getId(), otro.getNombre(),
+                        otro.getFotoPerfilUrl() != null && !bloqueada(c, yo));
         long leido = lecturas.findByConversacionIdAndUsuarioId(c.getId(), yo.getId())
                 .map(LecturaChat::getUltimoMensajeId).orElse(0L);
         long sinLeer = mensajes.countByConversacionIdAndIdGreaterThanAndAutorIdNot(c.getId(), leido, yo.getId());
