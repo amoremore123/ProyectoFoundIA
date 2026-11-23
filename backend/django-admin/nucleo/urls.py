@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
 from .envios_masivos import EnvioMasivoViewSet
+from .promociones import PromocionViewSet
 from .views import (
     AvisoDestacadoViewSet,
     CampanaViewSet,
@@ -40,6 +41,8 @@ router.register("campanas", CampanaViewSet, basename="campanas")
 router.register("avisos-destacados", AvisoDestacadoViewSet, basename="avisos-destacados")
 # H69: notificaciones masivas (vista previa, confirmación y registro; no se editan ni se borran)
 router.register("envios-masivos", EnvioMasivoViewSet, basename="envios-masivos")
+# H66: promociones en redes (se preparan y se registran; no se publican desde FoundIA)
+router.register("promociones", PromocionViewSet, basename="promociones")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),

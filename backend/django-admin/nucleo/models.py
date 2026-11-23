@@ -561,6 +561,29 @@ class Campana(models.Model):
         return f"Campaña {self.origen}"
 
 
+class PromocionCampana(models.Model):
+    """H66: una promoción de campaña publicada a mano en una red social y registrada en el panel."""
+
+    campana = models.ForeignKey(Campana, on_delete=models.DO_NOTHING, db_column="campana_id",
+                                related_name="promociones")
+    red = models.CharField(max_length=10)
+    texto = models.CharField(max_length=2200)
+    enlace = models.CharField(max_length=400)
+    url_publicacion = models.CharField(max_length=500, null=True, blank=True)
+    publicada_en = models.DateTimeField()
+    registrada_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="registrada_por_id",
+                                       related_name="promociones_registradas")
+    fecha_registro = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "promociones_campana"
+        ordering = ["-publicada_en", "-id"]
+
+    def __str__(self):
+        return f"Promoción {self.red} de {self.campana_id}"
+
+
 class AlcanceCampana(models.Model):
     """H67: una visita o un registro que llegó por el enlace de una campaña. Lo escribe Spring.
 
