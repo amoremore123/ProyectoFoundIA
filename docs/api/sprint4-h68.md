@@ -89,3 +89,32 @@ CREATE INDEX idx_notificaciones_correo ON notificaciones (correo_enviado_en, fec
   suspendida o sin verificar, no (`OMITIDO`); aviso viejo, no; un aviso nunca se envía dos veces; chat agrupado
   por conversación cada 30 minutos; fallo del servidor de correo `ERROR`; avisos creados por Django también.
 - Con MySQL real y Mailpit: la migración dos veces y el correo recibido en la bandeja de Mailpit.
+
+## Verificación del 22/11/2026
+
+- Spring: 11 pruebas nuevas en `CanalAvisosIntegrationTest` (valores por defecto, guardar y leer los canales,
+  cliente de H24/H53 conserva lo guardado, `400` y `401`, push apagado sin envío y con el aviso en la bandeja,
+  correo enviado una sola vez con su enlace, omitidos por canal o tipo apagado o tipo desconocido, cuenta
+  suspendida o sin verificar, aviso viejo, chat agrupado por conversación y de nuevo pasados 30 minutos, fallo
+  del correo en `ERROR` sin reintento, avisos de Django). Siguen pasando las de preferencias (H24/H53) y push
+  (H57). Suite completa: **574 pruebas, 0 fallos**.
+- MySQL 8.0 de QA y Mailpit (proyecto aislado `foundia-qa`):
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h68_canal_avisos.sql` dos veces sin error; columnas e índice creados |
+| `GET` por defecto | `push: true`, `correo: false` |
+| `PUT` con `correo: true` | `200`; un `PUT` sin canales (cliente anterior) lo conserva; `"correo": "si"` → `400` |
+| Coincidencia para Ana | Correo en Mailpit a `ana@foundia.dev`, «FoundIA \| Nueva coincidencia», enlace a `/notificaciones` |
+| Dos mensajes del chat #7 | **Un** correo (enlace `/mensajes/7`); el segundo quedó `OMITIDO` |
+| Mensaje del chat #8 | Su propio correo (`/mensajes/8`) |
+| Aviso `SISTEMA` (como los de Django) | Correo enviado |
+| Aviso de hace 2 horas | No se tocó |
+| Luis (sin activar el correo) | `OMITIDO`, ningún correo |
+| Codificación | `text/plain; charset=UTF-8`, tildes correctas |
+
+- El push real no se probó en QA (no tiene la cuenta de servicio de Firebase); la regla de `push: false` está
+  cubierta por las pruebas con Firebase simulado y usa el mismo despachador verificado en H57.
+- Fuera de H68, encontrado al probar: un método HTTP no permitido (por ejemplo `POST` a esta ruta) responde
+  `500` en vez de `405`, porque el manejador global de errores no reconoce ese caso. Ya pasaba antes de H68.
+- **Falta en la web (Yajaira) y en Android (Amore):** los dos interruptores (ver «Lo que necesitan la web y Android»).
