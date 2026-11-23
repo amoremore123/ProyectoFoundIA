@@ -69,7 +69,7 @@ las migraciones. Hazlo **una vez**, después de traer los cambios y **antes de l
 | `database/migracion_h55_chat.sql` | H55 a H63 | Tablas del chat |
 | `database/migracion_h56_resolver_reportes_mensaje.sql` | H56 | Resolución de reportes de mensajes (después de la del chat) |
 | `database/migracion_h57_dispositivos.sql` | H57 | Tabla `dispositivos` y marca de push en `notificaciones` |
-| `database/migracion_h68_canal_avisos.sql` | H68 | Canal de los avisos (push y correo) en preferencias y notificaciones |
+| `database/migracion_h68_canal_avisos.sql` | H68 | Canal de cada tipo de aviso (push, correo, ambos o solo la bandeja). Si ya aplicaste la versión anterior, vuelve a ejecutarla: pasa lo guardado |
 | `database/migracion_h65_idempotencia.sql` | H65 | Clave `Idempotency-Key` para que los reintentos no dupliquen |
 | `database/migracion_h70_restauraciones.sql` | H70 | Versiones restaurables: `respaldos.eliminado_en` y tabla `restauraciones` (sin ella, el panel de respaldos falla) |
 | `database/migracion_h59_respaldo_fotos.sql` | H59 | Columna `tipo` en `respaldos` |
