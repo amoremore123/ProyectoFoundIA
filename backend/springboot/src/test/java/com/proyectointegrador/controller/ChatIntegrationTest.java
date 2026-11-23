@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -324,5 +325,111 @@ class ChatIntegrationTest {
         mvc.perform(post("/api/conversaciones").with(como(perdedor)).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"contactoId\":999999}"))
                 .andExpect(status().isNotFound());
+    }
+
+    // ---------------- H65: Idempotency-Key ----------------
+
+    private org.springframework.test.web.servlet.ResultActions enviarCon(Usuario autor, long id, String texto, String clave)
+            throws Exception {
+        var pedido = post("/api/conversaciones/{id}/mensajes", id).with(como(autor))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"texto\":\"" + texto + "\"}");
+        return mvc.perform(clave == null ? pedido : pedido.header("Idempotency-Key", clave));
+    }
+
+    private long contar(String jpql, Object... parametros) {
+        var q = em.createQuery(jpql, Long.class);
+        for (int i = 0; i < parametros.length; i++) q.setParameter(i + 1, parametros[i]);
+        return q.getSingleResult();
+    }
+
+    @Test
+    @DisplayName("H65: reenviar con la misma Idempotency-Key devuelve el mismo mensaje y no vuelve a avisar")
+    void idempotenciaMensaje() throws Exception {
+        long id = iniciarEntrePersonas();
+        String clave = "3f2a9c1e-5b7d-4e2a-9c1e-5b7d4e2a9c1e";
+        String primero = enviarCon(perdedor, id, "Hola", clave).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Number idMensaje = JsonPath.read(primero, "$.id");
+        enviarCon(perdedor, id, "Hola", clave).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(idMensaje.longValue()));
+        // Aunque el reintento traiga otro texto, la clave identifica el envío
+        enviarCon(perdedor, id, "Hola otra vez", clave).andExpect(status().isOk())
+                .andExpect(jsonPath("$.texto").value("Hola"));
+        em.flush();
+        assertThat(contar("SELECT COUNT(m) FROM MensajeChat m WHERE m.conversacion.id = ?1", id)).isEqualTo(1);
+        assertThat(contar("SELECT COUNT(n) FROM Notificacion n WHERE n.usuario.id = ?1 AND n.tipo = 'MENSAJE_CHAT'",
+                hallador.getId())).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("H65: sin clave se comporta como antes y la clave es por cuenta")
+    void idempotenciaSinClaveYPorCuenta() throws Exception {
+        long id = iniciarEntrePersonas();
+        enviarCon(perdedor, id, "Igual", null).andExpect(status().isCreated());
+        enviarCon(perdedor, id, "Igual", null).andExpect(status().isCreated());
+        // La misma clave de otra persona es otro envío
+        enviarCon(perdedor, id, "De Ana", "clave-compartida-123").andExpect(status().isCreated());
+        enviarCon(hallador, id, "De Beto", "clave-compartida-123").andExpect(status().isCreated());
+        em.flush();
+        assertThat(contar("SELECT COUNT(m) FROM MensajeChat m WHERE m.conversacion.id = ?1", id)).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("H65: el reintento se devuelve aunque la conversación ya esté en solo lectura")
+    void idempotenciaTrasSoloLectura() throws Exception {
+        long id = iniciarEntrePersonas();
+        enviarCon(perdedor, id, "Antes de cerrar", "reintento-tardio-01").andExpect(status().isCreated());
+        perdido.setEstado(EstadoObjeto.RECUPERADO);
+        em.flush();
+        enviarCon(perdedor, id, "Antes de cerrar", "reintento-tardio-01").andExpect(status().isOk());
+        enviarCon(perdedor, id, "Nuevo", "otra-clave-nueva-02").andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("H65: la clave usada en otra conversación responde 409 y un formato inválido 400")
+    void idempotenciaErrores() throws Exception {
+        long id = iniciarEntrePersonas();
+        enviarCon(perdedor, id, "Hola", "clave-unica-0001").andExpect(status().isCreated());
+        enviarCon(perdedor, id, "Hola", "corta").andExpect(status().isBadRequest());
+        enviarCon(perdedor, id, "Hola", "con espacios no vale").andExpect(status().isBadRequest());
+
+        Objeto otroPerdido = objeto(perdedor, TipoObjeto.PERDIDO, "Llaves perdidas");
+        Objeto otroEncontrado = objeto(hallador, TipoObjeto.ENCONTRADO, "Llaves halladas");
+        Coincidencia c2 = new Coincidencia();
+        c2.setObjetoPerdido(otroPerdido);
+        c2.setObjetoEncontrado(otroEncontrado);
+        c2.setPorcentaje(BigDecimal.valueOf(70));
+        c2.setNivel(NivelCoincidencia.MEDIA);
+        c2.setEstado(EstadoCoincidencia.PENDIENTE);
+        em.persist(c2);
+        Contacto k2 = new Contacto();
+        k2.setCoincidencia(c2);
+        k2.setUsuarioEmisor(perdedor);
+        k2.setUsuarioReceptor(hallador);
+        k2.setMensaje("Otra solicitud");
+        em.persist(k2);
+        em.flush();
+        Number otra = JsonPath.read(mvc.perform(post("/api/conversaciones").with(como(perdedor))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"contactoId\":" + k2.getId() + "}"))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        enviarCon(perdedor, otra.longValue(), "Hola", "clave-unica-0001").andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("H65: publicar dos veces con la misma clave crea una sola publicación")
+    void idempotenciaPublicacion() throws Exception {
+        String cuerpo = "{\"categoriaId\":" + categoria.getId() + ",\"nombre\":\"Paraguas negro\",\"descripcion\":"
+                + "\"Paraguas negro plegable\",\"fechaObjeto\":\"" + LocalDate.now().minusDays(1) + "\",\"tipo\":\"PERDIDO\","
+                + "\"ubicacion\":\"Biblioteca\"}";
+        var pedido = post("/api/objetos").with(como(perdedor)).contentType(MediaType.APPLICATION_JSON).content(cuerpo)
+                .header("Idempotency-Key", "publicar-paraguas-01");
+        Number idObjeto = JsonPath.read(mvc.perform(pedido).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        mvc.perform(post("/api/objetos").with(como(perdedor)).contentType(MediaType.APPLICATION_JSON).content(cuerpo)
+                        .header("Idempotency-Key", "publicar-paraguas-01"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(idObjeto.longValue()));
+        em.flush();
+        assertThat(contar("SELECT COUNT(o) FROM Objeto o WHERE o.usuario.id = ?1 AND o.nombre = 'Paraguas negro'",
+                perdedor.getId())).isEqualTo(1);
     }
 }

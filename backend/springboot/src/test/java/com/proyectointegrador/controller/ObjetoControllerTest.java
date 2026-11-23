@@ -106,7 +106,7 @@ class ObjetoControllerTest {
     @Test
     @DisplayName("POST /api/objetos válido -> 201")
     void crearValido() throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(PUBLICACION_VALIDA))
                 .andExpect(status().isCreated())
@@ -124,7 +124,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("nombre")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
@@ -134,13 +134,13 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("150")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
     @DisplayName("H1 - POST acepta nombre de 150 y rechaza 151 caracteres antes de guardar")
     void limitesNombreEnApi() throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
         String enLimite = PUBLICACION_VALIDA.replace("Mochila negra", "N".repeat(150));
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(enLimite))
                 .andExpect(status().isCreated());
@@ -149,13 +149,13 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(excedido))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("nombre")));
-        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L), any());
     }
 
     @Test
     @DisplayName("H1 - API valida descripción por bytes UTF-8 y no intenta guardar si supera 16000")
     void limitesDescripcionEnApi() throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
         List<String> aceptadas = List.of(
                 "A".repeat(15999),
                 "A".repeat(16000),
@@ -174,7 +174,7 @@ class ObjetoControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.mensaje", containsString("descripcion")));
         }
-        verify(objetoService, org.mockito.Mockito.times(4)).crear(any(ObjetoRequest.class), eq(1L));
+        verify(objetoService, org.mockito.Mockito.times(4)).crear(any(ObjetoRequest.class), eq(1L), any());
     }
 
     private void assertThatUtf8NoSuperaText(String texto) {
@@ -190,7 +190,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("ubicacion")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
@@ -200,13 +200,13 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("255")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
     @DisplayName("H3 - API acepta ubicación de 255 caracteres con tildes y coordenadas vacías")
     void crearConUbicacionEnLimiteYCoordenadasVacias() throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
         String prefijo = "Laboratorio de cómputo ñ";
         String ubicacion = prefijo + "U".repeat(255 - prefijo.length());
         String body = PUBLICACION_VALIDA
@@ -218,7 +218,7 @@ class ObjetoControllerTest {
                 .andExpect(status().isCreated());
 
         ArgumentCaptor<ObjetoRequest> captor = ArgumentCaptor.forClass(ObjetoRequest.class);
-        verify(objetoService).crear(captor.capture(), eq(1L));
+        verify(objetoService).crear(captor.capture(), eq(1L), any());
         org.assertj.core.api.Assertions.assertThat(captor.getValue().ubicacion()).isEqualTo(ubicacion);
         org.assertj.core.api.Assertions.assertThat(captor.getValue().latitud()).isNull();
         org.assertj.core.api.Assertions.assertThat(captor.getValue().longitud()).isNull();
@@ -228,12 +228,12 @@ class ObjetoControllerTest {
     @CsvSource({"90, 180", "-90, -180", "0, 0"})
     @DisplayName("H3 - API permite los extremos de latitud y longitud")
     void coordenadasEnLimiteApi(String latitud, String longitud) throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
         String body = PUBLICACION_VALIDA.replace("19.43261", latitud).replace("-99.1332", longitud);
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated());
-        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L), any());
     }
 
     @ParameterizedTest
@@ -245,7 +245,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString(campo)));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
@@ -257,7 +257,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("descripcion")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
@@ -269,7 +269,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("categoriaId")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
@@ -318,18 +318,18 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("fecha")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @Test
     @DisplayName("H4 - POST acepta la fecha de hoy en formato ISO")
     void crearConFechaDeHoy() throws Exception {
-        when(objetoService.crear(any(ObjetoRequest.class), eq(1L))).thenReturn(respuesta());
+        when(objetoService.crear(any(ObjetoRequest.class), eq(1L), any())).thenReturn(new ObjetoService.Publicacion(respuesta(), false));
         String body = PUBLICACION_VALIDA.replace("2026-10-02", LocalDate.now().toString());
 
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated());
-        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L));
+        verify(objetoService).crear(any(ObjetoRequest.class), eq(1L), any());
     }
 
     @Test
@@ -340,7 +340,7 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("fechaObjeto")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 
     @ParameterizedTest
@@ -352,6 +352,6 @@ class ObjetoControllerTest {
         mockMvc.perform(post("/api/objetos").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.mensaje", containsString("fechaObjeto")));
-        verify(objetoService, never()).crear(any(), any());
+        verify(objetoService, never()).crear(any(), any(), any());
     }
 }

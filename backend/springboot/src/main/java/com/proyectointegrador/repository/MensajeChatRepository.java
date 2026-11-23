@@ -18,4 +18,7 @@ public interface MensajeChatRepository extends JpaRepository<MensajeChat, Long> 
     long countByConversacionIdAndIdGreaterThanAndAutorIdNot(Long conversacionId, Long despuesDe, Long autorId);
 
     Optional<MensajeChat> findByIdAndConversacionId(Long id, Long conversacionId);
+
+    /** H65 */
+    Optional<MensajeChat> findByAutorIdAndIdCliente(Long autorId, String idCliente);
 }

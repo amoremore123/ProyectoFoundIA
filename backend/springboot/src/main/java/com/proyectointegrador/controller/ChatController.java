@@ -59,16 +59,23 @@ public class ChatController {
     }
 
     @PostMapping(value = "/{id}/mensajes", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MensajeResponse> enviar(@PathVariable Long id, @Valid @RequestBody EnviarRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(chat.enviar(id, yo(), request.texto(), null));
+    public ResponseEntity<MensajeResponse> enviar(@PathVariable Long id, @Valid @RequestBody EnviarRequest request,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String clave) {
+        return respuesta(chat.enviar(id, yo(), request.texto(), null, clave));
+    }
+
+    /** H65: 201 al crear; 200 si era un reintento con la misma Idempotency-Key. */
+    private ResponseEntity<MensajeResponse> respuesta(com.proyectointegrador.service.ChatService.Envio envio) {
+        return ResponseEntity.status(envio.repetido() ? HttpStatus.OK : HttpStatus.CREATED).body(envio.mensaje());
     }
 
     /** H62: mensaje con foto (y texto opcional). */
     @PostMapping(value = "/{id}/mensajes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MensajeResponse> enviarConFoto(@PathVariable Long id,
                                                          @RequestParam(required = false) String texto,
-                                                         @RequestPart("foto") MultipartFile foto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(chat.enviar(id, yo(), texto, foto));
+                                                         @RequestPart("foto") MultipartFile foto,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String clave) {
+        return respuesta(chat.enviar(id, yo(), texto, foto, clave));
     }
 
     @PostMapping("/{id}/leida")

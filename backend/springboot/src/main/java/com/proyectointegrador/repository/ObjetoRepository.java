@@ -42,4 +42,7 @@ public interface ObjetoRepository extends JpaRepository<Objeto, Long>, JpaSpecif
     long countByUsuarioId(Long usuarioId);
 
     long countByUsuarioIdAndEstado(Long usuarioId, EstadoObjeto estado);
+
+    /** H65 */
+    java.util.Optional<Objeto> findByUsuarioIdAndIdCliente(Long usuarioId, String idCliente);
 }

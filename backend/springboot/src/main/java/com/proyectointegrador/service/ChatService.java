@@ -154,8 +154,28 @@ public class ChatService {
 
     @Transactional
     public MensajeResponse enviar(Long id, Long usuarioId, String texto, MultipartFile foto) {
+        return enviar(id, usuarioId, texto, foto, null).mensaje();
+    }
+
+    /** H65: resultado de un envío; {@code repetido} si ya existía con la misma Idempotency-Key. */
+    public record Envio(MensajeResponse mensaje, boolean repetido) {}
+
+    @Transactional
+    public Envio enviar(Long id, Long usuarioId, String texto, MultipartFile foto, String idempotencyKey) {
+        String clave = ClaveIdempotencia.validar(idempotencyKey);
         Usuario yo = usuario(usuarioId);
         Conversacion c = propia(id, yo);
+        if (clave != null) {
+            // Reintento de un envío que ya llegó: se devuelve el original, sin límite, aviso ni foto nueva
+            var previo = mensajes.findByAutorIdAndIdCliente(usuarioId, clave);
+            if (previo.isPresent()) {
+                if (!previo.get().getConversacion().getId().equals(c.getId())) {
+                    throw new com.proyectointegrador.exception.DuplicateResourceException(
+                            "Esa Idempotency-Key ya se usó en otra conversación.");
+                }
+                return new Envio(mensaje(previo.get()), true);
+            }
+        }
         if (soloLectura(c)) {
             throw new ChatNoDisponibleException("La conversación ya terminó y está en solo lectura");
         }
@@ -179,13 +199,14 @@ public class ChatService {
         m.setConversacion(c);
         m.setAutor(yo);
         m.setTexto(limpio == null || limpio.isEmpty() ? null : limpio);
+        m.setIdCliente(clave);
         if (hayFoto) m.setImagenUrl(imagenes.guardar(foto).url());
         MensajeChat guardado = mensajes.saveAndFlush(m);
         marcarLeido(c.getId(), usuarioId, guardado.getId());
         for (Usuario destino : destinatarios(c, yo)) {
             notificaciones.notificarMensajeChat(destino, c.getId());
         }
-        return mensaje(guardado);
+        return new Envio(mensaje(guardado), false);
     }
 
     @Transactional

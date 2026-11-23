@@ -27,7 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "objetos")
+@Table(name = "objetos", uniqueConstraints = @jakarta.persistence.UniqueConstraint(
+        name = "uq_objetos_cliente", columnNames = {"usuario_id", "id_cliente"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -66,6 +67,10 @@ public class Objeto {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)
     private TipoObjeto tipo;
+
+    /** H65: Idempotency-Key de la publicación; un reintento con la misma clave devuelve esta. */
+    @Column(name = "id_cliente", length = 64)
+    private String idCliente;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)

@@ -84,6 +84,19 @@ public class ObjetoService {
 
     @Transactional
     public ObjetoResponse crear(ObjetoRequest request, Long usuarioId) {
+        return crear(request, usuarioId, null).objeto();
+    }
+
+    /** H65: {@code repetido} si ya existía una publicación propia con la misma Idempotency-Key. */
+    public record Publicacion(ObjetoResponse objeto, boolean repetido) {}
+
+    @Transactional
+    public Publicacion crear(ObjetoRequest request, Long usuarioId, String idempotencyKey) {
+        String clave = ClaveIdempotencia.validar(idempotencyKey);
+        if (clave != null) {
+            var previo = objetoRepository.findByUsuarioIdAndIdCliente(usuarioId, clave);
+            if (previo.isPresent()) return new Publicacion(toResponse(previo.get()), true);
+        }
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id " + usuarioId));
         Categoria categoria = categoriaRepository.findById(request.categoriaId())
@@ -102,10 +115,11 @@ public class ObjetoService {
         objeto.setLatitud(request.latitud());
         objeto.setLongitud(request.longitud());
         objeto.setEstado(EstadoObjeto.ACTIVO);
+        objeto.setIdCliente(clave);
 
         objetoRepository.save(objeto);
         registrarEvento(objeto);
-        return toResponse(objeto);
+        return new Publicacion(toResponse(objeto), false);
     }
 
     @Transactional

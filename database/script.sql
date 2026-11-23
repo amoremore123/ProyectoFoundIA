@@ -592,3 +592,9 @@ CREATE TABLE IF NOT EXISTS dispositivos (
 
 ALTER TABLE notificaciones ADD COLUMN push_enviado_en DATETIME NULL;
 CREATE INDEX idx_notificaciones_push ON notificaciones (push_enviado_en, fecha_creacion);
+
+-- H65: Idempotency-Key para que un reintento sin conexión no duplique. Bases existentes: migracion_h65_idempotencia.sql.
+ALTER TABLE mensajes_chat ADD COLUMN id_cliente VARCHAR(64) NULL;
+ALTER TABLE mensajes_chat ADD CONSTRAINT uq_mensajes_chat_cliente UNIQUE (autor_id, id_cliente);
+ALTER TABLE objetos ADD COLUMN id_cliente VARCHAR(64) NULL;
+ALTER TABLE objetos ADD CONSTRAINT uq_objetos_cliente UNIQUE (usuario_id, id_cliente);

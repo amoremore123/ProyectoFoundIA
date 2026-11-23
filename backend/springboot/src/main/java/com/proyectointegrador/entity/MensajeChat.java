@@ -18,7 +18,8 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 @Entity
-@Table(name = "mensajes_chat")
+@Table(name = "mensajes_chat", uniqueConstraints = @jakarta.persistence.UniqueConstraint(
+        name = "uq_mensajes_chat_cliente", columnNames = {"autor_id", "id_cliente"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,6 +42,10 @@ public class MensajeChat {
 
     @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
+
+    /** H65: Idempotency-Key del envío; un reintento con la misma clave devuelve este mensaje. */
+    @Column(name = "id_cliente", length = 64)
+    private String idCliente;
 
     @Column(name = "enviado_en", nullable = false, updatable = false)
     private LocalDateTime enviadoEn;
