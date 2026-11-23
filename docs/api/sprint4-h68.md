@@ -133,3 +133,31 @@ elección general de canal se reemplazó por la de este documento.
 
 Encontrado al probarla, fuera de H68: un método HTTP no permitido respondía `500` en vez de `405`. **Corregido**
 en un commit aparte (`dc7f247`): ahora responde `405` con `Allow`, y un tipo de contenido no admitido, `415`.
+
+## Verificación del 23/11/2026 (canal por tipo)
+
+- Spring: `CanalAvisosIntegrationTest` rehecha con 11 pruebas (por defecto todo `PUSH`; guardar y leer los canales;
+  enviar una sola clave conserva las demás; cliente de H24/H53 sin `canales` conserva lo guardado; canal inválido,
+  en minúsculas, clave desconocida, valor no texto y booleano mal escrito `400`; sin sesión `401`; **con el tipo en
+  `CORREO` o `NINGUNO` no se manda push** y el aviso queda en la bandeja, el canal de un tipo no afecta a los demás
+  y con `AMBOS` vuelve el push; correo con `CORREO` y `AMBOS` una sola vez; omitido con `PUSH`, `NINGUNO`, tipo
+  apagado o desconocido; cuenta suspendida o sin verificar; aviso viejo; chat agrupado; fallo `ERROR`; avisos de
+  Django según su tipo). Suite completa: **581 pruebas, 0 fallos**.
+- Una clave desconocida en `canales` (por ejemplo `chat`) se rechaza a propósito: la API en general ignora los
+  campos que no conoce, y aquí eso dejaría un canal sin cambiar sin avisar.
+- MySQL 8.0 de QA, con la base que ya tenía la **primera versión** aplicada:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración sobre la primera versión | Dos veces sin error. Push y correo → `AMBOS` (Ana), solo correo → `CORREO` (admin), ninguno → `NINGUNO` (Luis); `canal_push` y `canal_correo` quitadas; 6 restricciones `CHECK` creadas |
+| Base | Un `UPDATE` con `canal_mensajes = 'SIEMPRE'` lo rechaza MySQL (`ERROR 3819`) |
+| `GET` de Ana | Las 6 claves en `AMBOS`, como tenía guardado |
+| `PUT` con 4 claves | `200`; las otras 2 se conservaron. Un `PUT` sin `canales` conservó todo |
+| Canal inválido / clave desconocida | `400` / `400` |
+| Correo (Mailpit) con coincidencias `CORREO`, contactos `AMBOS`, mensajes `PUSH`, sistema `NINGUNO` | Llegaron **2** correos (coincidencia y contacto); el mensaje y el aviso de sistema quedaron `OMITIDO`; Luis (`NINGUNO`), `OMITIDO` |
+| Instalación nueva | `script.sql` y `seed.sql` en un MySQL vacío sin errores (también `script.sql` dos veces); las migraciones de H68, H70 y H71 sobre esa base, sin errores |
+
+- El push real sigue sin probarse en QA (no tiene la cuenta de Firebase); la regla «solo correo no manda push» la
+  cubren las pruebas con Firebase simulado, sobre el mismo despachador de H57.
+- **Falta en la web (Yajaira) y en Android (Amore):** el selector de canal junto a cada tipo de aviso (ver «Lo que
+  necesitan la web y Android»).
