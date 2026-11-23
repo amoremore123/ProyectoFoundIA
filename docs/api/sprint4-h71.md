@@ -115,3 +115,30 @@ CREATE TABLE IF NOT EXISTS avisos_destacados (
   máximo 5 y en orden, enlace de la campaña con `?origen=`, sin sesión `200`, sin avisos `[]`.
 - Con MySQL real: la migración dos veces; un aviso creado en el panel aparece en la API pública y deja de
   aparecer al retirarlo o al vencer.
+
+## Verificación del 22/11/2026
+
+- Django: 11 pruebas nuevas en `test_sprint4_h71.py` (crear con ruta, con campaña y sin enlace; validaciones de
+  título, texto, destino externo, ruta con parámetros, campaña inexistente, ruta y campaña juntas, fechas al
+  revés o mal escritas; estado por fechas, incluido el último día; «hoy» es el de Lima y no el de UTC; filtro por
+  estado; editar, retirar dos veces y no editar un retirado; `DELETE` `405`; `401`, `403` y `404`). Suite
+  completa: **168 pruebas, OK**.
+- Spring: 4 pruebas nuevas en `AvisosDestacadosIntegrationTest` (solo vigentes sin sesión, sin datos del autor;
+  máximo 5 y en orden; enlace de la campaña con `?origen=`; lista vacía). Suite completa: **581 pruebas, 0 fallos**.
+- MySQL 8.0 de QA, con el panel (Django) y la API pública (Spring) reales:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | `migracion_h71_avisos_destacados.sql` dos veces sin error; claves foráneas y `CHECK` de fechas creados |
+| API pública al inicio | `200`, `[]`, sin sesión |
+| Crear con campaña | `201`, `VIGENTE`, enlace `/explorar?origen=semana-h71` |
+| Crear con fin hoy / programado | `VIGENTE` / `PROGRAMADO` |
+| Destino `https://…` / fechas al revés | `400` con el mensaje en el campo |
+| Una usuaria normal en el panel | `403` |
+| API pública | Los 2 vigentes, el más reciente primero; el programado no aparece |
+| Retirar | `RETIRADO`; desaparece de la API pública en la siguiente consulta |
+| `DELETE` | `405` |
+| Vencer (fecha de fin = ayer en la base) | Desaparece de la API pública sin reiniciar nada; el panel lo muestra `VENCIDO` |
+
+- **Falta en la web (Yajaira) y en Android (Amore):** el panel de avisos destacados y mostrarlos arriba en la web
+  y en la app (ver «Lo que necesitan la web y Android»).
