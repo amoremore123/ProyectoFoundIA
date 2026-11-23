@@ -10,18 +10,29 @@ const OPCIONES = [
   { campo: 'recordatorios', etiqueta: 'Recordatorios', ayuda: 'Cuando un objeto que perdiste sigue sin resolverse después de varios días.' },
 ];
 
-// H68: por dónde llegan, además de la bandeja (que no se puede apagar). Correo apagado por defecto.
-const CANALES = [
-  { campo: 'push', etiqueta: 'Notificaciones en el teléfono', ayuda: 'En la app de FoundIA, aunque esté cerrada.', porDefecto: true },
-  { campo: 'correo', etiqueta: 'Correo electrónico', ayuda: 'A tu correo verificado. Del chat llega como máximo un correo cada 30 minutos.', porDefecto: false },
+// H68: por dónde llega cada tipo de aviso, además de la bandeja (que siempre lo recibe). Por defecto, PUSH.
+export const TIPOS_CANAL = [
+  { clave: 'coincidencias', etiqueta: 'Posibles coincidencias' },
+  { clave: 'contactos', etiqueta: 'Solicitudes de contacto' },
+  { clave: 'reclamos', etiqueta: 'Reclamos' },
+  { clave: 'recordatorios', etiqueta: 'Recordatorios' },
+  { clave: 'mensajes', etiqueta: 'Mensajes del chat' },
+  { clave: 'sistema', etiqueta: 'Avisos de la biblioteca' },
 ];
-const CAMPOS = [...OPCIONES, ...CANALES];
-const valoresDe = (data) => Object.fromEntries([
-  ...OPCIONES.map(({ campo }) => [campo, data?.[campo] !== false]),
-  ...CANALES.map(({ campo, porDefecto }) => [campo, typeof data?.[campo] === 'boolean' ? data[campo] : porDefecto]),
-]);
+export const CANALES = [
+  { valor: 'PUSH', texto: 'Notificación en el teléfono' },
+  { valor: 'CORREO', texto: 'Solo correo' },
+  { valor: 'AMBOS', texto: 'Teléfono y correo' },
+  { valor: 'NINGUNO', texto: 'Solo en esta bandeja' },
+];
+const VALIDOS = CANALES.map((c) => c.valor);
+const valoresDe = (data) => ({
+  ...Object.fromEntries(OPCIONES.map(({ campo }) => [campo, data?.[campo] !== false])),
+  canales: Object.fromEntries(TIPOS_CANAL.map(({ clave }) => [clave, VALIDOS.includes(data?.canales?.[clave]) ? data.canales[clave] : 'PUSH'])),
+});
 
-const iguales = (a, b) => Boolean(a && b) && CAMPOS.every(({ campo }) => a[campo] === b[campo]);
+const iguales = (a, b) => Boolean(a && b) && OPCIONES.every(({ campo }) => a[campo] === b[campo])
+  && TIPOS_CANAL.every(({ clave }) => a.canales[clave] === b.canales[clave]);
 
 // H24 - Preferencias de avisos de la cuenta propia (coincidencias, contactos y reclamos).
 // Los cambios solo afectan a los avisos nuevos; el historial se conserva.
@@ -64,6 +75,13 @@ export default function PreferenciasNotificaciones() {
     setAviso('');
     setErrorGuardar('');
     setForm((f) => ({ ...f, [campo]: e.target.checked }));
+  };
+
+  const cambiarCanal = (clave) => (e) => {
+    setAviso('');
+    setErrorGuardar('');
+    const valor = e.target.value;
+    setForm((f) => ({ ...f, canales: { ...f.canales, [clave]: valor } }));
   };
 
   const guardar = async (e) => {
@@ -115,14 +133,16 @@ export default function PreferenciasNotificaciones() {
           <p className="nota-suave">Desactivar un tipo no borra los avisos que ya recibiste.</p>
           <fieldset className="preferencias-canales">
             <legend className="preferencia-etiqueta">¿Por dónde te avisamos?</legend>
-            <p className="preferencia-ayuda">Siempre los verás en esta bandeja. Además, puedes recibirlos por:</p>
-            {CANALES.map(({ campo, etiqueta, ayuda }) => (
-              <label key={campo} className="preferencia">
-                <input type="checkbox" checked={form[campo]} onChange={cambiar(campo)} disabled={guardando} />
-                <span>
-                  <span className="preferencia-etiqueta">{etiqueta}</span>
-                  <span className="preferencia-ayuda">{ayuda}</span>
-                </span>
+            <p className="preferencia-ayuda">
+              Siempre los verás en esta bandeja. Elige si además llegan al teléfono, al correo o a ambos.
+              Del chat llega como máximo un correo cada 30 minutos.
+            </p>
+            {TIPOS_CANAL.map(({ clave, etiqueta }) => (
+              <label key={clave} className="preferencia-canal">
+                <span className="preferencia-etiqueta">{etiqueta}</span>
+                <select className="input" value={form.canales[clave]} onChange={cambiarCanal(clave)} disabled={guardando}>
+                  {CANALES.map((c) => <option key={c.valor} value={c.valor}>{c.texto}</option>)}
+                </select>
               </label>
             ))}
           </fieldset>

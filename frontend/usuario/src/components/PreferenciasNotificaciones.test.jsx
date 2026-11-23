@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PreferenciasNotificaciones from './PreferenciasNotificaciones';
 import { getPreferenciasNotificaciones, guardarPreferenciasNotificaciones } from '../services/api';
 
+const CANALES_PUSH = { coincidencias: 'PUSH', contactos: 'PUSH', reclamos: 'PUSH', recordatorios: 'PUSH', mensajes: 'PUSH', sistema: 'PUSH' };
+
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(), getPreferenciasNotificaciones: vi.fn(), guardarPreferenciasNotificaciones: vi.fn(),
 }));
@@ -34,7 +36,7 @@ describe('H24 - Preferencias de avisos', () => {
     fireEvent.click(casilla('Reclamos'));
     await act(async () => { fireEvent.click(botonGuardar()); });
 
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false, recordatorios: true, push: true, correo: false });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ coincidencias: true, contactos: true, reclamos: false, recordatorios: true, canales: CANALES_PUSH });
     expect(screen.getByRole('status').textContent).toContain('Preferencias guardadas');
     expect(casilla('Reclamos').checked).toBe(false);
     expect(botonGuardar().disabled).toBe(true);
@@ -76,7 +78,7 @@ describe('H24 - Preferencias de avisos', () => {
     expect(casilla('Recordatorios').checked).toBe(true);
     fireEvent.click(casilla('Recordatorios'));
     await act(async () => { fireEvent.click(botonGuardar()); });
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ ...TODAS, recordatorios: false, push: true, correo: false });
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith({ ...TODAS, recordatorios: false, canales: CANALES_PUSH });
     expect(casilla('Recordatorios').checked).toBe(false);
   });
 });

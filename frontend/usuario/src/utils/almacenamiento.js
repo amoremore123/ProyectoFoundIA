@@ -6,6 +6,7 @@
 //   - foundia-borrador-publicar (sessionStorage): lo escrito en Publicar. Esencial y temporal (H52).
 //   - foundia-embebido (sessionStorage): la página se abrió dentro de la app. Esencial y temporal (H73).
 //   - foundia-avisos-ocultos (sessionStorage): avisos destacados que cerraste. Preferencia temporal (H71).
+//   - foundia-origen y foundia-visitas (sessionStorage): campaña por la que llegaste. Temporal y sin datos personales (H67).
 export const CLAVE_CONSENTIMIENTO = 'foundia-almacenamiento';
 export const CLAVE_TEMA = 'foundia-tema';
 export const EVENTO_CONSENTIMIENTO = 'foundia-almacenamiento';

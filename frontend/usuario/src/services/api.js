@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { origenGuardado } from '../utils/campanas';
 
 // VITE_API_URL=auto (solo para probar desde el celular en la red local): usa el mismo host
 // con el que se abrió la web y el puerto de la API, así un cambio de IP no obliga a reiniciar.
@@ -68,8 +69,16 @@ export const login = async (correo, password) => {
 };
 
 export const register = async ({ invitacion, ...datos }) => {
-  const { data } = await api.post('/api/auth/register', datos, invitacion ? { params: { invitacion } } : undefined);
+  // H67: si la persona llegó por el enlace de una campaña, el registro lleva su origen (sin datos personales)
+  const origen = origenGuardado();
+  const cuerpo = origen ? { ...datos, origen } : datos;
+  const { data } = await api.post('/api/auth/register', cuerpo, invitacion ? { params: { invitacion } } : undefined);
   return data;
+};
+
+// H67: una visita por origen y pestaña (público). El visitaId es al azar y no identifica a nadie
+export const registrarVisitaCampana = async ({ origen, visitaId }) => {
+  await axios.post(`${API_URL}/api/campanas/visitas`, { origen, visitaId }, { timeout: 5000 });
 };
 
 // H11: verificación de correo
@@ -199,6 +208,18 @@ export const enviarFotoChat = async (id, foto, texto = '') => {
   if (texto.trim()) formulario.append('texto', texto.trim());
   const { data } = await api.post(`/api/conversaciones/${id}/mensajes`, formulario);
   return data;
+};
+
+// H64: foto de perfil de la otra persona de la conversación (privada: se pide con la sesión).
+// 404 si no tiene foto, si hay un bloqueo o si es la biblioteca: se muestran las iniciales.
+export const getFotoConversacion = async (id) => {
+  try {
+    const { data } = await api.get(`/api/conversaciones/${id}/foto`, { responseType: 'blob' });
+    return data;
+  } catch (e) {
+    if (statusDe(e) === 404) return null;
+    throw e;
+  }
 };
 
 export const marcarConversacionLeida = async (id) => {
@@ -374,12 +395,11 @@ export const getPreferenciasNotificaciones = async ({ signal } = {}) => {
 };
 
 // H53: "recordatorios" es opcional en el contrato; si no llega, el servidor conserva el valor guardado
-// H68: "push" y "correo" (canales) también son opcionales: si no llegan, se conservan
-export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos, recordatorios, push, correo }) => {
+// H68: "canales" (PUSH, CORREO, AMBOS o NINGUNO por tipo de aviso) es opcional: lo que no llega se conserva
+export const guardarPreferenciasNotificaciones = async ({ coincidencias, contactos, reclamos, recordatorios, canales }) => {
   const cuerpo = { coincidencias, contactos, reclamos };
   if (typeof recordatorios === 'boolean') cuerpo.recordatorios = recordatorios;
-  if (typeof push === 'boolean') cuerpo.push = push;
-  if (typeof correo === 'boolean') cuerpo.correo = correo;
+  if (canales && typeof canales === 'object') cuerpo.canales = canales;
   const { data } = await api.put('/api/notificaciones/preferencias', cuerpo);
   return data;
 };

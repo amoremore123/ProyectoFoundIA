@@ -48,26 +48,32 @@ describe('H71 - avisos destacados en la web', () => {
   });
 });
 
-describe('H68 - elegir el canal de los avisos', () => {
-  it('muestra push encendido y correo apagado por defecto, y guarda los canales', async () => {
+describe('H68 - elegir el canal de cada tipo de aviso', () => {
+  it('por defecto todo llega por el teléfono y se puede elegir el canal de cada tipo', async () => {
     getPreferenciasNotificaciones.mockResolvedValue({ coincidencias: true, contactos: true, reclamos: true, recordatorios: true });
     guardarPreferenciasNotificaciones.mockImplementation(async (datos) => datos);
     await act(async () => { render(<PreferenciasNotificaciones />); });
-    const push = screen.getByRole('checkbox', { name: /Notificaciones en el teléfono/ });
-    const correo = screen.getByRole('checkbox', { name: /Correo electrónico/ });
-    expect(push.checked).toBe(true);
-    expect(correo.checked).toBe(false);
-    fireEvent.click(correo);
+    const chat = screen.getByRole('combobox', { name: 'Mensajes del chat' });
+    expect(chat.value).toBe('PUSH');
+    expect(screen.getAllByRole('combobox')).toHaveLength(6);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Posibles coincidencias' }), { target: { value: 'CORREO' } });
+    fireEvent.change(chat, { target: { value: 'AMBOS' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Guardar preferencias' })); });
-    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith(expect.objectContaining({ push: true, correo: true }));
+    expect(guardarPreferenciasNotificaciones).toHaveBeenCalledWith(expect.objectContaining({
+      canales: expect.objectContaining({ coincidencias: 'CORREO', mensajes: 'AMBOS', reclamos: 'PUSH' }),
+    }));
     expect(screen.getByRole('status').textContent).toMatch(/Preferencias guardadas/);
   });
 
-  it('respeta los canales que ya estaban guardados', async () => {
-    getPreferenciasNotificaciones.mockResolvedValue({ coincidencias: true, contactos: false, reclamos: true, recordatorios: true, push: false, correo: true });
+  it('respeta los canales guardados y corrige un valor desconocido a PUSH', async () => {
+    getPreferenciasNotificaciones.mockResolvedValue({
+      coincidencias: true, contactos: false, reclamos: true, recordatorios: true,
+      canales: { coincidencias: 'NINGUNO', contactos: 'AMBOS', reclamos: 'RARO', recordatorios: 'CORREO', mensajes: 'PUSH', sistema: 'PUSH' },
+    });
     await act(async () => { render(<PreferenciasNotificaciones />); });
-    expect(screen.getByRole('checkbox', { name: /Notificaciones en el teléfono/ }).checked).toBe(false);
-    expect(screen.getByRole('checkbox', { name: /Correo electrónico/ }).checked).toBe(true);
+    expect(screen.getByRole('combobox', { name: 'Posibles coincidencias' }).value).toBe('NINGUNO');
+    expect(screen.getByRole('combobox', { name: 'Solicitudes de contacto' }).value).toBe('AMBOS');
+    expect(screen.getByRole('combobox', { name: 'Reclamos' }).value).toBe('PUSH');
     expect(screen.getByRole('checkbox', { name: /Solicitudes de contacto/ }).checked).toBe(false);
   });
 });

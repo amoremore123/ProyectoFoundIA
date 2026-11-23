@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Cargando from '../components/Cargando';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import Icono from '../components/Icono';
+import AvatarConversacion from '../components/AvatarConversacion';
 import MensajeError from '../components/MensajeError';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -215,6 +216,7 @@ export default function Conversacion() {
     <div className="pagina pagina-estrecha conv-pagina">
       <div className="conv-cabecera">
         <Link to="/mensajes" className="btn-enlace conv-volver"><Icono nombre="flechaIzq" tamano={16} /> Mensajes</Link>
+        <AvatarConversacion conversacion={{ ...conversacion, bloqueada: estado.bloqueada }} className="conv-cabecera-avatar" />
         <div className="conv-cabecera-datos">
           <h1 className="conv-titulo">{conversacion.otro?.nombre || 'Conversación'}</h1>
           <Link to={`/objeto/${conversacion.objetoId}`} className="conv-objeto">{conversacion.objetoNombre}</Link>

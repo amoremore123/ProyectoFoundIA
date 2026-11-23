@@ -95,3 +95,10 @@ html[data-tema='oscuro'] .aviso-destacado-cerrar:hover { background: rgba(255, 2
 /* H68: canales de aviso dentro de las preferencias */
 .preferencias-canales { margin: 4px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--border); display: grid; gap: 8px; }
 .preferencias-canales legend { padding: 0; }
+.preferencia-canal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, 230px); align-items: center; gap: 10px; }
+@media (max-width: 480px) { .preferencia-canal { grid-template-columns: 1fr; gap: 4px; } }
+
+/* H64: foto de la otra persona en el chat */
+.conv-avatar { width: 42px; height: 42px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: #fff; font-weight: 700; font-size: 17px; overflow: hidden; }
+.conv-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.conv-cabecera-avatar { width: 40px; height: 40px; }

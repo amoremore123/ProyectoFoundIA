@@ -15,6 +15,7 @@ const GUARDADO = [
   { nombre: CLAVE_BORRADOR, para: 'Recuperar lo que escribiste en Publicar si el navegador recarga la página (por ejemplo, al volver de la cámara).', tipo: 'Esencial', dura: 'Solo en esa pestaña; se borra al publicar o al cerrarla.' },
   { nombre: CLAVE_EMBEBIDO, para: 'Mostrar la página sin menú cuando la abres desde la app de FoundIA.', tipo: 'Esencial', dura: 'Solo dentro de la app o de esa pestaña.' },
   { nombre: 'foundia-avisos-ocultos', para: 'No volver a mostrarte en esta pestaña los avisos destacados que cerraste.', tipo: 'Esencial', dura: 'Solo en esa pestaña; se borra al cerrarla.' },
+  { nombre: 'foundia-origen y foundia-visitas', para: 'Si llegaste por el enlace de una campaña, contar tu visita una sola vez y saber si te registraste por ella. Usa un número al azar, no tus datos.', tipo: 'Esencial', dura: 'Solo en esa pestaña; se borra al cerrarla.' },
   { nombre: CLAVE_TEMA, para: 'Recordar si prefieres el modo claro u oscuro.', tipo: 'Preferencia', dura: 'Solo si eliges «Recordar mis preferencias».' },
 ];
 

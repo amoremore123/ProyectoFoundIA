@@ -24,6 +24,7 @@ import VerificarCustodia from './pages/VerificarCustodia';
 import Mensajes from './pages/Mensajes';
 import Conversacion from './pages/Conversacion';
 import AvisoCookies from './components/AvisoCookies';
+import { ContadorCampanas } from './utils/campanas';
 import { EXTRAS_HABILITADOS } from './config/alcance';
 
 function RutaProtegida({ children }) {
@@ -103,6 +104,8 @@ export default function App() {
             </Routes>
             {/* Aviso de cookies y almacenamiento local, en todas las pantallas */}
             <AvisoCookies />
+            {/* H67: cuenta una visita al llegar por el enlace de una campaña (?origen=) */}
+            <ContadorCampanas />
           </BrowserRouter>
         </AuthProvider>
       </ToastProvider>

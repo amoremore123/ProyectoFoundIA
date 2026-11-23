@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import Icono from '../components/Icono';
+import AvatarConversacion from '../components/AvatarConversacion';
 import { getConversaciones, mensajeError } from '../services/api';
 import { horaChat } from '../utils/chat';
 
@@ -54,9 +55,7 @@ export default function Mensajes() {
             return (
               <li key={c.id}>
                 <Link to={`/mensajes/${c.id}`} className={`conv-lista-item${c.sinLeer > 0 ? ' conv-sin-leer' : ''}`}>
-                  <span className="conv-lista-avatar" aria-hidden="true">
-                    {c.tipo === 'CON_BIBLIOTECA' ? <Icono nombre="caja" tamano={18} /> : (c.otro?.nombre || '?').charAt(0).toUpperCase()}
-                  </span>
+                  <AvatarConversacion conversacion={c} className="conv-lista-avatar" />
                   <span className="conv-lista-cuerpo">
                     <span className="conv-lista-fila">
                       <strong>{c.otro?.nombre || 'Conversación'}</strong>
