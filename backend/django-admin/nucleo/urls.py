@@ -10,6 +10,7 @@ from .views import (
     CustodiaViewSet,
     DashboardExportView,
     DashboardView,
+    ImpactoView,
     LoginView,
     LogoutAllView,
     LogoutView,
@@ -49,6 +50,8 @@ urlpatterns = [
     path("auth/logout/", LogoutView.as_view(), name="admin-logout"),
     path("auth/logout-all/", LogoutAllView.as_view(), name="admin-logout-all"),
     path("dashboard/", DashboardView.as_view(), name="admin-dashboard"),
+    # Métricas de impacto: devueltos por mes y por vía (biblioteca o entre personas)
+    path("metricas/impacto/", ImpactoView.as_view(), name="admin-impacto"),
     # H32: el punto forma parte de la ruta pedida por la historia.
     re_path(r"^dashboard/exportar\.(?P<formato>xlsx|pdf)$",
             DashboardExportView.as_view(), name="admin-dashboard-exportar"),

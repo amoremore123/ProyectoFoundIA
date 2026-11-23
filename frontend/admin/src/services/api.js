@@ -232,6 +232,12 @@ export const resolverReporteMensaje = async (id, { accion, resolucion }) => {
   return data;
 };
 
+// Impacto: objetos devueltos por mes y por vía (biblioteca o entre personas), solo conteos
+export const getImpacto = async () => {
+  const { data } = await api.get('/api/admin/metricas/impacto/');
+  return data;
+};
+
 // H67: alcance de las campañas (visitas y registros por origen, sin datos personales)
 export const getAlcanceCampanas = async ({ desde, hasta } = {}) => {
   const params = {};

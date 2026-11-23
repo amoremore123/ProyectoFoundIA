@@ -6,6 +6,7 @@ import Icono from '../components/Icono';
 import { DonaRecuperacion, GraficoMensual } from '../components/GraficosPanel';
 import useContador from '../hooks/useContador';
 import UltimoRespaldo from '../components/UltimoRespaldo';
+import ImpactoPanel from '../components/ImpactoPanel';
 import {
   actividadReciente, esVisible, haceCuanto, porMes, porcentajeRecuperacion, recientes, variacionMensual,
 } from '../utils/resumenAdmin';
@@ -119,6 +120,9 @@ export default function Dashboard() {
               {indicadores.map((i) => <Indicador key={i.etiqueta} {...i} />)}
             </section>
           )}
+
+          {/* Impacto: lo primero que conviene mostrar en la presentación */}
+          <ImpactoPanel />
 
           {listas.fallidas.length > 0 && (
             <p className="panel-aviso" role="status">No se pudieron cargar: {listas.fallidas.join(', ')}. Los demás datos están al día.</p>

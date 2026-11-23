@@ -235,6 +235,16 @@ class DashboardView(APIView):
         return Response(_datos_dashboard(request.query_params))
 
 
+class ImpactoView(APIView):
+    """GET /api/admin/metricas/impacto/: objetos devueltos por mes y por vía, sin datos personales."""
+
+    permission_classes = [IsAuthenticated, EsAdmin]
+
+    def get(self, request):
+        from .metricas import metricas_impacto
+        return Response(metricas_impacto())
+
+
 class DashboardExportView(APIView):
     """H32 - GET /api/admin/dashboard/exportar.xlsx|.pdf
 

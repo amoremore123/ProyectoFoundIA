@@ -2,10 +2,11 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../context/ToastContext';
 import EnviosMasivos, { validarEnvio } from './EnviosMasivos';
+import ImpactoPanel, { fraseImpacto } from '../components/ImpactoPanel';
 import AlcanceCampanas from '../components/AlcanceCampanas';
 import PromocionCampana, { conZonaLima } from '../components/PromocionCampana';
 import {
-  enviarEnvioMasivo, getAlcanceCampana, getAlcanceCampanas, getEnviosMasivos, getPromociones, getSugerenciaPromocion,
+  enviarEnvioMasivo, getImpacto, getAlcanceCampana, getAlcanceCampanas, getEnviosMasivos, getPromociones, getSugerenciaPromocion,
   registrarPromocion, vistaPreviaEnvioMasivo,
 } from '../services/api';
 
@@ -13,7 +14,7 @@ vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
   getAlcanceCampanas: vi.fn(), getAlcanceCampana: vi.fn(), getSugerenciaPromocion: vi.fn(), getPromociones: vi.fn(),
   registrarPromocion: vi.fn(), vistaPreviaEnvioMasivo: vi.fn(), enviarEnvioMasivo: vi.fn(), getEnviosMasivos: vi.fn(),
-  getDestinatariosEnvio: vi.fn(),
+  getDestinatariosEnvio: vi.fn(), getImpacto: vi.fn(),
 }));
 
 const pagina = (results) => ({ count: results.length, results, next: null, previous: null });
@@ -128,5 +129,25 @@ describe('H69 - avisos masivos', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Vista previa' })); });
     expect(screen.getByRole('alert').textContent).toMatch(/3 envíos masivos permitidos hoy/);
     expect(Object.keys(validarEnvio({ titulo: 'a', mensaje: '', enlace: 'https://x', destinatarios: 'TODOS' })).sort()).toEqual(['enlace', 'mensaje', 'titulo']);
+  });
+});
+
+describe('Impacto - objetos devueltos por mes y por vía', () => {
+  it('muestra la frase, las cifras y las barras por mes con su detalle accesible', async () => {
+    getImpacto.mockResolvedValue({
+      devueltos: 34, devueltosUltimos30Dias: 12, enBiblioteca: 20, tiempoPromedioDias: 3.2, perdidosRecuperadosPorcentaje: 41.5,
+      encontradosDevueltosPorcentaje: 30, custodia: { enCustodia: 4, entregadas: 20, dispuestas: 1 },
+      porMes: [{ mes: '2026-10', etiqueta: 'oct', total: 10, biblioteca: 6, personas: 4 }, { mes: '2026-11', etiqueta: 'nov', total: 12, biblioteca: 8, personas: 4 }],
+    });
+    await montar(<ImpactoPanel />);
+    expect(screen.getByText('FoundIA ayudó a devolver 12 objetos en los últimos 30 días.')).toBeTruthy();
+    expect(screen.getByText('34')).toBeTruthy();
+    expect(screen.getByText('41.5%')).toBeTruthy();
+    expect(screen.getByLabelText('nov: 12 devueltos, 8 en la biblioteca y 4 entre personas')).toBeTruthy();
+  });
+
+  it('sin devoluciones lo dice sin inventar números', () => {
+    expect(fraseImpacto({ devueltosUltimos30Dias: 0 })).toMatch(/Todavía no hay/);
+    expect(fraseImpacto({ devueltosUltimos30Dias: 1 })).toMatch(/1 objeto en/);
   });
 });

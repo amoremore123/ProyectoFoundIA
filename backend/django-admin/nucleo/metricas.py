@@ -135,3 +135,82 @@ def metricas_dashboard(params):
         "ubicacionesTop": ubicaciones,
         "sinUbicacion": sin_ubicacion,
     }
+
+
+MESES_IMPACTO = 6
+_NOMBRES_MES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+
+
+def _restar_meses(fecha, meses):
+    total = fecha.year * 12 + (fecha.month - 1) - meses
+    return fecha.replace(year=total // 12, month=total % 12 + 1, day=1)
+
+
+def _promedio_dias_devolucion(devueltos):
+    """Días entre la publicación y la devolución, para perdidos y encontrados (H30 mide solo perdidos)."""
+    duraciones = [(r - p).total_seconds() for p, r in devueltos.values_list("fecha_publicacion", "fecha_recuperacion")
+                  if p is not None and r is not None and r >= p]
+    return round(sum(duraciones) / len(duraciones) / 86400, 1) if duraciones else None
+
+
+def metricas_impacto(hoy=None):
+    """Impacto de FoundIA: cuántos objetos volvieron a su dueño y por qué vía.
+
+    - Devuelto = objeto en estado RECUPERADO con fecha de recuperación.
+    - «En la biblioteca» = su custodia terminó RETIRADO (entrega verificada con QR, H44).
+      El resto se resolvió entre personas (contacto, chat o en persona).
+    - Solo conteos: ningún dato de quién perdió, encontró o retiró.
+    """
+    from datetime import timedelta
+
+    from django.db.models.functions import TruncMonth
+    from django.utils import timezone
+
+    from .models import Custodia
+
+    ahora = timezone.now()
+    hoy = hoy or timezone.localdate()
+    inicio = _restar_meses(hoy.replace(day=1), MESES_IMPACTO - 1)
+
+    devueltos = Objeto.objects.filter(estado="RECUPERADO", fecha_recuperacion__isnull=False)
+    biblioteca = Q(custodia__estado="RETIRADO")
+    filas = (devueltos.filter(fecha_recuperacion__date__gte=inicio)
+             .annotate(mes=TruncMonth("fecha_recuperacion"))
+             .values("mes")
+             .annotate(total=Count("id"), biblioteca=Count("id", filter=biblioteca)))
+    por_clave = {f["mes"].strftime("%Y-%m"): f for f in filas}
+    por_mes = []
+    for i in range(MESES_IMPACTO):
+        mes = _restar_meses(inicio, -i)
+        clave = mes.strftime("%Y-%m")
+        fila = por_clave.get(clave, {"total": 0, "biblioteca": 0})
+        por_mes.append({
+            "mes": clave, "etiqueta": _NOMBRES_MES[mes.month - 1],
+            "total": fila["total"], "biblioteca": fila["biblioteca"],
+            "personas": fila["total"] - fila["biblioteca"],
+        })
+
+    visibles = Objeto.objects.filter(estado__in=ESTADOS_VISIBLES)
+    perdidos = visibles.filter(tipo="PERDIDO")
+    encontrados = visibles.filter(tipo="ENCONTRADO")
+
+    def porcentaje(parte, todo):
+        return round(parte * 100 / todo, 1) if todo else None
+
+    perdidos_recuperados = perdidos.filter(estado="RECUPERADO").count()
+    encontrados_devueltos = encontrados.filter(estado="RECUPERADO").count()
+    custodias = Custodia.objects.aggregate(
+        enCustodia=Count("id", filter=Q(estado="EN_CUSTODIA")),
+        entregadas=Count("id", filter=Q(estado="RETIRADO")),
+        dispuestas=Count("id", filter=Q(estado="DISPUESTO")),
+    )
+    return {
+        "devueltos": devueltos.count(),
+        "devueltosUltimos30Dias": devueltos.filter(fecha_recuperacion__gte=ahora - timedelta(days=30)).count(),
+        "enBiblioteca": devueltos.filter(biblioteca).count(),
+        "porMes": por_mes,
+        "tiempoPromedioDias": _promedio_dias_devolucion(devueltos),
+        "perdidosRecuperadosPorcentaje": porcentaje(perdidos_recuperados, perdidos.count()),
+        "encontradosDevueltosPorcentaje": porcentaje(encontrados_devueltos, encontrados.count()),
+        "custodia": custodias,
+    }

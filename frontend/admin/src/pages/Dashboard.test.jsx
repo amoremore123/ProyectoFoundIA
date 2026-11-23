@@ -9,6 +9,8 @@ vi.mock('../services/api', async (importOriginal) => ({
   getDashboard: vi.fn(),
   // H38: la tarjeta del respaldo pide su propio dato
   getUltimoRespaldo: vi.fn(async () => null),
+  // La sección de impacto pide sus propias cifras
+  getImpacto: vi.fn(async () => ({ devueltos: 3, devueltosUltimos30Dias: 2, enBiblioteca: 1, tiempoPromedioDias: 2.5, perdidosRecuperadosPorcentaje: 40, encontradosDevueltosPorcentaje: 20, custodia: { enCustodia: 1, entregadas: 1, dispuestas: 0 }, porMes: [{ mes: '2026-11', etiqueta: 'nov', total: 2, biblioteca: 1, personas: 1 }] })),
   getPublicaciones: vi.fn(),
   getReportes: vi.fn(),
   getUsuarios: vi.fn(),
