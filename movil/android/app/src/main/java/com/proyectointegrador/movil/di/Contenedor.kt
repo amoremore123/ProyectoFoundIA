@@ -17,7 +17,9 @@ class Contenedor(context:Context) {
         com.proyectointegrador.movil.data.push.crearServicioFirebase(context),
         com.proyectointegrador.movil.data.push.AlmacenDispositivoLocal(context))
     val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat=com.proyectointegrador.movil.data.local.RoomAlmacenChat(base)
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna,chatLocal=chatLocal)
+    val colaPublicaciones:com.proyectointegrador.movil.data.local.ColaPublicaciones=com.proyectointegrador.movil.data.local.RoomColaPublicaciones(base)
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna,chatLocal=chatLocal,
+        cola=colaPublicaciones,alEncolarPublicacion={com.proyectointegrador.movil.data.publicaciones.programarEnvioPublicaciones(context)})
     val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {

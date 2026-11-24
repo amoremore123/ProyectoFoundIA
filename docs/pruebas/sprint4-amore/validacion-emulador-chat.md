@@ -81,3 +81,12 @@ Pruebas: 141 unitarias en verde (3 corridas limpias), 13 instrumentadas (2 omiti
 Nota: la primera vez de hoy la prueba del token de Firebase falló porque el emulador acababa de arrancar
 (`Firebase Installations Service is unavailable`); la API de Firebase respondía bien desde la PC y, pasados unos minutos,
 el emulador obtuvo el token y la prueba pasó.
+
+## H65: publicar sin conexión (24/11/2026, emulador + API real)
+
+La publicación sin foto escrita sin red queda en la cola de Room (versión 5) con su `Idempotency-Key` y la envía un trabajo de
+WorkManager en cuanto hay red. Prueba real: se detuvo el contenedor de la API, se publicó «Mochila cola QA» desde la app
+(`cola-4-sin-red.png`: «Sin conexión. Tu publicación quedó guardada…»), se reinició la API y la publicación apareció **una sola vez**
+(y siguió siendo una sola después de más tiempo). Con foto, la app explica que necesita conexión y no la encola.
+Pruebas unitarias: 11 casos de cola (orden, misma clave en cada reintento, rechazo, sesión vencida, cierre de sesión);
+instrumentadas: migración 4→5 y persistencia de la cola.

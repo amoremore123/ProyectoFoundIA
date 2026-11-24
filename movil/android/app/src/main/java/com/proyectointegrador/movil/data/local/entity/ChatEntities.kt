@@ -24,3 +24,15 @@ data class MensajePendienteEntity(
     /** H65: identificador único del envío; se manda como Idempotency-Key en cada reintento para que no se duplique. */
     @androidx.room.ColumnInfo(defaultValue = "''") val idCliente: String = ""
 )
+
+/**
+ * H65: publicaciones escritas sin conexión (sin foto) a la espera de enviarse. Es información privada de la sesión:
+ * se borra al cerrar sesión y al entrar con otra cuenta. [idCliente] viaja como Idempotency-Key en cada reintento.
+ */
+@Entity(tableName = "publicaciones_pendientes")
+data class PublicacionPendienteEntity(
+    @PrimaryKey(autoGenerate = true) val localId: Long = 0,
+    val idCliente: String,
+    val contenido: String,
+    val creadoEn: Long
+)

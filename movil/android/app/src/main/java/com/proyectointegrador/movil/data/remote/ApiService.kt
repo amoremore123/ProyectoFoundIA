@@ -57,7 +57,7 @@ interface ApiService {
     suspend fun coincidencias(@Path("id") id: Long): List<CoincidenciaSugerida>
 
     @retrofit2.http.Multipart @POST("api/objetos/{id}/fotos") suspend fun subirFoto(@Path("id") id:Long,@retrofit2.http.Part foto:okhttp3.MultipartBody.Part):ObjetoFoto
-    @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest):Objeto
+    @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest,@retrofit2.http.Header("Idempotency-Key") clave:String?=null):Objeto
     @PUT("api/objetos/{id}") suspend fun editar(@Path("id") id:Long,@Body datos:PublicacionRequest):Objeto
     @DELETE("api/objetos/{id}") suspend fun eliminar(@Path("id") id:Long):retrofit2.Response<Unit>
     @POST("api/auth/login") suspend fun login(@Body datos: Login): Acceso

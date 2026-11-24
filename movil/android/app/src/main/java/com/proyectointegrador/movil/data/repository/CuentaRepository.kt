@@ -29,6 +29,7 @@ object SesionCifrada : AlmacenSesion {
     override fun cerrarConAviso(mensaje:String) = Sesion.cerrar(aviso=mensaje)
 }
 
+data class ResultadoCola(val enviadas:Int,val rechazadas:Int,val reintentar:Boolean)
 data class SugerenciasDatos(val objeto:Objeto,val candidatas:List<CoincidenciaSugerida>,val usuario:Usuario)
 data class ParejaDatos(val pareja:Pareja,val usuario:Usuario?)
 
@@ -38,7 +39,9 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
                        private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null,
                        private val externa:com.proyectointegrador.movil.data.push.SesionExterna? = null,
                        private val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat? = null,
-                       private val imagenes:ImagenesPrivadas = ImagenesPrivadas()) {
+                       private val imagenes:ImagenesPrivadas = ImagenesPrivadas(),
+                       private val cola:com.proyectointegrador.movil.data.local.ColaPublicaciones? = null,
+                       private val alEncolarPublicacion:(()->Unit)? = null) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -55,7 +58,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         val respuesta=llamadaApi(bloque)
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         publicaciones.invalidar()
-        chatLocal?.limpiar();imagenes.limpiar()
+        chatLocal?.limpiar();imagenes.limpiar();cola?.limpiar()
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null}
         sesion.guardar(respuesta.token)
@@ -75,7 +78,47 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     suspend fun propios()=privada {api.propios()}
     suspend fun objeto(id:Long)=privada {api.objetoPorId(id)}
     suspend fun sugerirPublicacion(datos: SolicitudSugerencia) = privada { api.sugerirPublicacion(datos) }
-    suspend fun publicar(datos:PublicacionRequest)=privada {val respuesta=api.publicar(datos);publicaciones.invalidar();respuesta}
+    suspend fun publicar(datos:PublicacionRequest,idCliente:String?=null)=privada {val respuesta=api.publicar(datos,idCliente);publicaciones.invalidar();respuesta}
+    /**
+     * H65: publica; si no hay conexión y no lleva foto, la deja en la cola y devuelve null (se enviará sola al volver la red).
+     * La [idCliente] se crea antes del primer intento: si la respuesta se pierde, el reintento no duplica la publicación.
+     */
+    suspend fun publicarOEncolar(datos:PublicacionRequest,idCliente:String,llevaFoto:Boolean):Long? {
+        try {
+            return publicar(datos,idCliente).id
+        } catch(e:ErrorDatos) {
+            if(e.estadoHttp!=null||cola==null) throw e
+            if(llevaFoto) throw ErrorDatos("Sin conexión. Las publicaciones con foto necesitan conexión; quita la foto para guardarla y enviarla cuando vuelva la red.")
+            if(!sesion.autenticado) throw e
+            cola.agregar(idCliente,datos)
+            alEncolarPublicacion?.invoke()
+            return null
+        }
+    }
+    suspend fun publicacionesPendientes()=cola?.pendientes().orEmpty()
+    /** Envía en orden lo escrito sin conexión. Se detiene en el primer fallo de red; descarta lo que el servidor rechaza (400 a 499, salvo 401 y 429). */
+    suspend fun enviarPublicacionesPendientes():ResultadoCola {
+        val almacen=cola?:return ResultadoCola(0,0,false)
+        if(!sesion.autenticado) return ResultadoCola(0,0,false)
+        var enviadas=0;var rechazadas=0
+        for(pendiente in almacen.pendientes()) {
+            try {
+                publicar(pendiente.datos,pendiente.idCliente)
+                almacen.quitar(pendiente.localId);enviadas++
+            } catch(e:CancellationException) {
+                throw e
+            } catch(e:Exception) {
+                val error=e.comoErrorDatos()
+                val codigo=error.estadoHttp
+                when {
+                    codigo==null||codigo>=500||codigo==429 -> return ResultadoCola(enviadas,rechazadas,true)
+                    codigo==401 -> return ResultadoCola(enviadas,rechazadas,false)
+                    else -> {almacen.quitar(pendiente.localId);rechazadas++}
+                }
+            }
+        }
+        return ResultadoCola(enviadas,rechazadas,false)
+    }
     suspend fun subirFoto(id:Long,foto:FotoPreparada)=privada {val parte=okhttp3.MultipartBody.Part.createFormData("archivo",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()));val respuesta=api.subirFoto(id,parte);publicaciones.invalidar();respuesta}
     suspend fun editar(id:Long,datos:PublicacionRequest)=privada {val respuesta=api.editar(id,datos);publicaciones.invalidar();respuesta}
     suspend fun eliminar(id:Long)=privada {
@@ -189,6 +232,6 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
-        try {publicaciones.invalidar();chatLocal?.limpiar();imagenes.limpiar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
+        try {publicaciones.invalidar();chatLocal?.limpiar();imagenes.limpiar();cola?.limpiar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }
 }

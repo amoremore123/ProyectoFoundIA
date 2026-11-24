@@ -7,10 +7,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.proyectointegrador.movil.data.local.dao.CacheDao
 import com.proyectointegrador.movil.data.local.entity.*
 
-@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class, ConversacionCache::class, MensajeChatCache::class, MensajePendienteEntity::class], version = 4, exportSchema = true)
+@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class, ConversacionCache::class, MensajeChatCache::class, MensajePendienteEntity::class, PublicacionPendienteEntity::class], version = 5, exportSchema = true)
 abstract class FoundIADatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
     abstract fun chatDao(): com.proyectointegrador.movil.data.local.dao.ChatDao
+    abstract fun publicacionesPendientesDao(): com.proyectointegrador.movil.data.local.dao.PublicacionesPendientesDao
     companion object {
         val MIGRACION_1_2 = object : Migration(1,2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -35,8 +36,14 @@ abstract class FoundIADatabase : RoomDatabase() {
                 db.execSQL("UPDATE `mensajes_pendientes` SET `idCliente` = 'migrado-' || `localId`")
             }
         }
+        /** H65: cola de publicaciones escritas sin conexión. */
+        val MIGRACION_4_5 = object : Migration(4,5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `publicaciones_pendientes` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idCliente` TEXT NOT NULL, `contenido` TEXT NOT NULL, `creadoEn` INTEGER NOT NULL)")
+            }
+        }
         fun abrir(context: Context): FoundIADatabase = Room.databaseBuilder(
             context.applicationContext, FoundIADatabase::class.java, "foundia-local.db"
-        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4).build()
+        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5).build()
     }
 }

@@ -72,7 +72,10 @@ class PublicarViewModel(private val cuenta:CuentaRepository,publicaciones:Public
         ejecutar {
             // Validar y leer la imagen antes de crear evita publicaciones por un archivo inválido.
             val foto=f.foto?.let {fotos?.preparar(it)?:throw com.proyectointegrador.movil.domain.ErrorDatos("No se pudo preparar la fotografía.")}
-            val id=f.publicadoId?:cuenta.publicar(PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim(),f.latitud,f.longitud)).id
+            val datos=PublicacionRequest(f.categoriaId!!,f.nombre.trim(),f.descripcion.trim(),f.fecha,f.tipo,f.ubicacion.trim(),f.latitud,f.longitud)
+            // H65: sin conexión y sin foto, la publicación queda en la cola y se envía sola; la clave evita duplicarla.
+            val id=f.publicadoId?:(cuenta.publicarOEncolar(datos,UUID.randomUUID().toString(),foto!=null)
+                ?:run {_form.value=FormPublicacion();informar("Sin conexión. Tu publicación quedó guardada y se enviará sola cuando vuelva la red.");return@ejecutar})
             _form.value=_form.value.copy(publicadoId=id)
             if(foto!=null)try {cuenta.subirFoto(id,foto)}catch(e:kotlinx.coroutines.CancellationException){throw e}catch(e:Exception){throw com.proyectointegrador.movil.domain.ErrorDatos("La publicación $id ya está creada. No se pudo subir la foto. Reintenta la foto o continúa sin ella; no se creará otra publicación.")}
             f.foto?.let {fotos?.descartar(it)}

@@ -12,6 +12,7 @@ class FoundiaApplication:Application() {
         Inyeccion.iniciar(this)
         com.proyectointegrador.movil.data.avisos.programarAvisosReclamo(this)
         com.proyectointegrador.movil.data.push.crearCanalesPush(this)
+        com.proyectointegrador.movil.data.publicaciones.programarEnvioPublicaciones(this)
         // H57 y H72: al abrir con sesión guardada se registra el teléfono y se entra a Firebase (si hay proyecto).
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob()+kotlinx.coroutines.Dispatchers.IO).launch {
             runCatching {Inyeccion.contenedor.cuenta.alAbrirApp()}

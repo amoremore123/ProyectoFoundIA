@@ -18,7 +18,7 @@ class RoomPersistenciaTest {
     private val contexto=InstrumentationRegistry.getInstrumentation().targetContext
     private val nombre="room-persistencia-prueba.db"
     @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java)
-    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3,FoundIADatabase.MIGRACION_3_4).build()
+    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3,FoundIADatabase.MIGRACION_3_4,FoundIADatabase.MIGRACION_4_5).build()
     @Before fun preparar(){contexto.deleteDatabase(nombre)}
     @After fun limpiar(){contexto.deleteDatabase(nombre);contexto.deleteDatabase("room-migracion-prueba.db")}
 
@@ -124,6 +124,31 @@ class RoomPersistenciaTest {
         db.close()
         db=abrir();chat=RoomAlmacenChat(db)
         assertEquals(listOf("clave-uno-1234","clave-dos-5678"),chat.pendientes(9).map {it.idCliente})
+        db.close()
+    }
+
+    @Test fun migracionCuatroACincoCreaLaColaDePublicacionesYConservaLoDemas() {
+        val v4=migraciones.createDatabase("room-migracion-prueba.db",4)
+        v4.execSQL("INSERT INTO mensajes_pendientes(conversacionId,texto,creadoEn,idCliente) VALUES (9,'uno',1,'clave-uno-1234')")
+        v4.close()
+        val v5=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",5,true,FoundIADatabase.MIGRACION_4_5)
+        v5.query("SELECT idCliente FROM mensajes_pendientes").use {assertTrue(it.moveToFirst());assertEquals("clave-uno-1234",it.getString(0))}
+        v5.query("SELECT COUNT(*) FROM publicaciones_pendientes").use {assertTrue(it.moveToFirst());assertEquals(0,it.getInt(0))}
+        v5.close()
+    }
+    @Test fun laColaDePublicacionesSobreviveAlCierreEnOrdenYLimpiarLaVacia()=runBlocking {
+        val datos=PublicacionRequest(3,"Mochila","Azul","2026-11-20","PERDIDO","Biblioteca")
+        var db=abrir();var cola=RoomColaPublicaciones(db)
+        cola.agregar("clave-a-00000001",datos);cola.agregar("clave-b-00000002",datos.copy(nombre="Segunda"))
+        db.close()
+        db=abrir();cola=RoomColaPublicaciones(db)
+        val filas=cola.pendientes()
+        assertEquals(listOf("clave-a-00000001","clave-b-00000002"),filas.map {it.idCliente})
+        assertEquals("Segunda",filas[1].datos.nombre)
+        cola.quitar(filas[0].localId)
+        assertEquals(1,cola.pendientes().size)
+        cola.limpiar()
+        assertTrue(cola.pendientes().isEmpty())
         db.close()
     }
 }
