@@ -88,6 +88,12 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Swagger/OpenAPI para mostrar la API en vivo (apagado salvo SWAGGER_HABILITADO=true) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.9</version>
+        </dependency>
     </dependencies>
 
     <build>

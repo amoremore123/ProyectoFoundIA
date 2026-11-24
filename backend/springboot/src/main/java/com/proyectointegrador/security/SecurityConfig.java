@@ -41,6 +41,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/legal/documentos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
+                        // Swagger: solo existe si SWAGGER_HABILITADO=true; apagado, estas rutas responden 404
+                        .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html",
+                                "/swagger-ui/**").permitAll()
                         // H71: avisos destacados vigentes, públicos
                         .requestMatchers(HttpMethod.GET, "/api/avisos-destacados").permitAll()
                         // H67: visita que llegó por el enlace de una campaña (sin datos personales)

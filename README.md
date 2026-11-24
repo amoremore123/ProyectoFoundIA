@@ -59,6 +59,11 @@ en las cinco capas: Spring, Django, web de usuario, panel y Android.
 
 4. **Nada pasa a `main` sin la autorización escrita del equipo**, y nunca con push forzado.
 
+### Swagger para ver la API en vivo
+
+Apagado por defecto. Para la demo: `SWAGGER_HABILITADO=true docker compose up -d api` y abrir
+<http://localhost:8081/swagger-ui.html>. Detalles en [`docs/api/swagger.md`](docs/api/swagger.md).
+
 ### Antes de usar el backend del Sprint 4: aplicar 14 migraciones
 
 El Sprint 4 agrega cambios a la base de datos. Tu MySQL local **no los tiene** hasta que apliques

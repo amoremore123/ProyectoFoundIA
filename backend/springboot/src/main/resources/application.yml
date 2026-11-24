@@ -103,3 +103,15 @@ app:
     timeout-ms: ${VOZ_TIMEOUT_MS:10000}
     limite-por-minuto: ${VOZ_LIMITE_POR_MINUTO:10}
     limite-caracteres-dia: ${VOZ_LIMITE_CARACTERES_DIA:2000}
+
+# Swagger/OpenAPI: documentación de la API en vivo. Apagado por defecto: en producción no se publica el mapa
+# completo de la API. Para la demo o en desarrollo: SWAGGER_HABILITADO=true → /swagger-ui.html
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_HABILITADO:false}
+  swagger-ui:
+    enabled: ${SWAGGER_HABILITADO:false}
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+

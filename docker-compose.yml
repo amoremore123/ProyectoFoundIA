@@ -40,6 +40,8 @@ services:
       MAIL_HOST: mailpit
       MAIL_PORT: "1025"
       MAIL_FROM: no-reply@foundia.dev
+      # Swagger/OpenAPI en /swagger-ui.html: apagado salvo que se defina SWAGGER_HABILITADO=true (demo)
+      SWAGGER_HABILITADO: ${SWAGGER_HABILITADO:-false}
       UPLOAD_DIRECTORY: /app/uploads
       # H45: el asistente usa el motor local si no se configura el proveedor.
       ASISTENTE_CLAUDE_ENABLED: ${ASISTENTE_CLAUDE_ENABLED:-false}
