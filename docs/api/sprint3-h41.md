@@ -126,5 +126,9 @@ Lima eran las 12:46), porque Django trabaja en UTC (`TIME_ZONE = "UTC"`) y conve
 - Pruebas: `test_hora_lima.py` (4 pruebas). Sin el arreglo fallan 3 con exactamente lo reportado
   (`'23/11/2026 17:46' != '23/11/2026 12:46'`) y el año (`'FND-2027-0001' != 'FND-2026-0001'`). Se ajustó la
   prueba del nombre del reporte (H32), que suponía la fecha de UTC. Suite completa de Django: **202 pruebas, OK**.
-- **Pendiente, misma causa:** los filtros por fecha del tablero (H30/H31) y de las listas de custodias y
-  reclamos comparan la fecha en UTC. Una publicación de las 20:00 en Lima cuenta para el día siguiente.
+- **Corregido después (misma causa):** los filtros `desde`/`hasta` del tablero (H30/H31), de la lista de
+  custodias y de la lista de reclamos ahora cuentan días de Lima: una publicación de las 20:00 del 23 en Lima
+  (ya 24 en UTC) es del 23. El tablero y el reporte exportado declaran `zonaHoraria: "America/Lima"` (antes
+  `"UTC"`). Pruebas: 3 nuevas en `test_hora_lima.py` que fallan sin el arreglo; se ajustaron las dos que
+  esperaban `"UTC"`. Suite de Django: **230 pruebas, OK**. En MySQL real (QA), una publicación guardada a las
+  01:00 UTC del 24 contó para el 23 en el tablero.

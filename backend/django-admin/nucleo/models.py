@@ -531,6 +531,21 @@ def hoy_en_lima():
     return timezone.now().astimezone(ZONA_LIMA).date()
 
 
+def inicio_dia_lima(fecha):
+    """Las 00:00 de ese día en Lima, como instante. Para filtrar «del día X al día Y» en hora de Lima:
+    campo >= inicio_dia_lima(X) y campo < inicio_dia_lima(Y + 1 día). La base guarda en UTC."""
+    return _dt.datetime.combine(fecha, _dt.time.min, tzinfo=ZONA_LIMA)
+
+
+def filtro_dias_lima(consulta, campo, desde=None, hasta=None):
+    """Filtra por días del calendario de Lima (no de UTC: a las 19:00 en Lima ya es el día siguiente en UTC)."""
+    if desde is not None:
+        consulta = consulta.filter(**{f"{campo}__gte": inicio_dia_lima(desde)})
+    if hasta is not None:
+        consulta = consulta.filter(**{f"{campo}__lt": inicio_dia_lima(hasta + _dt.timedelta(days=1))})
+    return consulta
+
+
 class Campana(models.Model):
     """H60: campaña de difusión con enlace de origen para medir su alcance (H67)."""
 

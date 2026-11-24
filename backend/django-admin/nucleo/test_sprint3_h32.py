@@ -116,7 +116,7 @@ class ExportacionTableroTests(APITestCase):
 
         self.assertEqual(valores["Periodo"], ["Del 05/10/2026 al 07/10/2026"])
         self.assertEqual(valores["Campo del periodo"], ["Fecha de publicación"])
-        self.assertEqual(valores["Zona horaria"], ["UTC"])
+        self.assertEqual(valores["Zona horaria"], ["America/Lima"])  # los días del periodo son de Lima
         self.assertIn("Admin QA (admin-h32@prueba.invalid)", valores["Responsable"])
         self.assertRegex(valores["Emitido"][0], r"\d{2}/\d{2}/\d{4} \d{2}:\d{2}")
 

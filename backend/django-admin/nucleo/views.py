@@ -27,6 +27,7 @@ from .disposicion import (
 )
 from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
+    filtro_dias_lima,
     ZONA_LIMA,
     AvisoDestacado,
     ROL_CHOICES,
@@ -498,13 +499,13 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
             fecha = parse_date(desde)
             if fecha is None:
                 raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_recepcion__date__gte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_recepcion", desde=fecha)
         hasta = self.request.query_params.get("hasta")
         if hasta:
             fecha = parse_date(hasta)
             if fecha is None:
                 raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_recepcion__date__lte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_recepcion", hasta=fecha)
         return qs
 
     def create(self, request, *args, **kwargs):
@@ -748,13 +749,13 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             fecha = parse_date(desde)
             if fecha is None:
                 raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_reclamo__date__gte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_reclamo", desde=fecha)
         hasta = self.request.query_params.get("hasta")
         if hasta:
             fecha = parse_date(hasta)
             if fecha is None:
                 raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_reclamo__date__lte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_reclamo", hasta=fecha)
         return qs
 
     @action(detail=True, methods=["post"], url_path="resolver")
