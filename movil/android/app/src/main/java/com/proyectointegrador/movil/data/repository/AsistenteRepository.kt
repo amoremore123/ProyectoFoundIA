@@ -9,9 +9,17 @@ interface AsistenteRepository {
     suspend fun responder(mensaje: String): RespuestaFindi
     /** [imagen] es una data URL JPEG o PNG de hasta 2 MiB. */
     suspend fun buscarPorFoto(imagen: String): FotoBusquedaRespuesta = throw UnsupportedOperationException("No disponible")
+    /** MP3 con la voz natural de FINDI. Falla si el servidor no la tiene configurada, si se pasó el límite o si no hay red. */
+    suspend fun vozNatural(texto: String): ByteArray = throw UnsupportedOperationException("No disponible")
 }
 
 class ApiAsistenteRepository(private val api: ApiService) : AsistenteRepository {
+    override suspend fun vozNatural(texto: String): ByteArray = llamadaApi {
+        val limpio = com.proyectointegrador.movil.domain.textoParaVoz(texto)
+        require(limpio.isNotBlank()) { "No hay texto para leer." }
+        api.vozNatural(VozRequest(limpio)).bytes()
+    }
+
     override suspend fun buscarPorFoto(imagen: String): FotoBusquedaRespuesta = llamadaApi { api.buscarPorFoto(FotoBusquedaRequest(imagen)) }
 
     override suspend fun responder(mensaje: String): RespuestaFindi = llamadaApi {

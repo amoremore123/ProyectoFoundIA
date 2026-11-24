@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,6 +51,9 @@ import com.proyectointegrador.movil.ui.viewmodel.*
     var reconocedor by remember { mutableStateOf<SpeechRecognizer?>(null) }
     var sintetizador by remember { mutableStateOf<TextToSpeech?>(null) }
     var vozLista by remember { mutableStateOf(false) }
+    // Voz natural de FINDI (la misma de la web). Si no está disponible se lee con la voz del teléfono.
+    val alcanceVoz = androidx.compose.runtime.rememberCoroutineScope()
+    val reproductor = remember { com.proyectointegrador.movil.ui.components.ReproductorVoz(contexto.applicationContext) }
     val propietarioCiclo = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(contexto) {
         val motor = TextToSpeech(contexto.applicationContext) { resultado ->
@@ -60,6 +64,7 @@ import com.proyectointegrador.movil.ui.viewmodel.*
         val observador = androidx.lifecycle.LifecycleEventObserver { _, evento ->
             if (evento == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
                 motor.stop()
+                reproductor.detener()
                 canceladoAposta = true
                 reconocedor?.cancel()
                 escuchando = false
@@ -69,6 +74,7 @@ import com.proyectointegrador.movil.ui.viewmodel.*
         propietarioCiclo.lifecycle.addObserver(observador)
         onDispose {
             propietarioCiclo.lifecycle.removeObserver(observador)
+            reproductor.detener()
             reconocedor?.destroy()
             motor.stop()
             motor.shutdown()
@@ -143,12 +149,28 @@ import com.proyectointegrador.movil.ui.viewmodel.*
             dismissButton = { TextButton(onClick = { mostrarPrivacidad = false }) { Text("Cancelar") } }
         )
     }
-    fun leer(respuesta: String) {
+    fun leerConVozDelTelefono(respuesta: String, motivo: String?) {
         val motor = sintetizador ?: return
         if (!vozLista || motor.setLanguage(Locale.forLanguageTag("es-PE")) < 0 ||
             motor.speak(respuesta, TextToSpeech.QUEUE_FLUSH, null, "findi") == TextToSpeech.ERROR) {
             avisoVoz = "La lectura en voz alta no está disponible en este dispositivo."
-        } else avisoVoz = null
+        } else avisoVoz = motivo
+    }
+    fun leer(respuesta: String) {
+        // Tocar «Leer en voz alta» mientras suena la detiene.
+        if (reproductor.sonando) { reproductor.detener(); return }
+        sintetizador?.stop()
+        alcanceVoz.launch {
+            val audio = try {
+                com.proyectointegrador.movil.di.Inyeccion.contenedor.asistente.vozNatural(respuesta)
+            } catch (cancelado: kotlinx.coroutines.CancellationException) {
+                throw cancelado
+            } catch (_: Exception) {
+                null
+            }
+            if (audio != null && reproductor.reproducir(audio) { }) avisoVoz = null
+            else leerConVozDelTelefono(respuesta, "Se leyó con la voz del teléfono: la voz natural de FINDI no está disponible ahora.")
+        }
     }
     fun navegar(ruta: String) = abrir(if (ruta == "propios" && !autenticado) "perfil" else ruta)
     fun enviar() { if (texto.isNotBlank() && !estado.pensando) { vm.enviar(texto); texto = "" } }

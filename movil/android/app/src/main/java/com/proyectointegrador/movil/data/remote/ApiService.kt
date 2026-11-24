@@ -18,6 +18,9 @@ interface ApiService {
     @POST("api/asistente/buscar-por-foto")
     suspend fun buscarPorFoto(@Body datos: FotoBusquedaRequest): FotoBusquedaRespuesta
 
+    @POST("api/asistente/voz")
+    suspend fun vozNatural(@Body datos: VozRequest): okhttp3.ResponseBody
+
     @POST("api/asistente/interpretar")
     suspend fun interpretarFindi(@Body datos: ConsultaFindi): InterpretacionFindi
 
