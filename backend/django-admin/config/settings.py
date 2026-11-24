@@ -142,3 +142,13 @@ CORS_ALLOWED_ORIGINS = [
     for o in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5174").split(",")
     if o.strip()
 ]
+
+# H34: correo de confirmación al eliminar una cuenta. El mismo servidor que usa Spring (Mailpit en desarrollo).
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("MAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("MAIL_PORT", "1025"))
+EMAIL_HOST_USER = os.environ.get("MAIL_USERNAME", "")
+EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("MAIL_STARTTLS", "false").lower() == "true"
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.environ.get("MAIL_FROM", "no-reply@foundia.dev")

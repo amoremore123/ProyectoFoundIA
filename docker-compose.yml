@@ -98,6 +98,10 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: root
       DJANGO_SECRET_KEY: foundia-dev-django-secret-key-cambiar-en-produccion
+      # H34: correo de confirmación al eliminar una cuenta (el mismo servidor que usa Spring)
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_FROM: no-reply@foundia.dev
       JWT_SECRET: foundia-dev-jwt-secret-cambiar-en-produccion-123456
       DJANGO_DEBUG: "True"
       HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}

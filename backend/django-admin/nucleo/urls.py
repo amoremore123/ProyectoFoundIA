@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
+from .eliminacion import SolicitudEliminacionViewSet
 from .envios_masivos import EnvioMasivoViewSet
 from .promociones import PromocionViewSet
 from .views import (
@@ -43,6 +44,8 @@ router.register("avisos-destacados", AvisoDestacadoViewSet, basename="avisos-des
 router.register("envios-masivos", EnvioMasivoViewSet, basename="envios-masivos")
 # H66: promociones en redes (se preparan y se registran; no se publican desde FoundIA)
 router.register("promociones", PromocionViewSet, basename="promociones")
+# H34: atender las solicitudes de eliminación de cuenta (Ley 29733)
+router.register("solicitudes-eliminacion", SolicitudEliminacionViewSet, basename="solicitudes-eliminacion")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),
