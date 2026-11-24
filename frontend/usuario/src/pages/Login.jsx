@@ -22,6 +22,8 @@ export default function Login() {
   const { state } = useLocation();
   // H35: aviso al volver de restablecer la contraseña
   const aviso = typeof state?.aviso === 'string' ? state.aviso : '';
+  // Etiqueta QR: al iniciar sesión se vuelve a la etiqueta escaneada (solo rutas internas)
+  const volverA = typeof state?.volverA === 'string' && /^\/(?!\/)/.test(state.volverA) ? state.volverA : '/';
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +58,7 @@ export default function Login() {
     setEnviando(true);
     try {
       await login(correo.trim().toLowerCase(), password);
-      navigate('/', { replace: true });
+      navigate(volverA, { replace: true });
     } catch (err) {
       const status = err?.response?.status;
       if (status === 401) {

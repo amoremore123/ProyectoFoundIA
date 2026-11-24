@@ -128,6 +128,43 @@ public class ChatService {
         return respuesta(conversaciones.saveAndFlush(c), yo);
     }
 
+    /**
+     * Etiqueta QR: quien encontró la pertenencia escribe a su dueño. Si ya había escrito por esa
+     * etiqueta, se sigue en la misma conversación. El dueño recibe un aviso con el nombre del objeto.
+     */
+    @Transactional
+    public ConversacionResponse iniciarPorEtiqueta(com.proyectointegrador.entity.Pertenencia pertenencia, Long usuarioId, String texto) {
+        String limpio = texto == null ? "" : texto.trim();
+        if (limpio.isEmpty() || limpio.length() > 1000) {
+            throw new SolicitudInvalidaException("Escribe un mensaje de hasta 1000 caracteres.");
+        }
+        Usuario yo = usuario(usuarioId);
+        Usuario dueno = pertenencia.getUsuario();
+        if (bloqueos.existsByBloqueadorIdAndBloqueadoId(yo.getId(), dueno.getId())
+                || bloqueos.existsByBloqueadorIdAndBloqueadoId(dueno.getId(), yo.getId())) {
+            throw new ChatNoDisponibleException("No puedes escribir a esta persona porque hay un bloqueo");
+        }
+        var existente = conversaciones.findFirstByPertenenciaIdAndUsuarioAId(pertenencia.getId(), usuarioId);
+        if (existente.isPresent()) {
+            enviar(existente.get().getId(), usuarioId, texto, null);
+            return respuesta(existente.get(), yo);
+        }
+        Conversacion c = new Conversacion();
+        c.setTipo(TipoConversacion.ETIQUETA);
+        c.setPertenencia(pertenencia);
+        c.setUsuarioA(yo);
+        c.setUsuarioB(dueno);
+        c = conversaciones.saveAndFlush(c);
+        MensajeChat m = new MensajeChat();
+        m.setConversacion(c);
+        m.setAutor(yo);
+        m.setTexto(limpio);
+        MensajeChat guardado = mensajes.saveAndFlush(m);
+        marcarLeido(c.getId(), usuarioId, guardado.getId());
+        notificaciones.notificarEtiquetaEncontrada(dueno, pertenencia.getNombre(), c.getId());
+        return respuesta(c, yo);
+    }
+
     /** Lista las conversaciones propias; el personal de la biblioteca ve además la bandeja de reclamos. */
     @Transactional(readOnly = true)
     public List<ConversacionResponse> listar(Long usuarioId) {
@@ -298,7 +335,9 @@ public class ChatService {
     /** H61: cuando el objeto ya no está en juego o el reclamo se cerró, solo se puede leer. */
     private boolean soloLectura(Conversacion c) {
         if (c.getEstado() != null && c.getEstado().name().equals("SOLO_LECTURA")) return true;
-        if (terminado(c.getObjeto().getEstado())) return true;
+        // Etiqueta QR: termina cuando el dueño la desactiva
+        if (c.getTipo() == TipoConversacion.ETIQUETA) return c.getPertenencia() == null || !c.getPertenencia().isActiva();
+        if (c.getObjeto() != null && terminado(c.getObjeto().getEstado())) return true;
         if (c.getReclamo() != null) {
             // Estados reales del reclamo: PENDIENTE, ACEPTADO, RECHAZADO y RETIRADO
             String r = c.getReclamo().getEstado();
@@ -330,7 +369,7 @@ public class ChatService {
     }
 
     private List<Usuario> destinatarios(Conversacion c, Usuario autor) {
-        if (c.getTipo() == TipoConversacion.ENTRE_USUARIOS) return List.of(otro(c, autor));
+        if (c.getTipo() != TipoConversacion.CON_BIBLIOTECA) return List.of(otro(c, autor));
         // Con la biblioteca: si escribe el personal avisa a quien reclamó; si escribe la persona, lo ve la bandeja.
         return esPersonal(autor) && !c.getUsuarioA().getId().equals(autor.getId())
                 ? List.of(c.getUsuarioA()) : List.of();
@@ -365,7 +404,10 @@ public class ChatService {
         long sinLeer = mensajes.countByConversacionIdAndIdGreaterThanAndAutorIdNot(c.getId(), leido, yo.getId());
         MensajeResponse ultimo = mensajes.findTopByConversacionIdOrderByIdDesc(c.getId()).map(this::mensaje).orElse(null);
         boolean lectura = soloLectura(c);
-        return new ConversacionResponse(c.getId(), c.getTipo().name(), c.getObjeto().getId(), c.getObjeto().getNombre(),
+        Long objetoId = c.getObjeto() == null ? null : c.getObjeto().getId();
+        String nombre = c.getObjeto() != null ? c.getObjeto().getNombre()
+                : c.getPertenencia() != null ? c.getPertenencia().getNombre() : "Etiqueta QR";
+        return new ConversacionResponse(c.getId(), c.getTipo().name(), objetoId, nombre,
                 lectura ? "SOLO_LECTURA" : "ABIERTA", lectura, bloqueada(c, yo), participante, ultimo, sinLeer);
     }
 }

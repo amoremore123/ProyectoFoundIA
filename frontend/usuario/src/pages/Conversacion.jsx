@@ -219,7 +219,12 @@ export default function Conversacion() {
         <AvatarConversacion conversacion={{ ...conversacion, bloqueada: estado.bloqueada }} className="conv-cabecera-avatar" />
         <div className="conv-cabecera-datos">
           <h1 className="conv-titulo">{conversacion.otro?.nombre || 'Conversación'}</h1>
-          <Link to={`/objeto/${conversacion.objetoId}`} className="conv-objeto">{conversacion.objetoNombre}</Link>
+          {conversacion.objetoId != null ? (
+            <Link to={`/objeto/${conversacion.objetoId}`} className="conv-objeto">{conversacion.objetoNombre}</Link>
+          ) : (
+            // Etiqueta QR: no hay publicación, solo el nombre de la pertenencia
+            <span className="conv-objeto">Etiqueta QR · {conversacion.objetoNombre}</span>
+          )}
         </div>
         {puedeBloquear && !estado.soloLectura && (
           estado.bloqueada ? (

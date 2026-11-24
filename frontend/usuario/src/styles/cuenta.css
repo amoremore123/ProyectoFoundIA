@@ -246,3 +246,26 @@ html[data-tema='oscuro'] .foto-perfil-quitar { color: #fda29b; }
 .reconocimiento-barra { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
 .reconocimiento-barra span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ffd60a, #f79009); }
 .reconocimiento-privado { margin: 0; font-size: 12px; }
+
+/* Etiqueta QR preventiva: mis etiquetas en el perfil y la página que ve quien escanea */
+.mis-etiquetas { display: grid; gap: 12px; }
+.etiqueta-form { display: grid; gap: 10px; }
+.etiqueta-form .btn { justify-self: start; }
+.etiqueta-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.etiqueta-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
+.etiqueta-qr { width: 96px; height: 96px; flex: none; border-radius: 8px; background: #fff; padding: 4px; }
+.etiqueta-datos { display: grid; gap: 4px; min-width: 0; }
+.etiqueta-datos .nota-suave { margin: 0; overflow-wrap: anywhere; }
+.etiqueta-nombre { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.etiqueta-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.etiqueta-acciones .btn { display: inline-flex; align-items: center; gap: 6px; }
+.etiqueta-publica { display: grid; gap: 12px; }
+.etiqueta-publica h1 { margin: 0; overflow-wrap: anywhere; }
+.etiqueta-publica-sello { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-muted); }
+.etiqueta-publica-descripcion { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
+.etiqueta-aviso { display: grid; gap: 10px; }
+.etiqueta-aviso .btn { justify-self: start; display: inline-flex; align-items: center; gap: 8px; }
+.etiqueta-aviso .nota-suave { margin: 0; }
+@media (max-width: 480px) {
+  .etiqueta-item { flex-direction: column; }
+}

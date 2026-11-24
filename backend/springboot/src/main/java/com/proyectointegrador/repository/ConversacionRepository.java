@@ -19,4 +19,9 @@ public interface ConversacionRepository extends JpaRepository<Conversacion, Long
     List<Conversacion> delUsuario(@Param("usuarioId") Long usuarioId);
 
     List<Conversacion> findTop100ByTipoOrderByIdDesc(TipoConversacion tipo);
+
+    /** Etiqueta QR: la conversación que ya abrió esta persona con el dueño de esa pertenencia. */
+    Optional<Conversacion> findFirstByPertenenciaIdAndUsuarioAId(Long pertenenciaId, Long usuarioAId);
+
+    long countByTipoAndUsuarioAIdAndCreadaEnAfter(TipoConversacion tipo, Long usuarioAId, java.time.LocalDateTime desde);
 }

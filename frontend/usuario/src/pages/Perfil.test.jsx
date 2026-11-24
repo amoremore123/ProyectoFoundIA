@@ -9,6 +9,7 @@ import { actualizarPerfil, cerrarSesionServidor, getPerfil } from '../services/a
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(), getPerfil: vi.fn(), actualizarPerfil: vi.fn(), cerrarSesionServidor: vi.fn(),
   // H34: el perfil también consulta la solicitud de eliminación
+  getEtiquetas: vi.fn(async () => []),
   getReconocimiento: vi.fn(async () => ({ entregados: 0, devueltos: 0, nivel: null, siguiente: { nombre: 'Primera entrega', faltan: 1 } })),
   getSolicitudEliminacion: vi.fn(async () => ({ id: null, estado: 'SIN_SOLICITUD', fechaSolicitud: null, repetido: false, informacion: '' })),
 }));

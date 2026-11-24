@@ -109,6 +109,21 @@ public class NotificacionService {
 
     /** H55: avisa de un mensaje nuevo sin copiar su texto; la persona lo lee dentro de la conversación. */
     @Transactional
+    /** Etiqueta QR: alguien escaneó la etiqueta de una pertenencia y escribió a su dueño. */
+    public void notificarEtiquetaEncontrada(Usuario destinatario, String nombrePertenencia, Long conversacionId) {
+        if (!preferencias.permite(destinatario.getId(), "MENSAJE_CHAT")) return;
+        Notificacion notificacion = new Notificacion();
+        notificacion.setUsuario(destinatario);
+        notificacion.setTitulo("Encontraron tu " + nombrePertenencia);
+        notificacion.setMensaje("Alguien escaneó la etiqueta QR de «" + nombrePertenencia
+                + "» y te escribió en la conversación #" + conversacionId + ".");
+        // Mismo tipo que los mensajes del chat: sale por los canales que la persona eligió para el chat
+        notificacion.setTipo("MENSAJE_CHAT");
+        notificacion.setEnlace("/conversaciones/" + conversacionId);
+        notificacion.setLeida(Boolean.FALSE);
+        notificacionRepository.save(notificacion);
+    }
+
     public void notificarMensajeChat(Usuario destinatario, Long conversacionId) {
         if (!preferencias.permite(destinatario.getId(), "MENSAJE_CHAT")) return;
         Notificacion notificacion = new Notificacion();

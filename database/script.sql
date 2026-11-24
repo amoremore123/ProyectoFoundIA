@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS reportes_mensaje;
 DROP TABLE IF EXISTS lecturas_chat;
 DROP TABLE IF EXISTS mensajes_chat;
 DROP TABLE IF EXISTS conversaciones;
+DROP TABLE IF EXISTS pertenencias;
 DROP TABLE IF EXISTS bloqueos_chat;
 DROP TABLE IF EXISTS promociones_campana;
 DROP TABLE IF EXISTS alcance_campanas;
@@ -503,13 +504,29 @@ CREATE TABLE IF NOT EXISTS campanas (
 -- H64: foto de perfil privada (ruta interna perfiles/<uuid>.jpg). Bases existentes: migracion_h64_foto_perfil.sql.
 ALTER TABLE usuarios ADD COLUMN foto_perfil_url VARCHAR(80) NULL;
 
+-- Extra: etiqueta QR preventiva (ver database/migracion_extra_etiquetas_qr.sql).
+CREATE TABLE IF NOT EXISTS pertenencias (
+    id           BIGINT       NOT NULL AUTO_INCREMENT,
+    usuario_id   BIGINT       NOT NULL,
+    nombre       VARCHAR(80)  NOT NULL,
+    descripcion  VARCHAR(200) NULL,
+    codigo       VARCHAR(32)  NOT NULL,
+    activa       BOOLEAN      NOT NULL DEFAULT TRUE,
+    creada_en    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_pertenencias_codigo UNIQUE (codigo),
+    CONSTRAINT fk_pertenencias_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    INDEX idx_pertenencias_usuario (usuario_id, activa)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- H55 a H63: chat interno (ver database/migracion_h55_chat.sql).
 CREATE TABLE IF NOT EXISTS conversaciones (
     id            BIGINT      NOT NULL AUTO_INCREMENT,
     tipo          VARCHAR(20) NOT NULL,
-    objeto_id     BIGINT      NOT NULL,
+    objeto_id     BIGINT      NULL,
     contacto_id   BIGINT      NULL,
     reclamo_id    BIGINT      NULL,
+    pertenencia_id BIGINT     NULL,
     usuario_a_id  BIGINT      NOT NULL,
     usuario_b_id  BIGINT      NULL,
     estado        VARCHAR(20) NOT NULL DEFAULT 'ABIERTA',
@@ -520,6 +537,7 @@ CREATE TABLE IF NOT EXISTS conversaciones (
     CONSTRAINT fk_conversaciones_objeto FOREIGN KEY (objeto_id) REFERENCES objetos (id),
     CONSTRAINT fk_conversaciones_contacto FOREIGN KEY (contacto_id) REFERENCES contactos (id),
     CONSTRAINT fk_conversaciones_reclamo FOREIGN KEY (reclamo_id) REFERENCES reclamos (id),
+    CONSTRAINT fk_conversaciones_pertenencia FOREIGN KEY (pertenencia_id) REFERENCES pertenencias (id) ON DELETE SET NULL,
     CONSTRAINT fk_conversaciones_usuario_a FOREIGN KEY (usuario_a_id) REFERENCES usuarios (id),
     CONSTRAINT fk_conversaciones_usuario_b FOREIGN KEY (usuario_b_id) REFERENCES usuarios (id)
 ) ENGINE = InnoDB;

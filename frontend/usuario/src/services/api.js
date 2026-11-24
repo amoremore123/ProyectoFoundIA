@@ -280,6 +280,31 @@ export const compararFotosCoincidencias = async (id) => {
   return data;
 };
 
+// Etiqueta QR preventiva: mis pertenencias con QR y lo que ve quien escanea
+export const getEtiquetas = async () => {
+  const { data } = await api.get('/api/etiquetas');
+  return data;
+};
+
+export const crearEtiqueta = async ({ nombre, descripcion }) => {
+  const { data } = await api.post('/api/etiquetas', { nombre, descripcion });
+  return data;
+};
+
+export const desactivarEtiqueta = async (id) => {
+  await api.delete(`/api/etiquetas/${id}`);
+};
+
+export const getEtiquetaPublica = async (codigo) => {
+  const { data } = await api.get(`/api/etiquetas/publica/${encodeURIComponent(codigo)}`);
+  return data;
+};
+
+export const avisarEtiqueta = async (codigo, mensaje) => {
+  const { data } = await api.post(`/api/etiquetas/publica/${encodeURIComponent(codigo)}/avisar`, { mensaje });
+  return data;
+};
+
 export const getDetalleCoincidencia = async (id, { signal } = {}) => {
   const { data } = await api.get(`/api/coincidencias/${encodeURIComponent(id)}`, { signal });
   return data;

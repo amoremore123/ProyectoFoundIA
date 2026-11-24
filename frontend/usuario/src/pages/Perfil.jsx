@@ -6,6 +6,7 @@ import Icono from '../components/Icono';
 import SolicitudEliminacion from '../components/SolicitudEliminacion';
 import InvitarAmigo from '../components/InvitarAmigo';
 import ReconocimientoPerfil from '../components/ReconocimientoPerfil';
+import MisEtiquetas from '../components/MisEtiquetas';
 import FotoPerfil from '../components/FotoPerfil';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
 import { useAuth } from '../context/AuthContext';
@@ -233,6 +234,7 @@ export default function Perfil() {
 
       {/* H34: solicitud de eliminación de la cuenta */}
       <ReconocimientoPerfil />
+      <MisEtiquetas />
       <InvitarAmigo />
       <SolicitudEliminacion />
     </div>

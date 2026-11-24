@@ -52,6 +52,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/coincidencias/**").permitAll()
                         // H41: al escanear la etiqueta de custodia se ve el objeto (sin datos personales)
                         .requestMatchers(HttpMethod.GET, "/api/custodias/verificar").permitAll()
+                        // Etiqueta QR preventiva: al escanearla se ve solo el nombre de la pertenencia
+                        .requestMatchers(HttpMethod.GET, "/api/etiquetas/publica/**").permitAll()
                         // H45: interpretación pública, con resumen propio cuando hay sesión.
                         .requestMatchers(HttpMethod.POST, "/api/asistente/interpretar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/asistente/voz").permitAll()

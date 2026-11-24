@@ -21,6 +21,7 @@ import Notificaciones from './pages/Notificaciones';
 import Legal from './pages/Legal';
 import Cookies from './pages/Cookies';
 import VerificarCustodia from './pages/VerificarCustodia';
+import Etiqueta from './pages/Etiqueta';
 import Mensajes from './pages/Mensajes';
 import Conversacion from './pages/Conversacion';
 import AvisoCookies from './components/AvisoCookies';
@@ -54,6 +55,7 @@ export default function App() {
                 <Route path="/terminos" element={<Legal tipo="terminos" />} />
                 <Route path="/cookies" element={<Cookies />} />
                 <Route path="/custodia/verificar" element={<VerificarCustodia />} />
+                <Route path="/etiqueta/:codigo" element={<Etiqueta />} />
                 <Route path="/objeto/:id" element={<Detalle />} />
                 <Route path="/coincidencias/:id" element={<DetalleCoincidencia />} />
                 <Route

@@ -39,8 +39,9 @@ public class Conversacion {
     @Column(name = "tipo", nullable = false, length = 20)
     private TipoConversacion tipo;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "objeto_id", nullable = false)
+    /** La publicación de la que se habla. Es null en las conversaciones que nacen de una etiqueta QR. */
+    @ManyToOne
+    @JoinColumn(name = "objeto_id")
     private Objeto objeto;
 
     @ManyToOne
@@ -50,6 +51,11 @@ public class Conversacion {
     @ManyToOne
     @JoinColumn(name = "reclamo_id")
     private Reclamo reclamo;
+
+    /** Etiqueta QR: la pertenencia que alguien encontró y escaneó. */
+    @ManyToOne
+    @JoinColumn(name = "pertenencia_id")
+    private Pertenencia pertenencia;
 
     /** Quien inició: el dueño del objeto perdido o quien reclama. */
     @ManyToOne(optional = false)
