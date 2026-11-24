@@ -22,6 +22,8 @@ public class ImagenesWebConfig implements WebMvcConfigurer {
         if (!ubicacion.endsWith("/")) {
             ubicacion += "/";
         }
-        registry.addResourceHandler("/uploads/**").addResourceLocations(ubicacion);
+        // Primero las fotos subidas (volumen); si no está, las fotos de los datos de ejemplo (seed.sql),
+        // que vienen dentro de la aplicación para que funcionen en cualquier base sin copiar archivos.
+        registry.addResourceHandler("/uploads/**").addResourceLocations(ubicacion, "classpath:/semilla/uploads/");
     }
 }
