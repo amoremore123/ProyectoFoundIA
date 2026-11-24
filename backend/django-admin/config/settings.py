@@ -51,6 +51,8 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     # Mismo formato de error que Spring: agrega "status" y "mensaje" a los errores de /api/
     "nucleo.formato_errores.FormatoErrorMiddleware",
+    # H70: mientras se restaura una versión, las escrituras del panel responden 503
+    "nucleo.restaurar_panel.ModoMantenimientoMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

@@ -254,6 +254,11 @@ class SolicitudEliminacionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMix
         respuesta["correoEnviado"] = correo_enviado
         return Response(respuesta)
 
+    @action(detail=False, methods=["post"])
+    def reaplicar(self, request):
+        """H70: después de restaurar una versión, vuelve a anonimizar las cuentas eliminadas que regresaron."""
+        return Response({"cuentasAnonimizadasDeNuevo": reaplicar_eliminaciones()})
+
     @action(detail=True, methods=["post"])
     def rechazar(self, request, pk=None):
         datos = RechazarSerializer(data=request.data)

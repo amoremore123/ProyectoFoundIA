@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .eliminacion import SolicitudEliminacionViewSet
 from .envios_masivos import EnvioMasivoViewSet
 from .promociones import PromocionViewSet
+from .restaurar_panel import RestaurarVersionView
 from .views import (
     AvisoDestacadoViewSet,
     CampanaViewSet,
@@ -49,6 +50,9 @@ router.register("solicitudes-eliminacion", SolicitudEliminacionViewSet, basename
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="admin-login"),
+    # H70: restaurar una versión desde el panel (doble confirmación; la ejecuta el servicio de respaldo)
+    re_path(r"^respaldos/versiones/(?P<version>\d{8}T\d{6}Z)/restaurar/$", RestaurarVersionView.as_view(),
+            name="admin-restaurar-version"),
     path("auth/logout/", LogoutView.as_view(), name="admin-logout"),
     path("auth/logout-all/", LogoutAllView.as_view(), name="admin-logout-all"),
     path("dashboard/", DashboardView.as_view(), name="admin-dashboard"),
