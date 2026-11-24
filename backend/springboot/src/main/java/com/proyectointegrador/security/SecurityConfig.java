@@ -48,6 +48,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/objetos", "/api/objetos/**").permitAll()
                         // H64: las fotos de perfil son privadas; se ven solo con sesión en /api/perfil/foto
                         .requestMatchers("/uploads/perfiles/**").denyAll()
+                        // H62: las fotos del chat se piden con sesión en /api/conversaciones/{id}/mensajes/{m}/foto
+                        .requestMatchers("/uploads/chat/**").denyAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/coincidencias/**").permitAll()
                         // H41: al escanear la etiqueta de custodia se ve el objeto (sin datos personales)

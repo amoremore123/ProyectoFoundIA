@@ -203,7 +203,8 @@ public class ChatService {
         m.setAutor(yo);
         m.setTexto(limpio == null || limpio.isEmpty() ? null : limpio);
         m.setIdCliente(clave);
-        if (hayFoto) m.setImagenUrl(imagenes.guardar(foto).url());
+        // H62: la foto queda en la carpeta privada chat/; se entrega con sesión (fotoDeMensaje)
+        if (hayFoto) m.setImagenUrl(imagenes.guardarChat(foto));
         MensajeChat guardado = mensajes.saveAndFlush(m);
         marcarLeido(c.getId(), usuarioId, guardado.getId());
         for (Usuario destino : destinatarios(c, yo)) {
@@ -264,6 +265,34 @@ public class ChatService {
         r.setUsuarioId(usuarioId);
         r.setMotivo(motivo.trim());
         reportes.saveAndFlush(r);
+    }
+
+    /** H62: la foto ya no es pública: se pide por esta ruta, con sesión. */
+    public static String rutaFoto(MensajeChat m) {
+        return m.getImagenUrl() == null ? null
+                : "/api/conversaciones/" + m.getConversacion().getId() + "/mensajes/" + m.getId() + "/foto";
+    }
+
+    /**
+     * H62: la foto de un mensaje, para quien participa en la conversación (o el personal en una con la
+     * biblioteca) y para el ADMIN si el mensaje fue reportado. Vacío en cualquier otro caso (404).
+     */
+    @Transactional(readOnly = true)
+    public java.util.Optional<java.nio.file.Path> fotoDeMensaje(Long id, Long mensajeId, Long usuarioId) {
+        Usuario yo = usuario(usuarioId);
+        MensajeChat m = mensajes.findById(mensajeId).orElse(null);
+        if (m == null || !m.getConversacion().getId().equals(id) || m.getImagenUrl() == null) {
+            return java.util.Optional.empty();
+        }
+        boolean moderacion = yo.getRol() == Rol.ADMIN && reportes.existsByMensajeId(mensajeId);
+        if (!moderacion) {
+            try {
+                propia(id, yo);
+            } catch (ResourceNotFoundException ajena) {
+                return java.util.Optional.empty();
+            }
+        }
+        return imagenes.archivoChat(m.getImagenUrl());
     }
 
     /**
@@ -351,7 +380,7 @@ public class ChatService {
 
     private MensajeResponse mensaje(MensajeChat m) {
         return new MensajeResponse(m.getId(), m.getAutor().getId(), m.getAutor().getNombre(), m.getTexto(),
-                m.getImagenUrl(), m.getEnviadoEn());
+                rutaFoto(m), m.getEnviadoEn());
     }
 
     private ConversacionResponse respuesta(Conversacion c, Usuario yo) {

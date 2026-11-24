@@ -65,11 +65,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ChatIntegrationTest {
 
     // Las fotos (H62 y H64) van a una carpeta temporal, no a la del proyecto
+    static final Path FOTOS = Path.of(System.getProperty("java.io.tmpdir"), "foundia-chat-" + UUID.randomUUID());
+
     @DynamicPropertySource
     static void carpetaDeFotos(DynamicPropertyRegistry registro) {
-        registro.add("app.upload.directory",
-                () -> Path.of(System.getProperty("java.io.tmpdir"), "foundia-chat-" + UUID.randomUUID()).toString());
+        registro.add("app.upload.directory", FOTOS::toString);
     }
+
+    @Autowired
+    private com.proyectointegrador.service.MigradorFotosChat migrador;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Autowired
     private EntityManager em;
@@ -534,5 +541,127 @@ class ChatIntegrationTest {
                 .andExpect(jsonPath("$.otro.tieneFoto").value(false));
         // Una persona ajena al reclamo tampoco
         mvc.perform(get("/api/conversaciones/{id}/foto", id).with(como(perdedor))).andExpect(status().isNotFound());
+    }
+
+    // --- H62: fotos del chat privadas ---
+
+    private long enviarFoto(Usuario autor, long id, byte[] datos, String tipo) throws Exception {
+        String cuerpo = mvc.perform(multipart("/api/conversaciones/{id}/mensajes", id)
+                        .file(new MockMultipartFile("foto", "foto.png", tipo, datos)).with(como(autor)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return ((Number) JsonPath.read(cuerpo, "$.id")).longValue();
+    }
+
+    private String rutaGuardada(long mensajeId) {
+        return jdbc.queryForObject("SELECT imagen_url FROM mensajes_chat WHERE id = ?", String.class, mensajeId);
+    }
+
+    @Test
+    @DisplayName("H62: la foto del chat se guarda en la carpeta privada y solo la ven quienes conversan")
+    void fotoDelChatPrivada() throws Exception {
+        long id = iniciarEntrePersonas();
+        byte[] foto = png(8);
+        long mensaje = enviarFoto(perdedor, id, foto, "image/png");
+        String ruta = "/api/conversaciones/" + id + "/mensajes/" + mensaje + "/foto";
+
+        mvc.perform(get("/api/conversaciones/{id}/mensajes", id).with(como(hallador)))
+                .andExpect(jsonPath("$.mensajes[0].imagenUrl").value(ruta));
+        assertThat(rutaGuardada(mensaje)).matches("chat/[0-9a-f-]{36}\\.png");
+        assertThat(java.nio.file.Files.isRegularFile(FOTOS.resolve(rutaGuardada(mensaje)))).isTrue();
+
+        for (Usuario participante : new Usuario[]{perdedor, hallador}) {
+            mvc.perform(get(ruta).with(como(participante))).andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                    .andExpect(header().string("Cache-Control", containsString("private")))
+                    .andExpect(content().bytes(foto));
+        }
+        mvc.perform(get(ruta).with(como(tercero))).andExpect(status().isNotFound());
+        mvc.perform(get(ruta)).andExpect(status().isUnauthorized());
+        // Un id de conversación que no es el del mensaje
+        mvc.perform(get("/api/conversaciones/{id}/mensajes/{m}/foto", id + 999, mensaje).with(como(perdedor)))
+                .andExpect(status().isNotFound());
+        // La ruta pública del archivo está bloqueada, con o sin sesión
+        String archivo = "/uploads/" + rutaGuardada(mensaje);
+        mvc.perform(get(archivo)).andExpect(status().isUnauthorized());
+        mvc.perform(get(archivo).with(como(perdedor))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("H62: el ADMIN ve la foto solo si el mensaje fue reportado (para moderarlo)")
+    void fotoDelChatParaModerar() throws Exception {
+        Usuario admin = usuario("admin-chat@prueba.invalid", "Ada", Rol.ADMIN);
+        long id = iniciarEntrePersonas();
+        long mensaje = enviarFoto(hallador, id, png(6), "image/png");
+        String ruta = "/api/conversaciones/" + id + "/mensajes/" + mensaje + "/foto";
+        mvc.perform(get(ruta).with(como(admin))).andExpect(status().isNotFound());
+        mvc.perform(post("/api/conversaciones/{id}/mensajes/{m}/reporte", id, mensaje).with(como(perdedor))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"motivo\":\"Foto inapropiada\"}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get(ruta).with(como(admin))).andExpect(status().isOk());
+        // El reporte no abre la foto a otras personas
+        mvc.perform(get(ruta).with(como(tercero))).andExpect(status().isNotFound());
+        mvc.perform(get(ruta).with(como(bibliotecaria))).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("H62: una foto que no es imagen o de más de 5 MiB responde 400 y no se guarda nada")
+    void fotoDelChatInvalida() throws Exception {
+        long id = iniciarEntrePersonas();
+        mvc.perform(multipart("/api/conversaciones/{id}/mensajes", id)
+                        .file(new MockMultipartFile("foto", "nota.png", "image/png", "no soy una imagen".getBytes())).with(como(perdedor)))
+                .andExpect(status().isBadRequest());
+        byte[] grande = new byte[5 * 1024 * 1024 + 1];
+        System.arraycopy(png(4), 0, grande, 0, png(4).length);
+        mvc.perform(multipart("/api/conversaciones/{id}/mensajes", id)
+                        .file(new MockMultipartFile("foto", "grande.png", "image/png", grande)).with(como(perdedor)))
+                .andExpect(status().isBadRequest());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM mensajes_chat WHERE conversacion_id = ?", Integer.class, id))
+                .isZero();
+    }
+
+    @Test
+    @DisplayName("H62: las fotos que ya estaban en la carpeta pública se pasan a la privada al arrancar")
+    void fotosAnterioresSePasanAPrivadas() throws Exception {
+        long id = iniciarEntrePersonas();
+        long mensaje = enviarFoto(perdedor, id, png(5), "image/png");
+        // Se simula una foto guardada con la versión anterior: en la carpeta pública y con ruta /uploads/
+        String nombre = UUID.randomUUID() + ".png";
+        byte[] anterior = png(3);
+        java.nio.file.Files.write(FOTOS.resolve(nombre), anterior);
+        jdbc.update("UPDATE mensajes_chat SET imagen_url = ? WHERE id = ?", "/uploads/" + nombre, mensaje);
+        em.clear();  // el cambio por SQL directo no lo ve la caché de Hibernate de esta prueba
+        String ruta = "/api/conversaciones/" + id + "/mensajes/" + mensaje + "/foto";
+        // Mientras no se mueva, se sigue entregando por la ruta con sesión
+        mvc.perform(get(ruta).with(como(hallador))).andExpect(status().isOk()).andExpect(content().bytes(anterior));
+
+        assertThat(migrador.migrar()).isEqualTo(1);
+        em.clear();
+        assertThat(rutaGuardada(mensaje)).isEqualTo("chat/" + nombre);
+        assertThat(java.nio.file.Files.exists(FOTOS.resolve(nombre))).isFalse();
+        assertThat(java.nio.file.Files.isRegularFile(FOTOS.resolve("chat").resolve(nombre))).isTrue();
+        mvc.perform(get(ruta).with(como(hallador))).andExpect(status().isOk()).andExpect(content().bytes(anterior));
+        // Otra vez no hace nada
+        assertThat(migrador.migrar()).isZero();
+    }
+
+    @Test
+    @DisplayName("H62: en el chat con la biblioteca el personal ve la foto de quien reclama")
+    void fotoDelChatConLaBiblioteca() throws Exception {
+        Objeto custodia = objeto(bibliotecaria, TipoObjeto.ENCONTRADO, "Llaves en custodia");
+        custodia.setEstado(EstadoObjeto.EN_CUSTODIA);
+        Reclamo reclamo = new Reclamo();
+        reclamo.setObjeto(custodia);
+        reclamo.setUsuario(tercero);
+        em.persist(reclamo);
+        em.flush();
+        String cuerpo = mvc.perform(post("/api/conversaciones").with(como(tercero))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reclamoId\":" + reclamo.getId() + "}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        long id = ((Number) JsonPath.read(cuerpo, "$.id")).longValue();
+        long mensaje = enviarFoto(tercero, id, png(7), "image/png");
+        String ruta = "/api/conversaciones/" + id + "/mensajes/" + mensaje + "/foto";
+        mvc.perform(get(ruta).with(como(bibliotecaria))).andExpect(status().isOk());
+        mvc.perform(get(ruta).with(como(tercero))).andExpect(status().isOk());
+        mvc.perform(get(ruta).with(como(perdedor))).andExpect(status().isNotFound());
     }
 }

@@ -23,6 +23,10 @@ public class AlmacenamientoImagenService {
     /** H64: subcarpeta privada de las fotos de perfil dentro del directorio de imágenes. */
     public static final String CARPETA_PERFILES = "perfiles";
     private static final String RUTA_PERFIL = "perfiles/[0-9a-fA-F-]{36}\\.(jpg|png)";
+    /** H62: subcarpeta privada de las fotos del chat; la ruta pública /uploads/chat/** está bloqueada. */
+    public static final String CARPETA_CHAT = "chat";
+    private static final String RUTA_CHAT = "chat/[0-9a-fA-F-]{36}\\.(jpg|png)";
+    private static final String RUTA_PUBLICA_ANTERIOR = "/uploads/[0-9a-fA-F-]{36}\\.(jpg|png)";
 
     private final Path directorio;
     private final long maximoBytes;
@@ -59,6 +63,50 @@ public class AlmacenamientoImagenService {
         Path archivo = directorio.resolve(ruta).normalize();
         return archivo.startsWith(directorio.resolve(CARPETA_PERFILES)) && Files.isRegularFile(archivo)
                 ? java.util.Optional.of(archivo) : java.util.Optional.empty();
+    }
+
+    /** H62: guarda la foto de un mensaje del chat en la subcarpeta privada; devuelve {@code chat/<uuid>.jpg}. */
+    public String guardarChat(MultipartFile archivo) {
+        return CARPETA_CHAT + "/" + guardarEn(archivo, directorio.resolve(CARPETA_CHAT));
+    }
+
+    /**
+     * H62: archivo de una foto del chat. Acepta la ruta privada ({@code chat/...}) y, mientras no se
+     * haya movido, la pública anterior ({@code /uploads/...}). Vacío si la ruta no es válida o no existe.
+     */
+    public java.util.Optional<Path> archivoChat(String ruta) {
+        if (ruta == null) return java.util.Optional.empty();
+        Path archivo;
+        Path base;
+        if (ruta.matches(RUTA_CHAT)) {
+            base = directorio.resolve(CARPETA_CHAT);
+            archivo = directorio.resolve(ruta).normalize();
+        } else if (ruta.matches(RUTA_PUBLICA_ANTERIOR)) {
+            base = directorio;
+            archivo = directorio.resolve(ruta.substring("/uploads/".length())).normalize();
+        } else {
+            return java.util.Optional.empty();
+        }
+        return archivo.getParent().equals(base) && Files.isRegularFile(archivo)
+                ? java.util.Optional.of(archivo) : java.util.Optional.empty();
+    }
+
+    /**
+     * H62: mueve a {@code chat/} una foto del chat guardada antes en la carpeta pública y devuelve su
+     * ruta nueva. Si el archivo ya no existe, igual devuelve la ruta privada: deja de apuntar a la pública.
+     */
+    public String moverAChat(String rutaPublica) throws IOException {
+        if (rutaPublica == null || !rutaPublica.matches(RUTA_PUBLICA_ANTERIOR)) {
+            throw new IllegalArgumentException("No es una ruta pública de foto del chat");
+        }
+        String nombre = rutaPublica.substring("/uploads/".length());
+        Path origen = directorio.resolve(nombre).normalize();
+        Path carpeta = directorio.resolve(CARPETA_CHAT);
+        Files.createDirectories(carpeta);
+        if (Files.isRegularFile(origen)) {
+            Files.move(origen, carpeta.resolve(nombre), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+        return CARPETA_CHAT + "/" + nombre;
     }
 
     /** H64: borra una foto de perfil; no hace nada con rutas que no sean de {@code perfiles/}. */

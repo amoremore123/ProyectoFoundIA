@@ -50,6 +50,17 @@ class ReportesMensajeTests(APITestCase):
         self.assertEqual(fila["conversacionId"], 7)
         self.assertEqual(fila["estado"], "PENDIENTE")
         self.assertNotIn("@", str(r.data))
+        self.assertIsNone(fila["mensaje"]["imagenUrl"])
+
+    def test_la_foto_del_mensaje_se_pide_a_spring_con_sesion(self):
+        # H62: la foto del chat es privada; el panel recibe la ruta de la API, no un archivo público
+        con_foto = MensajeChat.objects.create(conversacion_id=7, autor=self.luis, texto=None,
+                                              imagen_url="chat/9f1c2b9e-4a7d-4f1e-9c3b-2d5e8a7b1c40.png")
+        ReporteMensaje.objects.create(mensaje=con_foto, usuario=self.ana, motivo="Foto inapropiada")
+        self.como(self.admin)
+        filas = {f["mensaje"]["id"]: f["mensaje"] for f in self.client.get(RUTA).data["results"]}
+        self.assertEqual(filas[con_foto.id]["imagenUrl"], f"/api/conversaciones/7/mensajes/{con_foto.id}/foto")
+        self.assertNotIn("uploads", str(filas[con_foto.id]))
 
     def test_descartar(self):
         self.como(self.admin)
