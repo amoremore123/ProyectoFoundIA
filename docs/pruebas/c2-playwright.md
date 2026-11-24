@@ -35,6 +35,11 @@ con su propia pantalla.
 | | El panel prepara el texto de una campaña para X con su enlace y registra lo publicado | H66 |
 | | Un aviso masivo para el personal de biblioteca se envía tras la vista previa y llega a su bandeja | H69 |
 | | En el chat se ve la foto de perfil de la otra persona | H64 |
+| `e2e/extras.e2e.js` | Etiqueta QR: el dueño la crea en su perfil; quien la escanea ve solo el nombre, inicia sesión y avisa por el chat; el dueño recibe el aviso y al desactivarla el QR deja de funcionar | Extra 1 |
+| | Reconocimiento: al entregar un objeto en la biblioteca aparece «Primera entrega» en el perfil | Extra 5 |
+| | Coincidencias: una billetera no trae lentes aunque compartan categoría, lugar y fecha; quien la encontró marca «Ya lo devolví» y ya nadie la puede reclamar | Corrección de coincidencias y cierre |
+| | Comparación por imagen: el botón aparece solo cuando la publicación tiene foto (no llama a la IA) | Extra 2 |
+| | Panel: el Dashboard muestra el impacto y Estadísticas el mapa de la sede con su filtro | Extras 3 y 4 |
 
 Todas las historias web del Sprint 4 con backend están cubiertas. El chat se agregó el 22/11 con la API de la rama `cierre/sprint4`.
 
@@ -111,3 +116,19 @@ cargar una página con la laptop muy exigida y pasó al repetirla sola (28,7 s).
 `e2e/sprint4-difusion.e2e.js` y se actualizó la prueba de H68 al canal por tipo de aviso. El tiempo máximo por
 prueba subió a 90 s. La bandeja de reportes del chat va del más antiguo al más nuevo, así que la prueba de H56
 avanza de página hasta encontrar su reporte.
+
+## Actualización del 24/11/2026: extras
+
+**30 pruebas** con las cinco nuevas de `e2e/extras.e2e.js` (etiqueta QR, reconocimiento, coincidencias
+coherentes con el cierre al devolver, comparación por imagen y el panel con impacto y mapa), contra la
+API de `frontend/web` con la migración `migracion_extra_etiquetas_qr.sql` aplicada tras un respaldo.
+
+- Corrida completa: **29 de 30 en verde** (6,2 minutos). Falló la primera prueba de la corrida, la del
+  chat entre dos navegadores: la respuesta tardó más de los 15 s que espera la prueba, porque la web
+  todavía estaba compilando sus pantallas en frío.
+- La misma prueba, repetida dos veces seguidas junto con el resto del chat: **8 de 8 en verde**. No es un
+  error del chat; si vuelve a pasar en frío, conviene abrir la web una vez antes de correr las pruebas.
+- Las pruebas antiguas que contactan por coincidencia (publicación, chat, H56) siguen en verde con la regla
+  nueva: sus objetos comparten el nombre («Billetera», «Lentes»).
+- La comparación por imagen solo comprueba que el botón aparece: no llama a la IA para no gastar el cupo
+  gratuito de Groq. El resultado real con Groq se probó a mano (lentes 95 % ALTO, casaca 0 % BAJO).
