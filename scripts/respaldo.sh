@@ -28,6 +28,8 @@ RESPALDO_UNA_VEZ="${RESPALDO_UNA_VEZ:-0}"
 RESPALDO_PREFIJO="${RESPALDO_PREFIJO:-foundia}"
 RESPALDO_FOTOS="${RESPALDO_FOTOS:-1}"
 FOTOS_DIR="${FOTOS_DIR:-/fotos}"
+# Un candado más viejo que esto lo dejó un proceso que ya no existe (ningún respaldo dura tanto).
+RESPALDO_CANDADO_MAXIMO_SEGUNDOS="${RESPALDO_CANDADO_MAXIMO_SEGUNDOS:-7200}"
 
 log() {
     printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -41,23 +43,55 @@ fatal() {
 [[ "$DB_NAME" =~ ^[A-Za-z0-9_]+$ ]] || fatal "DB_NAME inválido: $DB_NAME"
 [[ "$RESPALDO_INTERVALO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_INTERVALO_SEGUNDOS debe ser un entero"
 [[ "$RESPALDO_RETENCION_DIAS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_RETENCION_DIAS debe ser un entero"
+[[ "$RESPALDO_CANDADO_MAXIMO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_CANDADO_MAXIMO_SEGUNDOS debe ser un entero"
 
 mkdir -p "$RESPALDO_DIR"
 
-# Evita dos respaldos simultáneos sin depender de flock.
+# Evita dos respaldos simultáneos sin depender de flock. El candado se toma solo mientras se
+# respalda (no durante la espera de 24 h) y se suelta también cuando Docker detiene el servicio.
 LOCK_DIR="$RESPALDO_DIR/.respaldo.lock"
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    log "Ya hay un respaldo en curso; se omite esta ejecución."
-    exit 0
-fi
+CANDADO_PROPIO=0
+
+tomar_candado() {
+    local desde edad
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+        CANDADO_PROPIO=1
+        date +%s >"$LOCK_DIR/desde"
+        return 0
+    fi
+    # ¿Lo dejó un proceso que murió sin soltarlo (por ejemplo, un apagado forzado)?
+    desde="$(cat "$LOCK_DIR/desde" 2>/dev/null || stat -c %Y "$LOCK_DIR" 2>/dev/null || echo 0)"
+    [[ "$desde" =~ ^[0-9]+$ ]] || desde=0
+    edad=$(( $(date +%s) - desde ))
+    if (( edad > RESPALDO_CANDADO_MAXIMO_SEGUNDOS )); then
+        log "Se libera un candado abandonado hace ${edad}s (máximo ${RESPALDO_CANDADO_MAXIMO_SEGUNDOS}s)."
+        rm -rf "$LOCK_DIR"
+        if mkdir "$LOCK_DIR" 2>/dev/null; then
+            CANDADO_PROPIO=1
+            date +%s >"$LOCK_DIR/desde"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+soltar_candado() {
+    if (( CANDADO_PROPIO )); then
+        rm -rf "$LOCK_DIR"
+        CANDADO_PROPIO=0
+    fi
+}
 
 # Archivo de credenciales temporal: la contraseña no aparece en la línea de comandos.
 CNF="$(mktemp)"
 cleanup() {
     rm -f "$CNF"
-    rmdir "$LOCK_DIR" 2>/dev/null || true
+    soltar_candado
 }
 trap cleanup EXIT
+# El script es el proceso principal del contenedor: sin esto, «docker stop» lo mata a los 10 s
+# sin pasar por cleanup y el candado queda para siempre.
+trap 'log "Señal de apagado recibida: se suelta el candado y se termina."; exit 143' TERM INT
 
 escapar_cnf() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
@@ -279,24 +313,32 @@ aplicar_retencion() {
 }
 
 while true; do
-    CON_TIPO=0
-    if tiene_columna_tipo; then CON_TIPO=1; fi
+    if tomar_candado; then
+        CON_TIPO=0
+        if tiene_columna_tipo; then CON_TIPO=1; fi
 
-    ok_base=1; ok_fotos=1
-    ejecutar_respaldo || ok_base=0
-    # Si la base falla, igual se intenta el respaldo de fotos (y al revés).
-    ejecutar_respaldo_fotos || ok_fotos=0
+        ok_base=1; ok_fotos=1
+        ejecutar_respaldo || ok_base=0
+        # Si la base falla, igual se intenta el respaldo de fotos (y al revés).
+        ejecutar_respaldo_fotos || ok_fotos=0
 
-    if (( ok_base && ok_fotos )); then
-        aplicar_retencion
-    elif [[ "$RESPALDO_UNA_VEZ" == "1" ]]; then
-        exit 1
+        if (( ok_base && ok_fotos )); then
+            aplicar_retencion
+        elif [[ "$RESPALDO_UNA_VEZ" == "1" ]]; then
+            exit 1
+        else
+            log "El respaldo falló (base=$ok_base, fotos=$ok_fotos); se reintentará en ${RESPALDO_INTERVALO_SEGUNDOS}s."
+        fi
+        soltar_candado
     else
-        log "El respaldo falló (base=$ok_base, fotos=$ok_fotos); se reintentará en ${RESPALDO_INTERVALO_SEGUNDOS}s."
+        log "Ya hay un respaldo en curso; se omite esta vuelta."
+        [[ "$RESPALDO_UNA_VEZ" == "1" ]] && exit 0
     fi
 
     [[ "$RESPALDO_UNA_VEZ" == "1" ]] && break
 
     log "Próximo respaldo en ${RESPALDO_INTERVALO_SEGUNDOS}s."
-    sleep "$RESPALDO_INTERVALO_SEGUNDOS"
+    # En segundo plano y con wait: así la señal de apagado se atiende al instante, no al final de la espera
+    sleep "$RESPALDO_INTERVALO_SEGUNDOS" &
+    wait $!
 done

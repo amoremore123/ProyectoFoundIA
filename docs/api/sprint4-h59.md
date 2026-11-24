@@ -85,3 +85,28 @@ procedimiento de H58.
 - La huella del `.tar.gz` coincide; con el archivo alterado la restauración se rechaza.
 - Las fotos restauradas en una carpeta aislada son idénticas a las del volumen (mismos archivos y mismo SHA-256).
 - El volumen de fotos está montado en solo lectura dentro del servicio de respaldo.
+
+## Corrección del 23/11/2026: el candado del servicio de respaldo
+
+Reportado por el equipo: después de apagar Docker, el servicio quedaba en «Ya hay un respaldo en curso» y no
+volvía a respaldar hasta borrar a mano `.respaldo.lock`.
+
+- **Causa:** `respaldo.sh` tomaba el candado al arrancar y lo mantenía durante toda la espera de 24 horas. Un
+  `docker stop` normal sí lo soltaba, pero un apagado brusco (cerrar Docker Desktop, apagar el equipo, `docker
+  kill`) lo dejaba en el volumen, y al volver el servicio se saltaba el respaldo para siempre.
+- **Arreglo:** el candado se toma solo mientras se respalda y se suelta al terminar cada vuelta; la señal de
+  apagado se atiende al instante (la espera corre con `sleep … & wait`); un candado de más de 2 horas
+  (`RESPALDO_CANDADO_MAXIMO_SEGUNDOS`, por defecto 7200) se considera abandonado y se libera; y el servicio tiene
+  `stop_grace_period: 2m` para terminar un respaldo que esté en curso al detenerlo.
+- **Verificación con Docker y MySQL 8.0 de QA** (en volúmenes de prueba aparte):
+
+| Caso | Script anterior | Script corregido |
+| --- | --- | --- |
+| Durante la espera de 24 h | Candado tomado | Sin candado |
+| Apagado brusco (`docker kill`) y volver a arrancar | Candado queda; «Ya hay un respaldo en curso», sin respaldo | Sin candado; respalda de nuevo (1 → 2 respaldos) |
+| `docker stop` normal | 1 s, suelta el candado | 1 s, registra la señal y suelta el candado |
+| Candado abandonado hace 3 días | — | «Se libera un candado abandonado hace 259202s» y respalda |
+| Otro respaldo realmente en curso | — | Se omite la vuelta y **respeta** el candado del otro proceso |
+
+- Para que el servicio programado use el script corregido hay que reconstruir su imagen:
+  `docker compose build respaldo && docker compose up -d respaldo`.

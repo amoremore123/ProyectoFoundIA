@@ -122,6 +122,8 @@ services:
       dockerfile: database/respaldo/Dockerfile
     container_name: foundia-respaldo
     restart: unless-stopped
+    # Si Docker lo detiene a mitad de un respaldo, le da tiempo de terminarlo y soltar el candado
+    stop_grace_period: 2m
     environment:
       DB_HOST: mysql
       DB_PORT: "3306"
