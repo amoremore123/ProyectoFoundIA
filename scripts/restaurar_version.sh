@@ -10,6 +10,7 @@
 #   - APLICAR (RESTAURACION_APLICAR=si y RESTAURACION_RESPONSABLE=<nombre>):
 #     hace antes un respaldo de seguridad del estado actual, reemplaza la base
 #     y las fotos en uso, conserva el historial de respaldos y restauraciones
+#     y las solicitudes de eliminación de cuenta (H34)
 #     y cierra todas las sesiones.
 #
 # Corre en la imagen del servicio de respaldo. Ver docs/api/sprint4-h70.md.
@@ -269,12 +270,13 @@ SEGURIDAD="$(marca_de "$despues")"
 sql_prod "UPDATE restauraciones SET respaldo_seguridad='$SEGURIDAD' WHERE id=$REG_ID;"
 log "Respaldo de seguridad: versión $SEGURIDAD"
 
-# 5b. Lo que se conserva: historial de respaldos y restauraciones, y la versión de sesión de cada cuenta.
+# 5b. Lo que se conserva: historial de respaldos y restauraciones, las solicitudes de eliminación (H34: una
+# versión vieja no debe revivir una cuenta ya eliminada) y la versión de sesión de cada cuenta.
 PASO="guardar el historial y las sesiones"
 opciones_dump=(--single-transaction --skip-lock-tables --no-create-info --skip-triggers --default-character-set=utf8mb4)
 mysqldump --help 2>/dev/null | grep -q -- '--set-gtid-purged' && opciones_dump+=(--set-gtid-purged=OFF)
 mysqldump --help 2>/dev/null | grep -q -- '--no-tablespaces' && opciones_dump+=(--no-tablespaces)
-mysqldump --defaults-extra-file="$CNF" "${opciones_dump[@]}" "$DB_PRODUCCION" respaldos restauraciones >"$TRABAJO/historial.sql"
+mysqldump --defaults-extra-file="$CNF" "${opciones_dump[@]}" "$DB_PRODUCCION" respaldos restauraciones solicitudes_eliminacion >"$TRABAJO/historial.sql"
 sql_prod "SELECT id, sesion_version FROM usuarios;" >"$TRABAJO/sesiones.tsv"
 valores=""
 while IFS=$'\t' read -r id ver; do
@@ -290,8 +292,8 @@ DB_NAME="$DB_PRODUCCION" DB_PRODUCCION="$DB_PRODUCCION" RESPALDO_ARCHIVO="$BASE_
 RESTAURACION_PERMITIR_PRODUCCION=si RESTAURACION_PERMITIR_SOBREESCRITURA=si \
     bash "$AQUI/restaurar_respaldo.sh" >/dev/null || fatal "Falló el reemplazo de la base en uso."
 
-PASO="devolver el historial de respaldos y restauraciones"
-sql_prod "SET FOREIGN_KEY_CHECKS=0; DELETE FROM restauraciones; DELETE FROM respaldos; SET FOREIGN_KEY_CHECKS=1;"
+PASO="devolver el historial de respaldos, restauraciones y solicitudes de eliminación"
+sql_prod "SET FOREIGN_KEY_CHECKS=0; DELETE FROM restauraciones; DELETE FROM respaldos; DELETE FROM solicitudes_eliminacion; SET FOREIGN_KEY_CHECKS=1;"
 mysql --defaults-extra-file="$CNF" --database="$DB_PRODUCCION" <"$TRABAJO/historial.sql"
 
 PASO="cerrar todas las sesiones"
@@ -326,3 +328,10 @@ TERMINADO=1
 PRODUCCION_TOCADA=0
 log "Versión $VERSION aplicada en $(( $(date +%s) - inicio ))s. Se cerraron todas las sesiones."
 log "Para deshacerla: VERSION=$SEGURIDAD RESTAURACION_APLICAR=si RESTAURACION_RESPONSABLE=<nombre>."
+# H34: la versión restaurada puede traer de vuelta cuentas que ya se eliminaron
+revividas="$(sql_prod "SELECT COUNT(*) FROM solicitudes_eliminacion s JOIN usuarios u ON u.id = s.usuario_id
+                        WHERE s.estado = 'ATENDIDA' AND u.estado <> 'ELIMINADO';" 2>/dev/null || echo 0)"
+if [[ "$revividas" =~ ^[0-9]+$ ]] && (( revividas > 0 )); then
+    log "IMPORTANTE (H34): la versión trajo de vuelta $revividas cuenta(s) que ya se habían eliminado."
+    log "  Ejecuta en el panel: docker compose exec admin-api python manage.py reaplicar_eliminaciones"
+fi
