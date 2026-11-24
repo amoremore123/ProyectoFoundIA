@@ -65,3 +65,55 @@ Las fotos del chat se guardan en la carpeta pública `/uploads/`, como las de la
 es aleatorio e imposible de adivinar, pero **quien tenga la dirección puede abrir la foto sin sesión**
 (comprobado: `200` sin token), también después de un bloqueo. Para protegerla habría que servirla con
 sesión (como la foto de perfil, H64) y cambiar también la web y Android, que hoy la cargan directamente.
+
+## Cambio del 23/11/2026: fotos del chat privadas (H62)
+
+Hasta ahora las fotos del chat se guardaban en `/uploads/`, la misma carpeta pública de las fotos de las
+publicaciones: cualquiera con el enlace podía verlas. Desde este cambio son **privadas**, como la foto de
+perfil (H64).
+
+- Se guardan en la subcarpeta `chat/` del volumen de fotos. La ruta pública `/uploads/chat/**` está
+  **bloqueada** (`401`), aunque alguien conozca el nombre.
+- `imagenUrl` de cada mensaje deja de ser `/uploads/<archivo>` y pasa a ser
+  `/api/conversaciones/{id}/mensajes/{mensajeId}/foto`, que pide sesión:
+
+| Quién | ¿Ve la foto? |
+| --- | --- |
+| Quien participa en la conversación (o el personal, en una conversación con la biblioteca) | Sí |
+| `ADMIN`, si ese mensaje fue reportado (para moderarlo en el panel, H56) | Sí |
+| Cualquier otra persona, sin sesión o con un mensaje sin foto | No (`404`, o `401` sin sesión) |
+
+- La respuesta lleva `Cache-Control: private, max-age=3600`.
+- **Fotos que ya existían:** al arrancar, Spring mueve a `chat/` las fotos de mensajes que todavía están en
+  `/uploads/` y actualiza su ruta. Es idempotente; si un archivo ya no existe, igual se deja de apuntar a la
+  ruta pública.
+- El panel (Django, H56) devuelve el mismo `imagenUrl` de la API en los reportes de mensajes.
+- **Web y Android:** pedir la foto con el token de la sesión (como la foto de perfil), no como una imagen
+  pública. El cambio no rompe el envío: `POST …/mensajes` con foto sigue igual.
+
+### Verificación del 23/11/2026 (fotos del chat privadas)
+
+- Hasta este cambio H62 no tenía pruebas automáticas (solo la prueba manual en QA). Se agregaron 5 en
+  `ChatIntegrationTest`: la foto queda en `chat/` y solo la ven quienes conversan (`200`, caché privada, mismos
+  bytes), una tercera persona y otra conversación `404`, sin sesión `401`, la ruta pública del archivo
+  bloqueada; el ADMIN la ve solo si el mensaje fue reportado (y el reporte no la abre a nadie más); archivo que
+  no es imagen o de más de 5 MiB `400` sin guardar el mensaje; las fotos guardadas con la versión anterior se
+  siguen entregando y se pasan a `chat/` una sola vez; con la biblioteca, el personal y quien reclama la ven.
+  Django: el reporte devuelve la ruta de la API (1 prueba nueva). Suites completas: **Spring 597, 0 fallos;
+  Django 203, OK**.
+- MySQL 8.0 de QA, con una foto real del chat guardada con la versión anterior (mensaje 3, entre Ana y Luis):
+
+| Caso | Resultado |
+| --- | --- |
+| Al arrancar la versión nueva | «Fotos del chat pasadas a la carpeta privada: 1»; el archivo pasó de `/uploads/` a `chat/` y la ruta en la base a `chat/…`. Ninguna publicación ni perfil usaba ese archivo |
+| `imagenUrl` que recibe Ana | `/api/conversaciones/1/mensajes/3/foto` |
+| Ana / Luis | `200`, `image/jpeg`, `private` / `200` |
+| Admin sin reporte / sin sesión | `404` / `401` |
+| Archivo por la ruta pública anterior / por `/uploads/chat/` | `404` (ya no está ahí) / `401` |
+| Foto de una publicación | Sigue pública: `200` |
+| Ana reporta el mensaje → admin con token de Spring / con el del panel (Django) | `200` / `200` |
+| Panel (Django), reportes de mensajes | `imagenUrl`: `/api/conversaciones/1/mensajes/3/foto` |
+| Reiniciar la API | No vuelve a mover nada (2 arranques, 1 sola vez) |
+
+- **Falta en la web (Yajaira) y en Android (Amore):** pedir la foto del chat con el token de la sesión, como la
+  foto de perfil, en lugar de cargarla como imagen pública.
