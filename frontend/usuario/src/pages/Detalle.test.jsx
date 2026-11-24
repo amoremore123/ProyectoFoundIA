@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
 import Detalle from './Detalle';
-import { compararFotosCoincidencias, getCoincidencias, getMiReclamoCustodia, getObjeto, getQrRetiro, iniciarContacto, reclamarObjeto } from '../services/api';
+import { compararFotosCoincidencias, marcarDevuelto, getCoincidencias, getMiReclamoCustodia, getObjeto, getQrRetiro, iniciarContacto, reclamarObjeto } from '../services/api';
 
 vi.mock('../services/api', async (importOriginal) => ({
   ...await importOriginal(),
@@ -14,6 +14,7 @@ vi.mock('../services/api', async (importOriginal) => ({
   getMiReclamoCustodia: vi.fn(async () => ({ estado: 'SIN_RECLAMO' })),
   getQrRetiro: vi.fn(),
   compararFotosCoincidencias: vi.fn(),
+  marcarDevuelto: vi.fn(),
 }));
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
 
@@ -276,5 +277,38 @@ describe('Coincidencias por imagen: comparar fotos con IA', () => {
     renderizar(false);
     await screen.findByRole('heading', { name: 'Mochila encontrada' });
     expect(screen.queryByRole('button', { name: /Comparar fotos/ })).toBeNull();
+  });
+});
+
+describe('Cerrar un objeto encontrado cuando vuelve a su dueño', () => {
+  const hallazgoPropio = { ...objetoPerdido, tipo: 'ENCONTRADO', nombre: 'Llavero azul' };
+
+  it('quien lo encontró lo marca como devuelto y desaparece la opción', async () => {
+    getObjeto.mockResolvedValue(hallazgoPropio);
+    marcarDevuelto.mockResolvedValue({ ...hallazgoPropio, estado: 'RECUPERADO' });
+    renderizar(true);
+    expect(await screen.findByText('Buscando a su dueño')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Ya lo devolví' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Sí, ya lo devolví' }));
+    expect(await screen.findByText('Devuelto · caso cerrado')).toBeTruthy();
+    expect(screen.getByText(/ya volvió a su dueño/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Ya lo devolví' })).toBeNull();
+    expect(marcarDevuelto).toHaveBeenCalledWith(15);
+  });
+
+  it('un objeto devuelto no se puede reclamar', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoPropio, estado: 'RECUPERADO', publicadoPor: { id: 9, nombre: 'Luis' } });
+    renderizar(true);
+    expect(await screen.findByText('Devuelto · caso cerrado')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Reclamar este objeto/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ya lo devolví' })).toBeNull();
+  });
+
+  it('un hallazgo ajeno y abierto se puede reclamar y dice que busca a su dueño', async () => {
+    getObjeto.mockResolvedValue({ ...hallazgoPropio, publicadoPor: { id: 9, nombre: 'Luis' } });
+    renderizar(true);
+    expect(await screen.findByText('Buscando a su dueño')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Reclamar este objeto/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Ya lo devolví' })).toBeNull();
   });
 });

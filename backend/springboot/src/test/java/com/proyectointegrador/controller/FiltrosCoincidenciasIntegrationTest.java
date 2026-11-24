@@ -166,13 +166,18 @@ class FiltrosCoincidenciasIntegrationTest {
 
     @Test
     void cuarentaPuntosEsElUmbralYUnaBaseRecuperadaNoSugiere() throws Exception {
-        var baja = objeto("Candado", TipoObjeto.ENCONTRADO, luis, null, hoy, null, null);
+        // 10 (una palabra de cuatro) + 25 (categoría) + 5 (diez días) = 40: justo en el umbral
+        var baja = objeto("Llaves de metal grande", TipoObjeto.ENCONTRADO, luis, null, hoy.minusDays(10), null, null);
+        // Misma categoría y fecha (40 puntos) pero ninguna palabra en común: no es coincidencia
+        var otroObjeto = objeto("Candado", TipoObjeto.ENCONTRADO, luis, null, hoy, null, null);
         var insuficiente = objeto("Llavero", TipoObjeto.ENCONTRADO, luis, null, hoy.minusDays(4), null, null);
         objetos.flush();
         api.perform(get("/api/objetos/" + base.getId() + "/coincidencias"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[2].objetoId").value(baja.getId()))
                 .andExpect(jsonPath("$[2].porcentaje").value(40)).andExpect(jsonPath("$[2].nivel").value("BAJA"));
+        api.perform(get("/api/coincidencias/" + base.getId() + "-" + otroObjeto.getId()))
+                .andExpect(status().isNotFound());
         api.perform(get("/api/coincidencias/" + base.getId() + "-" + insuficiente.getId()))
                 .andExpect(status().isNotFound());
         base.setEstado(EstadoObjeto.RECUPERADO);

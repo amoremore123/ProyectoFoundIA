@@ -87,7 +87,7 @@ public class CoincidenciaService {
             throw noDisponible();
         }
         Map<String, Integer> puntos = criterios(perdido, encontrado);
-        int total = puntos.values().stream().mapToInt(Integer::intValue).sum();
+        int total = total(puntos);
         if (total < UMBRAL_SIMILITUD) {
             throw noDisponible();
         }
@@ -127,7 +127,16 @@ public class CoincidenciaService {
 
     // Compartidos para que H18 pueda integrar el mismo motor, sin duplicar porcentajes.
     public int puntuar(Objeto primero, Objeto segundo) {
-        return criterios(primero, segundo).values().stream().mapToInt(Integer::intValue).sum();
+        return total(criterios(primero, segundo));
+    }
+
+    /**
+     * Sin ninguna palabra en común en el nombre no hay coincidencia: la misma categoría, lugar y
+     * fecha suman 60 puntos y emparejaban, por ejemplo, unos lentes con una billetera.
+     */
+    static int total(Map<String, Integer> puntos) {
+        if (puntos.getOrDefault("nombre", 0) == 0) return 0;
+        return puntos.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public String nivel(int total) {
@@ -156,9 +165,24 @@ public class CoincidenciaService {
                 "fecha", dias <= 3 ? 15 : dias <= 7 ? 10 : dias <= 30 ? 5 : 0);
     }
 
-    private Set<String> tokens(String texto) {
+    // Palabras que no dicen qué objeto es
+    private static final Set<String> VACIAS = Set.of("de", "del", "la", "las", "el", "los", "un", "una", "unos", "unas",
+            "y", "o", "con", "sin", "en", "mi", "mis", "su", "sus", "para", "por", "al", "que", "color");
+
+    /**
+     * Palabras que describen el objeto: sin artículos ni preposiciones, sin códigos con letras y
+     * números (como «e2e» o «a9977d54»), y en singular («lentes» y «lente» cuentan igual).
+     */
+    Set<String> tokens(String texto) {
         String limpio = normalizar(texto);
-        return limpio.isBlank() ? Set.of() : new HashSet<>(Arrays.asList(limpio.split("\\s+")));
+        if (limpio.isBlank()) return Set.of();
+        Set<String> salida = new HashSet<>();
+        for (String t : limpio.split("\\s+")) {
+            if (t.length() < 2 || VACIAS.contains(t)) continue;
+            if (t.matches(".*\\d.*") && t.matches(".*\\p{L}.*")) continue;
+            salida.add(t.length() > 3 && t.endsWith("s") ? t.substring(0, t.length() - 1) : t);
+        }
+        return salida;
     }
 
     private String normalizar(String texto) {

@@ -80,6 +80,12 @@ public class GestionCoincidenciaService {
         perdido.setFechaRecuperacion(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS));
         // El flush permite comprobar rollback real si falla después la aceptación.
         objetos.saveAndFlush(perdido);
+        // El hallazgo también vuelve a su dueño: se cierra para que nadie más lo reclame
+        if (encontrado.getEstado() == EstadoObjeto.ACTIVO) {
+            encontrado.setEstado(EstadoObjeto.RECUPERADO);
+            encontrado.setFechaRecuperacion(perdido.getFechaRecuperacion());
+            objetos.saveAndFlush(encontrado);
+        }
         coincidencia.setEstado(EstadoCoincidencia.ACEPTADA);
         coincidencias.saveAndFlush(coincidencia);
         return recuperacion(coincidencia, false);

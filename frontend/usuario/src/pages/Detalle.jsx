@@ -10,7 +10,7 @@ import Cargando from '../components/Cargando';
 import MensajeError from '../components/MensajeError';
 import EstadoReclamoCustodia from '../components/EstadoReclamoCustodia';
 import { CompararFotosIa, ParecidoFoto } from '../components/ComparacionFotos';
-import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, iniciarConversacion, mensajeError, reclamarObjeto, statusDe } from '../services/api';
+import { getCoincidencias, getMiReclamoCustodia, getObjeto, iniciarContacto, iniciarConversacion, marcarDevuelto, mensajeError, reclamarObjeto, statusDe } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function fechaLarga(valor) {
@@ -54,6 +54,10 @@ export default function Detalle() {
   const navigate = useNavigate();
   const [abriendoChat, setAbriendoChat] = useState(null);
   // Coincidencias por imagen: resultado de la IA por objeto candidato
+  // Quien encontró el objeto puede cerrar la publicación al devolverlo
+  const [confirmarDevuelto, setConfirmarDevuelto] = useState(false);
+  const [devolviendo, setDevolviendo] = useState(false);
+  const [errorDevuelto, setErrorDevuelto] = useState('');
   const [parecidoFotos, setParecidoFotos] = useState({});
   const reclamoDesdeFindi = useRef(Boolean(location.state?.abrirReclamo));
 
@@ -219,6 +223,20 @@ export default function Detalle() {
     && String(user.id) === String(objeto.publicadoPor?.id));
   const esMia = Boolean(token && user && String(user.id) === String(objeto.publicadoPor?.id));
   const puedeCompararFotos = esMia && objeto.estado === 'ACTIVO' && (objeto.fotos?.length || 0) > 0;
+  const puedeMarcarDevuelto = esMia && objeto.tipo === 'ENCONTRADO' && objeto.estado === 'ACTIVO';
+  const marcarComoDevuelto = async () => {
+    setDevolviendo(true);
+    setErrorDevuelto('');
+    try {
+      setObjeto(await marcarDevuelto(objeto.id));
+      setConfirmarDevuelto(false);
+    } catch (e) {
+      setErrorDevuelto(mensajeError(e, 'No se pudo marcar como devuelto'));
+      setConfirmarDevuelto(false);
+    } finally {
+      setDevolviendo(false);
+    }
+  };
   const esReclamable = objeto.tipo === 'ENCONTRADO' && ['ACTIVO', 'EN_CUSTODIA'].includes(objeto.estado);
   const puedeReclamar = Boolean(token && user && esReclamable && String(user.id) !== String(objeto.publicadoPor?.id));
   const reclamoSinSesion = esReclamable && !token;
@@ -237,6 +255,10 @@ export default function Detalle() {
         <div className="detalle-cuerpo">
           <ChipTipo tipo={objeto.tipo} />
           {objeto.estado === 'EN_CUSTODIA' && <span className="chip-estado estado-activo">En custodia</span>}
+          {objeto.estado === 'RECUPERADO' && <span className="chip-estado estado-recuperado">Devuelto · caso cerrado</span>}
+          {objeto.estado === 'ACTIVO' && (
+            <span className="chip-estado estado-activo">{objeto.tipo === 'ENCONTRADO' ? 'Buscando a su dueño' : 'Su dueño lo busca'}</span>
+          )}
           <h1 className="detalle-titulo">{objeto.nombre}</h1>
           <p className="detalle-descripcion">{objeto.descripcion || 'Sin descripción.'}</p>
 
@@ -294,6 +316,20 @@ export default function Detalle() {
               </button>
             </div>
           ))}
+
+          {objeto.estado === 'RECUPERADO' && objeto.tipo === 'ENCONTRADO' && (
+            <p role="status" className="aviso-accion aviso-ok">Este objeto ya volvió a su dueño. El caso está cerrado.</p>
+          )}
+
+          {puedeMarcarDevuelto && (
+            <div className="reclamo-objeto">
+              <p className="nota-suave">¿Ya se lo entregaste a su dueño? Ciérralo para que nadie más lo reclame.</p>
+              {errorDevuelto && <MensajeError mensaje={errorDevuelto} />}
+              <button type="button" className="btn btn-secundario btn-bloque" onClick={() => setConfirmarDevuelto(true)} disabled={devolviendo}>
+                Ya lo devolví
+              </button>
+            </div>
+          )}
 
           {reclamoSinSesion && (
             <p className="nota-suave">
@@ -401,6 +437,16 @@ export default function Detalle() {
           </>
         )}
       </section>}
+
+      <ConfirmarDialogo
+        abierto={confirmarDevuelto}
+        titulo="¿Ya lo devolviste?"
+        mensaje={`La publicación de "${objeto.nombre}" quedará como devuelta: nadie más podrá reclamarla y sus conversaciones quedarán solo para leer.`}
+        textoConfirmar="Sí, ya lo devolví"
+        procesando={devolviendo}
+        onConfirmar={marcarComoDevuelto}
+        onCancelar={() => setConfirmarDevuelto(false)}
+      />
 
       <ConfirmarDialogo
         abierto={confirmarReclamo}

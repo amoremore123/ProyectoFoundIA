@@ -68,6 +68,24 @@ class CoincidenciaCriteriosTest {
                 .containsEntry("ubicacion", 0).containsEntry("fecha", 0);
     }
 
+    @Test
+    void sinPalabrasEnComunEnElNombreNoHayCoincidenciaAunqueCoincidanCategoriaLugarYFecha() {
+        var lentes = objeto("Lentes e2e 5d30b53d", "Biblioteca central");
+        var billetera = objeto("Billetera e2e a9977d54", "Biblioteca central");
+        // Categoría, lugar y fecha suman 60, pero los nombres no comparten nada que describa el objeto
+        assertThat(motor.criterios(lentes, billetera)).containsEntry("nombre", 0);
+        assertThat(motor.puntuar(lentes, billetera)).isZero();
+        assertThat(motor.puntuar(objeto("Casaca de jean", "Biblioteca"), objeto("Calculadora de bolsillo", "Biblioteca"))).isZero();
+    }
+
+    @Test
+    void codigosYPalabrasVaciasNoCuentanYLosPluralesSi() {
+        assertThat(motor.tokens("Billetera e2e a9977d54 de cuero")).containsExactlyInAnyOrder("billetera", "cuero");
+        assertThat(motor.puntuar(objeto("Lentes de sol", "Lab"), objeto("Lente de sol", "Lab"))).isEqualTo(100);
+        // Los números solos (un modelo) sí cuentan
+        assertThat(motor.tokens("Calculadora fx 991")).contains("991");
+    }
+
     private Objeto objeto(String nombre, String ubicacion) {
         var categoria = new Categoria();
         categoria.setId(1L);

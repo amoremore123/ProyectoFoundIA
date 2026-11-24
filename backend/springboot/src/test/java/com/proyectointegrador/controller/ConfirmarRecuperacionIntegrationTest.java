@@ -113,7 +113,6 @@ class ConfirmarRecuperacionIntegrationTest {
     @Test
     void confirmaSoloElPerdidoPropioYDevuelveFechaUtcSinDatosPrivados() throws Exception {
         Instant antes = Instant.now().truncatedTo(ChronoUnit.SECONDS);
-        var actualizacionHallazgo = encontrado.getFechaActualizacion();
         String body = api.perform(post(ruta()).with(como(ana)).contentType(MediaType.APPLICATION_JSON).content(CONFIRMACION))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(pareja()))
                 .andExpect(jsonPath("$.estado").value("ACEPTADA"))
@@ -127,9 +126,9 @@ class ConfirmarRecuperacionIntegrationTest {
         assertThat(actual.getEstado()).isEqualTo(EstadoObjeto.RECUPERADO);
         assertThat(actual.getFechaRecuperacion().toInstant(ZoneOffset.UTC)).isEqualTo(fecha);
         Objeto hallazgo = objetos.findById(encontrado.getId()).orElseThrow();
-        assertThat(hallazgo.getEstado()).isEqualTo(EstadoObjeto.ACTIVO);
-        assertThat(hallazgo.getFechaRecuperacion()).isNull();
-        assertThat(hallazgo.getFechaActualizacion()).isEqualTo(actualizacionHallazgo);
+        // El hallazgo también se cierra: ya volvió a su dueño y nadie más puede reclamarlo
+        assertThat(hallazgo.getEstado()).isEqualTo(EstadoObjeto.RECUPERADO);
+        assertThat(hallazgo.getFechaRecuperacion().toInstant(ZoneOffset.UTC)).isEqualTo(fecha);
         assertThat(contactos.count()).isZero(); assertThat(notificaciones.count()).isZero();
         api.perform(get("/api/objetos/" + perdido.getId())).andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("RECUPERADO")).andExpect(jsonPath("$.fechaRecuperacion").value(fecha.toString()));
@@ -140,6 +139,23 @@ class ConfirmarRecuperacionIntegrationTest {
         api.perform(get("/api/objetos/" + encontrado.getId() + "/coincidencias"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
         api.perform(get("/api/coincidencias/" + pareja())).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void quienEncontroMarcaDevueltoYYaNoSePuedeReclamar() throws Exception {
+        String ruta = "/api/objetos/" + encontrado.getId() + "/devuelto";
+        api.perform(post(ruta)).andExpect(status().isUnauthorized());
+        api.perform(post(ruta).with(como(tercero))).andExpect(status().isNotFound());
+        api.perform(post("/api/objetos/" + perdido.getId() + "/devuelto").with(como(ana))).andExpect(status().isBadRequest());
+
+        api.perform(post(ruta).with(como(luis))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("RECUPERADO"))
+                .andExpect(jsonPath("$.fechaRecuperacion").exists());
+        // Repetir no falla ni cambia la fecha
+        api.perform(post(ruta).with(como(luis))).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("RECUPERADO"));
+        api.perform(post("/api/objetos/" + encontrado.getId() + "/reclamos").with(como(ana)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        api.perform(get("/api/objetos/" + perdido.getId() + "/coincidencias")).andExpect(jsonPath("$.length()").value(0));
     }
 
     @ParameterizedTest
@@ -264,9 +280,14 @@ class ConfirmarRecuperacionIntegrationTest {
         assertThat(coincidencias.findAll()).filteredOn(c -> c.getEstado() == EstadoCoincidencia.ACEPTADA).hasSize(1);
         assertThat(coincidencias.count()).isEqualTo(idsPersistidos ? 2 : 1);
         assertThat(objetos.findById(perdido.getId()).orElseThrow().getEstado()).isEqualTo(EstadoObjeto.RECUPERADO);
+        // Solo se cierra el hallazgo de la pareja aceptada; el otro sigue esperando a su dueño
+        Long ganador = coincidencias.findAll().stream().filter(c -> c.getEstado() == EstadoCoincidencia.ACEPTADA)
+                .findFirst().orElseThrow().getObjetoEncontrado().getId();
         for (Objeto hallazgo : new Objeto[]{encontrado, otro}) {
-            assertThat(objetos.findById(hallazgo.getId()).orElseThrow().getEstado()).isEqualTo(EstadoObjeto.ACTIVO);
-            assertThat(objetos.findById(hallazgo.getId()).orElseThrow().getFechaRecuperacion()).isNull();
+            Objeto actual = objetos.findById(hallazgo.getId()).orElseThrow();
+            boolean cerrado = hallazgo.getId().equals(ganador);
+            assertThat(actual.getEstado()).isEqualTo(cerrado ? EstadoObjeto.RECUPERADO : EstadoObjeto.ACTIVO);
+            assertThat(actual.getFechaRecuperacion() != null).isEqualTo(cerrado);
         }
     }
 

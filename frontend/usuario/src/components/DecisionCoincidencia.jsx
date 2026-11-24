@@ -14,7 +14,7 @@ function fechaLocal(iso) {
 const DIALOGOS = {
   confirmar: {
     titulo: '¿Recuperaste tu objeto?',
-    mensaje: 'Tu publicación de objeto perdido quedará como RECUPERADO y dejará de aparecer en las sugerencias. Esto no cambia la publicación de quien lo encontró.',
+    mensaje: 'Tu publicación de objeto perdido y la de quien lo encontró quedarán como RECUPERADO: el caso se cierra y nadie más podrá reclamarlo.',
     texto: 'Confirmar recuperación',
   },
   descartar: {

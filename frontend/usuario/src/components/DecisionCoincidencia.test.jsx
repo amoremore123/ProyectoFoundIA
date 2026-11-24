@@ -29,7 +29,7 @@ describe('H22 - Confirmar recuperación', () => {
   it('pide confirmación y cancelar no envía nada', () => {
     renderizar();
     fireEvent.click(screen.getByRole('button', { name: 'Sí, lo recuperé' }));
-    expect(screen.getByRole('alertdialog').textContent).toContain('no cambia la publicación de quien lo encontró');
+    expect(screen.getByRole('alertdialog').textContent).toContain('nadie más podrá reclamarlo');
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(confirmarRecuperacion).not.toHaveBeenCalled();

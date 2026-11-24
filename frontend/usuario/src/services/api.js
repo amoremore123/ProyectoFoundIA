@@ -305,6 +305,12 @@ export const avisarEtiqueta = async (codigo, mensaje) => {
   return data;
 };
 
+// Quien encontró el objeto avisa que ya lo devolvió: la publicación queda cerrada
+export const marcarDevuelto = async (id) => {
+  const { data } = await api.post(`/api/objetos/${id}/devuelto`);
+  return data;
+};
+
 export const getDetalleCoincidencia = async (id, { signal } = {}) => {
   const { data } = await api.get(`/api/coincidencias/${encodeURIComponent(id)}`, { signal });
   return data;
