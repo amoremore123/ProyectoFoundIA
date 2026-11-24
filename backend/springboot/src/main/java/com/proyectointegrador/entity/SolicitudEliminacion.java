@@ -18,4 +18,9 @@ public class SolicitudEliminacion {
     private String estado = "PENDIENTE";
     @Column(name = "fecha_solicitud", nullable = false, updatable = false)
     private Instant fechaSolicitud;
+    /** H34: la atiende o la rechaza un administrador desde el panel (Django). */
+    @Column(name = "fecha_atencion")
+    private Instant fechaAtencion;
+    @Column(name = "motivo_rechazo", length = 500)
+    private String motivoRechazo;
 }

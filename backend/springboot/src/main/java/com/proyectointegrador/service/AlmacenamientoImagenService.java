@@ -109,6 +109,32 @@ public class AlmacenamientoImagenService {
         return CARPETA_CHAT + "/" + nombre;
     }
 
+    /**
+     * H34: borra una foto anotada al eliminar una cuenta: de perfil ({@code perfiles/...}), del chat
+     * ({@code chat/...}) o de una publicación ({@code /uploads/<uuid>.jpg}). Cualquier otra ruta se rechaza,
+     * para que una fila manipulada no pueda borrar otra cosa del volumen.
+     *
+     * @return {@code true} si la ruta era válida (exista o no el archivo)
+     */
+    public boolean borrarFotoAnotada(String ruta) {
+        java.util.Optional<Path> archivo;
+        if (ruta != null && ruta.matches(RUTA_PERFIL)) {
+            archivo = archivoPerfil(ruta);
+        } else if (ruta != null && (ruta.matches(RUTA_CHAT) || ruta.matches(RUTA_PUBLICA_ANTERIOR))) {
+            archivo = archivoChat(ruta);
+        } else {
+            return false;
+        }
+        archivo.ifPresent(a -> {
+            try {
+                Files.deleteIfExists(a);
+            } catch (IOException ignorado) {
+                // Se vuelve a intentar en la siguiente vuelta: la fila no se borra si el archivo sigue ahí
+            }
+        });
+        return true;
+    }
+
     /** H64: borra una foto de perfil; no hace nada con rutas que no sean de {@code perfiles/}. */
     public void eliminarPerfil(String ruta) {
         archivoPerfil(ruta).ifPresent(archivo -> {
