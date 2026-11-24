@@ -621,7 +621,7 @@ CREATE TABLE IF NOT EXISTS restauraciones (
     finalizado_en      DATETIME(6)   NULL,
     mensaje            VARCHAR(1000) NULL,
     CONSTRAINT chk_restauracion_modo CHECK (modo IN ('ENSAYO', 'APLICADA')),
-    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
+    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('SOLICITADA', 'EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
     INDEX idx_restauraciones_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
