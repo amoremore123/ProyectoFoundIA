@@ -62,7 +62,7 @@ describe('Buscar con una foto en FINDI', () => {
     const vista = renderizar();
     await enviarFoto(user, vista);
 
-    expect(screen.getByRole('img', { name: 'Foto enviada para buscar' })).toBeTruthy();
+    expect(await screen.findByRole('img', { name: 'Foto enviada para buscar' })).toBeTruthy();
     expect(await screen.findByText(/En tu foto veo: Lentes de sol marrones\./)).toBeTruthy();
     expect(buscarPorFoto).toHaveBeenCalledWith(expect.stringMatching(/^data:image\/jpeg;base64,/));
     expect(screen.getByRole('link', { name: /Lentes de sol/ }).getAttribute('href')).toBe('/objeto/13');
@@ -98,5 +98,17 @@ describe('Buscar con una foto en FINDI', () => {
     await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(buscarPorFoto).not.toHaveBeenCalled();
+  });
+
+  it('si el navegador no puede mostrar la foto, se ve «Foto adjunta» en vez de una imagen rota', async () => {
+    buscarPorFoto.mockResolvedValue({ descripcion: 'Lentes de sol marrones', categoria: { id: 6, nombre: 'Accesorio' }, palabras: ['lentes'], colores: [] });
+    const user = userEvent.setup();
+    const vista = renderizar();
+    await enviarFoto(user, vista);
+    const miniatura = await screen.findByRole('img', { name: 'Foto enviada para buscar' });
+    fireEvent.error(miniatura);
+    expect(await screen.findByText('Foto adjunta')).toBeTruthy();
+    expect(screen.queryByRole('img', { name: 'Foto enviada para buscar' })).toBeNull();
+    expect(await screen.findByText(/En tu foto veo/)).toBeTruthy();
   });
 });

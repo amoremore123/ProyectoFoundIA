@@ -56,6 +56,34 @@ describe('Asistente FoundIA - resultados', () => {
     expect(res.texto).toContain('Nadie lo ha reportado como encontrado');
   });
 
+  it('si nombra un objeto, otra cosa de la misma categoría no es coincidencia', () => {
+    const accesorio = categorias.find((c) => c.id === 6);
+    const conMochilas = [...objetos,
+      { id: 9, nombre: 'Mochila azul e2e adf23d08', descripcion: 'Mochila azul', ubicacion: 'Biblioteca central', tipo: 'PERDIDO', estado: 'ACTIVO', fechaObjeto: '2026-11-23', categoria: { id: 6, nombre: 'Accesorio' } }];
+    // Como lo interpreta la IA: «llaves» en la categoría Accesorio
+    const consulta = adaptarInterpretacion({ intencion: 'buscar', tipoBuscado: 'PERDIDO', categoria: accesorio, ubicacion: '', palabras: ['llaves'], colores: [] }, categorias);
+    const res = responder('Encontré unas llaves', { objetos: conMochilas, categorias, consulta });
+    expect((res.resultados || []).map((r) => r.objeto.id)).not.toContain(9);
+    expect((res.resultados || []).every((r) => /llave/i.test(r.objeto.nombre))).toBe(true);
+    // Sin nombrar un objeto, la categoría sola sí sirve
+    const soloCategoria = rankear(conMochilas, { intencion: 'buscar', tipoBuscado: '', categoria: accesorio, ubicacion: '', palabras: [], colores: [] });
+    expect(soloCategoria.map((r) => r.objeto.id)).toEqual(expect.arrayContaining([6, 9]));
+  });
+
+  it('«Encontré unas llaves» no trae una mochila que menciona su llavero en la descripción', () => {
+    const llaves = categorias.find((c) => c.id === 7);
+    const conMochila = [...objetos,
+      { id: 10, nombre: 'Mochila azul e2e adf23d08', descripcion: 'Perdí mi mochila azul con un llavero de estrella', ubicacion: 'Biblioteca central', tipo: 'PERDIDO', estado: 'ACTIVO', fechaObjeto: '2026-11-23', categoria: { id: 6, nombre: 'Accesorio' } }];
+    // Como lo interpreta la IA de verdad: categoría Llaves y la palabra «llave»
+    const consulta = adaptarInterpretacion({ intencion: 'buscar', tipoBuscado: 'PERDIDO', categoria: llaves, ubicacion: '', palabras: ['llave'], colores: [] }, categorias);
+    const res = responder('Encontré unas llaves', { objetos: conMochila, categorias, consulta });
+    expect((res.resultados || []).map((r) => r.objeto.id)).not.toContain(10);
+    expect(res.resultados.map((r) => r.objeto.id)).toEqual([3]);
+    // Sin categoría en la consulta, la descripción sí cuenta
+    const sinCategoria = rankear(conMochila, { intencion: 'buscar', tipoBuscado: '', categoria: null, ubicacion: '', palabras: ['llavero'], colores: [] });
+    expect(sinCategoria.map((r) => r.objeto.id)).toContain(10);
+  });
+
   it('sugiere publicar cuando no hay coincidencias', () => {
     const res = responder('perdí mi laptop lenovo', { objetos, categorias });
     expect(res.resultados).toBeUndefined();

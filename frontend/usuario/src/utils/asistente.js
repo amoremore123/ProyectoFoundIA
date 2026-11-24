@@ -180,23 +180,30 @@ export function puntuar(objeto, consulta) {
   // ¿Coincide el objeto en sí (no solo el color o el lugar)?
   let coincideObjeto = false;
 
+  // Una palabra que solo aparece en la descripción («mochila con llavero») no hace que el objeto sea
+  // lo que se busca («llaves») si es de otra categoría: solo el nombre cuenta siempre.
+  const otraCategoria = Boolean(consulta.categoria) && objeto.categoria?.id !== consulta.categoria.id;
   for (const p of consulta.palabras) {
     const formas = expandir(p);
     const esColor = consulta.colores.includes(p);
     const peso = esColor ? 2 : 3;
     maximo += peso + 2;
     let acierto = 0;
-    if (formas.some((f) => contienePalabra(nombre, f))) acierto = peso + 2;
+    let enNombre = false;
+    if (formas.some((f) => contienePalabra(nombre, f))) { acierto = peso + 2; enNombre = true; }
     else if (formas.some((f) => contienePalabra(descripcion, f) || contienePalabra(categoria, f))) acierto = peso;
     puntos += acierto;
-    if (acierto && !esColor) coincideObjeto = true;
+    if (acierto && !esColor && (enNombre || !otraCategoria)) coincideObjeto = true;
   }
 
   if (consulta.categoria) {
     maximo += 3;
     if (objeto.categoria?.id === consulta.categoria.id) {
       puntos += 3;
-      coincideObjeto = true;
+      // La categoría sola basta si el mensaje no nombra un objeto («algo de la categoría Celulares»).
+      // Si lo nombra («llaves»), otra cosa de la misma categoría (una mochila en «Accesorio») no es
+      // ese objeto: tiene que coincidir la palabra.
+      if (!consulta.palabras.some((p) => !consulta.colores.includes(p))) coincideObjeto = true;
     }
   }
 

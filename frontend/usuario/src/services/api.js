@@ -4,6 +4,8 @@ import { origenGuardado } from '../utils/campanas';
 // VITE_API_URL=auto (solo para probar desde el celular en la red local): usa el mismo host
 // con el que se abrió la web y el puerto de la API, así un cambio de IP no obliga a reiniciar.
 function urlApi(valor) {
+  // VITE_API_URL=mismo-origen (modo celular por HTTPS): Vite pasa /api y /uploads a Spring
+  if (valor === 'mismo-origen' && typeof window !== 'undefined') return window.location.origin;
   if (valor === 'auto' && typeof window !== 'undefined') {
     return `${window.location.protocol}//${window.location.hostname}:8081`;
   }

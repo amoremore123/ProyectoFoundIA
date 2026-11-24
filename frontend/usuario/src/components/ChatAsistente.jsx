@@ -50,6 +50,13 @@ const ESTADO_REPORTE = { ACTIVO: 'Activo', RECUPERADO: 'Recuperado', OCULTO: 'Oc
 const AVISO_VOZ = 'Para entender tu voz, tu navegador envía el audio a su servicio de reconocimiento (Google en Chrome, Microsoft en Edge). FoundIA no guarda tu voz. Si prefieres, puedes escribir.';
 
 // Chat flotante del asistente de búsqueda (disponible en todas las páginas del MainLayout)
+// Miniatura de la foto enviada a FINDI; si el navegador no puede mostrarla, un recuadro en su lugar
+function FotoEnviada({ src }) {
+  const [fallo, setFallo] = useState(false);
+  if (fallo) return <span className="fc-foto-enviada fc-foto-sin-vista"><Icono nombre="imagen" tamano={18} /> Foto adjunta</span>;
+  return <img className="fc-foto-enviada" src={src} alt="Foto enviada para buscar" onError={() => setFallo(true)} />;
+}
+
 export default function ChatAsistente() {
   const { abierto, abrir, cerrar, pendiente, consumirPendiente } = useAsistente();
   const auth = useAuth();
@@ -228,16 +235,19 @@ export default function ChatAsistente() {
       agregar({ de: 'bot', error: true, texto: 'Elige una foto (JPEG o PNG) del objeto.' });
       return;
     }
-    const vista = typeof URL.createObjectURL === 'function' ? URL.createObjectURL(archivo) : '';
-    agregar({ de: 'usuario', texto: 'Busca objetos como este', foto: vista });
     setDesenlace(null);
     setBuscando(true);
     setPensando(true);
+    // Más liviana para la IA: máx. 1024 px en JPEG. La miniatura del chat sale de esta copia en
+    // memoria: el archivo original de la galería del celular a veces no se puede mostrar (formato o
+    // permiso de lectura vencido) y salía como imagen rota.
+    let reducida = archivo;
+    try { reducida = await reducirFoto(archivo, 1024); } catch { reducida = archivo; }
+    const vista = typeof URL.createObjectURL === 'function' ? URL.createObjectURL(reducida) : '';
+    agregar({ de: 'usuario', texto: 'Busca objetos como este', foto: vista });
     const publicarConFoto = { texto: 'Publicar con esta foto', to: '/publicar', state: { fotoAdjunta: archivo } };
     try {
       if (!categoriasRef.current) categoriasRef.current = lista(await listarCategorias());
-      // Más liviana para la IA: máx. 1024 px en JPEG
-      const reducida = await reducirFoto(archivo, 1024);
       const [datos, r] = await Promise.all([buscarObjetos({ q: '' }), buscarPorFoto(await archivoADataUrl(reducida))]);
       const consulta = adaptarInterpretacion({
         intencion: 'buscar', tipoBuscado: '', categoria: r.categoria, ubicacion: '',
@@ -598,7 +608,7 @@ export default function ChatAsistente() {
                     : <span className="fc-avatar-mini" aria-hidden="true"><img src={AVATAR_FINDI} alt="" /></span>)}
                   <div className="fc-columna">
                     <div className={`fc-burbuja${m.error ? ' error' : ''}${m.id === presentandoId ? ' presentando' : ''}`}>
-                      {m.foto && <img className="fc-foto-enviada" src={m.foto} alt="Foto enviada para buscar" />}
+                      {m.foto && <FotoEnviada src={m.foto} />}
                       <p>{m.texto}</p>
                       {m.reintentar && (
                         <button type="button" className="fc-reintentar" onClick={() => preguntar(m.reintentar, { repetir: true })} disabled={pensando}>

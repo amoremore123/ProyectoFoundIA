@@ -254,6 +254,7 @@ html[data-tema='oscuro'] .fc-sugerencia:hover:not(:disabled) { color: #fff; }
 .fc-fila.usuario .fc-burbuja { border-radius: 18px 18px 6px 18px; border-color: transparent; background: var(--azul); color: #fff; box-shadow: 0 8px 18px -12px rgba(8, 102, 245, 0.8); }
 .fc-burbuja.error { border-color: rgba(255, 133, 0, 0.5); background: rgba(255, 133, 0, 0.08); }
 .fc-foto-enviada { width: 100%; max-width: 200px; border-radius: 12px; margin-bottom: 6px; }
+.fc-foto-sin-vista { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255, 255, 255, 0.14); font-size: 14px; }
 .fc-reintentar,
 .fc-enlace { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 0; border: 0; background: none; color: var(--azul); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
 html[data-tema='oscuro'] .fc-reintentar,
