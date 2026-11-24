@@ -61,6 +61,8 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.maps.android:maps-compose:6.2.1")
+    // Mapa gratuito de respaldo (OpenStreetMap) cuando no hay clave de Google Maps.
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.camera:camera-camera2:1.4.2")

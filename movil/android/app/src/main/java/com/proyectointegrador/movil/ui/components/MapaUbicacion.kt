@@ -29,8 +29,8 @@ import com.proyectointegrador.movil.domain.coordenadasValidas
 import com.proyectointegrador.movil.domain.enlaceMapas
 
 /**
- * Mapa de Google (Google Cloud, semana 13) con el punto de la publicación.
- * Si el proyecto no tiene clave de Maps solo se ofrece abrir el punto en la app de mapas del sistema.
+ * Mapa con el punto de la publicación: Google Maps si el proyecto tiene clave (Google Cloud, semana 13) y, si no,
+ * OpenStreetMap. En los dos casos se ofrece además abrir el punto en la app de mapas del sistema.
  */
 @Composable
 fun MapaUbicacion(latitud: Double, longitud: Double, titulo: String, modifier: Modifier = Modifier) {
@@ -46,6 +46,9 @@ fun MapaUbicacion(latitud: Double, longitud: Double, titulo: String, modifier: M
                 cameraPositionState = camara,
                 uiSettings = MapUiSettings(zoomControlsEnabled = false, scrollGesturesEnabled = false, zoomGesturesEnabled = false),
             ) { Marker(state = MarkerState(punto), title = titulo) }
+        } else {
+            // Sin clave de Google Maps (que pide facturación) se usa OpenStreetMap, gratis y sin clave.
+            MapaOpenStreetMap(latitud, longitud, titulo)
         }
         OutlinedButton(
             onClick = {

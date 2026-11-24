@@ -90,3 +90,9 @@ WorkManager en cuanto hay red. Prueba real: se detuvo el contenedor de la API, s
 (y siguió siendo una sola después de más tiempo). Con foto, la app explica que necesita conexión y no la encola.
 Pruebas unitarias: 11 casos de cola (orden, misma clave en cada reintento, rechazo, sesión vencida, cierre de sesión);
 instrumentadas: migración 4→5 y persistencia de la cola.
+
+## M4: mapa sin clave de Google (24/11/2026, emulador)
+
+Como Google Cloud exige facturación para la clave de Maps, el detalle de una publicación con coordenadas muestra un mapa de
+OpenStreetMap (`mapa-1-osm.png`: mosaicos reales, marcador en el punto y la atribución «© Colaboradores de OpenStreetMap»).
+Si algún día se define `foundiaMapsKey`, la app usa Google Maps. En los dos casos queda el botón «Abrir en mapas».

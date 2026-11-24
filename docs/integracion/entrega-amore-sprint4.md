@@ -10,7 +10,7 @@ teléfono físico. Las evidencias están en `docs/pruebas/sprint4-amore/`.
 | --- | --- | --- |
 | M1 | Teclado sin hueco, «En custodia» en un solo lugar, categorías ordenadas | Probado en emulador |
 | M3 | Búsqueda avanzada (ubicación, fechas, radio, chips de filtros) | Probado en emulador contra la API real |
-| M4 | Ubicación con GPS, lugares del campus y mapa de Google (la clave de Maps va fuera de Git) | GPS probado en emulador; el mapa real necesita la clave del equipo |
+| M4 | Ubicación con GPS, lugares del campus y mapa con el punto de la publicación: **OpenStreetMap** (gratis, sin clave) y Google Maps solo si el equipo configura una clave (la clave va fuera de Git) | GPS y mapa de OpenStreetMap probados en emulador; Google Maps no probado (Google Cloud pide facturación y no se usó) |
 | M5 | Editar y eliminar mis publicaciones | Pruebas unitarias |
 | M6 | Búsqueda por foto | Pruebas unitarias; la IA real responde 503 en QA sin clave |
 | H73 | WebView restringido a nuestro servidor (JavaScript solo del dominio propio, sin acceso a archivos) | Pruebas unitarias y emulador |
@@ -38,7 +38,7 @@ teléfono físico. Las evidencias están en `docs/pruebas/sprint4-amore/`.
 - **Dictado con ruido (H46), TalkBack con voz (H51) y cámara física (H52)**: necesitan un Android físico; no hay uno disponible.
   Cualquier compañero con Android puede ejecutarlas con el APK y los casos de `docs/pruebas/`.
 - **H44 (escaneo de etiqueta y QR)**: Amore informó que se probó en su salón y funciona; no hay capturas.
-- **Mapa de Google real**: falta la clave de Maps.
+- **Mapa de Google real**: no se usó porque Google Cloud exige una cuenta de facturación. El mapa se muestra con OpenStreetMap (dependencia `osmdroid`, con la atribución que exige su licencia). El código de Google Maps queda y se activa solo si alguien define `foundiaMapsKey`.
 
 ## Límites conocidos
 
