@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from openpyxl import load_workbook
 from rest_framework.test import APITestCase
 
-from .models import Categoria, Objeto, Usuario
+from .models import Categoria, Objeto, Usuario, hoy_en_lima
 from .tests import token_de
 
 
@@ -227,7 +227,8 @@ class ExportacionTableroTests(APITestCase):
         self.assertEqual(
             respuesta["Content-Disposition"],
             'attachment; filename="foundia-reporte_completo-'
-            + datetime.now(timezone.utc).strftime("%Y-%m-%d") + '.xlsx"')
+            # La fecha del nombre es la de Lima, no la de UTC
+            + str(hoy_en_lima()) + '.xlsx"')
         valores = self.valores(load_workbook(io.BytesIO(respuesta.content))["Resumen"])
         self.assertEqual(valores["Periodo"], ["Todo el historial"])
         self.assertEqual(valores["Perdidos"][0], datos["objetos"]["perdidos"])

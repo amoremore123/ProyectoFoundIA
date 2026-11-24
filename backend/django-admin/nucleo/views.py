@@ -27,6 +27,7 @@ from .disposicion import (
 )
 from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
+    ZONA_LIMA,
     AvisoDestacado,
     ROL_CHOICES,
     Campana,
@@ -249,7 +250,7 @@ class DashboardExportView(APIView):
         responsable = f"{request.user.nombre} {request.user.apellido}".strip()
         if request.user.correo:
             responsable = f"{responsable} ({request.user.correo})"
-        emitido = timezone.localtime()
+        emitido = timezone.localtime(timezone=ZONA_LIMA)  # fecha y hora de Lima en el reporte
 
         if formato == "xlsx":
             contenido = excel_reporte(datos, responsable, emitido)
@@ -536,7 +537,7 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
 
             custodia = Custodia(
                 objeto=objeto,
-                codigo=_siguiente_codigo_custodia(timezone.localdate().year),
+                codigo=_siguiente_codigo_custodia(hoy_en_lima().year),  # el año de Lima, no el de UTC
                 recibido_por=request.user,
                 fecha_recepcion=timezone.now().replace(microsecond=0),
                 observaciones=observaciones,

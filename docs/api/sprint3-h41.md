@@ -111,3 +111,20 @@ Token alterado o ausente: `400`. Token válido sin custodia asociada: `404`.
   `fecha_recepcion`, `observaciones`, `estado`.
 - `secuencias_custodia`: consecutivo por año.
 - Migración: `database/migracion_h41_custodia.sql`.
+
+## Corrección del 23/11/2026: hora de Lima en etiquetas, constancias y reportes
+
+Reportado por el equipo: las etiquetas y constancias de custodia salían con 5 horas de más (17:46 cuando en
+Lima eran las 12:46), porque Django trabaja en UTC (`TIME_ZONE = "UTC"`) y convertía a esa zona al imprimir.
+
+- No se cambió `TIME_ZONE`: la API sigue entregando fechas en UTC, como las leen la web y Android.
+- Se imprimen en hora de Lima (UTC−5) las fechas de las etiquetas y constancias de custodia, de las
+  disposiciones, de los comprobantes de reclamo y la fecha de emisión (y el nombre del archivo) del reporte
+  exportado.
+- El código de custodia usa el **año de Lima**: el 31/12 entre las 19:00 y las 23:59 ya no se numera con el año
+  siguiente (`FND-2026-…` y no `FND-2027-…`).
+- Pruebas: `test_hora_lima.py` (4 pruebas). Sin el arreglo fallan 3 con exactamente lo reportado
+  (`'23/11/2026 17:46' != '23/11/2026 12:46'`) y el año (`'FND-2027-0001' != 'FND-2026-0001'`). Se ajustó la
+  prueba del nombre del reporte (H32), que suponía la fecha de UTC. Suite completa de Django: **202 pruebas, OK**.
+- **Pendiente, misma causa:** los filtros por fecha del tablero (H30/H31) y de las listas de custodias y
+  reclamos comparan la fecha en UTC. Una publicación de las 20:00 en Lima cuenta para el día siguiente.
