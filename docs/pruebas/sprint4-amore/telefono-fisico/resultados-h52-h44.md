@@ -33,3 +33,22 @@ Además se comprobó la protección contra el campo equivocado: al leer la etiqu
 ## Pendiente en teléfono físico
 
 H46 (dictado con ruido y lectura en voz alta), H50 (aviso con la app cerrada) y H51 (TalkBack y texto grande).
+
+## H46 · Dictado y lectura en voz alta (mismo teléfono, 24/11/2026)
+
+| # | Caso | Resultado esperado | Resultado obtenido |
+| --- | --- | --- | --- |
+| 1 | Dictado en silencio: «perdí una mochila azul en la biblioteca» | El texto aparece y se puede revisar | **Correcto** tras el arreglo (ver abajo): «perdí mi mochila azul en la biblioteca» (`tel-h46-3.png`) |
+| 2 | Dictado con ruido (una compañera hablando fuerte al lado) | Anotar si entiende bien, mal o nada | **Correcto**: el campo capturó solo la frase de quien dictaba, sin mezclar lo que decía la compañera (`tel-h46-4-ruido.png`) |
+| 3 | Lectura en voz alta de la respuesta de FINDI | Se escucha en español y se detiene | **Correcto**: voz en español; se detiene al salir de la app (tras el arreglo) |
+
+**Hallazgos de la prueba y cómo se corrigieron**
+- Al dictar, la app no mostraba que estaba escuchando; tocar otra vez el micrófono (igual de azul) **cancelaba** el dictado y salía «No pude reconocer la voz».
+  Registro del teléfono: el reconocedor abrió el micrófono y la propia app lo canceló un segundo después (código 5).
+  Ahora hay una franja roja «Preparando el micrófono… / Escuchando… habla ahora», el micrófono se pone rojo, las palabras
+  aparecen mientras se habla, tocar el micrófono rojo termina y usa lo dicho, y hay un botón «Cancelar». Cada error del
+  reconocedor tiene su mensaje (sin voz, sin conexión, micrófono ocupado, sin permiso).
+- La lectura en voz alta **seguía sonando al enviar la app a segundo plano**. Ahora se detiene (y el dictado se cancela) al salir.
+
+**Límite**: la voz (hombre o mujer) la define el motor de texto a voz del teléfono; en este aparato suena de hombre y en otro
+sonó de mujer. Se cambia en Ajustes → Texto a voz. La app no la fuerza.
