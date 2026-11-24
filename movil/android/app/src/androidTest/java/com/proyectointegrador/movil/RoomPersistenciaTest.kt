@@ -18,7 +18,7 @@ class RoomPersistenciaTest {
     private val contexto=InstrumentationRegistry.getInstrumentation().targetContext
     private val nombre="room-persistencia-prueba.db"
     @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java)
-    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3).build()
+    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3,FoundIADatabase.MIGRACION_3_4).build()
     @Before fun preparar(){contexto.deleteDatabase(nombre)}
     @After fun limpiar(){contexto.deleteDatabase(nombre);contexto.deleteDatabase("room-migracion-prueba.db")}
 
@@ -86,7 +86,7 @@ class RoomPersistenciaTest {
         chat.guardarConversaciones(listOf(Conversacion(9,"ENTRE_USUARIOS",3,"Mochila","ABIERTA",false,false,Participante(7,"Beto"),null,2)))
         chat.guardarMensajes(9,listOf(MensajeChat(1,7,"Beto","hola",null,null),MensajeChat(2,5,"Ana","azul",null,null)))
         chat.guardarMensajes(9,listOf(MensajeChat(2,5,"Ana","azul actualizado",null,null)))
-        val a=chat.agregarPendiente(9,"primero");val b=chat.agregarPendiente(9,"segundo")
+        val a=chat.agregarPendiente(9,"primero","clave-a-0001");val b=chat.agregarPendiente(9,"segundo","clave-b-0002")
         db.close()
         db=abrir();chat=RoomAlmacenChat(db)
         assertEquals(9L,chat.conversaciones().single().id)
@@ -104,6 +104,26 @@ class RoomPersistenciaTest {
         chat.guardarMensajes(9,(1L..230L).map {MensajeChat(it,7,"Beto","m$it",null,null)})
         val guardados=chat.mensajes(9)
         assertEquals(200,guardados.size);assertEquals(31L,guardados.first().id);assertEquals(230L,guardados.last().id)
+        db.close()
+    }
+
+    @Test fun migracionTresACuatroDaUnaClaveUnicaALosMensajesPendientes() {
+        val v3=migraciones.createDatabase("room-migracion-prueba.db",3)
+        v3.execSQL("INSERT INTO mensajes_pendientes(conversacionId,texto,creadoEn) VALUES (9,'uno',1),(9,'dos',2)")
+        v3.close()
+        val v4=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",4,true,FoundIADatabase.MIGRACION_3_4)
+        val claves=mutableListOf<String>()
+        v4.query("SELECT idCliente FROM mensajes_pendientes ORDER BY localId").use {while(it.moveToNext())claves+=it.getString(0)}
+        assertEquals(2,claves.size);assertEquals(2,claves.toSet().size)
+        assertTrue("Cumplen el formato de Idempotency-Key",claves.all {Regex("^[A-Za-z0-9_-]{8,64}$").matches(it)})
+        v4.close()
+    }
+    @Test fun laColaGuardaLaClaveDeCadaEnvioYLaDevuelveEnOrden()=runBlocking {
+        var db=abrir();var chat=RoomAlmacenChat(db)
+        chat.agregarPendiente(9,"primero","clave-uno-1234");chat.agregarPendiente(9,"segundo","clave-dos-5678")
+        db.close()
+        db=abrir();chat=RoomAlmacenChat(db)
+        assertEquals(listOf("clave-uno-1234","clave-dos-5678"),chat.pendientes(9).map {it.idCliente})
         db.close()
     }
 }

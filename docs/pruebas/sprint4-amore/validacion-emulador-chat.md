@@ -60,3 +60,24 @@ Elegir una foto desde la galería del emulador no se automatizó: se probó la s
 implementado (la parte de H65 en el backend, el identificador de cliente para no duplicar, tampoco existe todavía).
 Si la respuesta del servidor se pierde después de que el mensaje ya se guardó, un reintento podría duplicarlo hasta que el
 backend acepte un identificador de cliente.
+
+## Lo que pidió Leonel a Android (24/11/2026, emulador + backend integrado de `dev/leonel`)
+
+Se levantó el QA con el código actual de `dev/leonel` y sus 15 migraciones (con respaldo previo de la base de QA) y se
+probó contra eso. Script de API: 13 de 13 casos (foto privada con y sin sesión, `Idempotency-Key` `201`/`200`, `otro.tieneFoto`,
+canales, aviso destacado creado en el panel y visto sin sesión, registro y baja de dispositivo, `firebase-token` `503` sin credenciales).
+
+| Pedido | Qué se hizo en Android | Cómo se comprobó |
+| --- | --- | --- |
+| H62: fotos del chat privadas | Se piden con la sesión (`ImagenPrivada`), solo a rutas propias del chat; en memoria, 20 como máximo, se borran al cerrar sesión | Emulador: la foto se ve (`s4-5-chat-foto-privada.png`); una foto mal formada muestra «Foto no disponible» sin romper |
+| H64: foto de la otra persona | Avatar en la lista y en el chat cuando `otro.tieneFoto` es `true` | Emulador con Luis viendo la foto de Ana |
+| H65: `Idempotency-Key` | La clave se crea antes del primer intento, se guarda en la cola (Room 3→4) y se reutiliza en cada reintento | Pruebas unitarias; migración 3→4 y cola en el emulador (13 de 13 instrumentadas); API: `201` y luego `200` con el mismo mensaje |
+| H68: canal por tipo de aviso | Selector por cada uno de los 6 tipos en Preferencias de avisos | Emulador: se cambió «Mensajes del chat» a Correo, se guardó y la API lo devuelve sin tocar los otros cinco (`s4-3-canal-elegido.png`) |
+| H71: avisos destacados | Tarjeta arriba de Inicio; no se guarda en caché; si la consulta falla no se muestra nada | Emulador: aviso creado desde el panel y visible sin sesión (`s4-1-inicio-destacado.png`) |
+| H57: registro del teléfono | Con el backend real la app obtuvo un token de Firebase y registró el dispositivo (`ANDROID`) | Emulador: `GET /api/dispositivos` lista el dispositivo de Luis |
+| H72: token de Firebase | Código y pruebas unitarias hechas | **Sin probar de punta a punta**: el QA no tiene la cuenta de servicio y la ruta responde `503` (la app sigue con su sesión normal) |
+
+Pruebas: 141 unitarias en verde (3 corridas limpias), 13 instrumentadas (2 omitidas por necesitar un servidor propio).
+Nota: la primera vez de hoy la prueba del token de Firebase falló porque el emulador acababa de arrancar
+(`Firebase Installations Service is unavailable`); la API de Firebase respondía bien desde la PC y, pasados unos minutos,
+el emulador obtuvo el token y la prueba pasó.

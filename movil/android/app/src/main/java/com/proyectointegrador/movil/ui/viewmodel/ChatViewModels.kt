@@ -43,7 +43,9 @@ data class EstadoChat(
     val bloqueada: Boolean = false,
     val enviando: Boolean = false,
     val aviso: String? = null,
-    val miId: Long? = null
+    val miId: Long? = null,
+    /** La otra persona (o la biblioteca) y si tiene foto de perfil visible para esta conversación (H64). */
+    val otro: com.proyectointegrador.movil.model.Participante? = null
 )
 
 /**
@@ -65,6 +67,7 @@ class ChatViewModel(
 
     init {
         viewModelScope.launch { runCatching { repo.perfil().id }.getOrNull()?.let { id -> _chat.update { it.copy(miId = id) } } }
+        viewModelScope.launch { runCatching { repo.conversacion(id).otro }.getOrNull()?.let { otro -> _chat.update { it.copy(otro = otro) } } }
         iniciarSondeo()
     }
 
@@ -129,7 +132,7 @@ class ChatViewModel(
         val almacen = local ?: return
         for (pendiente in almacen.pendientes(id)) {
             try {
-                val nuevo = repo.enviarMensaje(id, pendiente.texto)
+                val nuevo = repo.enviarMensaje(id, pendiente.texto, pendiente.idCliente.ifBlank { null })
                 almacen.quitarPendiente(pendiente.localId)
                 ultimoId = maxOf(ultimoId, nuevo.id)
                 _chat.update { it.copy(mensajes = fusionarMensajes(it.mensajes, listOf(nuevo)), pendientes = it.pendientes.filterNot { p -> p.localId == pendiente.localId }) }
@@ -153,9 +156,11 @@ class ChatViewModel(
         if (estado.enviando || estado.soloLectura || estado.bloqueada) return
         errorMensajeChat(texto)?.let { error -> _chat.update { it.copy(aviso = error) }; return }
         _chat.update { it.copy(enviando = true, aviso = null) }
+        // H65: la clave se crea antes del primer intento; si la respuesta se pierde, el reintento usa la misma y no duplica.
+        val idCliente = java.util.UUID.randomUUID().toString()
         viewModelScope.launch {
             try {
-                val nuevo = repo.enviarMensaje(id, texto.trim())
+                val nuevo = repo.enviarMensaje(id, texto.trim(), idCliente)
                 ultimoId = maxOf(ultimoId, nuevo.id)
                 _chat.update { it.copy(mensajes = fusionarMensajes(it.mensajes, listOf(nuevo)), enviando = false) }
                 alEnviar()
@@ -166,7 +171,7 @@ class ChatViewModel(
                 val almacen = local
                 if (error.estadoHttp == null && almacen != null) {
                     // Sin conexión: el texto se guarda y se enviará solo cuando vuelva la red.
-                    val pendiente = almacen.agregarPendiente(id, texto.trim())
+                    val pendiente = almacen.agregarPendiente(id, texto.trim(), idCliente)
                     _chat.update { it.copy(enviando = false, sinConexion = true, pendientes = it.pendientes + pendiente) }
                     alEnviar()
                 } else {

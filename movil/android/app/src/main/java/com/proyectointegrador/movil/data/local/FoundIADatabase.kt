@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.proyectointegrador.movil.data.local.dao.CacheDao
 import com.proyectointegrador.movil.data.local.entity.*
 
-@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class, ConversacionCache::class, MensajeChatCache::class, MensajePendienteEntity::class], version = 3, exportSchema = true)
+@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class, ConversacionCache::class, MensajeChatCache::class, MensajePendienteEntity::class], version = 4, exportSchema = true)
 abstract class FoundIADatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
     abstract fun chatDao(): com.proyectointegrador.movil.data.local.dao.ChatDao
@@ -28,8 +28,15 @@ abstract class FoundIADatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_mensajes_pendientes_conversacionId` ON `mensajes_pendientes` (`conversacionId`)")
             }
         }
+        /** H65: cada mensaje pendiente guarda su identificador de envío. Las filas ya guardadas reciben uno único. */
+        val MIGRACION_3_4 = object : Migration(3,4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `mensajes_pendientes` ADD COLUMN `idCliente` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("UPDATE `mensajes_pendientes` SET `idCliente` = 'migrado-' || `localId`")
+            }
+        }
         fun abrir(context: Context): FoundIADatabase = Room.databaseBuilder(
             context.applicationContext, FoundIADatabase::class.java, "foundia-local.db"
-        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3).build()
+        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4).build()
     }
 }

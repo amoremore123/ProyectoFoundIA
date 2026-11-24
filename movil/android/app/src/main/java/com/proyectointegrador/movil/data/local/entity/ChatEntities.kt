@@ -20,5 +20,7 @@ data class MensajePendienteEntity(
     @PrimaryKey(autoGenerate = true) val localId: Long = 0,
     val conversacionId: Long,
     val texto: String,
-    val creadoEn: Long
+    val creadoEn: Long,
+    /** H65: identificador único del envío; se manda como Idempotency-Key en cada reintento para que no se duplique. */
+    @androidx.room.ColumnInfo(defaultValue = "''") val idCliente: String = ""
 )

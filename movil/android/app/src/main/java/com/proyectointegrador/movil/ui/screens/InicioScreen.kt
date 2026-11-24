@@ -25,6 +25,7 @@ import com.proyectointegrador.movil.ui.viewmodel.*
  LaunchedEffect(Unit){viewModel.cargarRecientes();viewModel.cargarCategorias()}
  Surface(color=MarinoFindi,modifier=Modifier.fillMaxSize()) {
   LazyColumn(Modifier.statusBarsPadding().background(MaterialTheme.colorScheme.background),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=8.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
+   item {AvisosDestacadosInicio(abrir)}
    item {
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(DegradadoMarca).padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
      Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {

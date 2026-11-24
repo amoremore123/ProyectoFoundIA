@@ -106,6 +106,10 @@ interface ApiService {
     @POST("api/dispositivos") suspend fun registrarDispositivo(@Body datos: DispositivoRequest): Dispositivo
     @DELETE("api/dispositivos/{id}") suspend fun eliminarDispositivo(@Path("id") id: Long): retrofit2.Response<Unit>
     @POST("api/auth/firebase-token") suspend fun tokenFirebase(): TokenFirebase
+    // H71: avisos destacados vigentes (público, sin sesión).
+    @GET("api/avisos-destacados") suspend fun avisosDestacados(): List<AvisoDestacado>
+    // H62 y H64: fotos privadas del chat. Solo se piden con sesión y a rutas propias (ver esRutaFotoPrivada).
+    @GET suspend fun descargarPrivado(@retrofit2.http.Url ruta: String): okhttp3.ResponseBody
     // H64: foto de perfil privada. No es pública: se pide con sesión.
     @GET("api/perfil/foto") suspend fun fotoPerfil(): okhttp3.ResponseBody
     @retrofit2.http.Multipart
@@ -116,7 +120,8 @@ interface ApiService {
     @GET("api/conversaciones") suspend fun conversaciones(): List<Conversacion>
     @GET("api/conversaciones/{id}") suspend fun conversacion(@Path("id") id: Long): Conversacion
     @GET("api/conversaciones/{id}/mensajes") suspend fun mensajes(@Path("id") id: Long, @Query("despuesDe") despuesDe: Long = 0): MensajesRespuesta
-    @POST("api/conversaciones/{id}/mensajes") suspend fun enviarMensaje(@Path("id") id: Long, @Body datos: EnviarMensaje): MensajeChat
+    @POST("api/conversaciones/{id}/mensajes") suspend fun enviarMensaje(@Path("id") id: Long, @Body datos: EnviarMensaje,
+        @retrofit2.http.Header("Idempotency-Key") clave: String? = null): MensajeChat
     @retrofit2.http.Multipart
     @POST("api/conversaciones/{id}/mensajes")
     suspend fun enviarMensajeConFoto(@Path("id") id: Long, @retrofit2.http.Part foto: okhttp3.MultipartBody.Part,

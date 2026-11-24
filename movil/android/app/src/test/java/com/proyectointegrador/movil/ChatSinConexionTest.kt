@@ -50,7 +50,7 @@ class AlmacenChatMemoria : AlmacenChat {
     override suspend fun mensajes(conversacionId: Long) = mensajesPorConversacion[conversacionId].orEmpty()
     override suspend fun guardarMensajes(conversacionId: Long, lista: List<MensajeChat>) { mensajesPorConversacion[conversacionId] = lista }
     override suspend fun pendientes(conversacionId: Long) = cola.filter { it.conversacionId == conversacionId }
-    override suspend fun agregarPendiente(conversacionId: Long, texto: String) = PendienteChat(siguiente++, conversacionId, texto).also { cola += it }
+    override suspend fun agregarPendiente(conversacionId: Long, texto: String, idCliente: String) = PendienteChat(siguiente++, conversacionId, texto, idCliente).also { cola += it }
     override suspend fun quitarPendiente(localId: Long) { cola.removeAll { it.localId == localId } }
     override suspend fun limpiar() { lista = emptyList(); mensajesPorConversacion.clear(); cola.clear(); limpiado++ }
 }
@@ -62,6 +62,8 @@ class ChatSinConexionTest {
     private val almacen = AlmacenChatMemoria()
     private val llamadas = java.util.concurrent.CopyOnWriteArrayList<String>()
     private val cuerpos = java.util.concurrent.CopyOnWriteArrayList<String>()
+    /** Idempotency-Key de cada intento de envío (también de los que fallan por falta de red). */
+    private val claves = java.util.concurrent.CopyOnWriteArrayList<String>()
     @Volatile private var sinRed = false
     @Volatile private var rechazar = 0
     private var siguienteId = 10L
@@ -78,6 +80,7 @@ class ChatSinConexionTest {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val ruta = request.requestUrl!!.encodedPath
                 llamadas += "${request.method} $ruta"
+                if (request.method == "POST" && ruta == "/api/conversaciones/9/mensajes") claves += request.getHeader("Idempotency-Key").orEmpty()
                 if (sinRed) return MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)
                 if (request.method == "POST") cuerpos += request.body.readUtf8()
                 fun json(d: Any, codigo: Int = 200) = MockResponse().setResponseCode(codigo).setBody(Gson().toJson(d))
@@ -195,10 +198,27 @@ class ChatSinConexionTest {
     @Test fun cerrarSesionBorraElChatGuardado() = runBlocking {
         almacen.lista = listOf(conversacion())
         almacen.mensajesPorConversacion[9] = listOf(MensajeChat(1, 7, "Beto", "privado", null, null))
-        almacen.agregarPendiente(9, "pendiente")
+        almacen.agregarPendiente(9, "pendiente", "clave-de-prueba-1")
         cuenta.cerrarSesion()
         assertEquals(1, almacen.limpiado)
         assertTrue(almacen.lista.isEmpty() && almacen.mensajesPorConversacion.isEmpty() && almacen.cola.isEmpty())
         assertFalse(cuenta.estadoSesion.autenticado)
+    }
+
+    @Test fun todoEnvioLlevaUnaClaveUnicaYElReintentoUsaLaMismaQueElPrimerIntento() = runBlocking {
+        val vm = abrirChat()
+        sinRed = true
+        vm.enviar("Con clave"); esperar { vm.chat.value.pendientes.size == 1 }
+        val primera = claves.single()
+        assertTrue("La clave tiene el formato que acepta el servidor", Regex("^[A-Za-z0-9_-]{8,64}$").matches(primera))
+        assertEquals("La cola guarda la misma clave del primer intento", primera, almacen.cola.single().idCliente)
+        sinRed = false
+        vm.reintentar()
+        esperar { vm.chat.value.pendientes.isEmpty() && vm.chat.value.mensajes.isNotEmpty() }
+        assertEquals("El reintento usa la misma clave", listOf(primera, primera), claves.toList())
+        vm.enviar("Otro mensaje"); esperar { vm.chat.value.mensajes.size == 2 }
+        assertEquals("Un mensaje nuevo recibe una clave nueva", 3, claves.size)
+        assertTrue(claves.last() != primera)
+        vm.detenerSondeo()
     }
 }

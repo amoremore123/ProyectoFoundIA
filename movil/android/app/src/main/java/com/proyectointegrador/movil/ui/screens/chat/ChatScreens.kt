@@ -27,6 +27,8 @@ import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.domain.MAXIMO_MENSAJE_CHAT
 import com.proyectointegrador.movil.domain.textoSinLeer
 import com.proyectointegrador.movil.domain.urlImagen
+import com.proyectointegrador.movil.domain.esRutaFotoPrivada
+import com.proyectointegrador.movil.domain.rutaFotoDeConversacion
 import com.proyectointegrador.movil.model.Conversacion
 import com.proyectointegrador.movil.model.MensajeChat
 import com.proyectointegrador.movil.ui.components.*
@@ -59,6 +61,7 @@ private fun FilaConversacion(c: Conversacion, abrir: () -> Unit) {
         tonalElevation = 1.dp, modifier = Modifier.fillMaxWidth()
     ) {
         Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (c.otro?.tieneFoto == true) ImagenPrivada(rutaFotoDeConversacion(c.id), "Foto de perfil de ${c.otro.nombre}", Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(c.otro?.nombre ?: "Conversación", style = MaterialTheme.typography.titleSmall)
                 Text("Sobre: " + (c.objetoNombre ?: "una publicación"), style = MaterialTheme.typography.bodySmall)
@@ -91,11 +94,15 @@ fun ChatScreen(id: Long, volver: () -> Unit, vm: ChatViewModel = viewModel(key =
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().padding(horizontal = 16.dp)) {
-            Cabecera("Conversación", volver = volver, accion = {
+            Cabecera(chat.otro?.nombre ?: "Conversación", volver = volver, accion = {
                 if (!chat.soloLectura) TextButton(onClick = { if (chat.bloqueada) vm.bloquear(false) else confirmarBloqueo = true }) {
                     Text(if (chat.bloqueada) "Desbloquear" else "Bloquear")
                 }
             })
+            chat.otro?.takeIf { it.tieneFoto }?.let {
+                // H64: la foto de la otra persona solo se muestra dentro de la conversación.
+                ImagenPrivada(rutaFotoDeConversacion(id), "Foto de perfil de ${it.nombre}", Modifier.size(56.dp).clip(androidx.compose.foundation.shape.CircleShape))
+            }
             EstadoAccion(accion)
             if (chat.sinConexion) AvisoEstado("Sin conexión. Lo que escribas se enviará cuando vuelva la red.")
             chat.error?.let { Column { AvisoEstado(it, true); OutlinedButton(onClick = vm::reintentar) { Text("Reintentar") } } }
@@ -169,13 +176,18 @@ private fun Burbuja(m: MensajeChat, propio: Boolean, reportar: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (!propio) Text(m.autorNombre ?: "Persona", style = MaterialTheme.typography.labelSmall)
-            urlImagen(m.imagenUrl)?.let { url ->
-                SubcomposeAsyncImage(
-                    model = url, contentDescription = "Foto enviada en la conversación",
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp).clip(RoundedCornerShape(10.dp)), contentScale = ContentScale.Crop,
-                    loading = { CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp) },
-                    error = { Text("Foto no disponible", style = MaterialTheme.typography.bodySmall) }
-                )
+            m.imagenUrl?.let { ruta ->
+                val marco = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(10.dp))
+                if (esRutaFotoPrivada(ruta)) {
+                    // Las fotos del chat son privadas: se piden con la sesión (H62).
+                    ImagenPrivada(ruta, "Foto enviada en la conversación", marco)
+                } else urlImagen(ruta)?.let { url ->
+                    SubcomposeAsyncImage(
+                        model = url, contentDescription = "Foto enviada en la conversación", modifier = marco, contentScale = ContentScale.Crop,
+                        loading = { CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp) },
+                        error = { Text("Foto no disponible", style = MaterialTheme.typography.bodySmall) }
+                    )
+                }
             }
             m.texto?.let { Text(it) }
             if (!propio) Text(

@@ -6,7 +6,7 @@ import com.proyectointegrador.movil.data.local.entity.*
 import com.proyectointegrador.movil.model.Conversacion
 import com.proyectointegrador.movil.model.MensajeChat
 
-data class PendienteChat(val localId: Long, val conversacionId: Long, val texto: String)
+data class PendienteChat(val localId: Long, val conversacionId: Long, val texto: String, val idCliente: String = "")
 
 /** Dónde se guarda el chat para verlo sin conexión (H55) y la cola de envío (H65). */
 interface AlmacenChat {
@@ -15,7 +15,7 @@ interface AlmacenChat {
     suspend fun mensajes(conversacionId: Long): List<MensajeChat>
     suspend fun guardarMensajes(conversacionId: Long, lista: List<MensajeChat>)
     suspend fun pendientes(conversacionId: Long): List<PendienteChat>
-    suspend fun agregarPendiente(conversacionId: Long, texto: String): PendienteChat
+    suspend fun agregarPendiente(conversacionId: Long, texto: String, idCliente: String): PendienteChat
     suspend fun quitarPendiente(localId: Long)
     /** Se llama al cerrar sesión o al entrar con otra cuenta: el chat es privado de cada sesión. */
     suspend fun limpiar()
@@ -40,11 +40,11 @@ class RoomAlmacenChat(private val db: FoundIADatabase, private val reloj: () -> 
         dao.limitarMensajes(conversacionId, 200)
     }
 
-    override suspend fun pendientes(conversacionId: Long) = dao.pendientes(conversacionId).map { PendienteChat(it.localId, it.conversacionId, it.texto) }
+    override suspend fun pendientes(conversacionId: Long) = dao.pendientes(conversacionId).map { PendienteChat(it.localId, it.conversacionId, it.texto, it.idCliente) }
 
-    override suspend fun agregarPendiente(conversacionId: Long, texto: String): PendienteChat {
-        val id = dao.agregarPendiente(MensajePendienteEntity(conversacionId = conversacionId, texto = texto, creadoEn = reloj()))
-        return PendienteChat(id, conversacionId, texto)
+    override suspend fun agregarPendiente(conversacionId: Long, texto: String, idCliente: String): PendienteChat {
+        val id = dao.agregarPendiente(MensajePendienteEntity(conversacionId = conversacionId, texto = texto, creadoEn = reloj(), idCliente = idCliente))
+        return PendienteChat(id, conversacionId, texto, idCliente)
     }
 
     override suspend fun quitarPendiente(localId: Long) = dao.quitarPendiente(localId)

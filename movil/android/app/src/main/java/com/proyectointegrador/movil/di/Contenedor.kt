@@ -47,6 +47,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             SugerenciasViewModel::class.java->SugerenciasViewModel(c.cuenta,objetoId)
             ParejaViewModel::class.java->ParejaViewModel(c.cuenta,parejaId)
             FotoPerfilViewModel::class.java->FotoPerfilViewModel(c.cuenta,c.fotografias)
+            AvisosDestacadosViewModel::class.java->AvisosDestacadosViewModel(c.cuenta)
             ConversacionesViewModel::class.java->ConversacionesViewModel(c.cuenta)
             ChatViewModel::class.java->ChatViewModel(c.cuenta,c.fotografias,objetoId,local=c.chatLocal)
             IniciarChatViewModel::class.java->IniciarChatViewModel(c.cuenta)

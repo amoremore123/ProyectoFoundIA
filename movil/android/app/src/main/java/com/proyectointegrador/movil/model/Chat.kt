@@ -1,7 +1,7 @@
 package com.proyectointegrador.movil.model
 
 /** Contrato de docs/api/sprint4-h55.md. */
-data class Participante(val id: Long?, val nombre: String)
+data class Participante(val id: Long?, val nombre: String, val tieneFoto: Boolean = false)
 
 data class MensajeChat(
     val id: Long, val autorId: Long, val autorNombre: String?, val texto: String?,

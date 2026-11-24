@@ -37,7 +37,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
                        private val sesion:AlmacenSesion = SesionCifrada,
                        private val biblioteca:com.proyectointegrador.movil.data.remote.BibliotecaApi? = null,
                        private val externa:com.proyectointegrador.movil.data.push.SesionExterna? = null,
-                       private val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat? = null) {
+                       private val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat? = null,
+                       private val imagenes:ImagenesPrivadas = ImagenesPrivadas()) {
     private val noLeidos=mutableSetOf<Long>()
     private val _sinLeer=MutableStateFlow<Int?>(null);val sinLeer=_sinLeer.asStateFlow()
     val cambiosSesion get()=sesion.cambios
@@ -54,7 +55,7 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         val respuesta=llamadaApi(bloque)
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         publicaciones.invalidar()
-        chatLocal?.limpiar()
+        chatLocal?.limpiar();imagenes.limpiar()
         if(revision!=sesion.revision) throw CancellationException("La sesión cambió")
         synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null}
         sesion.guardar(respuesta.token)
@@ -105,6 +106,14 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun contactar(datos:ContactoRequest)=privada {api.contactar(datos)}
+    /** H62 y H64: foto privada del chat. Rechaza cualquier ruta que no sea de nuestra API para no filtrar el token. */
+    suspend fun fotoPrivada(ruta:String):ByteArray {
+        if(!esRutaFotoPrivada(ruta)) throw ErrorDatos("Esta foto no está disponible.")
+        imagenes.obtener(ruta)?.let {return it}
+        val bytes=privada {api.descargarPrivado(ruta.removePrefix("/")).bytes()}
+        imagenes.guardar(ruta,bytes)
+        return bytes
+    }
     // H64: foto de perfil. Devuelve null si la cuenta no tiene foto (404).
     suspend fun fotoPerfil():ByteArray? = try {privada {api.fotoPerfil().bytes()}} catch(e:ErrorDatos) {if(e.estadoHttp==404) null else throw e}
     suspend fun subirFotoPerfil(foto:FotoPreparada)=privada {
@@ -115,6 +124,9 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     // H55 a H63: chat. Cada llamada exige sesión y descarta la respuesta si la sesión cambió mientras viajaba.
     suspend fun iniciarConversacion(datos:IniciarConversacion)=privada {api.iniciarConversacion(datos)}
     /** Con conexión guarda la lista; sin conexión devuelve la última copia guardada (si la hay), marcada como tal. */
+    /** H71: público, sin sesión. No se guarda en ninguna caché: un aviso vencido no debe seguir apareciendo. */
+    suspend fun avisosDestacados()=llamadaApi {api.avisosDestacados()}
+    suspend fun conversacion(id:Long)=privada {api.conversacion(id)}
     suspend fun conversaciones():Lectura<List<Conversacion>> {
         try {
             val lista=privada {api.conversaciones()}
@@ -128,7 +140,8 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
         }
     }
     suspend fun mensajes(id:Long,despuesDe:Long)=privada {api.mensajes(id,despuesDe)}
-    suspend fun enviarMensaje(id:Long,texto:String)=privada {api.enviarMensaje(id,EnviarMensaje(texto))}
+    /** H65: con [idCliente] el servidor devuelve el mismo mensaje si el envío se repite (reintento tras perder la respuesta). */
+    suspend fun enviarMensaje(id:Long,texto:String,idCliente:String?=null)=privada {api.enviarMensaje(id,EnviarMensaje(texto),idCliente)}
     suspend fun enviarFotoChat(id:Long,texto:String?,foto:FotoPreparada)=privada {
         val parte=okhttp3.MultipartBody.Part.createFormData("foto",foto.nombre,foto.bytes.toRequestBody(foto.tipo.toMediaType()))
         api.enviarMensajeConFoto(id,parte,texto?.takeIf {it.isNotBlank()}?.toRequestBody("text/plain".toMediaType()))
@@ -176,6 +189,6 @@ class CuentaRepository(private val api:ApiService, private val publicaciones:Pub
     }
 
     suspend fun cerrarSesion(aviso:String?=null) = withContext(Dispatchers.IO) {
-        try {publicaciones.invalidar();chatLocal?.limpiar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
+        try {publicaciones.invalidar();chatLocal?.limpiar();imagenes.limpiar()} finally {synchronized(noLeidos){noLeidos.clear();_sinLeer.value=null};if(aviso==null)sesion.cerrar() else sesion.cerrarConAviso(aviso)}
     }
 }

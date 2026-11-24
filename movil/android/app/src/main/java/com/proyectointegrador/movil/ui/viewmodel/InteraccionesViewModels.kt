@@ -145,6 +145,12 @@ class PreferenciasViewModel(private val repo:CuentaRepository):CargaViewModel<Pr
     fun editar(indice:Int,valor:Boolean){val actual=_edicion.value?:estado.value.datos?:return
         _edicion.value=when(indice){0->actual.copy(coincidencias=valor);1->actual.copy(contactos=valor);2->actual.copy(reclamos=valor);else->actual.copy(recordatorios=valor)}
     }
+    /** H68: elige por dónde llega cada tipo de aviso. Un tipo o canal desconocido se ignora. */
+    fun editarCanal(tipo:String,canal:String){
+        if(TIPOS_DE_AVISO.none {it.first==tipo}||!canalValido(canal))return
+        val actual=_edicion.value?:estado.value.datos?:return
+        _edicion.value=actual.copy(canales=(actual.canales.orEmpty())+(tipo to canal))
+    }
     fun cancelar(){_edicion.value=null}
     fun recargarPreferencias(){cancelar();recargar()}
     fun guardar(){val datos=_edicion.value?:estado.value.datos?:return
