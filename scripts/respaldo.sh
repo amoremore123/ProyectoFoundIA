@@ -30,6 +30,9 @@ RESPALDO_FOTOS="${RESPALDO_FOTOS:-1}"
 FOTOS_DIR="${FOTOS_DIR:-/fotos}"
 # Un candado más viejo que esto lo dejó un proceso que ya no existe (ningún respaldo dura tanto).
 RESPALDO_CANDADO_MAXIMO_SEGUNDOS="${RESPALDO_CANDADO_MAXIMO_SEGUNDOS:-7200}"
+# H70: cada cuántos segundos se revisa si el panel pidió restaurar una versión (0 = no se revisa)
+RESTAURACION_REVISAR_SEGUNDOS="${RESTAURACION_REVISAR_SEGUNDOS:-15}"
+AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
     printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -44,6 +47,7 @@ fatal() {
 [[ "$RESPALDO_INTERVALO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_INTERVALO_SEGUNDOS debe ser un entero"
 [[ "$RESPALDO_RETENCION_DIAS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_RETENCION_DIAS debe ser un entero"
 [[ "$RESPALDO_CANDADO_MAXIMO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_CANDADO_MAXIMO_SEGUNDOS debe ser un entero"
+[[ "$RESTAURACION_REVISAR_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESTAURACION_REVISAR_SEGUNDOS debe ser un entero"
 
 mkdir -p "$RESPALDO_DIR"
 
@@ -312,6 +316,59 @@ aplicar_retencion() {
     done <<<"$borrados"
 }
 
+# H70: restauración pedida desde el panel. La ejecuta restaurar_version.sh con todas sus guardas
+# (huellas, mismo esquema, respaldo de seguridad previo). Pase lo que pase, la solicitud no queda abierta:
+# si quedara SOLICITADA o EN_PROCESO, las APIs seguirían en modo mantenimiento.
+atender_restauracion() {
+    local fila id version responsable
+    fila="$("${mysql_cmd[@]}" -e "SELECT id, version, COALESCE(responsable, 'Panel') FROM restauraciones
+                                  WHERE modo = 'APLICADA' AND estado = 'SOLICITADA' ORDER BY id LIMIT 1;" 2>/dev/null)" || return 0
+    [[ -n "$fila" ]] || return 0
+    IFS=$'\t' read -r id version responsable <<<"$fila"
+    if [[ ! "$id" =~ ^[0-9]+$ || ! "$version" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+        log "Solicitud de restauración con datos inválidos; se ignora."
+        return 0
+    fi
+    log "Restauración pedida desde el panel: versión $version (solicitud $id, $responsable)."
+    local salida motivo
+    salida="$(mktemp)"
+    if RESTAURACION_ID="$id" VERSION="$version" RESTAURACION_APLICAR=si RESTAURACION_RESPONSABLE="$responsable" \
+       FOTOS_EN_USO="$FOTOS_DIR" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USERNAME="$DB_USERNAME" \
+       DB_PASSWORD="$DB_PASSWORD" DB_PRODUCCION="$DB_NAME" RESPALDO_DIR="$RESPALDO_DIR" RESPALDO_PREFIJO="$RESPALDO_PREFIJO" \
+       bash "$AQUI/restaurar_version.sh" >"$salida" 2>&1; then
+        cat "$salida"
+        log "Restauración $id terminada."
+    else
+        cat "$salida"
+        log "La restauración $id no se completó."
+    fi
+    # El motivo que dio el script, para que el panel lo muestre (sin comillas ni saltos de línea)
+    motivo="$(grep -o 'ERROR: .*' "$salida" | tail -1 | cut -c8- || true)"
+    motivo="$(sanitizar_mensaje "${motivo:-revisar el registro del servicio de respaldo}")"
+    rm -f "$salida"
+    "${mysql_cmd[@]}" -e "UPDATE restauraciones SET estado = 'FALLIDA', finalizado_en = UTC_TIMESTAMP(6),
+                            mensaje = 'No se completó: $motivo La base y las fotos en uso no cambiaron.'
+                          WHERE id = $id AND estado IN ('SOLICITADA', 'EN_PROCESO');" 2>/dev/null || true
+}
+
+# Espera entre respaldos sin dejar de revisar si el panel pidió una restauración
+esperar() {
+    local restante="$1" paso
+    while (( restante > 0 )); do
+        paso=$restante
+        if (( RESTAURACION_REVISAR_SEGUNDOS > 0 && RESTAURACION_REVISAR_SEGUNDOS < paso )); then
+            paso=$RESTAURACION_REVISAR_SEGUNDOS
+        fi
+        # En segundo plano y con wait: así la señal de apagado se atiende al instante
+        sleep "$paso" &
+        wait $!
+        restante=$(( restante - paso ))
+        if (( RESTAURACION_REVISAR_SEGUNDOS > 0 )); then
+            atender_restauracion || true
+        fi
+    done
+}
+
 while true; do
     if tomar_candado; then
         CON_TIPO=0
@@ -338,7 +395,5 @@ while true; do
     [[ "$RESPALDO_UNA_VEZ" == "1" ]] && break
 
     log "Próximo respaldo en ${RESPALDO_INTERVALO_SEGUNDOS}s."
-    # En segundo plano y con wait: así la señal de apagado se atiende al instante, no al final de la espera
-    sleep "$RESPALDO_INTERVALO_SEGUNDOS" &
-    wait $!
+    esperar "$RESPALDO_INTERVALO_SEGUNDOS"
 done

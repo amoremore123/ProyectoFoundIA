@@ -30,6 +30,8 @@ DB_ENSAYO="${DB_ENSAYO:-objetos_perdidos_version}"
 FOTOS_EN_USO="${FOTOS_EN_USO:-}"
 RESTAURACION_APLICAR="${RESTAURACION_APLICAR:-no}"
 RESTAURACION_RESPONSABLE="${RESTAURACION_RESPONSABLE:-}"
+# H70: id de la restauración SOLICITADA desde el panel; si viene, se usa esa fila en vez de crear otra
+RESTAURACION_ID="${RESTAURACION_ID:-}"
 MANTENER_ENSAYO="${MANTENER_ENSAYO:-no}"
 DESFASE_MAXIMO_SEGUNDOS="${DESFASE_MAXIMO_SEGUNDOS:-3600}"
 
@@ -167,10 +169,21 @@ existe_restauraciones="$(sql_prod "SELECT COUNT(*) FROM information_schema.table
 [[ "$existe_restauraciones" == "1" ]] || fatal "Falta la tabla restauraciones: aplica database/migracion_h70_restauraciones.sql."
 
 MODO="ENSAYO"; (( APLICAR )) && MODO="APLICADA"
-REG_ID="$(sql_prod "INSERT INTO restauraciones (version, modo, estado, respaldo_base, respaldo_fotos, responsable, iniciado_en)
-    VALUES ('$VERSION', '$MODO', 'EN_PROCESO', '$(basename "$BASE_ARCHIVO")', '$(basename "$FOTOS_ARCHIVO")',
-            $( (( APLICAR )) && printf "'%s'" "$RESPONSABLE" || printf 'NULL'), UTC_TIMESTAMP(6));
-    SELECT LAST_INSERT_ID();")"
+if [[ -n "$RESTAURACION_ID" ]]; then
+    [[ "$RESTAURACION_ID" =~ ^[0-9]+$ ]] || fatal "RESTAURACION_ID inválido."
+    (( APLICAR )) || fatal "Una restauración pedida desde el panel siempre se aplica (RESTAURACION_APLICAR=si)."
+    tomada="$(sql_prod "UPDATE restauraciones SET estado = 'EN_PROCESO', iniciado_en = UTC_TIMESTAMP(6),
+                            respaldo_base = '$(basename "$BASE_ARCHIVO")', respaldo_fotos = '$(basename "$FOTOS_ARCHIVO")'
+                         WHERE id = $RESTAURACION_ID AND estado = 'SOLICITADA' AND version = '$VERSION';
+                        SELECT ROW_COUNT();")"
+    [[ "$tomada" == "1" ]] || fatal "La restauración $RESTAURACION_ID no está SOLICITADA para la versión $VERSION."
+    REG_ID="$RESTAURACION_ID"
+else
+    REG_ID="$(sql_prod "INSERT INTO restauraciones (version, modo, estado, respaldo_base, respaldo_fotos, responsable, iniciado_en)
+        VALUES ('$VERSION', '$MODO', 'EN_PROCESO', '$(basename "$BASE_ARCHIVO")', '$(basename "$FOTOS_ARCHIVO")',
+                $( (( APLICAR )) && printf "'%s'" "$RESPONSABLE" || printf 'NULL'), UTC_TIMESTAMP(6));
+        SELECT LAST_INSERT_ID();")"
+fi
 [[ "$REG_ID" =~ ^[0-9]+$ ]] || fatal "No se pudo registrar la restauración."
 
 inicio="$(date +%s)"

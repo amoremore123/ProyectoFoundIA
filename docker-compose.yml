@@ -144,7 +144,9 @@ services:
       FOTOS_DIR: /fotos
     volumes:
       - respaldos_data:/respaldos
-      - uploads_data:/fotos:ro
+      # H70: con escritura, para poder restaurar las fotos de una versión pedida desde el panel.
+      # Respaldar las fotos sigue sin modificarlas (H59).
+      - uploads_data:/fotos
     depends_on:
       mysql:
         condition: service_healthy
