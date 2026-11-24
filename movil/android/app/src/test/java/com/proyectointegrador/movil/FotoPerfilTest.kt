@@ -113,4 +113,14 @@ class FotoPerfilTest {
         assertTrue(llamadas.contains("DELETE /api/perfil/foto"))
         assertNull(vm.foto.value.bytes)
     }
+
+    @Test fun elAvisoDeUnResultadoAnteriorSePuedeDescartarAlEmpezarOtraAccion() = runBlocking {
+        val vm = FotoPerfilViewModel(cuenta, fotos)
+        withTimeout(5000) { vm.foto.first { !it.cargando } }
+        vm.quitar()
+        withTimeout(5000) { vm.accion.first { it.mensaje != null } }
+        vm.descartarAviso()
+        assertNull("Ya no queda el mensaje de la acción anterior", vm.accion.value.mensaje)
+        assertEquals(false, vm.accion.value.ocupada)
+    }
 }

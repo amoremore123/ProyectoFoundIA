@@ -3,6 +3,7 @@ package com.proyectointegrador.movil.ui.screens.publicaciones
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,8 +18,8 @@ fun ReclamoCustodiaScreen(id: Long, volver: () -> Unit,
     val accion by vm.accion.collectAsStateWithLifecycle()
     val qr by vm.qr.collectAsStateWithLifecycle()
     qr?.let { MostrarQrRetiro(it, vm::ocultarQr) }
-    var respuesta by remember { mutableStateOf("") }
-    var confirmar by remember { mutableStateOf(false) }
+    var respuesta by rememberSaveable { mutableStateOf("") }
+    var confirmar by rememberSaveable { mutableStateOf(false) }
 
     Pagina("Reclamo de custodia", volver) {
         EstadoAccion(accion)

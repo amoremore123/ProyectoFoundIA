@@ -82,7 +82,7 @@ fun ChatScreen(id: Long, volver: () -> Unit, vm: ChatViewModel = viewModel(key =
     val accion by vm.accion.collectAsStateWithLifecycle()
     var texto by rememberSaveable { mutableStateOf("") }
     var reportando by remember { mutableStateOf<MensajeChat?>(null) }
-    var motivo by remember { mutableStateOf("") }
+    var motivo by rememberSaveable { mutableStateOf("") }
     var confirmarBloqueo by remember { mutableStateOf(false) }
     val lista = rememberLazyListState()
     val elegirFoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let { vm.enviarFoto(it.toString()) } }

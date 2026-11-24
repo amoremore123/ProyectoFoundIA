@@ -16,6 +16,8 @@ open class AccionViewModel : ViewModel() {
     val evento=_evento.asStateFlow()
     fun consumirEvento() {_evento.value=null}
     protected fun emitirEvento(valor:String) {_evento.value=valor}
+    /** Quita un mensaje de resultado anterior (por ejemplo, el «Entrega registrada» al empezar otra entrega). No interrumpe una acción en curso. */
+    fun descartarAviso() {if(!_accion.value.ocupada)_accion.value=EstadoAccion()}
     protected fun informar(mensaje:String) {_accion.value=_accion.value.copy(mensaje=mensaje)}
     protected fun rechazar(mensaje:String) {_accion.value=EstadoAccion(error=mensaje)}
     protected fun ejecutar(bloque:suspend()->Unit) {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -31,12 +32,13 @@ fun RetiroScreen(volver: () -> Unit, vm: RetiroViewModel = viewModel(factory = f
     val estado by vm.estado.collectAsStateWithLifecycle()
     val accion by vm.accion.collectAsStateWithLifecycle()
     val evento by vm.evento.collectAsStateWithLifecycle()
-    var etiqueta by remember { mutableStateOf("") }
-    var token by remember { mutableStateOf("") }
-    var escanear by remember { mutableStateOf<Boolean?>(null) }
-    var solicitado by remember { mutableStateOf(false) }
-    var confirmar by remember { mutableStateOf(false) }
-    var aviso by remember { mutableStateOf<String?>(null) }
+    // rememberSaveable: lo escaneado no se pierde al rotar el teléfono ni si Android cierra la app en segundo plano.
+    var etiqueta by rememberSaveable { mutableStateOf("") }
+    var token by rememberSaveable { mutableStateOf("") }
+    var escanear by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var solicitado by rememberSaveable { mutableStateOf(false) }
+    var confirmar by rememberSaveable { mutableStateOf(false) }
+    var aviso by rememberSaveable { mutableStateOf<String?>(null) }
     val contexto = LocalContext.current
     val permiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
         if (concedido) escanear = solicitado else aviso = "Sin permiso de cámara. Puedes ingresar los códigos."
@@ -68,14 +70,14 @@ fun RetiroScreen(volver: () -> Unit, vm: RetiroViewModel = viewModel(factory = f
             aviso?.let { AvisoEstado(it, true) }
             val etiquetaOk = esEtiquetaCustodia(etiqueta)
             val tokenOk = esCodigoRetiro(token)
-            OutlinedTextField(etiqueta, { etiqueta = it.take(500); aviso = null }, label = { Text("Etiqueta de custodia") },
+            OutlinedTextField(etiqueta, { etiqueta = it.take(500); aviso = null; vm.descartarAviso() }, label = { Text("Etiqueta de custodia") },
                 enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
                 isError = etiqueta.isNotBlank() && !etiquetaOk,
                 supportingText = { if (etiqueta.isNotBlank()) Text(if (etiquetaOk) "Etiqueta de custodia leída." else "Este valor no parece una etiqueta de custodia.") })
             OutlinedButton(onClick = { iniciar(true) }, enabled = !accion.ocupada) { Text("Escanear etiqueta") }
             val abrirWeb = LocalAbrirWeb.current
             if (etiquetaOk && abrirWeb != null) TextButton(onClick = { abrirWeb("etiqueta", etiqueta) }) { Text("Ver la etiqueta en la web de FoundIA") }
-            OutlinedTextField(token, { token = it.take(64); aviso = null }, label = { Text("Código de retiro") },
+            OutlinedTextField(token, { token = it.take(64); aviso = null; vm.descartarAviso() }, label = { Text("Código de retiro") },
                 enabled = !accion.ocupada, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation(),
                 isError = token.isNotBlank() && !tokenOk,
                 supportingText = { if (token.isNotBlank()) Text(if (tokenOk) "Código de retiro leído." else "Este valor no parece un código de retiro.") })
@@ -89,8 +91,8 @@ fun RetiroScreen(volver: () -> Unit, vm: RetiroViewModel = viewModel(factory = f
             // El contenido decide a qué campo corresponde: un QR de retiro cabe en el campo de la etiqueta por su
             // largo, pero no es una etiqueta de custodia.
             when {
-                esEtiqueta && esEtiquetaCustodia(valor) -> { etiqueta = valor.trim(); aviso = null }
-                !esEtiqueta && esCodigoRetiro(valor) -> { token = valor.trim(); aviso = null }
+                esEtiqueta && esEtiquetaCustodia(valor) -> { etiqueta = valor.trim(); aviso = null; vm.descartarAviso() }
+                !esEtiqueta && esCodigoRetiro(valor) -> { token = valor.trim(); aviso = null; vm.descartarAviso() }
                 esEtiqueta && esCodigoRetiro(valor) -> aviso = "Ese QR es un código de retiro. Para este campo escanea la etiqueta pegada en el objeto."
                 !esEtiqueta && esEtiquetaCustodia(valor) -> aviso = "Ese QR es la etiqueta del objeto. Para este campo escanea el QR de retiro que presenta la persona."
                 else -> aviso = "Ese QR no pertenece a FoundIA o no corresponde al campo seleccionado."

@@ -96,3 +96,14 @@ instrumentadas: migración 4→5 y persistencia de la cola.
 Como Google Cloud exige facturación para la clave de Maps, el detalle de una publicación con coordenadas muestra un mapa de
 OpenStreetMap (`mapa-1-osm.png`: mosaicos reales, marcador en el punto y la atribución «© Colaboradores de OpenStreetMap»).
 Si algún día se define `foundiaMapsKey`, la app usa Google Maps. En los dos casos queda el botón «Abrir en mapas».
+
+## Rotar el teléfono ya no borra lo escrito (24/11/2026)
+
+Problema encontrado por Amore en el teléfono físico: al rotar, se perdía lo escaneado en «Registrar entrega».
+Causa: Android recrea la actividad al rotar y esas pantallas guardaban sus campos solo en memoria.
+Arreglo: la actividad ya no se recrea al rotar ni al cambiar tamaño de letra, tema o teclado (`configChanges`), y los campos de
+«Registrar entrega», el texto del reclamo en custodia y el motivo de un reporte del chat usan `rememberSaveable` (sobreviven
+también si Android cierra la app en segundo plano). Además, el mensaje «Entrega registrada» de una entrega anterior ya no se
+queda en pantalla al empezar otra.
+Comprobado en el emulador: se escribió un código de retiro, se rotó a horizontal (`rot-2-horizontal.png`) y de vuelta a vertical,
+y el código y su mensaje «Código de retiro leído» siguieron ahí. Prueba unitaria del aviso descartable.
