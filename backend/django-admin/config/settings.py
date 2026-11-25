@@ -113,7 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "es"
 
-TIME_ZONE = "UTC"
+# Hora de Lima en las etiquetas, constancias y reportes. La base guarda en UTC (USE_TZ) y se
+# convierte al mostrar con timezone.localtime. MySQL necesita sus tablas de zonas horarias (la imagen las trae).
+TIME_ZONE = os.environ.get("DJANGO_TIME_ZONE", "America/Lima")
 
 USE_I18N = True
 

@@ -40,6 +40,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout", "/api/auth/logout-all", "/api/auth/firebase-token").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/legal/documentos").permitAll()
+                        // Documentación de la API (Swagger) y estado del servicio: públicos, sin datos privados
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
                         // H71: avisos destacados vigentes, públicos
                         .requestMatchers(HttpMethod.GET, "/api/avisos-destacados").permitAll()

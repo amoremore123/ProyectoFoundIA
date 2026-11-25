@@ -38,6 +38,35 @@ spring:
           writetimeout: 5000
   jackson:
     time-zone: UTC
+  # Caché de categorías: vence sola porque las edita el panel de Django
+  cache:
+    type: ${CACHE_TYPE:caffeine}
+    cache-names: categorias
+    caffeine:
+      spec: maximumSize=50,expireAfterWrite=60s
+
+# Swagger UI en /swagger-ui.html y el contrato OpenAPI en /v3/api-docs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+
+# Actuator: solo /actuator/health, con el estado de cada parte (base de datos, disco) sin detalles
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-components: always
+      show-details: never
+  health:
+    # El correo no impide usar la API: si el SMTP cae, la API sigue «UP»
+    mail:
+      enabled: false
 
 app:
   upload:
