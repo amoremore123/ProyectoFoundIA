@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Icono from './Icono';
+import RestaurarVersion from './RestaurarVersion';
 import { tamanoLegible } from './UltimoRespaldo';
 import { getRestauraciones, getVersionesRespaldo, mensajeError } from '../services/api';
 import { fechaHora, Paginacion } from '../pages/Custodia';
@@ -49,6 +50,7 @@ export default function VersionesRestaurables() {
   const historial = useLista(getRestauraciones, 'No se pudo cargar el historial de restauraciones');
   const [elegida, setElegida] = useState(null);
   const [copiado, setCopiado] = useState(false);
+  const [aRestaurar, setARestaurar] = useState(null);
 
   const copiar = async () => {
     try { await navigator.clipboard.writeText(comandoEnsayo(elegida)); setCopiado(true); } catch { setCopiado(false); }
@@ -90,6 +92,10 @@ export default function VersionesRestaurables() {
                           <button type="button" className="btn btn-fantasma btn-mini" onClick={() => { setElegida(v.version); setCopiado(false); }}
                             aria-label={`Ver cómo restaurar la versión ${v.version}`}>Cómo restaurar</button>
                         ) : <span className="nota-tabla">No se puede</span>}
+                        {v.disponible && (
+                          <button type="button" className="btn btn-peligro btn-mini" onClick={() => setARestaurar(v.version)}
+                            aria-label={`Restaurar la versión ${v.version}`}>Restaurar</button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -98,6 +104,11 @@ export default function VersionesRestaurables() {
             </div>
             <Paginacion pagina={versiones.pagina} lista={versiones.lista} onCambiar={versiones.setPagina} />
           </>
+        )}
+
+        {aRestaurar && (
+          <RestaurarVersion key={aRestaurar} version={aRestaurar} onCerrar={() => setARestaurar(null)}
+            onTerminada={() => historial.cargar()} />
         )}
 
         {elegida && (

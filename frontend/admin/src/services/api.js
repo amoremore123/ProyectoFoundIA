@@ -404,3 +404,13 @@ export const getFotoChat = async (url) => {
   const { data } = await chatApi.get(url, { responseType: 'blob' });
   return data;
 };
+
+// H70: pedir la restauración de una versión (doble confirmación) y seguir su avance.
+export const solicitarRestauracion = async (version, { confirmacionVersion, confirmacionTexto }) => {
+  const { data } = await api.post(`/api/admin/respaldos/versiones/${encodeURIComponent(version)}/restaurar/`, { confirmacionVersion, confirmacionTexto });
+  return data;
+};
+export const getRestauracion = async (id) => {
+  const { data } = await api.get(`/api/admin/restauraciones/${id}/`);
+  return data;
+};
