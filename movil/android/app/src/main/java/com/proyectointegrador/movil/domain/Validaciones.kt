@@ -4,14 +4,17 @@ private val PARTE_TOKEN = "[A-Za-z0-9_-]{8,}"
 private val TOKEN_ETIQUETA = Regex("^$PARTE_TOKEN\\.$PARTE_TOKEN\\.$PARTE_TOKEN$")
 private val TOKEN_RETIRO = Regex("^[A-Za-z0-9_-]{16,64}$")
 
-/** La etiqueta de custodia lleva el enlace `…?t=<token firmado>` o, en las etiquetas antiguas, el token solo. */
-fun esEtiquetaCustodia(valor:String):Boolean {
+/** El token firmado de una etiqueta, ya venga como enlace `…?t=<token>` o solo. Null si no es una etiqueta. */
+fun extraerTokenEtiqueta(valor:String):String? {
     val texto=valor.trim()
-    if(texto.length !in 1..500) return false
-    if(!texto.startsWith("http://") && !texto.startsWith("https://")) return TOKEN_ETIQUETA.matches(texto)
-    val token=texto.substringAfter("?","").split("&").firstOrNull { it.startsWith("t=") }?.removePrefix("t=") ?: return false
-    return TOKEN_ETIQUETA.matches(token)
+    if(texto.length !in 1..500) return null
+    val token=if(!texto.startsWith("http://") && !texto.startsWith("https://")) texto
+        else texto.substringAfter("?","").split("&").firstOrNull { it.startsWith("t=") }?.removePrefix("t=")
+    return token?.takeIf { TOKEN_ETIQUETA.matches(it) }
 }
+
+/** La etiqueta de custodia lleva el enlace `…?t=<token firmado>` o, en las etiquetas antiguas, el token solo. */
+fun esEtiquetaCustodia(valor:String):Boolean = extraerTokenEtiqueta(valor)!=null
 
 /** El QR de retiro es un código opaco de un solo uso, sin puntos ni enlaces. */
 fun esCodigoRetiro(valor:String)=TOKEN_RETIRO.matches(valor.trim())

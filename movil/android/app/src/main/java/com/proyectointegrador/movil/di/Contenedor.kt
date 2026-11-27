@@ -13,7 +13,13 @@ class Contenedor(context:Context) {
     val experiencia=ExperienciaRepository(PreferenciasLocales(context))
     val base=FoundIADatabase.abrir(context)
     val publicaciones:PublicacionesRepository=ApiPublicacionesRepository(RetrofitClient.api,RoomCachePublica(base))
-    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca)
+    val sesionExterna=com.proyectointegrador.movil.data.push.SesionExterna(RetrofitClient.api,
+        com.proyectointegrador.movil.data.push.crearServicioFirebase(context),
+        com.proyectointegrador.movil.data.push.AlmacenDispositivoLocal(context))
+    val chatLocal:com.proyectointegrador.movil.data.local.AlmacenChat=com.proyectointegrador.movil.data.local.RoomAlmacenChat(base)
+    val colaPublicaciones:com.proyectointegrador.movil.data.local.ColaPublicaciones=com.proyectointegrador.movil.data.local.RoomColaPublicaciones(base)
+    val cuenta=CuentaRepository(RetrofitClient.api,publicaciones,biblioteca=RetrofitClient.biblioteca,externa=sesionExterna,chatLocal=chatLocal,
+        cola=colaPublicaciones,alEncolarPublicacion={com.proyectointegrador.movil.data.publicaciones.programarEnvioPublicaciones(context)})
     val asistente:AsistenteRepository=ApiAsistenteRepository(RetrofitClient.api)
 }
 object Inyeccion {
@@ -28,6 +34,7 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             ComunidadViewModel::class.java->ComunidadViewModel(c.cuenta)
             ExperienciaViewModel::class.java->ExperienciaViewModel(c.experiencia)
             ObjetosViewModel::class.java->ObjetosViewModel(c.publicaciones)
+            BusquedaFotoViewModel::class.java->BusquedaFotoViewModel(c.asistente,c.fotografias)
             SesionViewModel::class.java->SesionViewModel(c.cuenta)
             AccesoViewModel::class.java->AccesoViewModel(c.cuenta)
             RegistroViewModel::class.java->RegistroViewModel(c.cuenta)
@@ -38,8 +45,14 @@ fun fabrica(objetoId:Long=0,parejaId:String="",tokenRecuperacion:String?=null)=o
             NuevaClaveViewModel::class.java->NuevaClaveViewModel(c.cuenta,tokenRecuperacion)
             PublicarViewModel::class.java->PublicarViewModel(c.cuenta,c.publicaciones,c.fotografias)
             PropiosViewModel::class.java->PropiosViewModel(c.cuenta)
+            EditarPublicacionViewModel::class.java->EditarPublicacionViewModel(c.cuenta,c.publicaciones,objetoId)
             SugerenciasViewModel::class.java->SugerenciasViewModel(c.cuenta,objetoId)
             ParejaViewModel::class.java->ParejaViewModel(c.cuenta,parejaId)
+            FotoPerfilViewModel::class.java->FotoPerfilViewModel(c.cuenta,c.fotografias)
+            AvisosDestacadosViewModel::class.java->AvisosDestacadosViewModel(c.cuenta)
+            ConversacionesViewModel::class.java->ConversacionesViewModel(c.cuenta)
+            ChatViewModel::class.java->ChatViewModel(c.cuenta,c.fotografias,objetoId,local=c.chatLocal)
+            IniciarChatViewModel::class.java->IniciarChatViewModel(c.cuenta)
             AvisosViewModel::class.java->AvisosViewModel(c.cuenta)
             PreferenciasViewModel::class.java->PreferenciasViewModel(c.cuenta)
             EliminacionViewModel::class.java->EliminacionViewModel(c.cuenta)

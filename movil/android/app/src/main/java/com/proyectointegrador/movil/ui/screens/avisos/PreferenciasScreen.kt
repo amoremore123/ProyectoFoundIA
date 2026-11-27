@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.proyectointegrador.movil.ui.components.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.proyectointegrador.movil.di.fabrica
 import com.proyectointegrador.movil.ui.viewmodel.*
+import com.proyectointegrador.movil.domain.*
 
 @Composable fun PreferenciasScreen(volver:()->Unit,vm:PreferenciasViewModel=viewModel(factory=fabrica())) {
     val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val edicion by vm.edicion.collectAsStateWithLifecycle()
@@ -40,10 +43,29 @@ import com.proyectointegrador.movil.ui.viewmodel.*
                 }
             }
             }
+            Panel("Por dónde recibirlo") {
+                Text("La bandeja de Notificaciones siempre guarda los avisos de los tipos activos. Aquí eliges si además llegan al teléfono o al correo de tu cuenta.",style=MaterialTheme.typography.bodySmall)
+                TIPOS_DE_AVISO.forEach {(tipo,texto)->
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(texto,Modifier.weight(1f))
+                        SelectorCanal(canalDe(preferencias.canales,tipo),!accion.ocupada,texto) {vm.editarCanal(tipo,it)}
+                    }
+                }
+            }
             EstadoAccion(accion)
             BotonPrincipal("Guardar preferencias",vm::guardar,!accion.ocupada)
             OutlinedButton(onClick=vm::recargarPreferencias,enabled=!accion.ocupada) {Text("Recargar preferencias del servidor")}
             TextButton(onClick=vm::cancelar,enabled=!accion.ocupada) {Text("Cancelar cambios")}
+        }
+    }
+}
+
+@Composable private fun SelectorCanal(canal:String,habilitado:Boolean,tipo:String,cambiar:(String)->Unit) {
+    var abierto by remember {mutableStateOf(false)}
+    Box {
+        OutlinedButton(onClick={abierto=true},enabled=habilitado,modifier=Modifier.semantics{contentDescription="Canal de $tipo: ${etiquetaCanal(canal)}"}) {Text(etiquetaCanal(canal))}
+        DropdownMenu(expanded=abierto,onDismissRequest={abierto=false}) {
+            CANALES_DE_AVISO.forEach {(valor,texto)->DropdownMenuItem(text={Text(texto)},onClick={abierto=false;cambiar(valor)})}
         }
     }
 }

@@ -117,8 +117,7 @@ import java.util.*
      OutlinedButton(onClick={selector.launch("image/*")},enabled=!accion.ocupada&&f.publicadoId==null,modifier=Modifier.fillMaxWidth()){Icon(Simbolos.Foto,null);Spacer(Modifier.width(8.dp));Text("Elegir fotografía")}
      if(f.foto!=null)TextButton(onClick={viewModel.foto(null)},enabled=f.publicadoId==null){Text("Quitar fotografía")}
     }
-    3->{Text("¿Dónde ocurrió?",style=MaterialTheme.typography.headlineSmall);Text("Indica el pabellón, aula o punto de referencia del campus.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-     CampoPublicacion("Ubicación",f.ubicacion,{viewModel.editar("ubicacion",it)},f.errores["ubicacion"])}
+    3->PasoUbicacion(f,viewModel,accion.ocupada)
     4->{Text("¿Cuándo ocurrió?",style=MaterialTheme.typography.headlineSmall);OutlinedButton(onClick={calendario=true},modifier=Modifier.fillMaxWidth()){Icon(Simbolos.Fecha,null);Spacer(Modifier.width(10.dp));Text(f.fecha.ifBlank {"Elegir fecha"})};f.errores["fecha"]?.let {AvisoEstado(it,true)}}
     5->{TipoChip(f.tipo);Text(f.nombre.ifBlank {"Falta el nombre"},style=MaterialTheme.typography.titleLarge);Text(f.descripcion.ifBlank {"Completa la descripción del objeto."})
      FilaDato(Simbolos.Lugar,f.ubicacion.ifBlank {"Falta la ubicación"});FilaDato(Simbolos.Fecha,f.fecha.ifBlank {"Falta la fecha"})

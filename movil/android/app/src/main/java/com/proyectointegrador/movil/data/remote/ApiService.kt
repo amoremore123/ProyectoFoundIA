@@ -15,6 +15,12 @@ import retrofit2.http.Query
 /** Contrato de la API publica de Spring Boot (seccion 3 de docs/api/endpoints.md). */
 interface ApiService {
 
+    @POST("api/asistente/buscar-por-foto")
+    suspend fun buscarPorFoto(@Body datos: FotoBusquedaRequest): FotoBusquedaRespuesta
+
+    @POST("api/asistente/voz")
+    suspend fun vozNatural(@Body datos: VozRequest): okhttp3.ResponseBody
+
     @POST("api/asistente/interpretar")
     suspend fun interpretarFindi(@Body datos: ConsultaFindi): InterpretacionFindi
 
@@ -36,7 +42,12 @@ interface ApiService {
         @Query("q") q: String? = null,
         @Query("tipo") tipo: String? = null,
         @Query("categoriaId") categoriaId: Long? = null,
-        @Query("ubicacion") ubicacion: String? = null
+        @Query("ubicacion") ubicacion: String? = null,
+        @Query("desde") desde: String? = null,
+        @Query("hasta") hasta: String? = null,
+        @Query("latitud") latitud: Double? = null,
+        @Query("longitud") longitud: Double? = null,
+        @Query("radioKm") radioKm: Double? = null
     ): List<Objeto>
 
     @GET("api/objetos/categoria/{id}")
@@ -49,7 +60,7 @@ interface ApiService {
     suspend fun coincidencias(@Path("id") id: Long): List<CoincidenciaSugerida>
 
     @retrofit2.http.Multipart @POST("api/objetos/{id}/fotos") suspend fun subirFoto(@Path("id") id:Long,@retrofit2.http.Part foto:okhttp3.MultipartBody.Part):ObjetoFoto
-    @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest):Objeto
+    @POST("api/objetos") suspend fun publicar(@Body datos:PublicacionRequest,@retrofit2.http.Header("Idempotency-Key") clave:String?=null):Objeto
     @PUT("api/objetos/{id}") suspend fun editar(@Path("id") id:Long,@Body datos:PublicacionRequest):Objeto
     @DELETE("api/objetos/{id}") suspend fun eliminar(@Path("id") id:Long):retrofit2.Response<Unit>
     @POST("api/auth/login") suspend fun login(@Body datos: Login): Acceso
@@ -94,4 +105,33 @@ interface ApiService {
     // H35: recuperación mediante la API común, con enlace de un solo uso.
     @POST("api/auth/recuperar-password") suspend fun solicitarClave(@Body datos: Correo): Mensaje
     @POST("api/auth/restablecer-password") suspend fun restablecer(@Body datos: Restablecer): Mensaje
+    // H57: dispositivo para recibir push. H72: token personalizado para Firebase Auth.
+    @POST("api/dispositivos") suspend fun registrarDispositivo(@Body datos: DispositivoRequest): Dispositivo
+    @DELETE("api/dispositivos/{id}") suspend fun eliminarDispositivo(@Path("id") id: Long): retrofit2.Response<Unit>
+    @POST("api/auth/firebase-token") suspend fun tokenFirebase(): TokenFirebase
+    // H71: avisos destacados vigentes (público, sin sesión).
+    @GET("api/avisos-destacados") suspend fun avisosDestacados(): List<AvisoDestacado>
+    // H62 y H64: fotos privadas del chat. Solo se piden con sesión y a rutas propias (ver esRutaFotoPrivada).
+    @GET suspend fun descargarPrivado(@retrofit2.http.Url ruta: String): okhttp3.ResponseBody
+    // H64: foto de perfil privada. No es pública: se pide con sesión.
+    @GET("api/perfil/foto") suspend fun fotoPerfil(): okhttp3.ResponseBody
+    @retrofit2.http.Multipart
+    @POST("api/perfil/foto") suspend fun subirFotoPerfil(@retrofit2.http.Part archivo: okhttp3.MultipartBody.Part): FotoPerfilRespuesta
+    @DELETE("api/perfil/foto") suspend fun quitarFotoPerfil(): retrofit2.Response<Unit>
+    // H55 a H63: chat entre personas y con la biblioteca.
+    @POST("api/conversaciones") suspend fun iniciarConversacion(@Body datos: IniciarConversacion): Conversacion
+    @GET("api/conversaciones") suspend fun conversaciones(): List<Conversacion>
+    @GET("api/conversaciones/{id}") suspend fun conversacion(@Path("id") id: Long): Conversacion
+    @GET("api/conversaciones/{id}/mensajes") suspend fun mensajes(@Path("id") id: Long, @Query("despuesDe") despuesDe: Long = 0): MensajesRespuesta
+    @POST("api/conversaciones/{id}/mensajes") suspend fun enviarMensaje(@Path("id") id: Long, @Body datos: EnviarMensaje,
+        @retrofit2.http.Header("Idempotency-Key") clave: String? = null): MensajeChat
+    @retrofit2.http.Multipart
+    @POST("api/conversaciones/{id}/mensajes")
+    suspend fun enviarMensajeConFoto(@Path("id") id: Long, @retrofit2.http.Part foto: okhttp3.MultipartBody.Part,
+        @retrofit2.http.Part("texto") texto: okhttp3.RequestBody?): MensajeChat
+    @POST("api/conversaciones/{id}/leida") suspend fun marcarConversacionLeida(@Path("id") id: Long): retrofit2.Response<Unit>
+    @POST("api/conversaciones/{id}/bloqueo") suspend fun bloquearConversacion(@Path("id") id: Long): Conversacion
+    @DELETE("api/conversaciones/{id}/bloqueo") suspend fun desbloquearConversacion(@Path("id") id: Long): Conversacion
+    @POST("api/conversaciones/{id}/mensajes/{mensajeId}/reporte")
+    suspend fun reportarMensaje(@Path("id") id: Long, @Path("mensajeId") mensajeId: Long, @Body datos: ReportarMensaje): retrofit2.Response<Unit>
 }

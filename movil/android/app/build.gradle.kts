@@ -19,6 +19,10 @@ android {
         buildConfigField("String", "API_URL", "\"${providers.gradleProperty("foundiaApiUrl").getOrElse("http://10.0.2.2:8081/")}\"")
         buildConfigField("String", "ADMIN_API_URL", "\"${providers.gradleProperty("foundiaAdminApiUrl").getOrElse("http://10.0.2.2:8000/")}\"")
         buildConfigField("String", "WEB_URL", "\"${providers.gradleProperty("foundiaWebUrl").getOrElse("http://10.0.2.2:5173/")}\"")
+        // La clave de Google Maps nunca va en Git: se pasa con -PfoundiaMapsKey o en ~/.gradle/gradle.properties.
+        val claveMaps = providers.gradleProperty("foundiaMapsKey").orElse(providers.environmentVariable("FOUNDIA_MAPS_KEY")).getOrElse("")
+        manifestPlaceholders["MAPS_API_KEY"] = claveMaps
+        buildConfigField("boolean", "MAPS_CONFIGURADO", claveMaps.isNotBlank().toString())
     }
 
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
@@ -46,8 +50,19 @@ android {
 
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
+// Firebase solo se activa si el equipo puso google-services.json (fuera de Git). Sin él la app compila y abre igual.
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:maps-compose:6.2.1")
+    // Mapa gratuito de respaldo (OpenStreetMap) cuando no hay clave de Google Maps.
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.camera:camera-camera2:1.4.2")

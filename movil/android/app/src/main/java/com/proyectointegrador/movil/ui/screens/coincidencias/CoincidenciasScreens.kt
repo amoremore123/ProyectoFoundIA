@@ -17,16 +17,20 @@ import com.proyectointegrador.movil.ui.components.*
 @Composable fun ResumenObjeto(objeto:Objeto) {
  Panel {TipoChip(objeto.tipoSeguro);Text(objeto.nombre,style=MaterialTheme.typography.titleLarge);Text(objeto.descripcion?:"Sin descripción");FilaDato(Simbolos.Caja,objeto.categoria?.nombre?:"Sin categoría");FilaDato(Simbolos.Lugar,objeto.ubicacion?:"Sin ubicación");FilaDato(Simbolos.Fecha,objeto.fechaObjeto?:"Sin fecha");Text(objeto.estado?:"Sin estado",style=MaterialTheme.typography.labelSmall)}
 }
-@Composable fun PropiosScreen(volver:()->Unit,detalle:(Long)->Unit,sugerencias:(Long)->Unit,vm:PropiosViewModel=viewModel(factory=fabrica())) {
- val estado by vm.estado.collectAsStateWithLifecycle()
+@Composable fun PropiosScreen(volver:()->Unit,detalle:(Long)->Unit,sugerencias:(Long)->Unit,editar:(Long)->Unit={},vm:PropiosViewModel=viewModel(factory=fabrica())) {
+ val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val porEliminar by vm.porEliminar.collectAsStateWithLifecycle()
  Pagina("Mis publicaciones",volver){Consulta(estado,vm::recargar){objetos,recargar->
   TextButton(onClick=recargar){Text("Actualizar publicaciones")}
+  EstadoAccion(accion)
   if(objetos.isEmpty())Vacio("Tu historia empieza aquí","Publica lo que perdiste o encontraste para conectar con tu comunidad.",Simbolos.Caja)
-  objetos.forEach {o->Panel{TipoChip(o.tipoSeguro);FotoObjeto(o,Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(16.dp)));Text(o.nombre,style=MaterialTheme.typography.titleMedium);Text(o.estado?:"Sin estado",style=MaterialTheme.typography.labelSmall)
+  objetos.forEach {o->Panel{TipoChip(o.tipoSeguro);FotoObjeto(o,Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(16.dp)));Text(o.nombre,style=MaterialTheme.typography.titleMedium);Text(com.proyectointegrador.movil.domain.etiquetaEstadoObjeto(o.estado),style=MaterialTheme.typography.labelSmall)
    if(o.estado in listOf("ACTIVO","RECUPERADO"))OutlinedButton(onClick={detalle(o.id)},modifier=Modifier.fillMaxWidth()){Text("Ver publicación")}
+   if(com.proyectointegrador.movil.domain.puedeEditarPublicacion(o.estado))OutlinedButton(onClick={editar(o.id)},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Editar")}
+   if(com.proyectointegrador.movil.domain.puedeEliminarPublicacion(o.estado))TextButton(onClick={vm.pedirEliminar(o)},enabled=!accion.ocupada){Text("Eliminar")}
    if(o.tipo=="PERDIDO"&&o.estado=="ACTIVO")BotonPrincipal("Revisar coincidencias",{sugerencias(o.id)},icono=Simbolos.Chispa)
   }}
  }}
+ porEliminar?.let {o->Confirmacion("Eliminar publicación","«${o.nombre}» dejará de aparecer en las búsquedas. Se conserva en tu historial.",accion,vm::cancelarEliminar,vm::confirmarEliminar)}
 }
 @Composable fun SugerenciasScreen(objetoId:Long,volver:()->Unit,abrir:(String)->Unit,vm:SugerenciasViewModel=viewModel(key="sugerencias-$objetoId",factory=fabrica(objetoId=objetoId))) {
  val estado by vm.estado.collectAsStateWithLifecycle()
@@ -41,7 +45,7 @@ import com.proyectointegrador.movil.ui.components.*
  }}
 }
 @Composable fun ParejaScreen(id:String,volver:()->Unit,propios:()->Unit,vm:ParejaViewModel=viewModel(key="pareja-$id",factory=fabrica(parejaId=id))) {
- val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val resultado by vm.resultado.collectAsStateWithLifecycle();val confirmar by vm.confirmacion.collectAsStateWithLifecycle()
+ val estado by vm.estado.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle();val resultado by vm.resultado.collectAsStateWithLifecycle();val contactoId by vm.contactoId.collectAsStateWithLifecycle();val confirmar by vm.confirmacion.collectAsStateWithLifecycle()
  Pagina("Conecta las pistas",volver){
   if(resultado!=null){IlustracionEncuentro(2,Modifier.fillMaxWidth().heightIn(max=210.dp));AvisoEstado(resultado!!);BotonPrincipal("Volver a mis publicaciones",propios)}
   else Consulta(estado,vm::recargar){datos,_->val pareja=datos.pareja
@@ -54,6 +58,7 @@ import com.proyectointegrador.movil.ui.components.*
    Panel("Características comparadas"){pareja.criterios.forEach {(criterio,puntos)->Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(criterio.replaceFirstChar {it.uppercase()},Modifier.weight(1f));Text("$puntos puntos",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.tertiary)}}}
    ResumenObjeto(pareja.perdido);ResumenObjeto(pareja.encontrado)
    EstadoAccion(accion)
+   contactoId?.let {com.proyectointegrador.movil.ui.screens.chat.BotonConversar(contactoId=it)}
    if(vm.puedeGestionar){BotonPrincipal("Confirmar recuperación",{vm.pedir("recuperar")},!accion.ocupada,icono=Simbolos.Check);OutlinedButton(onClick={vm.pedir("contactar")},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Solicitar contacto")};TextButton(onClick={vm.pedir("descartar")},enabled=!accion.ocupada,modifier=Modifier.fillMaxWidth()){Text("Descartar coincidencia")}}
    else AvisoEstado("La gestión corresponde al titular del objeto perdido activo.")
   }

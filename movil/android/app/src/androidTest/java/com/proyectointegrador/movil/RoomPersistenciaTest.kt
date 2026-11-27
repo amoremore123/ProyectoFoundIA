@@ -18,7 +18,7 @@ class RoomPersistenciaTest {
     private val contexto=InstrumentationRegistry.getInstrumentation().targetContext
     private val nombre="room-persistencia-prueba.db"
     @get:Rule val migraciones=MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),FoundIADatabase::class.java)
-    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2).build()
+    private fun abrir()=Room.databaseBuilder(contexto,FoundIADatabase::class.java,nombre).addMigrations(FoundIADatabase.MIGRACION_1_2,FoundIADatabase.MIGRACION_2_3,FoundIADatabase.MIGRACION_3_4,FoundIADatabase.MIGRACION_4_5).build()
     @Before fun preparar(){contexto.deleteDatabase(nombre)}
     @After fun limpiar(){contexto.deleteDatabase(nombre);contexto.deleteDatabase("room-migracion-prueba.db")}
 
@@ -67,6 +67,88 @@ class RoomPersistenciaTest {
         val tablas=mutableListOf<String>()
         db.openHelper.readableDatabase.query("SELECT name FROM sqlite_master WHERE type='table'").use {while(it.moveToNext())tablas.add(it.getString(0))}
         assertFalse(tablas.any {it.contains("usuario") || it.contains("sesion") || it.contains("password") || it.contains("notificacion")})
+        db.close()
+    }
+
+    @Test fun migracionDosATresConservaLaCacheYCreaLasTablasDelChat() {
+        val v2=migraciones.createDatabase("room-migracion-prueba.db",2)
+        v2.execSQL("INSERT INTO publicaciones_cache(id,contenido,actualizadoEn,venceEn) VALUES (5,'{\"id\":5,\"nombre\":\"Previo\"}',1000,2000)")
+        v2.close()
+        val v3=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",3,true,FoundIADatabase.MIGRACION_2_3)
+        v3.query("SELECT contenido FROM publicaciones_cache WHERE id=5").use {assertTrue(it.moveToFirst());assertTrue(it.getString(0).contains("Previo"))}
+        v3.query("SELECT COUNT(*) FROM publicaciones_cache").use {assertTrue(it.moveToFirst());assertEquals(1,it.getInt(0))}
+        for(tabla in listOf("conversaciones_cache","mensajes_chat_cache","mensajes_pendientes"))
+            v3.query("SELECT COUNT(*) FROM "+tabla).use {assertTrue(it.moveToFirst());assertEquals(0,it.getInt(0))}
+        v3.close()
+    }
+    @Test fun elChatGuardadoSobreviveAlCierreLaColaSeOrdenaYLimpiarBorraTodo()=runBlocking {
+        var db=abrir();var chat=RoomAlmacenChat(db)
+        chat.guardarConversaciones(listOf(Conversacion(9,"ENTRE_USUARIOS",3,"Mochila","ABIERTA",false,false,Participante(7,"Beto"),null,2)))
+        chat.guardarMensajes(9,listOf(MensajeChat(1,7,"Beto","hola",null,null),MensajeChat(2,5,"Ana","azul",null,null)))
+        chat.guardarMensajes(9,listOf(MensajeChat(2,5,"Ana","azul actualizado",null,null)))
+        val a=chat.agregarPendiente(9,"primero","clave-a-0001");val b=chat.agregarPendiente(9,"segundo","clave-b-0002")
+        db.close()
+        db=abrir();chat=RoomAlmacenChat(db)
+        assertEquals(9L,chat.conversaciones().single().id)
+        assertEquals(listOf("hola","azul actualizado"),chat.mensajes(9).map {it.texto})
+        assertEquals(listOf("primero","segundo"),chat.pendientes(9).map {it.texto})
+        assertTrue(b.localId>a.localId)
+        chat.quitarPendiente(a.localId)
+        assertEquals(listOf("segundo"),chat.pendientes(9).map {it.texto})
+        chat.limpiar()
+        assertTrue(chat.conversaciones().isEmpty()&&chat.mensajes(9).isEmpty()&&chat.pendientes(9).isEmpty())
+        db.close()
+    }
+    @Test fun elChatGuardaComoMaximo200MensajesPorConversacion()=runBlocking {
+        val db=abrir();val chat=RoomAlmacenChat(db)
+        chat.guardarMensajes(9,(1L..230L).map {MensajeChat(it,7,"Beto","m$it",null,null)})
+        val guardados=chat.mensajes(9)
+        assertEquals(200,guardados.size);assertEquals(31L,guardados.first().id);assertEquals(230L,guardados.last().id)
+        db.close()
+    }
+
+    @Test fun migracionTresACuatroDaUnaClaveUnicaALosMensajesPendientes() {
+        val v3=migraciones.createDatabase("room-migracion-prueba.db",3)
+        v3.execSQL("INSERT INTO mensajes_pendientes(conversacionId,texto,creadoEn) VALUES (9,'uno',1),(9,'dos',2)")
+        v3.close()
+        val v4=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",4,true,FoundIADatabase.MIGRACION_3_4)
+        val claves=mutableListOf<String>()
+        v4.query("SELECT idCliente FROM mensajes_pendientes ORDER BY localId").use {while(it.moveToNext())claves+=it.getString(0)}
+        assertEquals(2,claves.size);assertEquals(2,claves.toSet().size)
+        assertTrue("Cumplen el formato de Idempotency-Key",claves.all {Regex("^[A-Za-z0-9_-]{8,64}$").matches(it)})
+        v4.close()
+    }
+    @Test fun laColaGuardaLaClaveDeCadaEnvioYLaDevuelveEnOrden()=runBlocking {
+        var db=abrir();var chat=RoomAlmacenChat(db)
+        chat.agregarPendiente(9,"primero","clave-uno-1234");chat.agregarPendiente(9,"segundo","clave-dos-5678")
+        db.close()
+        db=abrir();chat=RoomAlmacenChat(db)
+        assertEquals(listOf("clave-uno-1234","clave-dos-5678"),chat.pendientes(9).map {it.idCliente})
+        db.close()
+    }
+
+    @Test fun migracionCuatroACincoCreaLaColaDePublicacionesYConservaLoDemas() {
+        val v4=migraciones.createDatabase("room-migracion-prueba.db",4)
+        v4.execSQL("INSERT INTO mensajes_pendientes(conversacionId,texto,creadoEn,idCliente) VALUES (9,'uno',1,'clave-uno-1234')")
+        v4.close()
+        val v5=migraciones.runMigrationsAndValidate("room-migracion-prueba.db",5,true,FoundIADatabase.MIGRACION_4_5)
+        v5.query("SELECT idCliente FROM mensajes_pendientes").use {assertTrue(it.moveToFirst());assertEquals("clave-uno-1234",it.getString(0))}
+        v5.query("SELECT COUNT(*) FROM publicaciones_pendientes").use {assertTrue(it.moveToFirst());assertEquals(0,it.getInt(0))}
+        v5.close()
+    }
+    @Test fun laColaDePublicacionesSobreviveAlCierreEnOrdenYLimpiarLaVacia()=runBlocking {
+        val datos=PublicacionRequest(3,"Mochila","Azul","2026-11-20","PERDIDO","Biblioteca")
+        var db=abrir();var cola=RoomColaPublicaciones(db)
+        cola.agregar("clave-a-00000001",datos);cola.agregar("clave-b-00000002",datos.copy(nombre="Segunda"))
+        db.close()
+        db=abrir();cola=RoomColaPublicaciones(db)
+        val filas=cola.pendientes()
+        assertEquals(listOf("clave-a-00000001","clave-b-00000002"),filas.map {it.idCliente})
+        assertEquals("Segunda",filas[1].datos.nombre)
+        cola.quitar(filas[0].localId)
+        assertEquals(1,cola.pendientes().size)
+        cola.limpiar()
+        assertTrue(cola.pendientes().isEmpty())
         db.close()
     }
 }
