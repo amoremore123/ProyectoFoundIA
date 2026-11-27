@@ -17,7 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("Swagger, Actuator y caché de categorías")
+// Swagger lo cubren SwaggerIntegrationTest (encendido) y SwaggerApagadoIntegrationTest (apagado)
+@DisplayName("Actuator y caché de categorías")
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:foundia_operacion_api;MODE=MySQL;DB_CLOSE_DELAY=-1",
         "spring.datasource.driver-class-name=org.h2.Driver",
@@ -36,19 +37,6 @@ class OperacionApiIntegrationTest {
     @Autowired private MockMvc api;
     @Autowired private CacheManager caches;
     @Autowired private CategoriaRepository categorias;
-
-    @Test
-    void swaggerMuestraLaApiSinIniciarSesion() throws Exception {
-        api.perform(get("/v3/api-docs"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.info.title").value("FoundIA · API de la comunidad (Spring Boot)"))
-                .andExpect(jsonPath("$.paths['/api/objetos']").exists())
-                .andExpect(jsonPath("$.paths['/api/etiquetas/publica/{codigo}']").exists())
-                .andExpect(jsonPath("$.components.securitySchemes.jwt.scheme").value("bearer"));
-        api.perform(get("/swagger-ui/index.html"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("swagger-ui")));
-    }
 
     @Test
     void healthEsPublicoYElRestoDeActuatorNo() throws Exception {

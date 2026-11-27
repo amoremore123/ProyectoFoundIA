@@ -27,6 +27,7 @@ ROL_CHOICES = [
 ESTADO_USUARIO_CHOICES = [
     ("ACTIVO", "ACTIVO"),
     ("SUSPENDIDO", "SUSPENDIDO"),
+    ("ELIMINADO", "ELIMINADO"),  # H34: cuenta anonimizada a pedido de la persona (Ley 29733)
 ]
 
 TIPO_OBJETO_CHOICES = [
@@ -109,6 +110,10 @@ class Usuario(models.Model):
     )
     fecha_registro = models.DateTimeField(default=timezone.now, blank=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    # H11/H64: columnas de Spring que H34 limpia al anonimizar la cuenta
+    verificado = models.BooleanField(default=False)  # igual que la base: sin verificar hasta el código
+    codigo_verificacion = models.CharField(max_length=6, null=True, blank=True)
+    foto_perfil_url = models.CharField(max_length=80, null=True, blank=True)
 
     class Meta:
         managed = False
@@ -526,6 +531,21 @@ def hoy_en_lima():
     return timezone.now().astimezone(ZONA_LIMA).date()
 
 
+def inicio_dia_lima(fecha):
+    """Las 00:00 de ese día en Lima, como instante. Para filtrar «del día X al día Y» en hora de Lima:
+    campo >= inicio_dia_lima(X) y campo < inicio_dia_lima(Y + 1 día). La base guarda en UTC."""
+    return _dt.datetime.combine(fecha, _dt.time.min, tzinfo=ZONA_LIMA)
+
+
+def filtro_dias_lima(consulta, campo, desde=None, hasta=None):
+    """Filtra por días del calendario de Lima (no de UTC: a las 19:00 en Lima ya es el día siguiente en UTC)."""
+    if desde is not None:
+        consulta = consulta.filter(**{f"{campo}__gte": inicio_dia_lima(desde)})
+    if hasta is not None:
+        consulta = consulta.filter(**{f"{campo}__lt": inicio_dia_lima(hasta + _dt.timedelta(days=1))})
+    return consulta
+
+
 class Campana(models.Model):
     """H60: campaña de difusión con enlace de origen para medir su alcance (H67)."""
 
@@ -730,3 +750,119 @@ class Dispositivo(models.Model):
     class Meta:
         managed = False
         db_table = "dispositivos"
+
+
+# --- H34: eliminación real de la cuenta. Modelos mínimos de tablas que escribe Spring; Django las usa
+# solo para borrar o anonimizar los datos de la persona.
+
+class SolicitudEliminacion(models.Model):
+    ESTADOS = ("PENDIENTE", "ATENDIDA", "RECHAZADA")
+
+    usuario = models.OneToOneField(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+                                   related_name="solicitud_eliminacion")
+    estado = models.CharField(max_length=20, default="PENDIENTE")
+    fecha_solicitud = models.DateTimeField(default=timezone.now)
+    atendida_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="atendida_por_id",
+                                     null=True, blank=True, related_name="eliminaciones_atendidas")
+    fecha_atencion = models.DateTimeField(null=True, blank=True)
+    motivo_rechazo = models.CharField(max_length=500, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "solicitudes_eliminacion"
+        ordering = ["fecha_solicitud", "id"]
+
+
+class ArchivoPorBorrar(models.Model):
+    """H34: foto que Spring debe borrar del volumen (Django no tiene acceso a él)."""
+
+    ruta = models.CharField(max_length=255)
+    anotado_en = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "archivos_por_borrar"
+
+
+class PreferenciaNotificacion(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id",
+                                   primary_key=True, related_name="+")
+    fecha_actualizacion = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "preferencias_notificacion"
+
+
+class TokenRecuperacionPassword(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id", related_name="+")
+    token_hash = models.CharField(max_length=64)
+    creado_en = models.DateTimeField(default=timezone.now)
+    expira_en = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "tokens_recuperacion_password"
+
+
+class Invitacion(models.Model):
+    codigo_hash = models.CharField(max_length=64, primary_key=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id", related_name="+")
+
+    class Meta:
+        managed = False
+        db_table = "invitaciones"
+
+
+class Conversacion(models.Model):
+    tipo = models.CharField(max_length=20)
+    objeto_id = models.BigIntegerField()
+    usuario_a = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_a_id", related_name="+")
+    usuario_b = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_b_id", null=True,
+                                  blank=True, related_name="+")
+    estado = models.CharField(max_length=20, default="ABIERTA")
+
+    class Meta:
+        managed = False
+        db_table = "conversaciones"
+
+
+class LecturaChat(models.Model):
+    conversacion_id = models.BigIntegerField()
+    usuario = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="usuario_id", related_name="+")
+    ultimo_mensaje_id = models.BigIntegerField(default=0)
+
+    class Meta:
+        managed = False
+        db_table = "lecturas_chat"
+
+
+class BloqueoChat(models.Model):
+    bloqueador = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="bloqueador_id", related_name="+")
+    bloqueado = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column="bloqueado_id", related_name="+")
+    creado_en = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "bloqueos_chat"
+
+
+class AvisoCoincidencia(models.Model):
+    objeto_perdido_id = models.BigIntegerField()
+    objeto_encontrado_id = models.BigIntegerField()
+    notificacion_id = models.BigIntegerField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "avisos_coincidencia"
+
+
+class RecordatorioObjeto(models.Model):
+    objeto_id = models.BigIntegerField()
+    periodo = models.CharField(max_length=7)
+    notificacion_id = models.BigIntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = "recordatorios_objeto"

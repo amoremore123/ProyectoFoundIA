@@ -96,9 +96,9 @@ El reparto (página 6) asigna a Leonel, además de sus historias, este trabajo d
 | APK (`gradlew assembleDebug`) | Compila sin errores: `app-debug.apk` 1.2.2 (versión 5), 35 MB. Sin claves ni JWT dentro; apunta a `10.0.2.2` (emulador) |
 | Datos de demostración | Docker con MySQL de QA aislado: 9 publicaciones, 3 coincidencias, 5 fotos servidas como JPEG, custodias `FND-2026-0001` y `FND-2026-0002` con etiqueta PDF |
 
-## Para llevar a `main`
+## Integración en `main`
 
-`dev/leonel` contiene todo el Sprint 3 integrado. Pasarlo a `main` requiere la autorización escrita del equipo.
-La CI se ejecuta en GitHub al subir la rama.
+El Sprint 3 completo se integró en `main` el 19/11/2026 con la autorización del equipo (commit `cb96623`, CI en verde).
+El cierre queda marcado con la etiqueta `sprint-3` sobre ese commit.
 
 Queda fuera de este sprint, por acuerdo del reparto del Sprint 4 (M2): las pruebas físicas en teléfono de H44, H46, H50, H51 y H52.

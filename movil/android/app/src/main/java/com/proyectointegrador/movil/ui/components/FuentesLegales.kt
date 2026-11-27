@@ -39,11 +39,13 @@ fun avisoDocumentos(documentos: Documentos): String = documentos.aviso?.takeIf {
 fun EnlacesLegalesFoundia() {
     val navegador = LocalUriHandler.current
     var error by remember { mutableStateOf(false) }
+    val abrirWeb = LocalAbrirWeb.current
     val base = com.proyectointegrador.movil.BuildConfig.WEB_URL.trimEnd('/')
-    TextButton(onClick = { error = runCatching { navegador.openUri("$base/privacidad") }.isFailure }) {
+    // Dentro de la app con WebView; si no hay navegación disponible, el navegador del sistema.
+    TextButton(onClick = { if (abrirWeb != null) abrirWeb("privacidad", null) else error = runCatching { navegador.openUri("$base/privacidad") }.isFailure }) {
         Text("Política de privacidad en la web")
     }
-    TextButton(onClick = { error = runCatching { navegador.openUri("$base/terminos") }.isFailure }) {
+    TextButton(onClick = { if (abrirWeb != null) abrirWeb("terminos", null) else error = runCatching { navegador.openUri("$base/terminos") }.isFailure }) {
         Text("Términos de uso en la web")
     }
     if (error) AvisoEstado("No se pudo abrir el navegador. Puedes leer los documentos aquí.", true)

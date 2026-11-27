@@ -28,6 +28,7 @@ import com.proyectointegrador.movil.ui.components.*
 @Composable fun EditarPerfilScreen(volver:()->Unit,seguridad:Boolean=false,vm:EditarPerfilViewModel=viewModel(factory=fabrica())) {
  val estado by vm.estado.collectAsStateWithLifecycle();val f by vm.form.collectAsStateWithLifecycle();val accion by vm.accion.collectAsStateWithLifecycle()
  Pagina(if(seguridad)"Seguridad" else "Editar perfil",volver){Consulta(estado,vm::recargar){usuario,_->
+  if(!seguridad) FotoPerfilPanel()
   Panel(if(seguridad)"Actualiza tu contraseña" else "Así te conoce tu comunidad"){
    if(!seguridad){Campo("Nombre",f.nombre?:usuario.nombre,{vm.editar("nombre",it)},habilitado=!accion.ocupada);Campo("Apellido",f.apellido?:usuario.apellido,{vm.editar("apellido",it)},habilitado=!accion.ocupada);Text(usuario.correo,style=MaterialTheme.typography.bodySmall)}
    else {Campo("Contraseña actual",f.actual,{vm.editar("actual",it)},true,!accion.ocupada);Campo("Nueva contraseña",f.password,{vm.editar("password",it)},true,!accion.ocupada);Campo("Confirmar contraseña",f.confirmar,{vm.editar("confirmar",it)},true,!accion.ocupada);Text("Al menos 8 caracteres, mayúscula, minúscula, número y símbolo.",style=MaterialTheme.typography.bodySmall)}

@@ -45,7 +45,7 @@ class ContratoApiTest {
     @Test fun erroresDelServidorNuncaSeTransformanEnExito()=runBlocking {
         for(codigo in listOf(400,401,403,404,409,423,429,500)) {
             servidor.enqueue(MockResponse().setResponseCode(codigo).setBody("{}"))
-            val fallo=runCatching {api.reportar(12,Denuncia("SPAM",null))}.exceptionOrNull()
+            val fallo=try {api.reportar(12,Denuncia("SPAM",null));null} catch(e:retrofit2.HttpException) {e}
             assertTrue("Código $codigo",fallo is retrofit2.HttpException)
             assertEquals(codigo,(fallo as retrofit2.HttpException).code());servidor.takeRequest()
         }

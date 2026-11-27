@@ -4,6 +4,8 @@ data class SolicitudSugerencia(val nombre: String, val descripcion: String, val 
 data class SugerenciaFindi(val categoria: ObjetoCategoria?, val descripcion: String?, val origen: String)
 
 data class ConsultaFindi(val mensaje: String)
+/** La voz natural de FINDI: el servidor devuelve un MP3 (el mismo servicio que usa la web). */
+data class VozRequest(val texto: String)
 data class InterpretacionFindi(
     val intencion: String? = null, val tipoBuscado: String? = null,
     val categoria: ObjetoCategoria? = null, val ubicacion: String? = null,
@@ -27,3 +29,11 @@ data class AccionFindi(val texto: String, val ruta: String)
 data class RespuestaFindi(val texto: String, val objetos: List<Objeto> = emptyList(),
     val accion: AccionFindi? = null, val fuente: String? = null,
     val tarjetas: List<TarjetaFindi> = emptyList(), val propuestas: List<PropuestaFindi> = emptyList())
+
+data class FotoBusquedaRequest(val imagen: String)
+data class FotoBusquedaRespuesta(
+    val descripcion: String? = null,
+    val categoria: ObjetoCategoria? = null,
+    val palabras: List<String>? = null,
+    val colores: List<String>? = null,
+)

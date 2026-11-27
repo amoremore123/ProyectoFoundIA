@@ -7,9 +7,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.proyectointegrador.movil.data.local.dao.CacheDao
 import com.proyectointegrador.movil.data.local.entity.*
 
-@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class], version = 2, exportSchema = true)
+@Database(entities = [PublicacionCache::class, ConsultaCache::class, CategoriaCache::class, ConversacionCache::class, MensajeChatCache::class, MensajePendienteEntity::class, PublicacionPendienteEntity::class], version = 5, exportSchema = true)
 abstract class FoundIADatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
+    abstract fun chatDao(): com.proyectointegrador.movil.data.local.dao.ChatDao
+    abstract fun publicacionesPendientesDao(): com.proyectointegrador.movil.data.local.dao.PublicacionesPendientesDao
     companion object {
         val MIGRACION_1_2 = object : Migration(1,2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -17,8 +19,31 @@ abstract class FoundIADatabase : RoomDatabase() {
                 db.execSQL("UPDATE publicaciones_cache SET venceEn = actualizadoEn + 86400000")
             }
         }
+        /** H55 y H65: tablas del chat sin conexión. Las anteriores no cambian. */
+        val MIGRACION_2_3 = object : Migration(2,3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `conversaciones_cache` (`id` INTEGER NOT NULL, `contenido` TEXT NOT NULL, `actualizadoEn` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `mensajes_chat_cache` (`id` INTEGER NOT NULL, `conversacionId` INTEGER NOT NULL, `contenido` TEXT NOT NULL, PRIMARY KEY(`id`))")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_mensajes_chat_cache_conversacionId` ON `mensajes_chat_cache` (`conversacionId`)")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `mensajes_pendientes` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `conversacionId` INTEGER NOT NULL, `texto` TEXT NOT NULL, `creadoEn` INTEGER NOT NULL)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_mensajes_pendientes_conversacionId` ON `mensajes_pendientes` (`conversacionId`)")
+            }
+        }
+        /** H65: cada mensaje pendiente guarda su identificador de envío. Las filas ya guardadas reciben uno único. */
+        val MIGRACION_3_4 = object : Migration(3,4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `mensajes_pendientes` ADD COLUMN `idCliente` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("UPDATE `mensajes_pendientes` SET `idCliente` = 'migrado-' || `localId`")
+            }
+        }
+        /** H65: cola de publicaciones escritas sin conexión. */
+        val MIGRACION_4_5 = object : Migration(4,5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `publicaciones_pendientes` (`localId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idCliente` TEXT NOT NULL, `contenido` TEXT NOT NULL, `creadoEn` INTEGER NOT NULL)")
+            }
+        }
         fun abrir(context: Context): FoundIADatabase = Room.databaseBuilder(
             context.applicationContext, FoundIADatabase::class.java, "foundia-local.db"
-        ).addMigrations(MIGRACION_1_2).build()
+        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5).build()
     }
 }

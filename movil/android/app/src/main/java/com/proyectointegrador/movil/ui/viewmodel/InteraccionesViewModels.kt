@@ -7,13 +7,28 @@ import com.proyectointegrador.movil.model.*
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 
-class PropiosViewModel(repo:CuentaRepository):CargaViewModel<List<Objeto>>({repo.propios()})
+class PropiosViewModel(private val repo:CuentaRepository):CargaViewModel<List<Objeto>>({repo.propios()}) {
+    private val _porEliminar=MutableStateFlow<Objeto?>(null);val porEliminar=_porEliminar.asStateFlow()
+    fun pedirEliminar(objeto:Objeto){if(!accion.value.ocupada&&com.proyectointegrador.movil.domain.puedeEliminarPublicacion(objeto.estado))_porEliminar.value=objeto}
+    fun cancelarEliminar(){if(!accion.value.ocupada)_porEliminar.value=null}
+    fun confirmarEliminar(){
+        val objeto=_porEliminar.value?:return
+        if(!com.proyectointegrador.movil.domain.puedeEliminarPublicacion(objeto.estado)){_porEliminar.value=null;rechazar("Esta publicación ya no se puede eliminar.");return}
+        ejecutar {
+            repo.eliminar(objeto.id)
+            _porEliminar.value=null
+            informar("Publicación eliminada. Se conserva en tu historial.")
+            recargar()
+        }
+    }
+}
 class SugerenciasViewModel(repo:CuentaRepository,id:Long):CargaViewModel<SugerenciasDatos>({repo.sugerencias(id)}) {
     val puedeGestionar get()=estado.value.datos?.let {it.objeto.publicadoPor?.id==it.usuario.id && it.objeto.tipo=="PERDIDO"}==true
 }
 class ParejaViewModel(private val repo:CuentaRepository,private val id:String):CargaViewModel<ParejaDatos>({repo.pareja(id)}) {
     private val _confirmacion=MutableStateFlow<String?>(null);val confirmacion=_confirmacion.asStateFlow()
     private val _resultado=MutableStateFlow<String?>(null);val resultado=_resultado.asStateFlow()
+    private val _contactoId=MutableStateFlow<Long?>(null);val contactoId=_contactoId.asStateFlow()
     val puedeGestionar get()=estado.value.datos?.let {it.usuario!=null && it.usuario.id==it.pareja.perdido.publicadoPor?.id &&
         it.pareja.perdido.estado=="ACTIVO" && it.pareja.encontrado.estado=="ACTIVO"}==true
     fun pedir(tipo:String){if(puedeGestionar && tipo in listOf("recuperar","descartar","contactar"))_confirmacion.value=tipo}
@@ -23,7 +38,7 @@ class ParejaViewModel(private val repo:CuentaRepository,private val id:String):C
         ejecutar {
             if(tipo=="contactar") {
                 val pareja=estado.value.datos!!.pareja
-                val r=repo.contactar(ContactoRequest(pareja.perdido.id,pareja.encontrado.id));informar(if(r.repetido)"Ya existe tu solicitud de contacto." else "Solicitud de contacto registrada.");_confirmacion.value=null;return@ejecutar
+                val r=repo.contactar(ContactoRequest(pareja.perdido.id,pareja.encontrado.id));_contactoId.value=r.id;informar(if(r.repetido)"Ya existe tu solicitud de contacto." else "Solicitud de contacto registrada.");_confirmacion.value=null;return@ejecutar
             }
             _resultado.value=if(tipo=="recuperar") {
                 val r=repo.recuperar(id);"Recuperación confirmada. Fecha del servidor: ${r.fechaRecuperacion}."
@@ -129,6 +144,12 @@ class PreferenciasViewModel(private val repo:CuentaRepository):CargaViewModel<Pr
     private val _edicion=MutableStateFlow<Preferencias?>(null);val edicion=_edicion.asStateFlow()
     fun editar(indice:Int,valor:Boolean){val actual=_edicion.value?:estado.value.datos?:return
         _edicion.value=when(indice){0->actual.copy(coincidencias=valor);1->actual.copy(contactos=valor);2->actual.copy(reclamos=valor);else->actual.copy(recordatorios=valor)}
+    }
+    /** H68: elige por dónde llega cada tipo de aviso. Un tipo o canal desconocido se ignora. */
+    fun editarCanal(tipo:String,canal:String){
+        if(TIPOS_DE_AVISO.none {it.first==tipo}||!canalValido(canal))return
+        val actual=_edicion.value?:estado.value.datos?:return
+        _edicion.value=actual.copy(canales=(actual.canales.orEmpty())+(tipo to canal))
     }
     fun cancelar(){_edicion.value=null}
     fun recargarPreferencias(){cancelar();recargar()}

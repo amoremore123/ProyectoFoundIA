@@ -48,6 +48,7 @@ Thumbs.db
 logs/
 tmp/
 uploads/
+!backend/springboot/src/main/resources/semilla/uploads/
 *.tmp
 *.swp
 
@@ -61,6 +62,7 @@ frontend/usuario/e2e-informe/
 # ===================== Firebase (H57 y H72) =====================
 # Configuración y claves de Firebase: nunca en Git (ver docs/api/sprint4-h57.md)
 google-services.json
+google-services*.json
 GoogleService-Info.plist
 *firebase-adminsdk*.json
 *-cuenta-servicio*.json

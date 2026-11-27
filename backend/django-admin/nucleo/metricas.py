@@ -11,7 +11,7 @@ from django.db.models import Count, Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Objeto
+from .models import Objeto, filtro_dias_lima
 
 
 class RangoMetricasSerializer(serializers.Serializer):
@@ -117,15 +117,13 @@ def metricas_dashboard(params):
     serializer.is_valid(raise_exception=True)
     rango = serializer.validated_data
     objetos = Objeto.objects.filter(estado__in=ESTADOS_VISIBLES)
-    if "desde" in rango:
-        objetos = objetos.filter(fecha_publicacion__date__gte=rango["desde"])
-    if "hasta" in rango:
-        objetos = objetos.filter(fecha_publicacion__date__lte=rango["hasta"])
+    # Días del calendario de Lima (antes se contaban en UTC)
+    objetos = filtro_dias_lima(objetos, "fecha_publicacion", rango.get("desde"), rango.get("hasta"))
     ubicaciones, sin_ubicacion = ubicaciones_con_mas_reportes(objetos)
     return {
         "rango": {"desde": rango["desde"].isoformat() if "desde" in rango else None,
                   "hasta": rango["hasta"].isoformat() if "hasta" in rango else None,
-                  "campo": "fecha_publicacion", "zonaHoraria": "UTC"},
+                  "campo": "fecha_publicacion", "zonaHoraria": "America/Lima"},
         "objetos": {"perdidos": objetos.filter(tipo="PERDIDO").count(),
                     "encontrados": objetos.filter(tipo="ENCONTRADO").count(),
                     "recuperados": objetos.filter(tipo="PERDIDO", estado="RECUPERADO").count(),

@@ -16,6 +16,8 @@ import java.io.IOException
 interface PublicacionesRepository {
     fun listar(tipo: String? = null): Flow<Lectura<List<Objeto>>>
     fun buscar(q: String?, tipo: String? = null): Flow<Lectura<List<Objeto>>>
+    /** Búsqueda con ubicación, fechas y cercanía. Por defecto se comporta como [buscar] para los repositorios que no la implementan. */
+    fun buscarAvanzado(q: String?, tipo: String?, categoriaId: Long?, filtros: com.proyectointegrador.movil.domain.FiltrosAvanzados): Flow<Lectura<List<Objeto>>> = buscar(q, tipo)
     fun detalle(id: Long): Flow<Lectura<Objeto>>
     suspend fun categorias(): Lectura<List<Categoria>>
     fun observarCategorias(): Flow<List<Categoria>>
@@ -51,8 +53,15 @@ class ApiPublicacionesRepository(private val api: ApiService, private val cache:
         val clave="buscar:"+java.security.MessageDigest.getInstance("SHA-256").digest(Gson().toJson(listOf(consulta,tipo)).toByteArray()).joinToString("") {"%02x".format(it)}
         return lista(clave) {api.buscarObjetos(q=consulta,tipo=tipo)}
     }
+    override fun buscarAvanzado(q:String?,tipo:String?,categoriaId:Long?,filtros:com.proyectointegrador.movil.domain.FiltrosAvanzados):Flow<Lectura<List<Objeto>>> {
+        val consulta=q?.trim()?.ifBlank {null};val lugar=filtros.ubicacion.trim().ifBlank {null}
+        val desde=filtros.desde.ifBlank {null};val hasta=filtros.hasta.ifBlank {null}
+        val radio=if(filtros.latitud!=null)(filtros.radioKm?:com.proyectointegrador.movil.domain.RADIO_KM_POR_DEFECTO) else null
+        val clave="avanzada:"+java.security.MessageDigest.getInstance("SHA-256").digest(Gson().toJson(listOf(consulta,tipo,categoriaId,lugar,desde,hasta,filtros.latitud,filtros.longitud,radio)).toByteArray()).joinToString("") {"%02x".format(it)}
+        return lista(clave) {api.buscarObjetos(q=consulta,tipo=tipo,categoriaId=categoriaId,ubicacion=lugar,desde=desde,hasta=hasta,latitud=filtros.latitud,longitud=filtros.longitud,radioKm=radio)}
+    }
     override fun detalle(id:Long)=consultar({cache.detalle(id)},{cache.guardarDetalle(it)},{api.objetoPorId(id)},{cache.retirar(id)})
-    override suspend fun categorias():Lectura<List<Categoria>> = consultar({cache.categorias()},{cache.guardarCategorias(it)},{api.categorias()}).first()
+    override suspend fun categorias():Lectura<List<Categoria>> = consultar({cache.categorias()},{cache.guardarCategorias(it)},{api.categorias()}).first().let {l->l.copy(datos=com.proyectointegrador.movil.domain.ordenarCategorias(l.datos))}
     override fun observarCategorias()=cache.observarCategorias()
     override suspend fun coincidencias(id:Long)=llamadaApi {api.coincidencias(id)}
     override suspend fun vigente(id:Long)=llamadaApi {api.objetoPorId(id)}

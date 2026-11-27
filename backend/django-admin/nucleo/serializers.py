@@ -452,7 +452,9 @@ class ReporteMensajeSerializer(serializers.ModelSerializer):
 
     def get_mensaje(self, obj) -> dict:
         m = obj.mensaje
-        return {"id": m.id, "texto": m.texto, "imagenUrl": m.imagen_url,
+        # H62: la foto del chat es privada; el panel la pide a Spring con el token del ADMIN
+        imagen = (f"/api/conversaciones/{m.conversacion_id}/mensajes/{m.id}/foto" if m.imagen_url else None)
+        return {"id": m.id, "texto": m.texto, "imagenUrl": imagen,
                 "enviadoEn": serializers.DateTimeField().to_representation(m.enviado_en)}
 
     def get_autor(self, obj) -> dict:

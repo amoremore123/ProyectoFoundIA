@@ -218,3 +218,78 @@ CREATE TABLE IF NOT EXISTS restauraciones (
 - Encontrado y corregido durante la prueba: la imagen de respaldo no trae `diff`, y la primera versión del
   script daba siempre «esquema distinto». Ahora compara con `sort` y `comm`, que sí están en la imagen.
 - **Falta en la web (Yajaira):** mostrar las versiones, el comando y el historial (ver «Lo que necesita la web»).
+
+## Restaurar desde el panel (23/11/2026)
+
+El Sprint 4 pide restaurar una versión «elegida desde el listado de respaldos, con confirmación y respaldo
+previo automático», con `403` para quien no es administrador. Hasta ahora solo se podía por script. El equipo
+eligió hacerlo con **modo mantenimiento**.
+
+### Cómo funciona
+
+1. **Panel (Django):** `POST /api/admin/respaldos/versiones/{version}/restaurar/`, solo `ADMIN`, con **doble
+   confirmación**: `{"confirmacionVersion": "<la misma versión>", "confirmacionTexto": "RESTAURAR"}`. La versión
+   tiene que estar disponible (base y fotos de la misma ejecución, sin borrar por la retención). Responde **`202`**
+   con la restauración `SOLICITADA` (estado nuevo).
+2. **Servicio de respaldo:** el panel no tiene acceso a los respaldos ni a las herramientas de MySQL. El servicio
+   revisa cada **15 segundos** (`RESTAURACION_REVISAR_SEGUNDOS`) si hay una solicitud y la ejecuta con
+   `restaurar_version.sh`, con todas sus guardas: huellas, mismo esquema, **respaldo de seguridad previo**,
+   historial conservado y sesiones cerradas. La misma fila pasa a `EN_PROCESO` y luego a `COMPLETADA`.
+3. **Modo mantenimiento:** mientras haya una restauración `SOLICITADA` o `EN_PROCESO`, **Spring y Django
+   responden `503`** a las escrituras (`POST`, `PUT`, `PATCH`, `DELETE`) con el mensaje «FoundIA está restaurando
+   una versión anterior de los datos…» y `Retry-After: 60`. Las lecturas y el inicio de sesión siguen. Si la base
+   no responde justo mientras se reemplaza, también `503`. El chequeo se guarda 2 segundos.
+4. **Si algo falla,** el servicio deja la solicitud `FALLIDA` con el motivo (por ejemplo, «No hay un respaldo de
+   la base con la versión …») y el mantenimiento se apaga solo. La base y las fotos en uso no cambian.
+
+| Código | Caso |
+| --- | --- |
+| `202` | Solicitada |
+| `400` | Confirmación de la versión o del texto que no coincide |
+| `401` / `403` | Sin sesión / no es `ADMIN` |
+| `404` | La versión no existe |
+| `409` | La versión no se puede restaurar (con el motivo), o ya hay una restauración en curso |
+| `503` | Modo mantenimiento (otra escritura mientras se restaura) |
+
+- Al terminar se cierran **todas** las sesiones, también la del administrador: el panel debe volver a pedir
+  el inicio de sesión.
+- Para **deshacer**, restaurar desde el panel la versión de seguridad (`respaldoSeguridad`).
+- Si la versión trae de vuelta cuentas eliminadas (H34), el panel tiene
+  `POST /api/admin/solicitudes-eliminacion/reaplicar/` → `{"cuentasAnonimizadasDeNuevo": n}`.
+- **Cambio en Docker:** el servicio de respaldo monta las fotos **con escritura** (para restaurarlas) y su imagen
+  incluye los scripts de restauración. Respaldar sigue sin modificar las fotos. Hay que reconstruirlo:
+  `docker compose up -d --build respaldo`.
+- Base de datos: `database/migracion_h70b_restaurar_desde_panel.sql` (estado `SOLICITADA`).
+
+### Lo que necesita la web (Yajaira)
+
+- En la lista de versiones, el botón «Restaurar» con **doble confirmación**: escribir la versión y la palabra
+  `RESTAURAR`, avisando que se perderá lo posterior, que se cerrarán todas las sesiones y que se puede deshacer
+  con la versión de seguridad.
+- Mostrar el avance con `GET /api/admin/restauraciones/{id}/` y, ante un `401` al terminar, volver al inicio de
+  sesión. Ante `503`, mostrar el mensaje de mantenimiento.
+
+### Verificación del 23/11/2026 (desde el panel)
+
+- Django: 8 pruebas nuevas en `test_sprint4_h70_panel.py` (solicitada con responsable y archivos; doble
+  confirmación; versión inexistente `404` y no disponible `409`; una a la vez; `401` y `403`; mantenimiento en el
+  panel con `Retry-After` y lecturas e inicio de sesión que siguen; un ensayo no activa el mantenimiento;
+  reaplicar eliminaciones desde el panel). Suite completa: **238 pruebas, OK**.
+- Spring: 3 pruebas nuevas en `ModoMantenimientoIntegrationTest` (escrituras `503` con mensaje y `Retry-After`;
+  lecturas e inicio de sesión siguen; se apaga al terminar y sigue en `503` si la base no responde justo después).
+  Suite completa: **608 pruebas, 0 fallos**.
+- Docker real (QA), con el servicio de respaldo corriendo:
+
+| Caso | Resultado |
+| --- | --- |
+| Migración | Dos veces sin error; instalación nueva (`script.sql`, `seed.sql` y la migración) sin errores |
+| Usuaria normal / confirmación mal escrita | `403` / `400` |
+| Restaurar la versión `20261124T023353Z` | `202`; el servicio la tomó en ≤15 s, hizo el respaldo de seguridad `20261124T023509Z`, la aplicó en 33 s: `COMPLETADA`. La publicación hecha después de la versión desapareció |
+| Mantenimiento | Mientras duró (23 s), **13 de 13** escrituras a Spring respondieron `503` con el mensaje y `Retry-After: 60`; el panel también `503`; las lecturas `200`. Al terminar, escribir volvió a `204` |
+| Deshacer desde el panel (versión de seguridad) | `COMPLETADA`; la publicación volvió |
+| Versión listada pero sin archivos | `FALLIDA` en 8 s con el motivo real en el panel; el mantenimiento se apagó solo y escribir volvió a `204` |
+| Repetir una restauración correcta con el código final | `COMPLETADA` en 17 s, con su respaldo de seguridad |
+
+- Encontrado al probar: justo después de pedirla, una escritura puede pasar durante los 2 segundos que dura el
+  chequeo guardado. No hay riesgo de perder datos por eso: el servicio toma la solicitud segundos después y el
+  respaldo de seguridad se hace en ese momento, con esa escritura incluida.

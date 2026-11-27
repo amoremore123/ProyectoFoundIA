@@ -99,6 +99,10 @@ services:
       DB_PASSWORD: root
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Falta DJANGO_SECRET_KEY en el archivo .env (ver .env.example)}
       JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el archivo .env (ver .env.example)}
+      # H34: correo de confirmación al eliminar una cuenta (el mismo servidor que usa Spring)
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      MAIL_FROM: no-reply@foundia.dev
       DJANGO_DEBUG: "True"
       HABILITAR_EXTRAS: ${HABILITAR_EXTRAS:-false}
       CUSTODIA_PLAZO_DIAS: ${CUSTODIA_PLAZO_DIAS:-60}

@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
@@ -41,16 +44,37 @@ import com.proyectointegrador.movil.ui.viewmodel.*
     val contexto = LocalContext.current
     var mostrarPrivacidad by rememberSaveable { mutableStateOf(false) }
     var escuchando by remember { mutableStateOf(false) }
+    // El dictado empieza cuando el motor de voz está listo: solo entonces se le dice a la persona «Habla ahora».
+    var micListo by remember { mutableStateOf(false) }
+    var canceladoAposta by remember { mutableStateOf(false) }
     var avisoVoz by remember { mutableStateOf<String?>(null) }
     var reconocedor by remember { mutableStateOf<SpeechRecognizer?>(null) }
     var sintetizador by remember { mutableStateOf<TextToSpeech?>(null) }
     var vozLista by remember { mutableStateOf(false) }
+    // Voz natural de FINDI (la misma de la web). Si no está disponible se lee con la voz del teléfono.
+    val alcanceVoz = androidx.compose.runtime.rememberCoroutineScope()
+    val reproductor = remember { com.proyectointegrador.movil.ui.components.ReproductorVoz(contexto.applicationContext) }
+    val propietarioCiclo = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(contexto) {
         val motor = TextToSpeech(contexto.applicationContext) { resultado ->
             vozLista = resultado == TextToSpeech.SUCCESS
         }
         sintetizador = motor
+        // Si la app pasa a segundo plano (inicio del teléfono, otra app) la voz y el dictado se detienen: antes seguía hablando.
+        val observador = androidx.lifecycle.LifecycleEventObserver { _, evento ->
+            if (evento == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                motor.stop()
+                reproductor.detener()
+                canceladoAposta = true
+                reconocedor?.cancel()
+                escuchando = false
+                micListo = false
+            }
+        }
+        propietarioCiclo.lifecycle.addObserver(observador)
         onDispose {
+            propietarioCiclo.lifecycle.removeObserver(observador)
+            reproductor.detener()
             reconocedor?.destroy()
             motor.stop()
             motor.shutdown()
@@ -65,19 +89,28 @@ import com.proyectointegrador.movil.ui.viewmodel.*
         try {
             val servicio = reconocedor ?: SpeechRecognizer.createSpeechRecognizer(contexto).also {
                 it.setRecognitionListener(object : RecognitionListener {
-                    override fun onReadyForSpeech(params: Bundle?) = Unit
+                    override fun onReadyForSpeech(params: Bundle?) { micListo = true }
                     override fun onBeginningOfSpeech() = Unit
                     override fun onRmsChanged(rmsdB: Float) = Unit
                     override fun onBufferReceived(buffer: ByteArray?) = Unit
                     override fun onEndOfSpeech() = Unit
-                    override fun onPartialResults(partialResults: Bundle?) = Unit
+                    // Las palabras aparecen en el campo mientras hablas, para que se vea que te está escuchando.
+                    override fun onPartialResults(partialResults: Bundle?) {
+                        partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim()
+                            ?.takeIf { it.isNotEmpty() }?.let { texto = it.take(300) }
+                    }
                     override fun onEvent(eventType: Int, params: Bundle?) = Unit
                     override fun onError(error: Int) {
                         escuchando = false
-                        avisoVoz = "No pude reconocer la voz. Prueba en un lugar tranquilo o escribe tu mensaje."
+                        micListo = false
+                        android.util.Log.w("FoundIA", "Dictado: error del reconocedor $error")
+                        // Si la persona canceló a propósito no es un error y no se le muestra ningún mensaje.
+                        if (canceladoAposta) { canceladoAposta = false; return }
+                        avisoVoz = com.proyectointegrador.movil.domain.mensajeErrorDictado(error)
                     }
                     override fun onResults(results: Bundle?) {
                         escuchando = false
+                        micListo = false
                         val resultado = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                             ?.firstOrNull()?.trim().orEmpty()
                         if (resultado.isNotEmpty()) texto = resultado.take(300)
@@ -88,7 +121,10 @@ import com.proyectointegrador.movil.ui.viewmodel.*
             }
             sintetizador?.stop()
             escuchando = true
+            micListo = false
+            canceladoAposta = false
             servicio.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-PE")
             })
@@ -113,12 +149,28 @@ import com.proyectointegrador.movil.ui.viewmodel.*
             dismissButton = { TextButton(onClick = { mostrarPrivacidad = false }) { Text("Cancelar") } }
         )
     }
-    fun leer(respuesta: String) {
+    fun leerConVozDelTelefono(respuesta: String, motivo: String?) {
         val motor = sintetizador ?: return
         if (!vozLista || motor.setLanguage(Locale.forLanguageTag("es-PE")) < 0 ||
             motor.speak(respuesta, TextToSpeech.QUEUE_FLUSH, null, "findi") == TextToSpeech.ERROR) {
             avisoVoz = "La lectura en voz alta no está disponible en este dispositivo."
-        } else avisoVoz = null
+        } else avisoVoz = motivo
+    }
+    fun leer(respuesta: String) {
+        // Tocar «Leer en voz alta» mientras suena la detiene.
+        if (reproductor.sonando) { reproductor.detener(); return }
+        sintetizador?.stop()
+        alcanceVoz.launch {
+            val audio = try {
+                com.proyectointegrador.movil.di.Inyeccion.contenedor.asistente.vozNatural(respuesta)
+            } catch (cancelado: kotlinx.coroutines.CancellationException) {
+                throw cancelado
+            } catch (_: Exception) {
+                null
+            }
+            if (audio != null && reproductor.reproducir(audio) { }) avisoVoz = null
+            else leerConVozDelTelefono(respuesta, "Se leyó con la voz del teléfono: la voz natural de FINDI no está disponible ahora.")
+        }
     }
     fun navegar(ruta: String) = abrir(if (ruta == "propios" && !autenticado) "perfil" else ruta)
     fun enviar() { if (texto.isNotBlank() && !estado.pensando) { vm.enviar(texto); texto = "" } }
@@ -159,6 +211,19 @@ import com.proyectointegrador.movil.ui.viewmodel.*
                 }
             }
         }
+        if (escuchando) {
+            Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.errorContainer).padding(horizontal = 14.dp, vertical = 10.dp)
+                .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Assertive }) {
+                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.error)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (micListo) "Escuchando… habla ahora" else "Preparando el micrófono…",
+                        Modifier.weight(1f).padding(top = 6.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                    TextButton(onClick = { canceladoAposta = true; reconocedor?.cancel(); escuchando = false; micListo = false }) { Text("Cancelar") }
+                }
+                Text("Cuando termines, toca el micrófono rojo para usar lo que dijiste.", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer)
+            }
+        }
         avisoVoz?.let { Text(it, Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(12.dp),
             color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall) }
         Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
@@ -166,17 +231,14 @@ import com.proyectointegrador.movil.ui.viewmodel.*
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 IconButton(onClick = { accesos = !accesos }) { Icon(Simbolos.Publicar, if (accesos) "Ocultar accesos rápidos" else "Mostrar accesos rápidos", tint = AzulFindi) }
                 OutlinedTextField(value = texto, onValueChange = { if (it.length <= 300) texto = it },
-                    placeholder = { Text("Escribe un mensaje…", style = MaterialTheme.typography.bodySmall) },
+                    placeholder = { Text(if (escuchando) "Escuchando…" else "Escribe un mensaje…", style = MaterialTheme.typography.bodySmall) },
                     modifier = Modifier.weight(1f), shape = RoundedCornerShape(28.dp), maxLines = 4,
                     trailingIcon = {
                         IconButton(onClick = {
-                            if (escuchando) {
-                                reconocedor?.cancel()
-                                escuchando = false
-                            } else mostrarPrivacidad = true
+                            if (escuchando) reconocedor?.stopListening() else mostrarPrivacidad = true
                         }) {
-                            Icon(Simbolos.Microfono, if (escuchando) "Cancelar dictado" else "Dictar mensaje",
-                                Modifier.size(20.dp), tint = AzulFindi)
+                            Icon(Simbolos.Microfono, if (escuchando) "Terminar el dictado y usar lo que dijiste" else "Dictar mensaje",
+                                Modifier.size(if (escuchando) 26.dp else 20.dp), tint = if (escuchando) MaterialTheme.colorScheme.error else AzulFindi)
                         }
                     })
                 FilledIconButton(onClick = ::enviar, enabled = texto.isNotBlank() && !estado.pensando,
@@ -270,7 +332,7 @@ private fun TarjetaDeFindi(tarjeta: TarjetaFindi, abrir: (String) -> Unit) {
             val id = datos.id?.takeIf { it > 0 } ?: return
             if (tarjeta.enlace != "/objeto/$id") return
             ruta = "detalle/$id"
-            detalle = listOfNotNull(datos.tipo, datos.estado, datos.ubicacion, datos.categoria).joinToString(" · ")
+            detalle = listOfNotNull(datos.tipo, datos.estado?.let { com.proyectointegrador.movil.domain.etiquetaEstadoObjeto(it) }, datos.ubicacion, datos.categoria).joinToString(" · ")
         }
         "RECLAMOS", "QR_RETIRO" -> {
             if (tarjeta.enlace != "/mis-publicaciones") return

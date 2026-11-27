@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS alcance_campanas;
 DROP TABLE IF EXISTS avisos_destacados;
 DROP TABLE IF EXISTS campanas;
 DROP TABLE IF EXISTS invitaciones;
+DROP TABLE IF EXISTS archivos_por_borrar;
 DROP TABLE IF EXISTS solicitudes_eliminacion;
 DROP TABLE IF EXISTS tokens_recuperacion_password;
 DROP TABLE IF EXISTS eventos_coincidencia;
@@ -78,7 +79,7 @@ CREATE TABLE usuarios (
     PRIMARY KEY (id),
     UNIQUE KEY uq_usuarios_correo (correo),
     CONSTRAINT chk_usuarios_rol CHECK (rol IN ('USUARIO', 'BIBLIOTECA', 'ADMIN')),
-    CONSTRAINT chk_usuarios_estado CHECK (estado IN ('ACTIVO', 'SUSPENDIDO'))
+    CONSTRAINT chk_usuarios_estado CHECK (estado IN ('ACTIVO', 'SUSPENDIDO', 'ELIMINADO'))
 ) ENGINE = InnoDB;
 
 -- =====================================================================
@@ -638,7 +639,7 @@ CREATE TABLE IF NOT EXISTS restauraciones (
     finalizado_en      DATETIME(6)   NULL,
     mensaje            VARCHAR(1000) NULL,
     CONSTRAINT chk_restauracion_modo CHECK (modo IN ('ENSAYO', 'APLICADA')),
-    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
+    CONSTRAINT chk_restauracion_estado CHECK (estado IN ('SOLICITADA', 'EN_PROCESO', 'COMPLETADA', 'FALLIDA')),
     INDEX idx_restauraciones_iniciado (iniciado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -718,4 +719,18 @@ CREATE TABLE IF NOT EXISTS promociones_campana (
     CONSTRAINT fk_promocion_autor FOREIGN KEY (registrada_por_id) REFERENCES usuarios (id),
     CONSTRAINT chk_promocion_red CHECK (red IN ('FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'X', 'LINKEDIN', 'WHATSAPP', 'OTRA')),
     INDEX idx_promociones_campana (campana_id, publicada_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- H34: eliminación real de la cuenta. Bases existentes: migracion_h34_eliminacion_real.sql.
+ALTER TABLE solicitudes_eliminacion
+    ADD COLUMN atendida_por_id BIGINT NULL,
+    ADD COLUMN fecha_atencion DATETIME(6) NULL,
+    ADD COLUMN motivo_rechazo VARCHAR(500) NULL,
+    ADD CONSTRAINT fk_solicitud_eliminacion_atendida_por FOREIGN KEY (atendida_por_id) REFERENCES usuarios (id),
+    ADD CONSTRAINT chk_solicitud_eliminacion_estado CHECK (estado IN ('PENDIENTE', 'ATENDIDA', 'RECHAZADA'));
+
+CREATE TABLE IF NOT EXISTS archivos_por_borrar (
+    id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ruta       VARCHAR(255) NOT NULL,
+    anotado_en DATETIME(6)  NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

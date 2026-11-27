@@ -48,7 +48,7 @@ class MetricasSprint2Tests(APITestCase):
         r = self.consultar(desde="2026-10-05", hasta="2026-10-07")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data["objetos"], {"perdidos": 2, "encontrados": 1, "recuperados": 1, "activos": 2})
-        self.assertEqual(r.data["rango"]["zonaHoraria"], "UTC")
+        self.assertEqual(r.data["rango"]["zonaHoraria"], "America/Lima")
         # Compatibilidad: las cuatro tarjetas originales siguen presentes.
         for campo in ("usuarios", "objetosActivos", "reportesPendientes", "categorias"):
             self.assertIn(campo, r.data)

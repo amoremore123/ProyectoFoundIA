@@ -11,6 +11,8 @@ from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
+from .models import ZONA_LIMA
+
 DIAS_VIGENCIA_RETIRO = 7
 
 
@@ -37,7 +39,8 @@ def _fecha(valor) -> str:
     if valor is None:
         return "—"
     if timezone.is_aware(valor):
-        valor = timezone.localtime(valor)
+        # Se imprime para personas en Lima; Django trabaja en UTC (TIME_ZONE) y así debe seguir la API
+        valor = timezone.localtime(valor, ZONA_LIMA)
     return valor.strftime("%d/%m/%Y %H:%M")
 
 

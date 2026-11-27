@@ -49,6 +49,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    # Mismo formato de error que Spring: agrega "status" y "mensaje" a los errores de /api/
+    "nucleo.formato_errores.FormatoErrorMiddleware",
+    # H70: mientras se restaura una versión, las escrituras del panel responden 503
+    "nucleo.restaurar_panel.ModoMantenimientoMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -142,3 +146,13 @@ CORS_ALLOWED_ORIGINS = [
     for o in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5174").split(",")
     if o.strip()
 ]
+
+# H34: correo de confirmación al eliminar una cuenta. El mismo servidor que usa Spring (Mailpit en desarrollo).
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("MAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("MAIL_PORT", "1025"))
+EMAIL_HOST_USER = os.environ.get("MAIL_USERNAME", "")
+EMAIL_HOST_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("MAIL_STARTTLS", "false").lower() == "true"
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.environ.get("MAIL_FROM", "no-reply@foundia.dev")

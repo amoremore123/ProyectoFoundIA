@@ -28,6 +28,11 @@ RESPALDO_UNA_VEZ="${RESPALDO_UNA_VEZ:-0}"
 RESPALDO_PREFIJO="${RESPALDO_PREFIJO:-foundia}"
 RESPALDO_FOTOS="${RESPALDO_FOTOS:-1}"
 FOTOS_DIR="${FOTOS_DIR:-/fotos}"
+# Un candado más viejo que esto lo dejó un proceso que ya no existe (ningún respaldo dura tanto).
+RESPALDO_CANDADO_MAXIMO_SEGUNDOS="${RESPALDO_CANDADO_MAXIMO_SEGUNDOS:-7200}"
+# H70: cada cuántos segundos se revisa si el panel pidió restaurar una versión (0 = no se revisa)
+RESTAURACION_REVISAR_SEGUNDOS="${RESTAURACION_REVISAR_SEGUNDOS:-15}"
+AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
     printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -41,23 +46,56 @@ fatal() {
 [[ "$DB_NAME" =~ ^[A-Za-z0-9_]+$ ]] || fatal "DB_NAME inválido: $DB_NAME"
 [[ "$RESPALDO_INTERVALO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_INTERVALO_SEGUNDOS debe ser un entero"
 [[ "$RESPALDO_RETENCION_DIAS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_RETENCION_DIAS debe ser un entero"
+[[ "$RESPALDO_CANDADO_MAXIMO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_CANDADO_MAXIMO_SEGUNDOS debe ser un entero"
+[[ "$RESTAURACION_REVISAR_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESTAURACION_REVISAR_SEGUNDOS debe ser un entero"
 
 mkdir -p "$RESPALDO_DIR"
 
-# Evita dos respaldos simultáneos sin depender de flock.
+# Evita dos respaldos simultáneos sin depender de flock. El candado se toma solo mientras se
+# respalda (no durante la espera de 24 h) y se suelta también cuando Docker detiene el servicio.
 LOCK_DIR="$RESPALDO_DIR/.respaldo.lock"
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    log "Ya hay un respaldo en curso; se omite esta ejecución."
-    exit 0
-fi
+CANDADO_PROPIO=0
+
+tomar_candado() {
+    local desde edad
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+        CANDADO_PROPIO=1
+        date +%s >"$LOCK_DIR/desde"
+        return 0
+    fi
+    # ¿Lo dejó un proceso que murió sin soltarlo (por ejemplo, un apagado forzado)?
+    desde="$(cat "$LOCK_DIR/desde" 2>/dev/null || stat -c %Y "$LOCK_DIR" 2>/dev/null || echo 0)"
+    [[ "$desde" =~ ^[0-9]+$ ]] || desde=0
+    edad=$(( $(date +%s) - desde ))
+    if (( edad > RESPALDO_CANDADO_MAXIMO_SEGUNDOS )); then
+        log "Se libera un candado abandonado hace ${edad}s (máximo ${RESPALDO_CANDADO_MAXIMO_SEGUNDOS}s)."
+        rm -rf "$LOCK_DIR"
+        if mkdir "$LOCK_DIR" 2>/dev/null; then
+            CANDADO_PROPIO=1
+            date +%s >"$LOCK_DIR/desde"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+soltar_candado() {
+    if (( CANDADO_PROPIO )); then
+        rm -rf "$LOCK_DIR"
+        CANDADO_PROPIO=0
+    fi
+}
 
 # Archivo de credenciales temporal: la contraseña no aparece en la línea de comandos.
 CNF="$(mktemp)"
 cleanup() {
     rm -f "$CNF"
-    rmdir "$LOCK_DIR" 2>/dev/null || true
+    soltar_candado
 }
 trap cleanup EXIT
+# El script es el proceso principal del contenedor: sin esto, «docker stop» lo mata a los 10 s
+# sin pasar por cleanup y el candado queda para siempre.
+trap 'log "Señal de apagado recibida: se suelta el candado y se termina."; exit 143' TERM INT
 
 escapar_cnf() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
@@ -278,25 +316,84 @@ aplicar_retencion() {
     done <<<"$borrados"
 }
 
-while true; do
-    CON_TIPO=0
-    if tiene_columna_tipo; then CON_TIPO=1; fi
-
-    ok_base=1; ok_fotos=1
-    ejecutar_respaldo || ok_base=0
-    # Si la base falla, igual se intenta el respaldo de fotos (y al revés).
-    ejecutar_respaldo_fotos || ok_fotos=0
-
-    if (( ok_base && ok_fotos )); then
-        aplicar_retencion
-    elif [[ "$RESPALDO_UNA_VEZ" == "1" ]]; then
-        exit 1
+# H70: restauración pedida desde el panel. La ejecuta restaurar_version.sh con todas sus guardas
+# (huellas, mismo esquema, respaldo de seguridad previo). Pase lo que pase, la solicitud no queda abierta:
+# si quedara SOLICITADA o EN_PROCESO, las APIs seguirían en modo mantenimiento.
+atender_restauracion() {
+    local fila id version responsable
+    fila="$("${mysql_cmd[@]}" -e "SELECT id, version, COALESCE(responsable, 'Panel') FROM restauraciones
+                                  WHERE modo = 'APLICADA' AND estado = 'SOLICITADA' ORDER BY id LIMIT 1;" 2>/dev/null)" || return 0
+    [[ -n "$fila" ]] || return 0
+    IFS=$'\t' read -r id version responsable <<<"$fila"
+    if [[ ! "$id" =~ ^[0-9]+$ || ! "$version" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+        log "Solicitud de restauración con datos inválidos; se ignora."
+        return 0
+    fi
+    log "Restauración pedida desde el panel: versión $version (solicitud $id, $responsable)."
+    local salida motivo
+    salida="$(mktemp)"
+    if RESTAURACION_ID="$id" VERSION="$version" RESTAURACION_APLICAR=si RESTAURACION_RESPONSABLE="$responsable" \
+       FOTOS_EN_USO="$FOTOS_DIR" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USERNAME="$DB_USERNAME" \
+       DB_PASSWORD="$DB_PASSWORD" DB_PRODUCCION="$DB_NAME" RESPALDO_DIR="$RESPALDO_DIR" RESPALDO_PREFIJO="$RESPALDO_PREFIJO" \
+       bash "$AQUI/restaurar_version.sh" >"$salida" 2>&1; then
+        cat "$salida"
+        log "Restauración $id terminada."
     else
-        log "El respaldo falló (base=$ok_base, fotos=$ok_fotos); se reintentará en ${RESPALDO_INTERVALO_SEGUNDOS}s."
+        cat "$salida"
+        log "La restauración $id no se completó."
+    fi
+    # El motivo que dio el script, para que el panel lo muestre (sin comillas ni saltos de línea)
+    motivo="$(grep -o 'ERROR: .*' "$salida" | tail -1 | cut -c8- || true)"
+    motivo="$(sanitizar_mensaje "${motivo:-revisar el registro del servicio de respaldo}")"
+    rm -f "$salida"
+    "${mysql_cmd[@]}" -e "UPDATE restauraciones SET estado = 'FALLIDA', finalizado_en = UTC_TIMESTAMP(6),
+                            mensaje = 'No se completó: $motivo La base y las fotos en uso no cambiaron.'
+                          WHERE id = $id AND estado IN ('SOLICITADA', 'EN_PROCESO');" 2>/dev/null || true
+}
+
+# Espera entre respaldos sin dejar de revisar si el panel pidió una restauración
+esperar() {
+    local restante="$1" paso
+    while (( restante > 0 )); do
+        paso=$restante
+        if (( RESTAURACION_REVISAR_SEGUNDOS > 0 && RESTAURACION_REVISAR_SEGUNDOS < paso )); then
+            paso=$RESTAURACION_REVISAR_SEGUNDOS
+        fi
+        # En segundo plano y con wait: así la señal de apagado se atiende al instante
+        sleep "$paso" &
+        wait $!
+        restante=$(( restante - paso ))
+        if (( RESTAURACION_REVISAR_SEGUNDOS > 0 )); then
+            atender_restauracion || true
+        fi
+    done
+}
+
+while true; do
+    if tomar_candado; then
+        CON_TIPO=0
+        if tiene_columna_tipo; then CON_TIPO=1; fi
+
+        ok_base=1; ok_fotos=1
+        ejecutar_respaldo || ok_base=0
+        # Si la base falla, igual se intenta el respaldo de fotos (y al revés).
+        ejecutar_respaldo_fotos || ok_fotos=0
+
+        if (( ok_base && ok_fotos )); then
+            aplicar_retencion
+        elif [[ "$RESPALDO_UNA_VEZ" == "1" ]]; then
+            exit 1
+        else
+            log "El respaldo falló (base=$ok_base, fotos=$ok_fotos); se reintentará en ${RESPALDO_INTERVALO_SEGUNDOS}s."
+        fi
+        soltar_candado
+    else
+        log "Ya hay un respaldo en curso; se omite esta vuelta."
+        [[ "$RESPALDO_UNA_VEZ" == "1" ]] && exit 0
     fi
 
     [[ "$RESPALDO_UNA_VEZ" == "1" ]] && break
 
     log "Próximo respaldo en ${RESPALDO_INTERVALO_SEGUNDOS}s."
-    sleep "$RESPALDO_INTERVALO_SEGUNDOS"
+    esperar "$RESPALDO_INTERVALO_SEGUNDOS"
 done

@@ -21,6 +21,7 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .authentication import get_jwt_secret
+from .models import ZONA_LIMA
 
 TIPO_TOKEN_CUSTODIA = "custodia"
 
@@ -75,7 +76,8 @@ def _fecha_local(valor) -> str:
     if valor is None:
         return "—"
     if timezone.is_aware(valor):
-        valor = timezone.localtime(valor)
+        # Se imprime para personas en Lima; Django trabaja en UTC (TIME_ZONE) y así debe seguir la API
+        valor = timezone.localtime(valor, ZONA_LIMA)
     return valor.strftime("%d/%m/%Y %H:%M")
 
 

@@ -27,6 +27,8 @@ from .disposicion import (
 )
 from .firebase import revocar_al_confirmar as revocar_firebase
 from .models import (
+    filtro_dias_lima,
+    ZONA_LIMA,
     AvisoDestacado,
     ROL_CHOICES,
     Campana,
@@ -269,7 +271,7 @@ class DashboardExportView(APIView):
         responsable = f"{request.user.nombre} {request.user.apellido}".strip()
         if request.user.correo:
             responsable = f"{responsable} ({request.user.correo})"
-        emitido = timezone.localtime()
+        emitido = timezone.localtime(timezone=ZONA_LIMA)  # fecha y hora de Lima en el reporte
 
         if formato == "xlsx":
             contenido = excel_reporte(datos, responsable, emitido)
@@ -517,13 +519,13 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
             fecha = parse_date(desde)
             if fecha is None:
                 raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_recepcion__date__gte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_recepcion", desde=fecha)
         hasta = self.request.query_params.get("hasta")
         if hasta:
             fecha = parse_date(hasta)
             if fecha is None:
                 raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_recepcion__date__lte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_recepcion", hasta=fecha)
         return qs
 
     def create(self, request, *args, **kwargs):
@@ -556,7 +558,7 @@ class CustodiaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
 
             custodia = Custodia(
                 objeto=objeto,
-                codigo=_siguiente_codigo_custodia(timezone.localdate().year),
+                codigo=_siguiente_codigo_custodia(hoy_en_lima().year),  # el año de Lima, no el de UTC
                 recibido_por=request.user,
                 fecha_recepcion=timezone.now().replace(microsecond=0),
                 observaciones=observaciones,
@@ -767,13 +769,13 @@ class ReclamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             fecha = parse_date(desde)
             if fecha is None:
                 raise ValidationError({"desde": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_reclamo__date__gte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_reclamo", desde=fecha)
         hasta = self.request.query_params.get("hasta")
         if hasta:
             fecha = parse_date(hasta)
             if fecha is None:
                 raise ValidationError({"hasta": "Fecha inválida; usa AAAA-MM-DD."})
-            qs = qs.filter(fecha_reclamo__date__lte=fecha)
+            qs = filtro_dias_lima(qs, "fecha_reclamo", hasta=fecha)
         return qs
 
     @action(detail=True, methods=["post"], url_path="resolver")

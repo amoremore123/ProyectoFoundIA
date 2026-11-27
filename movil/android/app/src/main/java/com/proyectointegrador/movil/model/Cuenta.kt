@@ -1,6 +1,6 @@
 package com.proyectointegrador.movil.model
 
-data class Usuario(val id: Long, val nombre: String, val apellido: String, val correo: String, val rol: String, val estado: String)
+data class Usuario(val id: Long, val nombre: String, val apellido: String, val correo: String, val rol: String, val estado: String, val fotoPerfilUrl: String? = null)
 data class Acceso(val token: String, val usuario: Usuario)
 data class Login(val correo: String, val password: String)
 data class Registro(val nombre: String, val apellido: String, val correo: String, val password: String,
@@ -12,7 +12,9 @@ data class FuenteLegal(val id: String, val titulo: String, val url: String, val 
     val sha256Original: String, val sha256Texto: String)
 data class Documentos(val version: String, val estado: String, val terminos: String, val privacidad: String, val sha256: String,
     val aviso: String? = null, val fuentes: List<FuenteLegal>? = null)
-data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true, val recordatorios: Boolean? = null)
+data class Preferencias(val coincidencias: Boolean = true, val contactos: Boolean = true, val reclamos: Boolean = true, val recordatorios: Boolean? = null,
+    /** H68: canal de cada tipo de aviso (PUSH, CORREO, AMBOS o NINGUNO). Null si el servidor no lo envía. */
+    val canales: Map<String, String>? = null)
 data class Aviso(val id: Long, val titulo: String, val mensaje: String, val tipo: String, val leida: Boolean,
     val fechaCreacion: String?, val enlace: String?)
 enum class FiltroAvisos { TODAS, NO_LEIDAS, LEIDAS }

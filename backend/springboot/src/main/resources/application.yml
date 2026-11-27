@@ -46,13 +46,6 @@ spring:
       spec: maximumSize=50,expireAfterWrite=60s
 
 # Swagger UI en /swagger-ui.html y el contrato OpenAPI en /v3/api-docs
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    operations-sorter: method
-    tags-sorter: alpha
-    try-it-out-enabled: true
-
 # Actuator: solo /actuator/health, con el estado de cada parte (base de datos, disco) sin detalles
 management:
   endpoints:
@@ -132,3 +125,15 @@ app:
     timeout-ms: ${VOZ_TIMEOUT_MS:10000}
     limite-por-minuto: ${VOZ_LIMITE_POR_MINUTO:10}
     limite-caracteres-dia: ${VOZ_LIMITE_CARACTERES_DIA:2000}
+
+# Swagger/OpenAPI: documentación de la API en vivo. Apagado por defecto: en producción no se publica el mapa
+# completo de la API. Para la demo o en desarrollo: SWAGGER_HABILITADO=true → /swagger-ui.html
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_HABILITADO:false}
+  swagger-ui:
+    enabled: ${SWAGGER_HABILITADO:false}
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+

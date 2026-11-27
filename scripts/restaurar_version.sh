@@ -10,6 +10,7 @@
 #   - APLICAR (RESTAURACION_APLICAR=si y RESTAURACION_RESPONSABLE=<nombre>):
 #     hace antes un respaldo de seguridad del estado actual, reemplaza la base
 #     y las fotos en uso, conserva el historial de respaldos y restauraciones
+#     y las solicitudes de eliminación de cuenta (H34)
 #     y cierra todas las sesiones.
 #
 # Corre en la imagen del servicio de respaldo. Ver docs/api/sprint4-h70.md.
@@ -29,6 +30,8 @@ DB_ENSAYO="${DB_ENSAYO:-objetos_perdidos_version}"
 FOTOS_EN_USO="${FOTOS_EN_USO:-}"
 RESTAURACION_APLICAR="${RESTAURACION_APLICAR:-no}"
 RESTAURACION_RESPONSABLE="${RESTAURACION_RESPONSABLE:-}"
+# H70: id de la restauración SOLICITADA desde el panel; si viene, se usa esa fila en vez de crear otra
+RESTAURACION_ID="${RESTAURACION_ID:-}"
 MANTENER_ENSAYO="${MANTENER_ENSAYO:-no}"
 DESFASE_MAXIMO_SEGUNDOS="${DESFASE_MAXIMO_SEGUNDOS:-3600}"
 
@@ -166,10 +169,21 @@ existe_restauraciones="$(sql_prod "SELECT COUNT(*) FROM information_schema.table
 [[ "$existe_restauraciones" == "1" ]] || fatal "Falta la tabla restauraciones: aplica database/migracion_h70_restauraciones.sql."
 
 MODO="ENSAYO"; (( APLICAR )) && MODO="APLICADA"
-REG_ID="$(sql_prod "INSERT INTO restauraciones (version, modo, estado, respaldo_base, respaldo_fotos, responsable, iniciado_en)
-    VALUES ('$VERSION', '$MODO', 'EN_PROCESO', '$(basename "$BASE_ARCHIVO")', '$(basename "$FOTOS_ARCHIVO")',
-            $( (( APLICAR )) && printf "'%s'" "$RESPONSABLE" || printf 'NULL'), UTC_TIMESTAMP(6));
-    SELECT LAST_INSERT_ID();")"
+if [[ -n "$RESTAURACION_ID" ]]; then
+    [[ "$RESTAURACION_ID" =~ ^[0-9]+$ ]] || fatal "RESTAURACION_ID inválido."
+    (( APLICAR )) || fatal "Una restauración pedida desde el panel siempre se aplica (RESTAURACION_APLICAR=si)."
+    tomada="$(sql_prod "UPDATE restauraciones SET estado = 'EN_PROCESO', iniciado_en = UTC_TIMESTAMP(6),
+                            respaldo_base = '$(basename "$BASE_ARCHIVO")', respaldo_fotos = '$(basename "$FOTOS_ARCHIVO")'
+                         WHERE id = $RESTAURACION_ID AND estado = 'SOLICITADA' AND version = '$VERSION';
+                        SELECT ROW_COUNT();")"
+    [[ "$tomada" == "1" ]] || fatal "La restauración $RESTAURACION_ID no está SOLICITADA para la versión $VERSION."
+    REG_ID="$RESTAURACION_ID"
+else
+    REG_ID="$(sql_prod "INSERT INTO restauraciones (version, modo, estado, respaldo_base, respaldo_fotos, responsable, iniciado_en)
+        VALUES ('$VERSION', '$MODO', 'EN_PROCESO', '$(basename "$BASE_ARCHIVO")', '$(basename "$FOTOS_ARCHIVO")',
+                $( (( APLICAR )) && printf "'%s'" "$RESPONSABLE" || printf 'NULL'), UTC_TIMESTAMP(6));
+        SELECT LAST_INSERT_ID();")"
+fi
 [[ "$REG_ID" =~ ^[0-9]+$ ]] || fatal "No se pudo registrar la restauración."
 
 inicio="$(date +%s)"
@@ -269,12 +283,13 @@ SEGURIDAD="$(marca_de "$despues")"
 sql_prod "UPDATE restauraciones SET respaldo_seguridad='$SEGURIDAD' WHERE id=$REG_ID;"
 log "Respaldo de seguridad: versión $SEGURIDAD"
 
-# 5b. Lo que se conserva: historial de respaldos y restauraciones, y la versión de sesión de cada cuenta.
+# 5b. Lo que se conserva: historial de respaldos y restauraciones, las solicitudes de eliminación (H34: una
+# versión vieja no debe revivir una cuenta ya eliminada) y la versión de sesión de cada cuenta.
 PASO="guardar el historial y las sesiones"
 opciones_dump=(--single-transaction --skip-lock-tables --no-create-info --skip-triggers --default-character-set=utf8mb4)
 mysqldump --help 2>/dev/null | grep -q -- '--set-gtid-purged' && opciones_dump+=(--set-gtid-purged=OFF)
 mysqldump --help 2>/dev/null | grep -q -- '--no-tablespaces' && opciones_dump+=(--no-tablespaces)
-mysqldump --defaults-extra-file="$CNF" "${opciones_dump[@]}" "$DB_PRODUCCION" respaldos restauraciones >"$TRABAJO/historial.sql"
+mysqldump --defaults-extra-file="$CNF" "${opciones_dump[@]}" "$DB_PRODUCCION" respaldos restauraciones solicitudes_eliminacion >"$TRABAJO/historial.sql"
 sql_prod "SELECT id, sesion_version FROM usuarios;" >"$TRABAJO/sesiones.tsv"
 valores=""
 while IFS=$'\t' read -r id ver; do
@@ -290,8 +305,8 @@ DB_NAME="$DB_PRODUCCION" DB_PRODUCCION="$DB_PRODUCCION" RESPALDO_ARCHIVO="$BASE_
 RESTAURACION_PERMITIR_PRODUCCION=si RESTAURACION_PERMITIR_SOBREESCRITURA=si \
     bash "$AQUI/restaurar_respaldo.sh" >/dev/null || fatal "Falló el reemplazo de la base en uso."
 
-PASO="devolver el historial de respaldos y restauraciones"
-sql_prod "SET FOREIGN_KEY_CHECKS=0; DELETE FROM restauraciones; DELETE FROM respaldos; SET FOREIGN_KEY_CHECKS=1;"
+PASO="devolver el historial de respaldos, restauraciones y solicitudes de eliminación"
+sql_prod "SET FOREIGN_KEY_CHECKS=0; DELETE FROM restauraciones; DELETE FROM respaldos; DELETE FROM solicitudes_eliminacion; SET FOREIGN_KEY_CHECKS=1;"
 mysql --defaults-extra-file="$CNF" --database="$DB_PRODUCCION" <"$TRABAJO/historial.sql"
 
 PASO="cerrar todas las sesiones"
@@ -326,3 +341,10 @@ TERMINADO=1
 PRODUCCION_TOCADA=0
 log "Versión $VERSION aplicada en $(( $(date +%s) - inicio ))s. Se cerraron todas las sesiones."
 log "Para deshacerla: VERSION=$SEGURIDAD RESTAURACION_APLICAR=si RESTAURACION_RESPONSABLE=<nombre>."
+# H34: la versión restaurada puede traer de vuelta cuentas que ya se eliminaron
+revividas="$(sql_prod "SELECT COUNT(*) FROM solicitudes_eliminacion s JOIN usuarios u ON u.id = s.usuario_id
+                        WHERE s.estado = 'ATENDIDA' AND u.estado <> 'ELIMINADO';" 2>/dev/null || echo 0)"
+if [[ "$revividas" =~ ^[0-9]+$ ]] && (( revividas > 0 )); then
+    log "IMPORTANTE (H34): la versión trajo de vuelta $revividas cuenta(s) que ya se habían eliminado."
+    log "  Ejecuta en el panel: docker compose exec admin-api python manage.py reaplicar_eliminaciones"
+fi
