@@ -398,3 +398,9 @@ export const registrarRetiro = async (token, etiqueta) => {
 };
 
 export default api;
+
+// H62: foto privada de un mensaje del chat, con el token del panel.
+export const getFotoChat = async (url) => {
+  const { data } = await chatApi.get(url, { responseType: 'blob' });
+  return data;
+};

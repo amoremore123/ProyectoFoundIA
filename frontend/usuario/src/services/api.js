@@ -477,3 +477,9 @@ export const marcarNotificacionLeida = async (id) => {
 };
 
 export default api;
+
+// H62: la foto de un mensaje del chat es privada; se descarga con el token de la sesión.
+export const getFotoChat = async (url) => {
+  const { data } = await api.get(url, { responseType: 'blob' });
+  return data;
+};

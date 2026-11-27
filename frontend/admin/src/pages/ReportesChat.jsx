@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ConfirmarDialogo from '../components/ConfirmarDialogo';
+import FotoChatPrivada from '../components/FotoChatPrivada';
 import Icono from '../components/Icono';
 import { useToast } from '../context/ToastContext';
-import { CHAT_URL, getReportesMensajes, mensajeError, resolverReporteMensaje, statusDe } from '../services/api';
+import { getReportesMensajes, mensajeError, resolverReporteMensaje, statusDe } from '../services/api';
 import { fechaHora, Paginacion } from './Custodia';
 
 // H56: mensajes del chat que alguien reportó. El administrador ve el texto y el autor (sin correos ni
@@ -24,11 +25,6 @@ const ACCIONES = {
   SUSPENDER: { texto: 'Suspender la cuenta del autor', confirmar: 'Sí, suspender', aviso: 'La cuenta quedará suspendida y su sesión dejará de valer en la web, la app y el panel.' },
 };
 const VACIA = { count: 0, results: [], next: null, previous: null };
-
-function fotoUrl(url) {
-  if (!url) return '';
-  return /^https?:\/\//.test(url) ? url : `${CHAT_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-}
 
 export default function ReportesChat() {
   const { mostrarToast } = useToast();
@@ -98,7 +94,7 @@ export default function ReportesChat() {
         <form ref={panel} className="tarjeta formulario resolver-panel" onSubmit={pedirConfirmacion} noValidate aria-label={`Resolver reporte #${seleccionado.id}`}>
           <h2>Resolver reporte #{seleccionado.id}</h2>
           <blockquote className="reporte-chat-mensaje">
-            {seleccionado.mensaje?.imagenUrl && <img src={fotoUrl(seleccionado.mensaje.imagenUrl)} alt="Foto del mensaje reportado" />}
+            {seleccionado.mensaje?.imagenUrl && <FotoChatPrivada url={seleccionado.mensaje.imagenUrl} alt="Foto del mensaje reportado" />}
             {seleccionado.mensaje?.texto && <p>{seleccionado.mensaje.texto}</p>}
             <footer className="nota-tabla">{seleccionado.autor?.nombre} · {fechaHora(seleccionado.mensaje?.enviadoEn)}</footer>
           </blockquote>

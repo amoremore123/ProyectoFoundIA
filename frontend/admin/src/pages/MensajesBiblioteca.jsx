@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import FotoChatPrivada from '../components/FotoChatPrivada';
 import Icono from '../components/Icono';
 import { useAuth } from '../context/AuthContext';
 import {
-  CHAT_URL, getBandejaChat, getMensajesChat, marcarChatLeido, mensajeError, responderChat, statusDe,
+  getBandejaChat, getMensajesChat, marcarChatLeido, mensajeError, responderChat, statusDe,
 } from '../services/api';
 
 // H63: bandeja de la biblioteca. Quien reclamó un objeto en custodia escribe desde la web o la app;
@@ -20,11 +21,6 @@ function unir(actuales, nuevos) {
   if (!nuevos?.length) return actuales;
   const vistos = new Set(actuales.map((m) => m.id));
   return [...actuales, ...nuevos.filter((m) => !vistos.has(m.id))].sort((a, b) => a.id - b.id);
-}
-
-function fotoUrl(url) {
-  if (!url) return '';
-  return /^https?:\/\//.test(url) ? url : `${CHAT_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 export default function MensajesBiblioteca() {
@@ -193,7 +189,7 @@ export default function MensajesBiblioteca() {
                   return (
                     <li key={m.id} className={`bandeja-chat-burbuja ${personal ? 'personal' : 'reclamante'}`}>
                       <span className="bandeja-chat-autor">{m.autorId === user?.id ? 'Tú' : m.autorNombre}</span>
-                      {m.imagenUrl && <img src={fotoUrl(m.imagenUrl)} alt={`Foto enviada por ${m.autorNombre}`} />}
+                      {m.imagenUrl && <FotoChatPrivada url={m.imagenUrl} alt={`Foto enviada por ${m.autorNombre}`} />}
                       {m.texto && <p>{m.texto}</p>}
                       <time dateTime={m.enviadoEn}>{hora(m.enviadoEn)}</time>
                     </li>

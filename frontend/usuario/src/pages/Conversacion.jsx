@@ -1,3 +1,4 @@
+import FotoChatPrivada from '../components/FotoChatPrivada';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Cargando from '../components/Cargando';
@@ -7,7 +8,7 @@ import AvatarConversacion from '../components/AvatarConversacion';
 import MensajeError from '../components/MensajeError';
 import { useAuth } from '../context/AuthContext';
 import {
-  bloquearConversacion, desbloquearConversacion, enviarFotoChat, enviarMensaje, fotoUrl, getConversacion,
+  bloquearConversacion, desbloquearConversacion, enviarFotoChat, enviarMensaje, getConversacion,
   getMensajes, marcarConversacionLeida, mensajeError, reportarMensaje, statusDe,
 } from '../services/api';
 import {
@@ -251,9 +252,7 @@ export default function Conversacion() {
             <li key={m.id} className={`conv-burbuja ${propio ? 'conv-propio' : 'conv-ajeno'}`}>
               <span className="conv-autor">{propio ? 'Tú' : m.autorNombre}</span>
               {m.imagenUrl && (
-                <a href={fotoUrl(m.imagenUrl)} target="_blank" rel="noopener noreferrer" className="conv-foto">
-                  <img src={fotoUrl(m.imagenUrl)} alt={`Foto enviada por ${propio ? 'ti' : m.autorNombre}`} loading="lazy" />
-                </a>
+                <FotoChatPrivada url={m.imagenUrl} alt={`Foto enviada por ${propio ? 'ti' : m.autorNombre}`} />
               )}
               {m.texto && <p className="conv-texto">{m.texto}</p>}
               <span className="conv-meta">
