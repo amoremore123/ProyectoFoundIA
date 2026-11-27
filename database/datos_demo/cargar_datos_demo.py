@@ -12,8 +12,8 @@ from datetime import date
 CLAVE = os.environ.get("FOUNDIA_QA_PASSWORD")
 if not CLAVE:
     sys.exit("Define la variable de entorno FOUNDIA_QA_PASSWORD con la contraseña de las cuentas de prueba del seed.")
-SPRING = "http://127.0.0.1:18281"
-DJANGO = "http://127.0.0.1:18200"
+SPRING = os.environ.get("FOUNDIA_SPRING_URL", "http://127.0.0.1:8081")
+DJANGO = os.environ.get("FOUNDIA_DJANGO_URL", "http://127.0.0.1:8000")
 HOY = str(date.today())
 
 
