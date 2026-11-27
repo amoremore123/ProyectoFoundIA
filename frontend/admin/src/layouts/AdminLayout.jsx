@@ -28,6 +28,8 @@ const menu = [
   { to: '/vencidos', icono: 'reloj', label: 'Vencidos' },
   // H58/H59: respaldos de la base y de las fotos (solo ADMIN)
   { to: '/respaldos', icono: 'escudo', label: 'Respaldos' },
+  // H34: solicitudes de eliminación de cuenta (solo ADMIN)
+  { to: '/eliminaciones', icono: 'usuarios', label: 'Eliminar cuentas' },
   // H60: campañas de difusión (solo ADMIN)
   { to: '/campanas', icono: 'megafono', label: 'Campañas' },
   // H71: avisos destacados con vigencia (solo ADMIN)

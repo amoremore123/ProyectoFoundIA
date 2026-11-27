@@ -14,6 +14,7 @@ import Custodia from './pages/Custodia';
 import Reclamos from './pages/Reclamos';
 import Vencidos from './pages/Vencidos';
 import Respaldos from './pages/Respaldos';
+import SolicitudesEliminacion from './pages/SolicitudesEliminacion';
 import Campanas from './pages/Campanas';
 import MensajesBiblioteca from './pages/MensajesBiblioteca';
 import AvisosDestacados from './pages/AvisosDestacados';
@@ -67,6 +68,8 @@ export default function App() {
                 <Route path="/vencidos" element={<SoloRol ruta="/vencidos"><Vencidos /></SoloRol>} />
                 {/* H58 y H59 (Sprint 4): solo ADMIN */}
                 <Route path="/respaldos" element={<SoloRol ruta="/respaldos"><Respaldos /></SoloRol>} />
+                {/* H34 (Sprint 4): eliminación de cuentas, solo ADMIN */}
+                <Route path="/eliminaciones" element={<SoloRol ruta="/eliminaciones"><SolicitudesEliminacion /></SoloRol>} />
                 {/* H60 (Sprint 4): solo ADMIN */}
                 <Route path="/campanas" element={<SoloRol ruta="/campanas"><Campanas /></SoloRol>} />
                 {/* H71 (Sprint 4): solo ADMIN */}

@@ -414,3 +414,22 @@ export const getRestauracion = async (id) => {
   const { data } = await api.get(`/api/admin/restauraciones/${id}/`);
   return data;
 };
+
+// H34: solicitudes de eliminación de cuenta (solo ADMIN)
+export const getSolicitudesEliminacion = async (filtros, numero) => pagina('/api/admin/solicitudes-eliminacion/', filtros, numero);
+export const getEliminacion = async (id) => {
+  const { data } = await api.get(`/api/admin/solicitudes-eliminacion/${id}/`);
+  return data;
+};
+export const atenderEliminacion = async (id, confirmacion) => {
+  const { data } = await api.post(`/api/admin/solicitudes-eliminacion/${id}/atender/`, { confirmacion });
+  return data;
+};
+export const rechazarEliminacion = async (id, motivo) => {
+  const { data } = await api.post(`/api/admin/solicitudes-eliminacion/${id}/rechazar/`, { motivo });
+  return data;
+};
+export const reaplicarEliminaciones = async () => {
+  const { data } = await api.post('/api/admin/solicitudes-eliminacion/reaplicar/');
+  return data;
+};
