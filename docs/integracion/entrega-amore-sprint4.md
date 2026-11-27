@@ -1,8 +1,9 @@
 # Entrega de Amore · Sprint 4 (Android)
 
-Rama: `mobile/android`. Fecha de esta versión: 24/11/2026. Todo lo que dice «probado» se ejecutó en el **emulador**
-(Medium_Phone, Android con Google Play) contra el backend real de QA (MySQL 8 y los contenedores del equipo), no en un
-teléfono físico. Las evidencias están en `docs/pruebas/sprint4-amore/`.
+Rama: `mobile/android`. Fecha de esta versión: 27/11/2026 (corregida; la del 24/11 se escribió antes de usar el teléfono). Lo que dice «probado en
+emulador» se ejecutó en el emulador (Medium_Phone) contra el backend real de QA (MySQL 8). Lo que dice «probado en teléfono»
+se ejecutó el 24/11 en un **moto g(20) prestado por una compañera** (Amore solo tiene iPhone). Evidencias en
+`docs/pruebas/sprint4-amore/` y `docs/pruebas/sprint4-amore/telefono-fisico/`.
 
 ## Qué se entrega
 
@@ -25,7 +26,7 @@ teléfono físico. Las evidencias están en `docs/pruebas/sprint4-amore/`.
 
 ## Pruebas
 
-- Unitarias: **152 de 152** (varias corridas limpias seguidas).
+- Unitarias: **159 de 159** (5 corridas limpias seguidas el 27/11). `ExperienciaTest` fallaba de forma intermitente en CI (26/11) por errores de corrutinas de otras pruebas; se pasó a `runBlocking`. No se pudo leer el CI desde aquí (no hay `gh`), así que falta confirmarlo en GitHub.
 - Instrumentadas en el emulador: **15 ejecutadas, 0 fallas, 2 omitidas** (necesitan un servidor propio). Incluyen las migraciones
   de Room 1→2→3→4→5 (la 5 es la cola de publicaciones) y la prueba con el proyecto real de Firebase (token de push).
 - Chat contra MySQL real: 24 casos de API sin fallas. Backend integrado de Leonel: 13 de 13 casos de API.
@@ -35,10 +36,15 @@ teléfono físico. Las evidencias están en `docs/pruebas/sprint4-amore/`.
 - **Push con la app cerrada** (semana 12): requiere que el servidor de Leonel envíe con la cuenta de servicio y un teléfono
   o emulador con la app registrada; no se hizo de punta a punta.
 - **H72 de punta a punta**: la ruta `/api/auth/firebase-token` responde 503 en el QA sin credenciales; la app sigue con su sesión normal.
-- **Dictado con ruido (H46), TalkBack con voz (H51) y cámara física (H52)**: necesitan un Android físico; no hay uno disponible.
-  Cualquier compañero con Android puede ejecutarlas con el APK y los casos de `docs/pruebas/`.
-- **H44 (escaneo de etiqueta y QR)**: Amore informó que se probó en su salón y funciona; no hay capturas.
+- **H51 (TalkBack con voz)**: no se probó en teléfono. Queda sin probar o se declara fuera de alcance por escrito.
+- **Probado en teléfono físico (24/11, moto g(20))**: H52 cámara (3 casos), H44 escaneo de etiqueta con cámara real (4 casos) y H46 dictado (3 casos, con correcciones: aviso de «escuchando», mensajes de error y detener la voz al salir). Ver `telefono-fisico/resultados-h52-h44.md`.
+- **Voz natural de FINDI (H46)**: la app la pide a `/api/asistente/voz` y, si responde 503 (QA sin `VOZ_API_KEY`/`VOZ_ID`), lee con la voz del teléfono. La voz natural real **no se probó**; solo el respaldo y pruebas unitarias.
+- **Rotación**: se corrigió que se perdieran los datos al girar (probado en emulador).
 - **Mapa de Google real**: no se usó porque Google Cloud exige una cuenta de facturación. El mapa se muestra con OpenStreetMap (dependencia `osmdroid`, con la atribución que exige su licencia). El código de Google Maps queda y se activa solo si alguien define `foundiaMapsKey`.
+
+## Nota sobre commits
+
+Algunos commits de esta rama mezclan varias historias; no se reescribió el historial. Un archivo `google-services (2).json` se subió por error y se quitó después, pero **sigue en el historial** (es configuración de cliente, no un secreto).
 
 ## Límites conocidos
 
