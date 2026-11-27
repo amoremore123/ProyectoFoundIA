@@ -30,6 +30,9 @@ RESPALDO_FOTOS="${RESPALDO_FOTOS:-1}"
 FOTOS_DIR="${FOTOS_DIR:-/fotos}"
 # Un candado más viejo que esto lo dejó un proceso que ya no existe (ningún respaldo dura tanto).
 RESPALDO_CANDADO_MAXIMO_SEGUNDOS="${RESPALDO_CANDADO_MAXIMO_SEGUNDOS:-7200}"
+# Si el candado está tomado por un respaldo en curso (o por uno abandonado todavía reciente), se vuelve a
+# intentar en pocos minutos y no hasta el próximo intervalo: un apagado forzado no debe costar un día de respaldo.
+RESPALDO_REINTENTO_CANDADO_SEGUNDOS="${RESPALDO_REINTENTO_CANDADO_SEGUNDOS:-300}"
 # H70: cada cuántos segundos se revisa si el panel pidió restaurar una versión (0 = no se revisa)
 RESTAURACION_REVISAR_SEGUNDOS="${RESTAURACION_REVISAR_SEGUNDOS:-15}"
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,6 +50,7 @@ fatal() {
 [[ "$RESPALDO_INTERVALO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_INTERVALO_SEGUNDOS debe ser un entero"
 [[ "$RESPALDO_RETENCION_DIAS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_RETENCION_DIAS debe ser un entero"
 [[ "$RESPALDO_CANDADO_MAXIMO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_CANDADO_MAXIMO_SEGUNDOS debe ser un entero"
+[[ "$RESPALDO_REINTENTO_CANDADO_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESPALDO_REINTENTO_CANDADO_SEGUNDOS debe ser un entero"
 [[ "$RESTAURACION_REVISAR_SEGUNDOS" =~ ^[0-9]+$ ]] || fatal "RESTAURACION_REVISAR_SEGUNDOS debe ser un entero"
 
 mkdir -p "$RESPALDO_DIR"
@@ -388,8 +392,10 @@ while true; do
         fi
         soltar_candado
     else
-        log "Ya hay un respaldo en curso; se omite esta vuelta."
-        [[ "$RESPALDO_UNA_VEZ" == "1" ]] && exit 0
+        [[ "$RESPALDO_UNA_VEZ" == "1" ]] && { log "Ya hay un respaldo en curso; se omite esta vuelta."; exit 0; }
+        log "Ya hay un respaldo en curso; se vuelve a intentar en ${RESPALDO_REINTENTO_CANDADO_SEGUNDOS}s."
+        esperar "$RESPALDO_REINTENTO_CANDADO_SEGUNDOS"
+        continue
     fi
 
     [[ "$RESPALDO_UNA_VEZ" == "1" ]] && break
