@@ -12,8 +12,8 @@ se ejecutó el 24/11 en un **moto g(20) prestado por una compañera** (Amore sol
 | M1 | Teclado sin hueco, «En custodia» en un solo lugar, categorías ordenadas | Probado en emulador |
 | M3 | Búsqueda avanzada (ubicación, fechas, radio, chips de filtros) | Probado en emulador contra la API real |
 | M4 | Ubicación con GPS, lugares del campus y mapa con el punto de la publicación: **OpenStreetMap** (gratis, sin clave) y Google Maps solo si el equipo configura una clave (la clave va fuera de Git) | GPS y mapa de OpenStreetMap probados en emulador; Google Maps no probado (Google Cloud pide facturación y no se usó) |
-| M5 | Editar y eliminar mis publicaciones | Pruebas unitarias |
-| M6 | Búsqueda por foto | Pruebas unitarias; la IA real responde 503 en QA sin clave |
+| M5 | Editar y eliminar mis publicaciones | Pruebas unitarias y API real (27/11): editar y eliminar como dueña, `403` a otra persona; ver `m5-m6-api-real.md` |
+| M6 | Búsqueda por foto | Pruebas unitarias; la API real valida la foto y responde 503 en QA sin clave de IA: **sin probar de punta a punta** |
 | H73 | WebView restringido a nuestro servidor (JavaScript solo del dominio propio, sin acceso a archivos) | Pruebas unitarias y emulador |
 | H55 a H63 | Chat: lista, envío, fotos, bloquear, reportar, solo lectura y chat con la biblioteca | Probado en emulador con el backend real |
 | H62 | Las fotos del chat son privadas: se piden con la sesión, solo a rutas del chat | Probado en emulador |
